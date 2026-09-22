@@ -53,6 +53,7 @@
     Sem ele, compila contra o stub (Positron.CadStub) para gate de compilação.
   -->
   <PropertyGroup Condition="'$(CadPlatform)' == 'ZWCAD'">
+    <ZWCadDir Condition="'$(ZWCadDir)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\ZWCAD\2026\ZwManaged.dll')">$(MSBuildThisFileDirectory)..\lib\ZWCAD\2026</ZWCadDir>
     <ZWCadDir Condition="'$(ZWCadDir)' == '' And Exists('$(ProgramFiles)\ZWSOFT\ZWCAD 2026')">$(ProgramFiles)\ZWSOFT\ZWCAD 2026</ZWCadDir>
     <ZWCadDir Condition="'$(ZWCadDir)' == '' And Exists('$(ProgramFiles)\ZWSOFT\ZWCAD 2025')">$(ProgramFiles)\ZWSOFT\ZWCAD 2025</ZWCadDir>
   </PropertyGroup>

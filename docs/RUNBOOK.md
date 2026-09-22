@@ -140,12 +140,13 @@ com um erro de compilação vermelho só atrapalha. `cargo check` é o gate.
 
 ## Rodar o plugin dentro de um CAD de verdade
 
-O `plugin:build` compila contra o **stub** quando não acha o CAD — isso valida a
-sintaxe, mas **não** prova que o plugin carrega. Nesta máquina o **ZWCAD 2026 está
-instalado**, então `npm run plugin:build` resolve a `ZWCadDir` sozinho e gera
-`Positron.Plugin.ZWCAD.dll` contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`), e o
-`ZWCAD.exe` carrega a DLL por `NETLOAD` (seção "ZWCAD 2026 (alvo principal)" abaixo).
-O **AutoCAD não está instalado** aqui: `npm run plugin:build:autocad` cai no **stub**
+As DLLs da API real do **ZWCAD 2026** (`ZwManaged`/`ZwDatabaseMgd`) estão
+versionadas em `cad-plugin/lib/ZWCAD/2026`; portanto, `npm run plugin:build`
+compila o plugin real sem exigir a instalação do ZWCAD. Isso valida a
+compilação, mas não substitui o teste de carregamento dentro do CAD. Nesta
+máquina o **ZWCAD 2026 está instalado** e o executável carrega a DLL por
+`NETLOAD` (seção "ZWCAD 2026 (alvo principal)" abaixo). O **AutoCAD não está
+instalado** aqui: `npm run plugin:build:autocad` cai no **stub**
 (`Positron.CadStub`) — é o único uso do stub nesta máquina, e serve de gate de
 compilação da plataforma AutoCAD.
 
@@ -756,9 +757,48 @@ borne, a régua da máscara, as portas discrepantes, o principal × auxiliar, os
 editados (`bt9`, rodada 55), os blocos duplicados (`bt12`, rodada 56) e os terminais e
 bornes das portas (`bt5`/`bt6`, rodada 59). O mapeamento botão a botão está no `PLANO.md` §7.1. O verificador
 da **interligação** (outra tela) teve a árvore portada na rodada 57 (jumper indefinido,
-jumper duplicado e trecho indefinido, o `carregaTree`); resta só o **cabo indefinido**
-(`IndefineCabosNaoExistentes`), que é uma **ação** — regrava o XData do desenho — e não uma
-checagem read-only.
+jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
+(`IndefineCabosNaoExistentes`) entrou na rodada 60 como comando próprio (`INDCABO`) — é
+uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
+abaixo.
+
+**Rodada 60 — ação "Corrigir cabos" (`INDCABO`, o `IndefineCabosNaoExistentes`).** É o
+botão `BTCorrigeCabos` da tela de verificação da **interligação**: o trecho cujo
+`Tag_Cabo` não existe no catálogo (`Cabos`) perde o cabo e a veia no XData, e o rótulo
+auxiliar (`AUXINTERLIG` tipo 1) vira o caracter de terminal indefinido. É a contrapartida
+de **escrita** da regra read-only `CaboSemCatalogo` que o `VERIF` reporta. Duas guardas do
+original foram reproduzidas: **catálogo vazio não faz nada** (`if (lCabos.Count <= 0)
+return;` — sem isso a ação apagaria a tag de todo trecho do desenho) e a comparação é
+**ordinal** (sensível a caixa, o `List(Of String).Contains` do original).
+
+A prova é o próprio ciclo do plugin, e não SQL cru: uma fixture com dois trechos — um
+cabo no catálogo e um **fantasma** — e um rótulo de cabo, com o catálogo semeado na mão
+(`INSERT INTO Cabos(Tag, Blindagem) VALUES('CABO-OK', 0)`):
+
+```bash
+# banco com o catálogo semeado
+python -c "import sys; sys.path.insert(0, r'services/sidecar/src'); \
+  from sidecar.db.project import ProjectDatabase; ProjectDatabase(r'<db>').create_from_schema()"
+python -c "import sqlite3; c=sqlite3.connect(r'<db>'); \
+  c.execute(\"INSERT INTO Cabos(Tag, Blindagem) VALUES('CABO-OK', 0)\"); c.commit()"
+
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Banco "<db>" \
+  -Fixture scripts/cad-fixture-indefcab.lsp -Comandos ELET,INT,INDCABO,INT,VERIF
+```
+
+Log medido no ZWCAD 2026 (a **prova** é o segundo `INT` cair de 2 para **1**: a leitura da
+projeção descarta `Num_Veia == -1000`, ou seja o XData foi mesmo regravado):
+
+```text
+INT: 2 linha(s) gravada(s) em Interligacao4 (0 borne(s)); ... 2 cabo(s) em Cabos4
+INDCABO: 1 de 2 trecho(s) de interligação indefinido(s); 1 de 1 rótulo(s) do cabo com o caracter indefinido (catálogo: 2 cabo(s)).
+INT: 1 linha(s) gravada(s) em Interligacao4 (0 borne(s)); ... 2 cabo(s) em Cabos4
+VERIF: por tipo — PontoSemTag: 2; InterligacaoIndefinida: 1.
+```
+
+O `VERIF` passa a apontar `InterligacaoIndefinida: 1` (a regra do `carregaTree`), que é o
+mesmo trecho que a ação limpou. Na fixture padrão (`npm run cad:e2e`) nada muda — os
+números documentados (4 problemas) seguem iguais.
 
 **Rodada 51 — intervalos de borne (`bt8intervalos`, o `nXnc5R08lF`).** É a checagem que
 monta a árvore `TreeViewBornes`: por régua, junta os bornes do desenho **e as reservas**

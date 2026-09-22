@@ -105,6 +105,64 @@ namespace Positron.Data.Interligacao
             return true;
         }
 
+        /// <summary>
+        /// Aplica a "indefinição" do cabo do <c>IndefineCabosNaoExistentes</c> do
+        /// original (<c>clsVerificadorProjetoInterligacao</c>): o trecho cujo
+        /// <c>Tag_Cabo</c> não está no catálogo perde o cabo e a veia, e a tag volta
+        /// a ser visível (<c>ocultaTag = 0</c>).
+        ///
+        /// Os campos que **não** são do cabo (tipo, painéis, modelo da veia e o
+        /// handle da ponta) ficam como estão — é o mesmo conjunto de quatro campos
+        /// que o original zera.
+        /// </summary>
+        public void IndefinirCabo()
+        {
+            Tag_Cabo = string.Empty;
+            NumVeia = NumVeiaIndefinido;
+            NomeVeia = string.Empty;
+            OcultaTag = 0;
+        }
+
+        /// <summary>
+        /// Os valores do XData como o <c>AtualizaXDataInterligacao</c> do original
+        /// os regrava: a mesma ordem e os mesmos códigos de grupo da
+        /// <see cref="Ler"/>, mas a partir **deste** objeto. O handle da ponta
+        /// (índice 9) é preservado por ser um campo do objeto, e usuário/data são
+        /// recarimbados — exatamente como o original faz (ele relê o índice 9 do
+        /// XData antes de reescrever e grava <c>Environment.UserName</c> e
+        /// <c>DateTime.Now</c>).
+        ///
+        /// Os tipos dos valores seguem o original, incluindo o <c>int</c> em
+        /// <c>1070</c> onde o original passa <c>int</c> (NumVeia, ocultaTag,
+        /// iModeloVeiaFuncao) e o <c>short</c> onde passa <c>short</c>
+        /// (Tipo, Painel1, Painel2).
+        /// </summary>
+        public IReadOnlyList<TypedXData> ParaValores(string usuario, string data)
+        {
+            return new List<TypedXData>
+            {
+                new TypedXData(1001, AppName),
+                new TypedXData(1070, Tipo),
+                new TypedXData(1000, Tag_Cabo ?? string.Empty),
+                new TypedXData(1070, NumVeia),
+                new TypedXData(1000, NomeVeia ?? string.Empty),
+                new TypedXData(1070, Painel1),
+                new TypedXData(1070, 0),
+                new TypedXData(1070, Painel2),
+                new TypedXData(1070, 0),
+                new TypedXData(1000, Handle ?? string.Empty),
+                new TypedXData(1000, string.Empty),
+                new TypedXData(1000, string.Empty),
+                new TypedXData(1070, OcultaTag),
+                new TypedXData(1070, IndexModeloVeiaFuncao),
+                new TypedXData(1000, usuario ?? string.Empty),
+                new TypedXData(1000, data ?? string.Empty),
+                new TypedXData(1071, 1),
+                new TypedXData(1040, 0.0),
+                new TypedXData(1000, string.Empty),
+            };
+        }
+
         private static short Curto(object valor)
         {
             return valor == null || valor is DBNull ? (short)0 : XDataNumero.Curto(valor);

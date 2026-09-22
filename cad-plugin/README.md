@@ -28,27 +28,29 @@ npm run schema:sync      # regrava packages/protocol/csharp/Tables.g.cs
 
 ### 1. ZWCAD
 
-**Com o ZWCAD instalado** (gera a DLL carregável de verdade `Positron.Plugin.ZWCAD.dll`):
+**Sem o ZWCAD instalado** (a API 2026 versionada em `lib/ZWCAD/2026` é usada para compilar a DLL real):
 
 ```bash
-dotnet build Positron.Plugin/Positron.Plugin.csproj -p:CadPlatform=ZWCAD -p:ZWCadDir="C:\Program Files\ZWSOFT\ZWCAD 2026"
-# ou via npm:
 npm run plugin:build:zwcad
 ```
 
-**Sem o ZWCAD** (gate de compilação):
+O projeto inclui `ZwManaged.dll` e `ZwDatabaseMgd.dll` 26.0.26.0 para compilar
+contra a API real. Portanto, instalar o ZWCAD não é necessário para gerar a DLL,
+mas o ZWCAD 2026 continua necessário para carregá-la e executar testes de
+integração. Para usar outra instalação/API, informe `ZWCadDir`:
 
 ```bash
-dotnet build Positron.Plugin/Positron.Plugin.csproj -p:CadPlatform=ZWCAD
+dotnet build Positron.Plugin/Positron.Plugin.csproj -p:CadPlatform=ZWCAD -p:ZWCadDir="C:\Program Files\ZWSOFT\ZWCAD 2026"
 ```
 
-Nesse caso o `Positron.Plugin` compila contra o **stub** (`Positron.CadStub`),
-que reproduz a fatia mínima da API. Serve para o build não quebrar em máquinas sem CAD e para o CI ter um gate.
+Se as DLLs versionadas não estiverem presentes, o build procura uma instalação
+local do ZWCAD 2026/2025; sem ambas as opções, compila contra o **stub**
+(`Positron.CadStub`), que serve como gate de compilação, mas não gera um plugin
+carregável no CAD.
 
-> **Nesta máquina o ZWCAD 2026 está instalado**, então `npm run plugin:build`
-> (ZWCAD) cai no primeiro caso: a DLL real (`Positron.Plugin.ZWCAD.dll`, contra
-> `ZwManaged`/`ZwDatabaseMgd`) é gerada contra a API **real** e carregada por
-> `NETLOAD` no próprio ZWCAD (harness `npm run cad:smoke`).
+WinForms não precisa ser copiado para `lib`: `System.Windows.Forms` e
+`System.Drawing` são referenciados pelo projeto usando os assemblies do
+.NET Framework 4.7.2.
 
 ### 2. AutoCAD
 
@@ -93,6 +95,7 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 | `SYNCD` | **implementado** — projeta o desenho para o banco (fiação + interligação) |
 | `JMP` | **implementado** — projeta os jumpers do desenho para `Jumper4` |
 | `VERIF` | **implementado** — valida as tabelas gravadas (fiação, interligação e modelos) **e lê o desenho**: as 14 checagens da tela `frmVerificadorProjetoFiacao` (régua do borne, cabo fora do catálogo, página fora da `LayerTable`, borne sem fiação, fiação duplicada, intervalos, LM, painéis, terminais/bornes das portas, principal × auxiliar, bornes editados, blocos duplicados, régua da máscara, portas discrepantes) e as 3 do verificador da interligação |
+| `INDCABO` | **implementado** — a **ação** "Corrigir cabos" (`IndefineCabosNaoExistentes`) do verificador da interligação: o trecho cujo `Tag_Cabo` não está no catálogo (`Cabos`) perde o cabo e a veia no XData e o rótulo auxiliar (`AUXINTERLIG`) vira o caracter de terminal indefinido. Roda por script |
 | `ELETCFG` | **implementado** — abre a tela de configuração (WinForms) e grava `%APPDATA%\Positron\positron.ini`. **Modal**: não rode dentro de script |
 | `ELETREL` | **implementado** — grava o **relatório da verificação** em arquivo (a grid de erros das telas do original, sem tela). Roda por script |
 | `ELETCMP` | **implementado** — abre a **tela de compilação** (grid de erros) sobre o mesmo relatório do `ELETREL`, com botão Salvar. **Modal**: não rode dentro de script |

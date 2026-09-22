@@ -29,7 +29,9 @@ namespace Positron.Plugin
     /// (216 x <c>[CommandMethod]</c>). Fachada fina: valida e delega.
     ///
     /// Recorte atual: <c>ELET</c>, <c>FIA</c>, <c>INT</c>, <c>SYNCD</c> e
-    /// <c>VERIF</c> — os nomes vêm do <c>COMANDOS.txt</c> do reverso.
+    /// <c>VERIF</c> — os nomes vêm do <c>COMANDOS.txt</c> do reverso — mais os que
+    /// não existem como comando lá e foram criados como comando próprio
+    /// (<c>JMP</c>, <c>ELETCFG</c>, <c>ELETREL</c>, <c>ELETCMP</c> e <c>INDCABO</c>).
     /// </summary>
     public sealed class Comandos
     {
@@ -302,6 +304,75 @@ namespace Positron.Plugin
         public void Int()
         {
             Plugin.Escrever(ExecutarInterligacao());
+        }
+
+        /// <summary>
+        /// <c>INDCABO</c> — a **ação** <c>IndefineCabosNaoExistentes</c> do
+        /// verificador da interligação (o botão "Corrigir cabos",
+        /// <c>BTCorrigeCabos</c>): o trecho de interligação cujo <c>Tag_Cabo</c>
+        /// **não** existe no catálogo (<c>Cabos</c>) perde o cabo e a veia no XData,
+        /// e o rótulo auxiliar da ponta vira o caracter de terminal indefinido.
+        ///
+        /// É a contrapartida de **escrita** da regra read-only
+        /// <c>CaboSemCatalogo</c> que o <c>VERIF</c> reporta: o original separa as
+        /// duas (a regra aponta, o botão corrige). O catálogo vem do banco do
+        /// projeto (<c>POSITRON_DB_PATH</c>); com ele vazio a ação não faz nada, como
+        /// no original.
+        /// </summary>
+        [CommandMethod("INDCABO")]
+        public void IndefinirCabos()
+        {
+            Plugin.Escrever(ExecutarIndefinirCabos());
+        }
+
+        /// <summary>
+        /// Executa a ação de indefinir os cabos fora do catálogo e devolve a linha
+        /// de resumo. Nunca lança.
+        /// </summary>
+        internal static string ExecutarIndefinirCabos()
+        {
+            string bloqueio = BloqueioDeLicenca("INDCABO");
+            if (bloqueio != null)
+            {
+                return bloqueio;
+            }
+
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            string caminho = config.Banco;
+            if (string.IsNullOrEmpty(caminho))
+            {
+                return "INDCABO: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db) — o catálogo de cabos (Cabos) vem dele.";
+            }
+
+            try
+            {
+                ProjectStore store = new ProjectStore(caminho);
+                List<string> catalogo = new List<string>();
+                foreach (CabosRow cabo in store.LerCabos())
+                {
+                    catalogo.Add(cabo.Tag);
+                }
+
+                // Catálogo vazio não é "nenhum cabo existe": é ausência de dado. O
+                // original sai cedo aqui (`if (lCabos.Count <= 0) return;`) — sem a
+                // guarda a ação apagaria a tag de todo trecho do desenho.
+                if (catalogo.Count == 0)
+                {
+                    return "INDCABO: catálogo de cabos vazio (Cabos) — nada a indefinir; importe o catálogo primeiro.";
+                }
+
+                CabosNaoExistentesDoDesenho.Resultado resultado =
+                    CabosNaoExistentesDoDesenho.Executar(catalogo);
+
+                return "INDCABO: " + resultado.TrechosIndefinidos + " de " + resultado.TrechosLidos
+                    + " trecho(s) de interligação indefinido(s); " + resultado.RotulosIndefinidos
+                    + " de " + resultado.RotulosLidos + " rótulo(s) do cabo com o caracter indefinido "
+                    + "(catálogo: " + catalogo.Count + " cabo(s)).";
+            }
+            catch (System.Exception erro)
+            {
+                return "INDCABO: falhou — " + DescreverErro(erro);
+            }
         }
 
         /// <summary>

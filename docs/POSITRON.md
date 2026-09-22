@@ -218,6 +218,7 @@ recorte mínimo:
 | `SYNCD` | projeta XData → tabelas do banco (o "quem desenha, grava") |
 | `VERIF` | valida o projeto (espelho de `frmVerificadorProjetoFiacao`) |
 | `JMP` | projeta os jumpers do desenho para `Jumper4` (o `frmCompilarJumperExt`) |
+| `INDCABO` | **ação** "Corrigir cabos" do verificador da interligação (`IndefineCabosNaoExistentes`): regrava o XData do trecho cujo cabo não está no catálogo |
 
 Implementados: `ELET`, `FIA`, `INT`, `SYNCD` e `VERIF` (sem tela ainda — ver
 `cad-plugin/README.md`). O `SYNCD` é a projeção em lote (fiação + interligação); o
@@ -314,10 +315,11 @@ detalhes do harness que custaram tempo e ficaram documentados no `RUNBOOK.md`: o
 `/b` do ZWCAD espera o caminho **sem** a extensão `.scr`, e o `-Db` do script
 colide com o alias de `-Debug` (é `-Banco`).
 
-Nesta máquina o **ZWCAD 2026 está instalado** e é o host CAD verificado: o `csproj`
-auto-detecta a `ZWCadDir`, `npm run plugin:build` gera a DLL contra a API **real**
-(`ZwManaged`/`ZwDatabaseMgd`) e o `ZWCAD.exe` carrega o plugin (harness
-`npm run cad:smoke`; receita e números no `RUNBOOK.md`). O alvo **AutoCAD** segue
+As DLLs da API real do **ZWCAD 2026** (`ZwManaged`/`ZwDatabaseMgd`) estão
+versionadas em `cad-plugin/lib/ZWCAD/2026`, então o `csproj` compila contra elas
+mesmo sem o CAD instalado. Nesta máquina o **ZWCAD 2026 também está instalado**
+e é o host verificado: o executável carrega o plugin (harness `npm run
+cad:smoke`; receita e números no `RUNBOOK.md`). O alvo **AutoCAD** segue
 suportado; nesta máquina `npm run plugin:build:autocad` cai no stub, porque não há
 AutoCAD instalado. AutoCAD 2025+/TrueView 2027 (API .NET 8/10) **não** carregam um
 plugin net472.
@@ -551,8 +553,10 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
    (`bt14PortasDiscrepantes`, 0), principal × auxiliar (`bt3Principal`/`bt4Auxiliar`,
    0 e 0), bornes editados (`bt9`), blocos duplicados (`bt12`) e terminais/bornes das
    portas (`bt5Terminais`/`bt6Portas`, rodada 59) —, e o `VERIF` fecha em **249**
-   problemas no desenho real. O que falta é só a **ação** `IndefineCabosNaoExistentes`
-   (regravação de XData, comando e não checagem). A **matriz de páginas** já é lida do
+   problemas no desenho real. A **ação** `IndefineCabosNaoExistentes` (regravação de
+   XData, comando e não checagem) virou o comando `INDCABO` na rodada 60, provada dentro
+   do ZWCAD 2026 — nenhuma checagem do verificador da interligação fica pendente. A
+   **matriz de páginas** já é lida do
    desenho (`PaginaMatrix`/`PaginasDoDesenho`, montada da `LayerTable` como o
    `Pagina.CarregaPaginas`) e alimenta a regra de **página ausente**
    (`VerificarPaginasAusentes`) e a coluna `Pagina` (`ColunaPagina`, o switch

@@ -239,6 +239,8 @@ namespace ZwSoft.ZwCAD.DatabaseServices
     /// </summary>
     public class DBText : Entity
     {
+        /// <summary>O texto do rótulo (o `IndefineCabosNaoExistentes` regrava o do cabo).</summary>
+        public string TextString { get; set; }
     }
 
     public class Xrecord : DBObject
@@ -259,6 +261,11 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         }
     }
 
+    public class SymbolTableRecord : DBObject
+    {
+        public string Name { get; set; }
+    }
+
     public class SymbolTable : DBObject, IEnumerable
     {
         public bool Has(string nome)
@@ -266,10 +273,28 @@ namespace ZwSoft.ZwCAD.DatabaseServices
             return false;
         }
 
+        /// <summary>
+        /// `<c>Add</c>` da API real é o do tipo concreto (BlockTable/LayerTable/
+        /// RegAppTable) e é acessível pela base <c>SymbolTable</c> — é o que o
+        /// código reverso usa para registrar o app name do XData.
+        /// </summary>
+        public void Add(SymbolTableRecord registro)
+        {
+        }
+
         public IEnumerator GetEnumerator()
         {
             return new List<ObjectId>().GetEnumerator();
         }
+    }
+
+    /// <summary>Tabela de app names do XData (o `RegAppTable` da API real).</summary>
+    public class RegAppTable : SymbolTable
+    {
+    }
+
+    public class RegAppTableRecord : SymbolTableRecord
+    {
     }
 
     public class BlockTable : SymbolTable
@@ -308,6 +333,10 @@ namespace ZwSoft.ZwCAD.DatabaseServices
             return null;
         }
 
+        public void AddNewlyCreatedDBObject(DBObject objeto, bool adicionado)
+        {
+        }
+
         public void Commit()
         {
         }
@@ -342,6 +371,11 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         }
 
         public ObjectId NamedObjectsDictionaryId
+        {
+            get { return default(ObjectId); }
+        }
+
+        public ObjectId RegAppTableId
         {
             get { return default(ObjectId); }
         }

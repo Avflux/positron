@@ -136,16 +136,18 @@ processo ponta a ponta, `typecheck` limpo e build do web gerando `dist`.
 A reconstrução do Eletron4Z sobre este esqueleto (dois frontends, contrato de
 dados) está em `docs/POSITRON.md`.
 
-O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (273 testes xunit; veja
+O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (294 testes xunit; veja
 `cad-plugin/README.md` e `docs/POSITRON.md`). Ele builda com `npm run plugin:build`
 e testa com `npm run plugin:test`.
 
-Nesta máquina o host CAD instalado é o **ZWCAD 2026** (não há AutoCAD):
-`npm run plugin:build` resolve a `ZWCadDir` sozinho e gera
-`Positron.Plugin.ZWCAD.dll` contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`), e o
-`ZWCAD.exe` carrega a DLL por `NETLOAD` (harness `npm run cad:smoke`) — `ELET`/`FIA`/
-`JMP`/`INT`/`SYNCD`/`VERIF` respondem, mais `ELETCFG` (tela de configuração) e
-`ELETREL` (relatório da verificação em arquivo). O ciclo completo roda num **desenho
+O projeto inclui as DLLs da API real do **ZWCAD 2026** (`ZwManaged`/`ZwDatabaseMgd`)
+em `cad-plugin/lib/ZWCAD/2026`, então é possível compilar
+`Positron.Plugin.ZWCAD.dll` sem instalar o ZWCAD. Nesta máquina, o **ZWCAD 2026**
+está instalado e carrega a DLL por `NETLOAD` (harness `npm run cad:smoke`) —
+`ELET`/`FIA`/
+`JMP`/`INT`/`SYNCD`/`VERIF` respondem, mais `ELETCFG` (tela de configuração),
+`ELETREL` (relatório da verificação em arquivo) e `INDCABO` (a ação "Corrigir cabos" do
+verificador da interligação). O ciclo completo roda num **desenho
 real** (`npm run cad:projeto`) com os números documentados (494 linhas em `Fiacao`,
 `VERIF` 249, `IDEMPOTENTE`) — ver `docs/RUNBOOK.md`. O alvo **AutoCAD** continua
 suportado; nesta máquina `npm run plugin:build:autocad` cai no stub
