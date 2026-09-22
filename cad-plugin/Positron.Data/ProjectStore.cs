@@ -1763,16 +1763,16 @@ namespace Positron.Data
         /// </summary>
         public List<LinhaListaMaterial> LerListaMateriais(int dwg)
         {
-            return LerListaMateriais(dwg, false, false);
+            return LerListaMateriais(dwg, false);
         }
 
         /// <summary>As linhas <c>Avulso = true</c> do desenho — o <c>CapturaMateriaisAvulso</c>.</summary>
         public List<LinhaListaMaterial> LerListaMateriaisAvulsos(int dwg)
         {
-            return LerListaMateriais(dwg, true, false);
+            return LerListaMateriais(dwg, true);
         }
 
-        private List<LinhaListaMaterial> LerListaMateriais(int dwg, bool somenteAvulsos, bool somenteComIndiceLM)
+        private List<LinhaListaMaterial> LerListaMateriais(int dwg, bool somenteAvulsos)
         {
             List<LinhaListaMaterial> linhas = new List<LinhaListaMaterial>();
 
@@ -1785,11 +1785,6 @@ namespace Positron.Data
                 if (somenteAvulsos)
                 {
                     comando.CommandText += " AND Avulso = 1";
-                }
-
-                if (somenteComIndiceLM)
-                {
-                    comando.CommandText += " AND IndiceLM IS NOT NULL";
                 }
 
                 comando.CommandText += " ORDER BY Painel, Ordem";
