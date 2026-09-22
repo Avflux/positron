@@ -810,6 +810,33 @@ o `Indice` é o rowid da chave primária. Rodando o `EPLQ` **duas vezes** o resu
 mesma idempotência por desenho do `FIA`/`INT`) — receita: acrescente `EPLQ` à lista do
 `-Comandos` e confira que o `SELECT COUNT(*) FROM Plaquetas4` não muda.
 
+A mesma receita aponta para o **desenho real** — que tem o dicionário preenchido (basta
+`POSITRON_XDATA` apontando para um arquivo e a fixture `scripts/cad-dump-xdata.lsp`, que
+duma o `CENG_PLAQUETA` cru):
+
+```bash
+export POSITRON_XDATA="$TEMP/positron-xdata.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 \
+  -Desenho "..\Elet\Teste_prjeto_real\Funcional.dwg" -Banco "$TEMP\positron-projeto.db" \
+  -Fixture scripts/cad-dump-xdata.lsp -Comandos ELET,EPLQ
+```
+
+```text
+EPLQ: 87 plaqueta(s) em Plaquetas4 (8 painel(is) com dicionário; 2 painel(is) com fiação no desenho).
+```
+
+A conferência é **independente do plugin**: o dump traz o Xrecord cru de cada painel
+(`PLAQUETA;<painel>;<entget>`) e a regra do original refeita fora do C# — no painel
+**503**, **93** registros (`2 P` + `83 D` + `8 R`) dão **87** linhas (2 + 80 + 5, caindo
+3 `D` e 3 `R` sem descrição), e as 5 plaquetas `R` resolvem os índices `39/44/46/478/482`
+para `R9/RA1/RA2/R6/R8`. O banco fecha a conta: **87** linhas do painel 503, **0** com tag
+vazia, **0** sem descrição e as 5 réguas presentes com o nome esperado. Os outros 7
+painéis do dicionário (`176 177 178 453 454 465 466`) não têm fiação no desenho e por isso
+não entram — a guarda do `carregaEquipComFiacao`. Uma tag se repete (`PNL-GGE`, o painel):
+são **dois registros `P` idênticos** no dicionário, e o original insere um por registro
+(o `AdicionaItemPlaqueta` não agrega, e o INSERT não tem `Quantidade`) — a repetição é o
+espelho do dado, não do código.
+
 **Rodada 60 — ação "Corrigir cabos" (`INDCABO`, o `IndefineCabosNaoExistentes`).** É o
 botão `BTCorrigeCabos` da tela de verificação da **interligação**: o trecho cujo
 `Tag_Cabo` não existe no catálogo (`Cabos`) perde o cabo e a veia no XData, e o rótulo
