@@ -248,8 +248,19 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         public ResultBuffer Data { get; set; }
     }
 
-    public class DBDictionary : DBObject
+    /// <summary>
+    /// Dicionário de objetos nomeados (o <c>NamedObjectsDictionary</c> e os que
+    /// pendem dele). A API real o enumera como <c>DictionaryEntry</c> (chave =
+    /// nome, valor = <c>ObjectId</c>) — é assim que o `EPLQ` percorre o
+    /// <c>CENG_PLAQUETA</c>.
+    /// </summary>
+    public class DBDictionary : DBObject, IEnumerable
     {
+        public int Count
+        {
+            get { return 0; }
+        }
+
         public bool Contains(string nome)
         {
             return false;
@@ -258,6 +269,15 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         public ObjectId GetAt(string nome)
         {
             return default(ObjectId);
+        }
+
+        public void SetAt(string nome, DBObject objeto)
+        {
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            return new List<DictionaryEntry>().GetEnumerator();
         }
     }
 

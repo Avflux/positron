@@ -146,8 +146,9 @@ em `cad-plugin/lib/ZWCAD/2026`, então é possível compilar
 está instalado e carrega a DLL por `NETLOAD` (harness `npm run cad:smoke`) —
 `ELET`/`FIA`/
 `JMP`/`INT`/`SYNCD`/`VERIF` respondem, mais `ELETCFG` (tela de configuração),
-`ELETREL` (relatório da verificação em arquivo) e `INDCABO` (a ação "Corrigir cabos" do
-verificador da interligação). O ciclo completo roda num **desenho
+`ELETREL` (relatório da verificação em arquivo), `INDCABO` (a ação "Corrigir cabos" do
+verificador da interligação) e `EPLQ` (a exportação das plaquetas do desenho,
+tabela `Plaquetas4`). O ciclo completo roda num **desenho
 real** (`npm run cad:projeto`) com os números documentados (494 linhas em `Fiacao`,
 `VERIF` 249, `IDEMPOTENTE`) — ver `docs/RUNBOOK.md`. O alvo **AutoCAD** continua
 suportado; nesta máquina `npm run plugin:build:autocad` cai no stub

@@ -50,15 +50,17 @@ segunda execução de `FIA`/`INT` duplica linhas e o `ReordenarOrdemFiacao`
 passa a reescrever a `Ordem` das duas cópias (medido no `RUNBOOK.md`: `Fiacao`
 3→6, `Bornes4F` 2→4). **Corrigido na Etapa 1.**
 
-## 2.2 Estado atual (até a rodada 60)
+## 2.2 Estado atual (até a rodada 61)
 
 O recorte do plano — **9 comandos, 13 tabelas do diagrama, app lendo tudo** — está
-implementado, verificado e documentado. Os números de hoje:
+implementado, verificado e documentado. Fora desse recorte, a rodada 61 acrescentou a
+tabela **`Plaquetas4`** (comando **`EPLQ`**), que o app ainda **não** lê (não há método no
+contrato): ela é escrita pelo plugin e conferida direto no banco. Os números de hoje:
 
 | Gate | Resultado |
 |---|---|
 | `npm run plugin:build` (ZWCAD→API real) / `:autocad` (stub) | exit 0, 0 avisos / 0 erros |
-| `npm run plugin:test` | **294** aprovados |
+| `npm run plugin:test` | **309** aprovados |
 | `npm run protocol:gen` | contrato OK (**20 métodos**; 31 tabelas) |
 | `npm run typecheck` / `build:web` | limpo / **57** módulos |
 | `npm run test:sidecar` / `ruff check` | 27 testes / limpo |
@@ -115,14 +117,18 @@ comando **`INDCABO`** na rodada 60.
 
 **Pendências abertas:** as frentes da §7 estão **marcadas com ⏳** — nenhuma é regra de
 verificação **ausente** (as **14** checagens da fiação, completadas na rodada 59, e as
-**3** da interligação estão portadas) e o **P1 fechou** na rodada 60, quando a **ação**
-`IndefineCabosNaoExistentes` da interligação entrou como o comando `INDCABO` (regravação
-de XData) — provada dentro do ZWCAD 2026. O que sobra é expansão de escopo (tabelas do
-schema fora do recorte e os 37 relatórios) ou **decisão do dono** — a **Etapa 9**
+**3** da interligação estão portadas) e o **P1 fechou** na rodada 60, quando a **ação**`IndefineCabosNaoExistentes` da interligação entrou como o comando `INDCABO` (regravação
+de XData) — provada dentro do ZWCAD 2026. O que sobra é expansão de escopo (as outras
+tabelas do schema fora do recorte e os 37 relatórios) ou **decisão do dono** — a
+**Etapa 9**
 (licença, relatórios, banco), que tem os três encaixes prontos —
 `ServicoDeLicenca`/`ILicenca` com gate nos comandos, o relatório em texto
 (`ELETREL`/`ELETCMP`) como base dos 37 relatórios, e o SQL isolado no `ProjectStore`
-para o dia do SQL Server.
+para o dia do SQL Server. Do lado das tabelas do schema, a rodada 61 fechou o
+**`Plaquetas4`** (comando `EPLQ`) e **mapeou** o `ListaMateriais` (falta a ordem de
+página, que não vem do desenho); o **`Sinais`** não tem fluxo no reverso (só DDL) e por
+isso **não** é portável — ver §7.2.
+
 
 ## 3. Etapas
 
@@ -591,6 +597,7 @@ aberto por **cópia no TEMP**).
 | 57 — verificador da interligação (`carregaTree`) portado | 2026-10-09 | b89d289 | porta as duas árvores do `clsVerificadorProjetoInterligacao` (o `carregaTree`, linha 352, alimentado pelo `buscaDadosDoDWG` e pelos convidados da tela de fiação): "External Jumper" (703) — jumper (conexão com `Jumper == "JUMPER"`) sem `Cor`/`Secao` ou em painel apagado, **um por potencial** (`iPotencial_Veia`) — e "Interconnection" (508) — trecho sem `Tag_Cabo` (o "Undefined", 740) ou em painel apagado, **um por handle**; o nó "Duplicates" (1567) é o `LFiacaoTTDuplicada` do modo `"J"` (`ClsVerificadorProjetoFiacao:797`): jumper `Tipo 4` com `Disp1 & Disp2` repetindo potencial (o primeiro é o legítimo, do segundo em diante o handle entra na lista); dois pontos de fidelidade reproduzidos: `lPnApagados` **não é do desenho** (vem da tela de fiação — é o painel fora do cadastro, sem o painel `0`) e o verificador **não filtra** `Num_Veia == -1000` (só o `frmCompilarInterligacao:1353` filtra), daí `InterligacaoDoDesenho.Ler(incluirVeiaIndefinida: true)` (a projeção segue no padrão `false`); entram `Disp1`/`Disp2` no `ConexaoFiacao` e os tipos `JumperIndefinido`/`JumperDuplicado`/`InterligacaoIndefinida` (área Desenho) com as regras puras `VerificarJumpersIndefinidos`/`VerificarJumpersDuplicados`/`VerificarTrechosInterligacaoIndefinidos`; **medido no desenho real**: `VERIF: 0 jumper(s) e 20 trecho(s) de interligação lido(s)` e as três regras saem **vazias** (a linha de base segue **249** e o `cad:projeto:acad -- -Idempotencia` reproduz o ciclo), com as duas causas conferidas — o `Funcional.dwg` **não tem jumper** (já registrado na rodada 35) e os 20 trechos têm `Tag_Cabo` preenchido e painel em cadastro (consulta direta ao banco: **0** e **0**); +7 testes (`plugin:test` **273**) e as duas builds 0 avisos |
 
 | 59 — `bt5Terminais`/`bt6Portas` portadas (terminais e bornes das portas) | 2026-09-22 | 6b9a55d | porta o `yBNcmOtuQS` do `frmVerificadorProjetoFiacao`: as duas grades que faltavam da tela (a `dgTerminais` do `GroupBox5`, alimentada pelos **terminais**, e a `dgBornes` do `GroupBox8`, pelos **bornes**) saem dos atributos do **próprio bloco `E`** (`LeOsTerminaisDeUmaPorta`: `T*`/`B*`/`R*` ordenados pela tag, `"0"`/vazio → `"?"`, régua unida por `"; "` e deduplicada), com dois ajustes do original reproduzidos porque os dois mudam o resultado — bloco com **régua E bornes** zera os terminais, e o `sTermM` é **substituído** pelos terminais do **modelo de máscara** (`mPortas[i].sTerminais`); a chave de repetição é **global** entre as portas e é `BuscaNomeDoPainel(painel) + "/" + Nome1["-" + Nome2]` + valor (os bornes ainda levam a régua); entram `VerificarTerminaisDasPortas`/`VerificarBornesDasPortas`, o `Nome1`/`Nome2`/`Painel` no `PortaNoDesenho` (com o painel da máscara resolvido pelo `BuscaPainelDispositivo`) e o `ProjectStore.LerNomesDePaineis` (o cadastro `Paineis`, que responde `"???"` sem ele); **medido no desenho real**: as duas saem **vazias** (45 blocos de porta lidos)e a linha de base do `VERIF` segue **249** (`cad-verif-baseline.py` confere); +6 testes (`plugin:test` **279**) e as duas builds 0 avisos |
+| 61 — tabela `Plaquetas4` fora do recorte portada (`EPLQ`) | 2026-09-22 | <hash> | porta o `clsDispositivoTacito.exportaPlaquetas()` (o comando **`EPLQ`** do reverso, botão de exportação da tela de plaquetas): a tabela é a **plaqueta de identificação** de cada painel — o desenho guarda na própria biblioteca (`CENG_PLAQUETA`, `NamedObjectsDictionary` → `Xrecord` por painel, registros de **7 valores**: tipo/handle/indexRegua/desc1/desc2/desc3/modelo) quais plaquetas existem e o **nome** sai do tipo — `"P"` = nome do painel (cadastro `Paineis`), `"D"` = `Nome1[/Nome2]` do bloco `M`/`P` pelo **handle** (`carregaNomeDispositivosPM`), `"X"` = primeira descrição não-vazia, `"R"` = nome da régua pelo `IndiceRegua` (dicionário `REGUAS/MODELOS2`, o mesmo `ReguasModelo` do `FIA`); só gravam as plaquetas com **nome E descrição** e só entram painéis **com fiação no desenho** (os citados pelas `CONEXAO`) **e** com registro no dicionário; entram o leitor `PlaquetasXData` (blocos de 7, cauda incompleta ignorada em vez de estourar), o gerador puro `Plaquetas4Gerador`, o `ProjectStore.InserirPlaquetas` (apaga por `DWG` e insere o lote na mesma transação, como o `RemovePlaquetas`; o `Indice` é o rowid da chave primária) e o adapter `PlaquetasDoDesenho` (dicionário + mapa handle→nome + painéis com fiação); o ramo `"X"` do original calcula `Ordem = CInt(Handle.Replace("#", ""))` e **não grava** a ordem em coluna nenhuma — o cálculo fica de fora e o motivo registrado (evita `FormatException` com handle não-numérico); **medido no ZWCAD 2026** (fixture `scripts/cad-fixture-plaquetas.lsp`: painel **9** com `CONEXAO` e 4 registros — `P` com descrição, `X`, `D` sem dispositivo e `P` sem descrição — mais o painel **77** só no dicionário; cadastro `Paineis` semeado com `9/PAINEL-9`): **`EPLQ: 2 plaqueta(s) em Plaquetas4 (2 painel(is) com dicionário; 1 painel(is) com fiação no desenho)`** e no banco `(9, 'PAINEL-9', 'MOD-P')` + `(9, 'TEXTO LIVRE', 'MOD-X')` — o `D` sem dispositivo e o `P` sem descrição caem, e o painel 77 (sem fiação) não entra; rodar o `EPLQ` **duas vezes** deixa **2** linhas (idempotência por `DWG`); +15 testes (`plugin:test` **309**) e as duas builds 0 avisos |
 | 60 — ação `IndefineCabosNaoExistentes` (`INDCABO`) portada — fecha o P1 | 2026-09-22 | d7d20c6 | porta o `clsVerificadorProjetoInterligacao.IndefineCabosNaoExistentes` (o botão **`BTCorrigeCabos`**, "Corrigir cabos"): a **ação** varre as polylines de interligação e, quando o `Tag_Cabo` **não** está no catálogo (`SELECT Tag FROM Cabos`), limpa e regrava o XData (`Tag_Cabo=""`, `NumVeia=-1000`, `NomeVeia=""`, `ocultaTag=0` — `InterligacaoXData.IndefinirCabo`/`ParaValores`, com o handle preservado e usuário/data recarimbados) e põe o caracter de terminal indefinido no rótulo auxiliar (`AUXINTERLIG` tipo 1, o `DBText` da ponta); entra a **regra pura** `AcaoIndefinirCabos.Planejar` (índices fora do catálogo, comparação **ordinal** como o `List(Of String).Contains` do original, e catálogo vazio = **nada a fazer** — o `if (lCabos.Count <= 0) return;`), o leitor `AuxInterligacaoXData` (tolerante a registro truncado, onde o original estoura) e o adapter `CabosNaoExistentesDoDesenho` com as **duas transações** do original; é a contrapartida de escrita da regra read-only `VerificarCabosSemCatalogo` do `VERIF`; **medido no ZWCAD 2026** (fixture `scripts/cad-fixture-indefcab.lsp`: `CABO-OK` no catálogo + `CABO-FANTASMA` fora, mais um rótulo `AUXINTERLIG` tipo 1): `INT` 2 trechos → **`INDCABO: 1 de 2 trecho(s) indefinido(s); 1 de 1 rótulo(s)`** → `INT` **1 trecho** (a leitura da projeção descarta `Num_Veia == -1000`, provando que o XData foi realmente regravado) e o `VERIF` passa a apontar `InterligacaoIndefinida: 1`; +15 testes (`plugin:test` **294**) e as duas builds 0 avisos |
 
 | 58 — ciclo completo no **ZWCAD 2026** (host do produto) | 2026-09-22 | ba401fa | toolchain montado nesta máquina (.NET SDK 8.0.425 local, uv 0.13 + Python 3.12.15, driver ODBC do Access); **gates**: `plugin:build` contra a **API real do ZWCAD 2026** 0 avisos, `plugin:build:autocad` (stub) 0 avisos, `plugin:test` **273**, `protocol:gen` 20 métodos/31 tabelas, `typecheck` limpo, `build:web` OK, `test:sidecar` 27, `ruff` limpo; **dentro do ZWCAD**: `cad:smoke` carrega a DLL por `NETLOAD` e `cad:e2e` grava 2 fios + 1 trecho; `cad:projeto` no projeto real (`..\Elet\Teste_prjeto_real`, DWG 63) reproduz o alvo linha a linha — `FIA` 494 (265/168/70/83/11/15), `INT` 20 (265/216/697/2388), `VERIF` **249** (107+119+11+10+2), linha de base confere, app **4.897** linhas e `IDEMPOTENTE` (hash igual); docs corrigidos (host CAD, caminhos `..\Elet\RCD` → `..\Elet\Teste_prjeto_real` e a saída do `cad:e2e`) |
@@ -621,7 +628,7 @@ rodada 59), as **3** da interligação também, e a única do P1 — a **ação*
 | # | Pendência | Prioridade | Situação |
 |---|---|---|---|
 | 7.1b | `IndefineCabosNaoExistentes` — **ação** da interligação (regrava o XData; comando, não checagem) | P1 | ✅ feito (rodada 60, comando `INDCABO`) |
-| 7.2 | Tabelas do schema fora do recorte (`Aranha4`, `Atributos`/`Exportados`, `Plaquetas4`/`ListaMateriais`/`Sinais`/`Correcao`) | P2 | ⏳ pendente |
+| 7.2 | Tabelas do schema fora do recorte (`Aranha4`, `Atributos`/`Exportados`, `ListaMateriais`, `Sinais`, `Correcao`) | P2 | ⏳ pendente — o `Plaquetas4` fechou na rodada 61 (`EPLQ`) |
 | 7.3 | Relatórios: **37** de 38 telas `frmRelatorio_*` (entregue só a verificação em texto) | P2 | ⏳ pendente |
 | 7.4 | Fixture sintética com blocos (o CAD hoje prova as fases 7–9 só no desenho real) | P3 | ⏳ pendente |
 | 7.5 | Decisões do dono — **Etapa 9** (licença, relatórios, banco) | P3 | ⏳ pendente |
@@ -697,15 +704,55 @@ checagem) entrou na rodada 60 como o comando `INDCABO`.
 
 ### 7.2 Tabelas do schema sem projeção · P2
 
-O plugin escreve **13** tabelas; o schema tem **31**. As demais:
+O plugin escreve **14** tabelas (`Plaquetas4` entrou na rodada 61); o schema tem **31**. As
+demais:
 
 | Tabela(s) | Fluxo no original | Situação |
 |---|---|---|
 | `Aranha4` | relatório de cabos (ArqNet/DI, 5 telas) | ⏳ pendente — fora do recorte (é paginação de relatório — §9b) |
 | `Atributos`, `Exportados` | exportar/importar projeto cross-DWG | ⏳ pendente — fora do recorte |
-| `Plaquetas4`, `ListaMateriais`, `Sinais`, `Correcao` | fluxos próprios (referenciados no reverso) | ⏳ pendente — fora do recorte |
+| `Plaquetas4` | `clsDispositivoTacito.exportaPlaquetas()` (comando **`EPLQ`**): dicionário `CENG_PLAQUETA` + réguas + cadastro de painéis + dispositivos `M`/`P` do desenho | ✅ **feito (rodada 61, comando `EPLQ`)** |
+| `ListaMateriais` | `clsLM.CompilaListaDeMateriais()` (comando **`COMPLM`**), ~650 linhas | ⏳ pendente — **mapeado** (ver abaixo) |
+| `Sinais` | **nenhum** — só o `CREATE TABLE` (o `ACorrecaoBD`) e o `DROP TABLE SinaisLogico`; os textos do `.resx` ("Sinais e Variáveis") são da tela | ⛔ **não portável**: o fluxo não está no reverso recuperado |
+| `Correcao` | tabela de um campo (`Numero`) do fluxo de correção | ⏳ pendente — sem fluxo de projeção |
 | `Cabos`, `Veias`, `Materiais`, `ModelosCabos`, `Paineis` | catálogo/cadastro importados do Access | ✅ o importador cobre |
 | `DWG`, `DWGH`, `PaineisH`, `Preferencias`, `Configuracoes`, `Comandos` | metadados do projeto/app | domínio do sidecar/app |
+
+**`ListaMateriais` — mapeado, não portado (o próximo da fila).** O fluxo é o
+`clsLM.CompilaListaDeMateriais` (botão `COMPLM`), ~650 linhas (linha 121 a 770 do
+`clsLM.cs`; o resto do arquivo é o `BuscaOrdemEquipamento`), e é o **primo do
+`bt12`** na estrutura: uma **passada única** pelo ModelSpace que classifica cada bloco
+pelo `XDataDispositivo.verificaTipoDispositivo` e emite linhas de material.
+
+| Bloco | Insumo lido | Linhas emitidas |
+|---|---|---|
+| `M` (máscara) | `StructureMascara` (pula `Complementar`); `iLM1`/`iLM2` do **modelo de máscara** por `indexModelo` | até **2** (uma por `iLM`), `indexMaterial = iLM1`/`iLM2` |
+| `P` / `A` (dispositivo) | `StructureDispositivo` (pula `Complementar`); `iLM1`/`iLM2` do **modelo de contato** (`array4`, `LeOsModelosDeDeDicionarioContatos`) | até **2** (`indexModelo > 0` é a guarda) |
+| `B` (borne) | `StructureBorne`: `lm`, `NomeRegua`, `tipo`, `indexPainel` | **1** agregada por `(Painel, TagRegua, tipo, lm)` |
+
+Cada linha é `(Ordem, Painel, Quantidade, IndiceMaterial, indexeModelo, TagMat, OrdemLay,
+TagAlt, sHandle)` — `TagMat` = `Nome1[/Nome2]`, `TagAlt` = `Alternativo` e `OrdemLay` =
+`BuscaOrdemEquipamento(painel, TagMat)` (o campo **virtual** de ordenação, linha 771, que
+é o único insumo que **não** está no desenho: sai de um modelo de página). Depois há a
+fusão por `(Painel, IndiceMaterial, TagMat, TagAlternativo)` com a ordenação por
+`OrdemLay`/`IndiceMaterial`, o **diálogo** `YesNoCancel` que decide se a ordem vem do
+banco ou do desenho (o `Cancel` aborta) e a resolução de `Quantidade`.
+
+O que falta para portar, em ordem: os dicionários de **modelos de máscara** e de
+**contatos** (o `ReguasModelo` já existe — foi feito para o `FIA`) e o
+`BuscaOrdemEquipamento`. Enquanto a `OrdemLay` não tiver fonte no recorte, a tabela sai
+com a ordem errada — é o único ponto do fluxo que depende de um modelo **fora do
+desenho**, e é por isso que ele ainda não entrou.
+
+**`Sinais` não é portável.** A tabela existe no schema (16 colunas: `ChavePrimaria`,
+`IndiceOrigem`/`IndiceDestino`, `TipoTag`, `Tag61850`, `Enderecos61850`…) mas o reverso
+recuperado só tem o **DDL**: `CREATE TABLE Sinais` e o `DROP TABLE SinaisLogico` no
+`ACorrecaoBD` (mais o `ALTER TABLE SinaisLogico ADD Enderecos61850`, que é migração de
+schema). Não há **nenhum** `INSERT`/`UPDATE`/`DELETE`/`SELECT` sobre `Sinais` em nenhum
+arquivo do reverso, e a única outra menção é o texto `"Sinais e Variáveis"` das telas
+(`DeclaracoesGeral.mMensagem`). Ou seja: **não há fluxo a portar** — a projeção dessa
+tabela vivia num caminho que o reverso não recuperou. Inventar um leitor a partir das
+colunas seria adivinhação, não recoder.
 
 ### 7.3 Relatórios · P2 (decisão 9b)
 

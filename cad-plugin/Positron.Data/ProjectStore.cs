@@ -5,6 +5,7 @@ using Positron.Contract;
 using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
 using Positron.Data.Modelos;
+using Positron.Data.Plaquetas;
 
 namespace Positron.Data
 {
@@ -1696,6 +1697,60 @@ namespace Positron.Data
                 comando.CommandText = "SELECT COUNT(*) FROM Bornes4F WHERE IndexRegua = @indexRegua";
                 comando.Parameters.AddWithValue("@indexRegua", indexRegua);
                 return Convert.ToInt32(comando.ExecuteScalar());
+            }
+        }
+
+        /// <summary>
+        /// Grava as plaquetas do desenho (<c>Plaquetas4</c>) — ver
+        /// <see cref="Plaquetas4Gerador"/>.
+        ///
+        /// A tabela **não tem revisão**: o original apaga por <c>DWG</c>
+        /// (<c>RemovePlaquetas</c>) e insere o lote novo, na mesma transação — a
+        /// mesma idempotência por desenho das outras tabelas.
+        /// </summary>
+        public void InserirPlaquetas(IEnumerable<Plaquetas4Row> plaquetas, int dwg)
+        {
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            {
+                using (SQLiteCommand remover = conexao.CreateCommand())
+                {
+                    remover.CommandText = "DELETE FROM Plaquetas4 WHERE DWG = @dwg";
+                    remover.Parameters.AddWithValue("@dwg", dwg);
+                    remover.ExecuteNonQuery();
+                }
+
+                using (SQLiteCommand comando = conexao.CreateCommand())
+                {
+                    comando.CommandText =
+                        "INSERT INTO Plaquetas4(DWG, Painel, Tag, Desc1, Desc2, Desc3, Modelo) " +
+                        "VALUES(@dwg, @painel, @tag, @desc1, @desc2, @desc3, @modelo)";
+
+                    SQLiteParameter[] parametros =
+                    {
+                        comando.Parameters.Add("@dwg", System.Data.DbType.Int64),
+                        comando.Parameters.Add("@painel", System.Data.DbType.Int64),
+                        comando.Parameters.Add("@tag", System.Data.DbType.String),
+                        comando.Parameters.Add("@desc1", System.Data.DbType.String),
+                        comando.Parameters.Add("@desc2", System.Data.DbType.String),
+                        comando.Parameters.Add("@desc3", System.Data.DbType.String),
+                        comando.Parameters.Add("@modelo", System.Data.DbType.String),
+                    };
+
+                    foreach (Plaquetas4Row plaqueta in plaquetas)
+                    {
+                        parametros[0].Value = Falta(plaqueta.DWG);
+                        parametros[1].Value = Falta(plaqueta.Painel);
+                        parametros[2].Value = Nulo(plaqueta.Tag);
+                        parametros[3].Value = Nulo(plaqueta.Desc1);
+                        parametros[4].Value = Nulo(plaqueta.Desc2);
+                        parametros[5].Value = Nulo(plaqueta.Desc3);
+                        parametros[6].Value = Nulo(plaqueta.Modelo);
+                        comando.ExecuteNonQuery();
+                    }
+                }
+
+                transacao.Commit();
             }
         }
 

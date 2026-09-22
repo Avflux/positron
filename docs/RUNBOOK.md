@@ -762,6 +762,54 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 61 — exportação das plaquetas (`EPLQ`, o `exportaPlaquetas`).** É o fluxo da
+tabela **`Plaquetas4`** — a plaqueta de identificação de cada painel. Não vem do
+catálogo nem do diagrama: vem do **próprio desenho**, do dicionário
+`CENG_PLAQUETA` do `NamedObjectsDictionary` (um `Xrecord` por **painel**, com registros
+de **7 valores**: tipo, handle, indexRegua, desc1, desc2, desc3, modelo). O **nome** de
+cada plaqueta sai do tipo: `P` = nome do painel (cadastro `Paineis`), `D` = `Nome1[/Nome2]`
+do bloco `M`/`P` resolvido pelo **handle**, `X` = a primeira descrição não-vazia e
+`R` = o nome da **régua** pelo `IndiceRegua` (o mesmo dicionário `REGUAS/MODELOS2` que o
+`FIA` já lê). Só entram painéis **com fiação no desenho** (os citados pelas `CONEXAO`)
+e só gravam as plaquetas com nome **e** alguma descrição — plaqueta sem texto é plaqueta
+que não imprimiu.
+
+A fixture monta o dicionário à mão (é o único jeito: nada mais no recorte escreve
+`CENG_PLAQUETA`) e semeia o cadastro de painéis, que é quem dá o nome do tipo `P`:
+
+```bash
+# banco com o cadastro de paineis (o nome da plaqueta "P" sai daqui)
+python -c "import sys, sqlite3; sys.path.insert(0, r'services/sidecar/src'); \
+  from sidecar.db.project import ProjectDatabase; ProjectDatabase(r'<db>').create_from_schema(); \
+  c=sqlite3.connect(r'<db>'); c.execute(\"INSERT INTO Paineis(Indice, Nome) VALUES (9, 'PAINEL-9')\"); c.commit()"
+
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Banco "<db>" \
+  -Fixture scripts/cad-fixture-plaquetas.lsp -Comandos ELET,EPLQ
+```
+
+Log medido no ZWCAD 2026 (fixture: painel **9** com `CONEXAO` e 4 registros — `P` com
+descrição, `X`, `D` sem dispositivo e `P` sem descrição — mais o painel **77**, que só
+existe no dicionário):
+
+```text
+EPLQ: 2 plaqueta(s) em Plaquetas4 (2 painel(is) com dicionário; 1 painel(is) com fiação no desenho).
+```
+
+E a tabela no banco, conferida direto:
+
+```text
+PLAQUETA (1, 1, 9, 'PAINEL-9',      'MOD-P', 'PLACA DO PAINEL', NULL, NULL, NULL)
+PLAQUETA (2, 1, 9, 'TEXTO LIVRE',   'MOD-X', 'TEXTO LIVRE',     NULL, NULL, NULL)
+```
+
+Os dois registros que caem provam as guardas: o `D` (handle sem dispositivo no desenho) e
+o segundo `P` (sem nenhuma descrição) não entram, e o painel **77** não entra por não ter
+fiação no desenho. O `Quantidade` sai **NULL** — o original não a informa nesse INSERT — e
+o `Indice` é o rowid da chave primária. Rodando o `EPLQ` **duas vezes** o resultado são as
+**mesmas 2 linhas** (o `DELETE ... WHERE DWG = @dwg` mais o lote na mesma transação, a
+mesma idempotência por desenho do `FIA`/`INT`) — receita: acrescente `EPLQ` à lista do
+`-Comandos` e confira que o `SELECT COUNT(*) FROM Plaquetas4` não muda.
+
 **Rodada 60 — ação "Corrigir cabos" (`INDCABO`, o `IndefineCabosNaoExistentes`).** É o
 botão `BTCorrigeCabos` da tela de verificação da **interligação**: o trecho cujo
 `Tag_Cabo` não existe no catálogo (`Cabos`) perde o cabo e a veia no XData, e o rótulo

@@ -219,6 +219,7 @@ recorte mínimo:
 | `VERIF` | valida o projeto (espelho de `frmVerificadorProjetoFiacao`) |
 | `JMP` | projeta os jumpers do desenho para `Jumper4` (o `frmCompilarJumperExt`) |
 | `INDCABO` | **ação** "Corrigir cabos" do verificador da interligação (`IndefineCabosNaoExistentes`): regrava o XData do trecho cujo cabo não está no catálogo |
+| `EPLQ` | exporta as plaquetas do desenho para `Plaquetas4` (`clsDispositivoTacito.exportaPlaquetas`): lê o dicionário `CENG_PLAQUETA` do **próprio desenho** e resolve o nome de cada plaqueta pelo tipo (painel, dispositivo, texto livre ou régua) |
 
 Implementados: `ELET`, `FIA`, `INT`, `SYNCD` e `VERIF` (sem tela ainda — ver
 `cad-plugin/README.md`). O `SYNCD` é a projeção em lote (fiação + interligação); o

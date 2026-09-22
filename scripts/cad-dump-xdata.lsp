@@ -314,6 +314,24 @@
                     (pz-dump:texto (nth 1 vals)) "_" (pz-dump:texto (nth 2 vals))
                     ";" (cdr (assoc 5 d)) "\n")))))))))) ) 
 
+;; O dicionario CENG_PLAQUETA: uma entrada por **painel**, com o Xrecord das
+;; plaquetas daquele painel — o insumo do `EPLQ` (registros de 7 valores:
+;; tipo, handle, indexRegua, desc1, desc2, desc3, modelo). E o que permite ver se
+;; o desenho tem plaqueta e conferir, fora do plugin, o nome que cada uma resolve.
+(defun pz-dump:plaquetas (f / d item r)
+  (setq d (dictsearch (namedobjdict) "CENG_PLAQUETA"))
+  (if (null d)
+    (pz-dump:escreve f "\nCENG_PLAQUETA: nao existe\n")
+    (foreach item d
+      (if (= (car item) 3)
+        (progn
+          (setq r (dictsearch (cdr (assoc -1 d)) (cdr item)))
+          (pz-dump:escreve f
+            (strcat "\nPLAQUETA;" (cdr item) ";"
+                    (if (null r) "NAO EXISTE"
+                        (vl-princ-to-string (entget (cdr (assoc -1 r)))))
+                    "\n")))))))
+
 ;; O dicionario CONTATOS: cada entrada e os contatos auxiliares de UM modelo — o
 ;; `sTerminaisMod` do `bt4Auxiliar` sai daqui (registros de 8 valores, campos
 ;; +1..+3 = T1..T3 e +4 = tipo). Duma **todas** as entradas, porque os modelos que
@@ -344,6 +362,7 @@
       ;; Reguas: e o dicionario que diz de que painel e cada regua — o que
       ;; explica por que a checagem de intervalos ignora uma regua.
       (pz-dump:dicionario "REGUAS" "MODELOS2" f)
+      (pz-dump:plaquetas f)
       (if (= (getenv "POSITRON_XDATA_BORNES") "1")
         (pz-dump:bornes f)
         nil)

@@ -10,12 +10,14 @@ using Positron.Data.Interligacao;
 using Positron.Data.Layout;
 using Positron.Data.Licenca;
 using Positron.Data.Modelos;
+using Positron.Data.Plaquetas;
 using Positron.Data.Relatorios;
 using Positron.Plugin.Bornes;
 using Positron.Plugin.Fiacao;
 using Positron.Plugin.Interligacao;
 using Positron.Plugin.Layout;
 using Positron.Plugin.Modelos;
+using Positron.Plugin.Plaquetas;
 #if AUTOCAD
 using Autodesk.AutoCAD.Runtime;
 #else
@@ -31,7 +33,8 @@ namespace Positron.Plugin
     /// Recorte atual: <c>ELET</c>, <c>FIA</c>, <c>INT</c>, <c>SYNCD</c> e
     /// <c>VERIF</c> — os nomes vêm do <c>COMANDOS.txt</c> do reverso — mais os que
     /// não existem como comando lá e foram criados como comando próprio
-    /// (<c>JMP</c>, <c>ELETCFG</c>, <c>ELETREL</c>, <c>ELETCMP</c> e <c>INDCABO</c>).
+    /// (<c>JMP</c>, <c>ELETCFG</c>, <c>ELETREL</c>, <c>ELETCMP</c> e <c>INDCABO</c>),
+    /// e as tabelas fora do recorte que ganharam fluxo próprio (<c>EPLQ</c>).
     /// </summary>
     public sealed class Comandos
     {
@@ -323,6 +326,76 @@ namespace Positron.Plugin
         public void IndefinirCabos()
         {
             Plugin.Escrever(ExecutarIndefinirCabos());
+        }
+
+        /// <summary>
+        /// <c>EPLQ</c> — exporta as **plaquetas** do desenho para <c>Plaquetas4</c>
+        /// (o <c>clsDispositivoTacito.exportaPlaquetas()</c>, o <c>EPLQ</c> do
+        /// reverso). Lê o dicionário de plaquetas do **próprio desenho**
+        /// (<c>CENG_PLAQUETA</c>), resolve o nome de cada uma (painel, dispositivo,
+        /// texto livre ou régua) e grava as que têm descrição — o cadastro de
+        /// painéis (<c>Paineis</c>) é que dá os nomes do tipo <c>P</c>.
+        /// </summary>
+        [CommandMethod("EPLQ")]
+        public void ExportarPlaquetas()
+        {
+            Plugin.Escrever(ExecutarPlaquetas());
+        }
+
+        /// <summary>
+        /// Exporta as plaquetas do desenho e devolve a linha de resumo. Nunca lança.
+        /// </summary>
+        internal static string ExecutarPlaquetas()
+        {
+            string bloqueio = BloqueioDeLicenca("EPLQ");
+            if (bloqueio != null)
+            {
+                return bloqueio;
+            }
+
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            string caminho = config.Banco;
+            if (string.IsNullOrEmpty(caminho))
+            {
+                return "EPLQ: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db) — o cadastro de painéis (Paineis) vem dele.";
+            }
+
+            try
+            {
+                ProjectStore store = new ProjectStore(caminho);
+                IReadOnlyDictionary<int, string> nomesDePaineis = store.LerNomesDePaineis();
+
+                // `dicPainel` vazio é ausência de dado: sem nome de painel não há
+                // como resolver as plaquetas do tipo "P".
+                if (nomesDePaineis.Count == 0)
+                {
+                    return "EPLQ: cadastro de painéis vazio (Paineis) — importe o cadastro antes de exportar as plaquetas.";
+                }
+
+                Dictionary<int, IReadOnlyList<PlaquetaDefinicao>> dicionario = PlaquetasDoDesenho.LerDicionario();
+                if (dicionario.Count == 0)
+                {
+                    return "EPLQ: nenhum painel com plaquetas no dicionário CENG_PLAQUETA do desenho.";
+                }
+
+                ReguasModelo reguas = ReguasDoDesenho.Ler();
+                HashSet<int> paineisComFiacao = PlaquetasDoDesenho.PaineisComFiacao();
+                Dictionary<int, IReadOnlyDictionary<string, string>> nomesDeDispositivos =
+                    PlaquetasDoDesenho.NomesDeDispositivosPorPainel();
+
+                List<Plaquetas4Row> linhas = Plaquetas4Gerador.Gerar(
+                    config.Dwg, dicionario, nomesDePaineis, reguas, paineisComFiacao, nomesDeDispositivos);
+
+                store.InserirPlaquetas(linhas, config.Dwg);
+
+                return "EPLQ: " + linhas.Count + " plaqueta(s) em Plaquetas4 ("
+                    + dicionario.Count + " painel(is) com dicionário; " + paineisComFiacao.Count
+                    + " painel(is) com fiação no desenho).";
+            }
+            catch (System.Exception erro)
+            {
+                return "EPLQ: falhou — " + DescreverErro(erro);
+            }
         }
 
         /// <summary>
