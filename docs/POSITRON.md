@@ -158,7 +158,8 @@ operar:
 | `"V"` | — | vazio/outro | não (exige iniciar) |
 
 Regra: **toda operação do plugin valida o tipo antes de escrever.** É o
-equivalente do `limpaComandos()` original, mas por desenho, não por licença.
+equivalente do `limpaComandos()` original, mas por desenho — o recoder **não** tem
+verificação de licença (ver §8).
 
 ### Concorrência
 
@@ -483,15 +484,16 @@ o subconjunto de colunas das tabelas I.
 - **`Indice/Revisao` fazem parte da chave.** `Revisao` versiona a linha; ignorar
   isso faz uma revisão sobrescrever a anterior.
 
-## 8. Decisões ainda abertas
+## 8. Decisões
 
 - **UI do plugin:** WinForms nativo (escolhido) vs hospedar a UI React em
   WebView2. WinForms reduz partes móveis agora; WebView2 reusa componentes.
-- **Licenciamento:** o original tem Rockey/ElecKey/Nuvem e **credenciais Azure em
-  texto claro**. Não reconstruir isso por acidente. **Encaixe pronto:**
-  `Positron.Data.Licenca.ServicoDeLicenca` (com `ILicenca` e o provedor de
-  desenvolvimento como padrão) e o gate `BloqueioDeLicenca` no início dos 6 comandos
-  — plugar o provedor é uma linha na carga do plugin, sem mexer em comando.
+- **Licenciamento — decidido e removido (rodada 63):** o produto é **open source** e
+  **não** exige licença para rodar. O original tinha Rockey/ElecKey/Nuvem e
+  **credenciais Azure em texto claro**; nada disso é portado. O encaixe
+  `Positron.Data.Licenca.ServicoDeLicenca` (com `ILicenca`) e o gate
+  `BloqueioDeLicenca` que existiam desde a rodada 29 foram **apagados** — não
+  desligados: nenhum comando verifica licença e não há caminho morto no código.
 - **Relatórios:** PDF via iTextSharp no original. O `Relatorios*` no app Python
   pode cobrir, mas a decisão não foi tomada.
 - **Multi-usuário:** SQLite hoje; SQL Server quando/se necessário (o caminho já
@@ -518,7 +520,7 @@ reler o repositório inteiro.
 
 **Estado (rodada 62):** as etapas 0–12 do `PLANO.md` estão **concluídas**, exceto a
 **9** (licenciamento, relatórios e multi-usuário), que é decisão do dono e já tem os
-encaixes prontos. Números de hoje: **327** testes xunit + **27** no sidecar, contrato
+encaixes prontos. Números de hoje: **323** testes xunit + **27** no sidecar, contrato
 com **20 métodos** e **31 tabelas** em sincronia, **57** módulos no app, **12** comandos
 no CAD e **15** tabelas escritas pelo plugin (as 13 do diagrama + `Plaquetas4` e
 `ListaMateriais`). O recorte roda no ZWCAD 2026 sobre o **desenho real** (`Funcional.dwg`):
@@ -551,11 +553,13 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
-1. **Etapa 9 — decisões do dono** (`PLANO.md` §9): (a) **licença**, com o encaixe
-   `ServicoDeLicenca`/`ILicenca` e o gate nos 6 comandos já prontos, faltando escolher
-   o provedor; (b) **relatórios**, hoje só o de verificação em texto (`ELETREL`), com
-   a recomendação de começar pelos 4 tabulares no app; (c) **banco**, SQLite hoje,
-   SQL Server quando/quando — o SQL está isolado no `ProjectStore`.
+1. **Etapa 9 — decisões do dono** (`PLANO.md` §9): (a) **licença** — ✅ **removida na
+   rodada 63**: o produto é open source, roda sem verificação, e o encaixe
+   `ServicoDeLicenca`/`ILicenca` e o gate dos comandos foram apagados (sem deixar
+   caminho morto); restam (b) **relatórios**, hoje só o de verificação em
+   texto (`ELETREL`), com a recomendação de começar pelos 4 tabulares no app, e (c)
+   **banco**, SQLite hoje, SQL Server quando/quando — o SQL está isolado no
+   `ProjectStore`.
 2. **`VERIF` no desenho:** as regras de tabela e **todas** as do desenho estão
    portadas — régua do borne, cabo fora do catálogo, página ausente, `ReguaVazia`
    (`buscaReguasVazias`, 10), `BorneSemLm` (`GijcRTCGe3`, 119), órfão por `HandleSup`
@@ -602,7 +606,7 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 327 testes)
+npm run plugin:test       # xunit, net472 (hoje 323 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

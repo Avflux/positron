@@ -136,7 +136,7 @@ processo ponta a ponta, `typecheck` limpo e build do web gerando `dist`.
 A reconstrução do Eletron4Z sobre este esqueleto (dois frontends, contrato de
 dados) está em `docs/POSITRON.md`.
 
-O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (327 testes xunit; veja
+O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (323 testes xunit; veja
 `cad-plugin/README.md` e `docs/POSITRON.md`). Ele builda com `npm run plugin:build`
 e testa com `npm run plugin:test`.
 
