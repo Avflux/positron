@@ -67,6 +67,10 @@ function Invoke-Native {
     return $code
 }
 
+if ((Invoke-Native -Program "node" -Arguments @((Join-Path $PSScriptRoot "check-python.mjs"))) -ne 0) {
+    throw "Python 3.11+ é necessário para empacotar o sidecar."
+}
+
 function Get-HostTriple {
     if (-not (Get-Command rustc -ErrorAction SilentlyContinue)) { return $null }
     $match = & rustc -vV | Select-String -Pattern '^host:\s*(.+)$'

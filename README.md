@@ -60,18 +60,28 @@ Um único comando cuida de tudo:
 npm run dev
 ```
 
-Ele executa automaticamente (em sequência, abortando se alguma etapa falhar):
+Ele prepara o ambiente automaticamente (em sequência, abortando com instruções se
+alguma etapa falhar):
 
-1. `npm install` — garante `node_modules` atualizado
-2. `uv sync` — sincroniza o ambiente Python do sidecar
-3. `protocol:gen` — confirma que o contrato TS ↔ Python está em sincronia
-4. Verifica/instala o Rust via rustup (só na primeira vez)
-5. Sobe **Vite + `tauri dev`** em paralelo, com logs coloridos por processo
+1. verifica Node.js 20+ e executa `npm install`
+2. encontra ou instala `uv`; se necessário, baixa Python 3.12 gerenciado pelo `uv`
+3. no Windows, verifica ou instala CMake, Visual Studio Build Tools (C++ e Windows SDK) e WebView2
+4. verifica ou instala Rust stable via rustup
+5. sincroniza o ambiente Python e valida `protocol:gen`
+6. sobe **Vite + `tauri dev`** em paralelo, com logs coloridos por processo
 
-> Se o **Rust** ainda não estiver instalado, a etapa 4 baixa e executa o instalador
-> oficial automaticamente. É necessário ter conexão com a internet na primeira
-> execução. Outras dependências nativas do Tauri no Windows (CMake, MSVC) ainda
-> precisam estar instaladas previamente — veja `docs/RUNBOOK.md`.
+No Windows, as instalações automáticas usam **WinGet** (incluído no App Installer
+da Microsoft Store). A primeira execução pode baixar vários componentes e o
+Visual Studio Build Tools pode solicitar autorização e levar alguns minutos. Se
+o WinGet não estiver disponível, uma instalação falhar ou o PATH precisar de
+atualização, o bootstrap identifica a pendência, mostra como resolvê-la e pode
+ser executado novamente depois. É necessária conexão com a internet.
+
+O backend exige **Python 3.11+** e `uv`. O bootstrap e os comandos `sidecar:*`
+verificam a versão do Python antes de executar `uv` e exibem uma mensagem de
+instalação se ele estiver ausente. Para `plugin:build*` e `plugin:test`, que são
+opcionais e não fazem parte do app desktop, instale o **.NET SDK**; o runtime
+.NET, sozinho, não basta. Esses comandos verificam o SDK antes de rodar.
 
 No modo dev o Tauri inicia o sidecar Python **direto do código-fonte** via
 `uv run`, sem gerar um executável PyInstaller. Alterações no sidecar entram em
@@ -91,7 +101,7 @@ npm run build:all        # protocol:gen → build:web → build:desktop (tudo)
 
 | Script | O que faz |
 |---|---|
-| `npm run dev` | **Bootstrap completo** (install → uv sync → protocol → Rust) e sobe Vite + `tauri dev` em paralelo |
+| `npm run dev` | **Bootstrap completo** (Node, uv/Python, pré-requisitos nativos no Windows, Rust e protocolo) e sobe Vite + `tauri dev` em paralelo |
 | `npm run dev:web` | Só a UI no navegador — usa o FastAPI do sidecar automaticamente |
 | `npm run dev:desktop` | Só o `tauri dev` (assume que `dev:web` já está rodando) |
 
@@ -115,7 +125,7 @@ npm run build:all        # protocol:gen → build:web → build:desktop (tudo)
 | `npm run protocol:gen` | Falha se o contrato divergir: métodos Python↔TS **ou** os tipos gerados do schema |
 | `npm run schema:sync` | Regrava os tipos TS/C# a partir de `services/sidecar/src/sidecar/db/schema.sql` |
 | `npm run plugin:build` | Compila o plugin CAD (ZWCAD padrão, ou AutoCAD via `plugin:build:autocad`) |
-| `npm run plugin:test` | Roda os 209 testes xunit do plugin |
+| `npm run plugin:test` | Verifica o .NET SDK e roda os testes xUnit do plugin |
 
 ## Estado atual
 
@@ -126,22 +136,23 @@ processo ponta a ponta, `typecheck` limpo e build do web gerando `dist`.
 A reconstrução do Eletron4Z sobre este esqueleto (dois frontends, contrato de
 dados) está em `docs/POSITRON.md`.
 
-O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (209 testes xunit; veja
+O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (273 testes xunit; veja
 `cad-plugin/README.md` e `docs/POSITRON.md`). Ele builda com `npm run plugin:build`
 e testa com `npm run plugin:test`.
 
-Nesta máquina o host CAD disponível é o **AutoCAD 2020** (não há ZWCAD):
-`npm run plugin:build:autocad` resolve a `AutoCadDir` e gera
-`Positron.Plugin.AutoCAD.dll` contra a API **real**, e o `accoreconsole` (harness
-`npm run cad:smoke:acad`, headless) carrega a DLL por `NETLOAD` — `ELET`/`FIA`/
+Nesta máquina o host CAD instalado é o **ZWCAD 2026** (não há AutoCAD):
+`npm run plugin:build` resolve a `ZWCadDir` sozinho e gera
+`Positron.Plugin.ZWCAD.dll` contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`), e o
+`ZWCAD.exe` carrega a DLL por `NETLOAD` (harness `npm run cad:smoke`) — `ELET`/`FIA`/
 `JMP`/`INT`/`SYNCD`/`VERIF` respondem, mais `ELETCFG` (tela de configuração) e
 `ELETREL` (relatório da verificação em arquivo). O ciclo completo roda num **desenho
-real** (`npm run cad:projeto:acad`) com os **mesmos números** do alvo ZWCAD — ver
-`docs/RUNBOOK.md`. O alvo **ZWCAD** continua suportado (é o alvo do produto), mas
-nesta máquina compila contra o stub (`Positron.CadStub`), porque o ZWCAD não está
-instalado. O Rust **está** instalado e a lib do desktop compila (`cargo build`),
-mas o `tauri dev`/`build` completo ainda exige CMake + MSVC. A lista completa do que
-foi e do que não foi executado está no fim de `docs/RUNBOOK.md`.
+real** (`npm run cad:projeto`) com os números documentados (494 linhas em `Fiacao`,
+`VERIF` 249, `IDEMPOTENTE`) — ver `docs/RUNBOOK.md`. O alvo **AutoCAD** continua
+suportado; nesta máquina `npm run plugin:build:autocad` cai no stub
+(`Positron.CadStub`), porque não há AutoCAD instalado. O Rust **está** instalado e a
+lib do desktop compila (`cargo build`), mas o `tauri dev`/`build` completo ainda
+exige CMake + MSVC. A lista completa do que foi e do que não foi executado está no
+fim de `docs/RUNBOOK.md`.
 
 ## O que trocar primeiro
 

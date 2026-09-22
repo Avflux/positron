@@ -6,15 +6,53 @@
 |---|---|---|---|
 | Node.js | 20+ | `apps/web`, `packages/protocol` | `node -v` |
 | **Rust (rustup)** | stable | `apps/desktop` — instalado automaticamente por `npm run dev` se faltar | `cargo -V` |
-| Python | 3.11+ | `services/sidecar` | `python -V` |
-| [uv](https://docs.astral.sh/uv/) | — | deps do Python | `uv --version` |
-| **CMake + compilador C** | — | libzmq compilado junto (`zmq` com feature `vendored`) | `cmake --version` |
-| WebView2 | — | só no Windows, e já vem no Windows 10/11 | — |
+| Python | 3.11+ | `services/sidecar` — pode ser instalado/gerenciado pelo `uv` | `uv python find 3.11` |
+| [uv](https://docs.astral.sh/uv/) | — | deps do Python — WinGet no Windows; instalação manual nos outros sistemas | `uv --version` |
+| .NET SDK | instalado | compilar/testar o plugin C# (`plugin:build*`, `plugin:test`) | `dotnet --list-sdks` |
+| **CMake + Visual Studio Build Tools (C++)** | — | dependências nativas do Tauri e libzmq vendorizado | `cmake --version`; Visual Studio Installer |
+| WebView2 Runtime | — | janela do app Tauri no Windows | — |
 
-Só o Python + Node são necessários para rodar os testes e a UI no navegador.
-`npm run dev` instala o Rust stable via rustup se `cargo` não estiver disponível;
-é necessária conexão com a internet na primeira execução. O Rust é necessário
-para o app desktop de verdade.
+Python 3.11+, `uv` e Node.js são necessários para o sidecar, seus testes e a UI
+no navegador; o frontend web isolado precisa apenas de Node.js.
+`npm run dev` verifica o Node.js e instala/sincroniza dependências. No Windows,
+instala automaticamente as dependências ausentes com WinGet: `uv`, Python 3.12
+gerenciado pelo `uv`, CMake, Visual Studio Build Tools com C++/Windows SDK e
+WebView2. Também instala Rust stable via rustup se `cargo` não estiver
+disponível. A primeira execução precisa de internet; a instalação do Visual
+Studio pode pedir autorização do Windows, demorar e consumir vários gigabytes.
+Se uma instalação automática falhar, o log informa a ferramenta, o motivo
+conhecido e como instalá-la manualmente; corrija a pendência e repita
+`npm run dev`. O App Installer da Microsoft Store fornece o WinGet; se faltar,
+instale-o em https://aka.ms/getwinget e reabra o terminal.
+
+Em macOS e Linux, `npm run dev` ainda instala Rust, mas a instalação de `uv` e
+das bibliotecas nativas do Tauri é manual. Consulte
+https://v2.tauri.app/start/prerequisites/ e
+https://docs.astral.sh/uv/getting-started/installation/.
+
+O plugin CAD e seus testes precisam de um **.NET SDK**, não apenas do runtime.
+O projeto tem alvo .NET Framework 4.7.2; os assemblies de referência desse alvo
+são restaurados pelo NuGet, portanto não é necessário instalar o Visual Studio
+para compilar/testar o plugin. Os comandos `npm run plugin:build*` e
+`npm run plugin:test` verificam se há SDK instalado e explicam como conferir com
+`dotnet --list-sdks` caso não encontrem.
+O SDK é opcional para o app desktop e não é instalado por `npm run dev`; os
+comandos do plugin mostram o link e o comando de verificação se estiver ausente.
+
+### Instalar manualmente uma extensão VS Code (.vsix)
+
+Este repositório não fornece nem gera um arquivo `.vsix`; este procedimento só
+se aplica quando o fornecedor da extensão disponibiliza esse arquivo e a
+instalação automática da extensão não funciona:
+
+1. No VS Code, pressione `Ctrl+Shift+P` (Windows/Linux; `Cmd+Shift+P` no macOS).
+2. Execute **Extensions: Install from VSIX...** (pode aparecer como **Install from VSIX**).
+3. Selecione o arquivo `.vsix` fornecido pela extensão e reinicie o VS Code se
+   ele solicitar.
+
+Isso instala extensões do editor; não instala o .NET SDK, Python, CMake nem
+Visual Studio Build Tools. Para essas ferramentas, siga as instruções de
+instalação dos respectivos pré-requisitos acima.
 
 ## Primeira execução
 
@@ -40,18 +78,21 @@ npm run test:sidecar
 | Só a UI no navegador | `npm run dev:web` | Vite; a UI usa o FastAPI em `127.0.0.1:8765` |
 | Só o sidecar | `npm run sidecar:run` | ZMQ + FastAPI |
 
-`npm run dev` verifica se `cargo` está disponível e, se não estiver, baixa e
-executa o instalador oficial do rustup para instalar o toolchain stable. Depois,
-usa `concurrently` para subir o Vite **e** o `tauri dev` em paralelo. No modo dev,
-o Rust roda o sidecar Python do código-fonte via `uv run`; não é necessário
-compilá-lo com PyInstaller. O `uv run` sincroniza o ambiente Python quando preciso,
-e alterações no sidecar entram em vigor ao reiniciar o app. O
+`npm run dev` prepara as dependências acima e só inicia os servidores quando as
+etapas de bootstrap terminam com sucesso. Em seguida, usa `concurrently` para
+subir o Vite **e** o `tauri dev` em paralelo. No modo dev, o Rust roda o sidecar
+Python do código-fonte via `uv run`; não é necessário compilá-lo com PyInstaller.
+O `uv run` sincroniza o ambiente Python quando preciso, e alterações no sidecar
+entram em vigor ao reiniciar o app. O
 `devUrl`/`frontendDist` do `tauri.conf.json` dizem ao Tauri o que esperar, e ele
 fica sondando `http://localhost:5173` até o Vite responder.
 
-No Windows, o Tauri também exige as ferramentas de build do Visual Studio
-(MSVC/C++), além do WebView2. A instalação automática do Rust não instala esses
-pré-requisitos.
+No Windows, se uma instalação do WinGet informar sucesso mas o utilitário ainda
+não estiver no PATH, feche e reabra o terminal e repita `npm run dev`. Se o
+Visual Studio Installer falhar ou não puder elevar privilégios, abra-o e instale
+a carga de trabalho **Desenvolvimento para desktop com C++**, incluindo um
+Windows SDK e as ferramentas CMake. Para o WebView2, use o instalador Evergreen
+em https://developer.microsoft.com/microsoft-edge/webview2/.
 
 > **Não rode `tauri dev` direto** de dentro de `apps/desktop`: sem o Vite no ar a
 > janela abre em branco. Rode `npm run dev` da raiz.
@@ -80,6 +121,11 @@ npm run build            # build do web, gera apps/web/dist
 npm run plugin:build     # C# do plugin CAD (net472) compila (ZWCAD padrão)
 npm run plugin:build:autocad # C# do plugin CAD para AutoCAD
 npm run plugin:test      # xunit do plugin CAD (net472)
+
+# para verificar o ambiente
+uv run --directory services/sidecar python --version  # precisa ser 3.11+
+uv --version
+dotnet --list-sdks       # necessário para build/teste do plugin CAD
 
 # no sidecar
 uv run --directory services/sidecar ruff check .
