@@ -50,17 +50,19 @@ segunda execução de `FIA`/`INT` duplica linhas e o `ReordenarOrdemFiacao`
 passa a reescrever a `Ordem` das duas cópias (medido no `RUNBOOK.md`: `Fiacao`
 3→6, `Bornes4F` 2→4). **Corrigido na Etapa 1.**
 
-## 2.2 Estado atual (até a rodada 61)
+## 2.2 Estado atual (até a rodada 62)
 
-O recorte do plano — **9 comandos, 13 tabelas do diagrama, app lendo tudo** — está
-implementado, verificado e documentado. Fora desse recorte, a rodada 61 acrescentou a
-tabela **`Plaquetas4`** (comando **`EPLQ`**), que o app ainda **não** lê (não há método no
-contrato): ela é escrita pelo plugin e conferida direto no banco. Os números de hoje:
+O recorte do plano — **13 tabelas derivadas do diagrama e o app lendo todas elas** — está
+implementado, verificado e documentado, com **12 comandos** no CAD. Fora desse recorte, a
+rodada 61 acrescentou **`Plaquetas4`** (comando **`EPLQ`**) e a rodada 62 a
+**`ListaMateriais`** (comando **`COMPLM`**): as duas são escritas pelo plugin, conferidas
+**direto no banco** (contra o produto, no caso da lista) e ainda **não** têm método no
+contrato — o app não as lê. Os números de hoje:
 
 | Gate | Resultado |
 |---|---|
 | `npm run plugin:build` (ZWCAD→API real) / `:autocad` (stub) | exit 0, 0 avisos / 0 erros |
-| `npm run plugin:test` | **309** aprovados |
+| `npm run plugin:test` | **327** aprovados |
 | `npm run protocol:gen` | contrato OK (**20 métodos**; 31 tabelas) |
 | `npm run typecheck` / `build:web` | limpo / **57** módulos |
 | `npm run test:sidecar` / `ruff check` | 27 testes / limpo |
@@ -93,6 +95,7 @@ receita no `RUNBOOK.md`):
 | `Bornes4I` | 216 | 216 | **conteúdo idêntico** (hash) |
 | `Cabos4` / `Veias4` | 697 / 2.388 | 697 / 2.388 | **hash igual** ao catálogo do produto |
 | `Jumper4` | 0 | 0 | idêntico (o desenho não tem jumper) |
+| `ListaMateriais` | 111 | 104 | 40+43 linhas de dispositivo/máscara **idênticas** (só a `Ordem` difere) e as de borne divergindo **exatamente** onde o `Bornes4F` diverge — ver §5, rodada 62 |
 
 **Verificação (o que sustenta a tabela acima):** A/B de conteúdo com
 `scripts/cad-ab-tabelas.ps1`+`.py` (resumo e detalhe por coluna); idempotência e
@@ -125,9 +128,11 @@ tabelas do schema fora do recorte e os 37 relatórios) ou **decisão do dono** �
 `ServicoDeLicenca`/`ILicenca` com gate nos comandos, o relatório em texto
 (`ELETREL`/`ELETCMP`) como base dos 37 relatórios, e o SQL isolado no `ProjectStore`
 para o dia do SQL Server. Do lado das tabelas do schema, a rodada 61 fechou o
-**`Plaquetas4`** (comando `EPLQ`) e **mapeou** o `ListaMateriais` (falta a ordem de
-página, que não vem do desenho); o **`Sinais`** não tem fluxo no reverso (só DDL) e por
-isso **não** é portável — ver §7.2.
+**`Plaquetas4`** (comando `EPLQ`) e a rodada 62 o **`ListaMateriais`** (comando
+`COMPLM`) — que estava parado por uma **pendência mal diagnosticada**: a `OrdemLay` foi
+tratada como "modelo de página fora do desenho" quando o `BuscaOrdemEquipamento` lê o
+dicionário **`CENG_LAYOUT` do próprio desenho**, que o recoder já lia (§7.2); o
+**`Sinais`** não tem fluxo no reverso (só DDL) e por isso **não** é portável — ver §7.2.
 
 
 ## 3. Etapas
@@ -598,6 +603,7 @@ aberto por **cópia no TEMP**).
 
 | 59 — `bt5Terminais`/`bt6Portas` portadas (terminais e bornes das portas) | 2026-09-22 | 6b9a55d | porta o `yBNcmOtuQS` do `frmVerificadorProjetoFiacao`: as duas grades que faltavam da tela (a `dgTerminais` do `GroupBox5`, alimentada pelos **terminais**, e a `dgBornes` do `GroupBox8`, pelos **bornes**) saem dos atributos do **próprio bloco `E`** (`LeOsTerminaisDeUmaPorta`: `T*`/`B*`/`R*` ordenados pela tag, `"0"`/vazio → `"?"`, régua unida por `"; "` e deduplicada), com dois ajustes do original reproduzidos porque os dois mudam o resultado — bloco com **régua E bornes** zera os terminais, e o `sTermM` é **substituído** pelos terminais do **modelo de máscara** (`mPortas[i].sTerminais`); a chave de repetição é **global** entre as portas e é `BuscaNomeDoPainel(painel) + "/" + Nome1["-" + Nome2]` + valor (os bornes ainda levam a régua); entram `VerificarTerminaisDasPortas`/`VerificarBornesDasPortas`, o `Nome1`/`Nome2`/`Painel` no `PortaNoDesenho` (com o painel da máscara resolvido pelo `BuscaPainelDispositivo`) e o `ProjectStore.LerNomesDePaineis` (o cadastro `Paineis`, que responde `"???"` sem ele); **medido no desenho real**: as duas saem **vazias** (45 blocos de porta lidos)e a linha de base do `VERIF` segue **249** (`cad-verif-baseline.py` confere); +6 testes (`plugin:test` **279**) e as duas builds 0 avisos |
 | 61 — tabela `Plaquetas4` fora do recorte portada (`EPLQ`) | 2026-09-22 | 072564b | porta o `clsDispositivoTacito.exportaPlaquetas()` (o comando **`EPLQ`** do reverso, botão de exportação da tela de plaquetas): a tabela é a **plaqueta de identificação** de cada painel — o desenho guarda na própria biblioteca (`CENG_PLAQUETA`, `NamedObjectsDictionary` → `Xrecord` por painel, registros de **7 valores**: tipo/handle/indexRegua/desc1/desc2/desc3/modelo) quais plaquetas existem e o **nome** sai do tipo — `"P"` = nome do painel (cadastro `Paineis`), `"D"` = `Nome1[/Nome2]` do bloco `M`/`P` pelo **handle** (`carregaNomeDispositivosPM`), `"X"` = primeira descrição não-vazia, `"R"` = nome da régua pelo `IndiceRegua` (dicionário `REGUAS/MODELOS2`, o mesmo `ReguasModelo` do `FIA`); só gravam as plaquetas com **nome E descrição** e só entram painéis **com fiação no desenho** (os citados pelas `CONEXAO`) **e** com registro no dicionário; entram o leitor `PlaquetasXData` (blocos de 7, cauda incompleta ignorada em vez de estourar), o gerador puro `Plaquetas4Gerador`, o `ProjectStore.InserirPlaquetas` (apaga por `DWG` e insere o lote na mesma transação, como o `RemovePlaquetas`; o `Indice` é o rowid da chave primária) e o adapter `PlaquetasDoDesenho` (dicionário + mapa handle→nome + painéis com fiação); o ramo `"X"` do original calcula `Ordem = CInt(Handle.Replace("#", ""))` e **não grava** a ordem em coluna nenhuma — o cálculo fica de fora e o motivo registrado (evita `FormatException` com handle não-numérico); **medido no ZWCAD 2026** (fixture `scripts/cad-fixture-plaquetas.lsp`: painel **9** com `CONEXAO` e 4 registros — `P` com descrição, `X`, `D` sem dispositivo e `P` sem descrição — mais o painel **77** só no dicionário; cadastro `Paineis` semeado com `9/PAINEL-9`): **`EPLQ: 2 plaqueta(s) em Plaquetas4 (2 painel(is) com dicionário; 1 painel(is) com fiação no desenho)`** e no banco `(9, 'PAINEL-9', 'MOD-P')` + `(9, 'TEXTO LIVRE', 'MOD-X')` — o `D` sem dispositivo e o `P` sem descrição caem, e o painel 77 (sem fiação) não entra; rodar o `EPLQ` **duas vezes** deixa **2** linhas (idempotência por `DWG`); **medido também no desenho real** (`..\Elet\Teste_prjeto_real\Funcional.dwg`, DWG 63, cadastro com 480 painéis): **`EPLQ: 87 plaqueta(s) em Plaquetas4 (8 painel(is) com dicionário; 2 painel(is) com fiação no desenho)`** — o dicionário tem 8 painéis (`176 177 178 453 454 465 466 503`) e só o **503** tem fiação, então as 87 linhas são dele; a conferência **independente** refaz a regra do original sobre o XData cru do `cad-dump-xdata.lsp` (93 registros: **2 `P` + 83 `D` + 8 `R`**) e chega nas mesmas **87** (2 + 80 + 5 — caem 3 `D` e 3 `R` sem descrição), com as 5 plaquetas `R` resolvendo os índices `39/44/46/478/482` para as réguas `R9/RA1/RA2/R6/R8` (31 no dicionário `REGUAS/MODELOS2`), 0 tags vazias e 0 linhas sem descrição (86 tags distintas para 87 linhas — o único repetido, `PNL-GGE`, são **dois registros `P` idênticos** no dicionário, e o original insere **um por registro**, sem agregar: o INSERT do `AdicionaItemPlaqueta` não tem `Quantidade` nem `Indice`); +15 testes (`plugin:test` **309**) e as duas builds 0 avisos |
+| 62 — tabela `ListaMateriais` fora do recorte portada (`COMPLM`) e `OrdemLay` desbloqueado | 2026-09-22 | (este commit) | porta o `clsLM.CompilaListaDeMateriais()` (o comando **`COMPLM`**): uma passada pelo ModelSpace emite uma linha por LM da **máscara** `M` e do **dispositivo** `P` (os LM vêm do modelo por `indexModelo` e, sem modelo, do XData; o `E`/`A`/`I` **não** entram — o `switch` do original só trata `B`/`P`/`M`) e uma linha **agregada** por `(Painel, régua, tipo, lm)` para cada **borne** `B`, mais as **reservas** de todas as réguas (`LeDicBornesReservaTodos`, agregadas às linhas equivalentes); a **pendência que mantinha a tabela fora do recorte caiu por diagnóstico errado**: o `BuscaOrdemEquipamento` (a coluna `OrdemLay`) **não** lê modelo de página — lê o dicionário **`CENG_LAYOUT` do próprio desenho** (`LeDicLayout("P"&painel)`/`("C"&painel)`), que o `FIA` já lia; o novo `LayoutPosicoes.OrdemEquipamento` devolve o **índice** da tag na lista do painel (dedup **ordinal** como o `List.Contains`, busca **sem caixa** como o `TextCompare`) ou **10000** quando o equipamento não está no layout; entram o gerador puro `ListaMateriaisGerador` (com os dois detalhes do original que mudam o resultado e ficaram travados por teste: as **três comparações independentes** da primeira bolha, a segunda bolha **defeituosa** — a primeira comparação usa o índice **de fora**, `mMateriais[num42]` contra `mMateriais[num45 + 1]` — e o `UBound >= 2`, que com uma linha só deixa a `Ordem` no contador interno 10000+), o `ProjectStore` com os cinco passos do fluxo (`LerListaMateriais`, `LerListaMateriaisAvulsos`, `RemoverListaMateriaisNaoAvulsos`, `RemoverListaMateriaisDeDwgsForaDoCadastro` — pulado com o cadastro `DWG` vazio, desvio documentado — e `InserirListaMateriais`, que preserva o `IndiceLM` de quem casa `(DWG, Painel, Tag)`), o comando **`COMPLM`** com o `Sim`/`Não` do diálogo na configuração `ordemListaBanco`/`POSITRON_LM_ORDEM_BANCO` (padrão: ordem do **desenho**) e o resumo instrumentado; **medido no ZWCAD 2026** no `Funcional.dwg` (DWG 63): `COMPLM: 104 linha(s) em ListaMateriais (8 painel(is); 0 avulso(s); 199 borne(s) do desenho, 0 sem régua no dicionário; ordem do desenho; 83 posição(ões) de layout)`, **idempotente** (duas passadas = 104) e o `FIA` sem regressão (494/265/168/70/83/11/15); **A/B contra o produto** (111 linhas no `RCD.mdb`): as **40** linhas de dispositivo e as **43** de máscara/modelo são **idênticas em conteúdo** — só a `Ordem` difere, o que valida o `OrdemLay` contra o produto **linha a linha** (83 posições de layout) — e as **21×25** de borne divergem **exatamente** onde o `Bornes4F` divergia (168×155), nas mesmas chaves `(Painel, Régua)`: `(9,R8)` +3, `(503,'ENTR 1')` +8, `(503,'ENTR 2')` +8, `(503,'52-X1')` −3, `(503,'52-X2')` −3, `(9,R6)` 48×46 e `(503,BARRA)` 4×6; as demais diferenças estão explicadas: a `Ordem` do produto veio do **"Sim"** do diálogo (o `Indice` das linhas do produto está agrupado pela `Ordem` anterior — todas as "1" antes das "2" —, rastro que o `+10000` + sobreposição produz) e as **3** linhas `Avulso` são itens manuais do app (a projeção os preserva; base nova não tem); o `cad-projeto-e2e.ps1` passou a rodar `COMPLM` no ciclo; +18 testes (`plugin:test` **327**) e as duas builds 0 avisos |
 | 60 — ação `IndefineCabosNaoExistentes` (`INDCABO`) portada — fecha o P1 | 2026-09-22 | d7d20c6 | porta o `clsVerificadorProjetoInterligacao.IndefineCabosNaoExistentes` (o botão **`BTCorrigeCabos`**, "Corrigir cabos"): a **ação** varre as polylines de interligação e, quando o `Tag_Cabo` **não** está no catálogo (`SELECT Tag FROM Cabos`), limpa e regrava o XData (`Tag_Cabo=""`, `NumVeia=-1000`, `NomeVeia=""`, `ocultaTag=0` — `InterligacaoXData.IndefinirCabo`/`ParaValores`, com o handle preservado e usuário/data recarimbados) e põe o caracter de terminal indefinido no rótulo auxiliar (`AUXINTERLIG` tipo 1, o `DBText` da ponta); entra a **regra pura** `AcaoIndefinirCabos.Planejar` (índices fora do catálogo, comparação **ordinal** como o `List(Of String).Contains` do original, e catálogo vazio = **nada a fazer** — o `if (lCabos.Count <= 0) return;`), o leitor `AuxInterligacaoXData` (tolerante a registro truncado, onde o original estoura) e o adapter `CabosNaoExistentesDoDesenho` com as **duas transações** do original; é a contrapartida de escrita da regra read-only `VerificarCabosSemCatalogo` do `VERIF`; **medido no ZWCAD 2026** (fixture `scripts/cad-fixture-indefcab.lsp`: `CABO-OK` no catálogo + `CABO-FANTASMA` fora, mais um rótulo `AUXINTERLIG` tipo 1): `INT` 2 trechos → **`INDCABO: 1 de 2 trecho(s) indefinido(s); 1 de 1 rótulo(s)`** → `INT` **1 trecho** (a leitura da projeção descarta `Num_Veia == -1000`, provando que o XData foi realmente regravado) e o `VERIF` passa a apontar `InterligacaoIndefinida: 1`; +15 testes (`plugin:test` **294**) e as duas builds 0 avisos |
 
 | 58 — ciclo completo no **ZWCAD 2026** (host do produto) | 2026-09-22 | ba401fa | toolchain montado nesta máquina (.NET SDK 8.0.425 local, uv 0.13 + Python 3.12.15, driver ODBC do Access); **gates**: `plugin:build` contra a **API real do ZWCAD 2026** 0 avisos, `plugin:build:autocad` (stub) 0 avisos, `plugin:test` **273**, `protocol:gen` 20 métodos/31 tabelas, `typecheck` limpo, `build:web` OK, `test:sidecar` 27, `ruff` limpo; **dentro do ZWCAD**: `cad:smoke` carrega a DLL por `NETLOAD` e `cad:e2e` grava 2 fios + 1 trecho; `cad:projeto` no projeto real (`..\Elet\Teste_prjeto_real`, DWG 63) reproduz o alvo linha a linha — `FIA` 494 (265/168/70/83/11/15), `INT` 20 (265/216/697/2388), `VERIF` **249** (107+119+11+10+2), linha de base confere, app **4.897** linhas e `IDEMPOTENTE` (hash igual); docs corrigidos (host CAD, caminhos `..\Elet\RCD` → `..\Elet\Teste_prjeto_real` e a saída do `cad:e2e`) |
@@ -628,7 +634,7 @@ rodada 59), as **3** da interligação também, e a única do P1 — a **ação*
 | # | Pendência | Prioridade | Situação |
 |---|---|---|---|
 | 7.1b | `IndefineCabosNaoExistentes` — **ação** da interligação (regrava o XData; comando, não checagem) | P1 | ✅ feito (rodada 60, comando `INDCABO`) |
-| 7.2 | Tabelas do schema fora do recorte (`Aranha4`, `Atributos`/`Exportados`, `ListaMateriais`, `Sinais`, `Correcao`) | P2 | ⏳ pendente — o `Plaquetas4` fechou na rodada 61 (`EPLQ`) |
+| 7.2 | Tabelas do schema fora do recorte (`Aranha4`, `Atributos`/`Exportados`, `Correcao`, `Sinais`) | P2 | ⏳ pendente — o `Plaquetas4` fechou na rodada 61 (`EPLQ`) e o `ListaMateriais` na 62 (`COMPLM`); o `Sinais` **não** é portável (não há fluxo no reverso) |
 | 7.3 | Relatórios: **37** de 38 telas `frmRelatorio_*` (entregue só a verificação em texto) | P2 | ⏳ pendente |
 | 7.4 | Fixture sintética com blocos (o CAD hoje prova as fases 7–9 só no desenho real) | P3 | ⏳ pendente |
 | 7.5 | Decisões do dono — **Etapa 9** (licença, relatórios, banco) | P3 | ⏳ pendente |
@@ -704,21 +710,21 @@ checagem) entrou na rodada 60 como o comando `INDCABO`.
 
 ### 7.2 Tabelas do schema sem projeção · P2
 
-O plugin escreve **14** tabelas (`Plaquetas4` entrou na rodada 61); o schema tem **31**. As
-demais:
+O plugin escreve **15** tabelas (`Plaquetas4` entrou na rodada 61 e `ListaMateriais` na
+62); o schema tem **31**. As demais:
 
 | Tabela(s) | Fluxo no original | Situação |
 |---|---|---|
 | `Aranha4` | relatório de cabos (ArqNet/DI, 5 telas) | ⏳ pendente — fora do recorte (é paginação de relatório — §9b) |
 | `Atributos`, `Exportados` | exportar/importar projeto cross-DWG | ⏳ pendente — fora do recorte |
 | `Plaquetas4` | `clsDispositivoTacito.exportaPlaquetas()` (comando **`EPLQ`**): dicionário `CENG_PLAQUETA` + réguas + cadastro de painéis + dispositivos `M`/`P` do desenho | ✅ **feito (rodada 61, comando `EPLQ`)** |
-| `ListaMateriais` | `clsLM.CompilaListaDeMateriais()` (comando **`COMPLM`**), ~650 linhas | ⏳ pendente — **mapeado** (ver abaixo) |
+| `ListaMateriais` | `clsLM.CompilaListaDeMateriais()` (comando **`COMPLM`**), ~650 linhas | ✅ **feito (rodada 62, comando `COMPLM`)** — ver abaixo |
 | `Sinais` | **nenhum** — só o `CREATE TABLE` (o `ACorrecaoBD`) e o `DROP TABLE SinaisLogico`; os textos do `.resx` ("Sinais e Variáveis") são da tela | ⛔ **não portável**: o fluxo não está no reverso recuperado |
 | `Correcao` | tabela de um campo (`Numero`) do fluxo de correção | ⏳ pendente — sem fluxo de projeção |
 | `Cabos`, `Veias`, `Materiais`, `ModelosCabos`, `Paineis` | catálogo/cadastro importados do Access | ✅ o importador cobre |
 | `DWG`, `DWGH`, `PaineisH`, `Preferencias`, `Configuracoes`, `Comandos` | metadados do projeto/app | domínio do sidecar/app |
 
-**`ListaMateriais` — mapeado, não portado (o próximo da fila).** O fluxo é o
+**`ListaMateriais` — portado na rodada 62 (comando `COMPLM`).** O fluxo é o
 `clsLM.CompilaListaDeMateriais` (botão `COMPLM`), ~650 linhas (linha 121 a 770 do
 `clsLM.cs`; o resto do arquivo é o `BuscaOrdemEquipamento`), e é o **primo do
 `bt12`** na estrutura: uma **passada única** pelo ModelSpace que classifica cada bloco
@@ -726,23 +732,36 @@ pelo `XDataDispositivo.verificaTipoDispositivo` e emite linhas de material.
 
 | Bloco | Insumo lido | Linhas emitidas |
 |---|---|---|
-| `M` (máscara) | `StructureMascara` (pula `Complementar`); `iLM1`/`iLM2` do **modelo de máscara** por `indexModelo` | até **2** (uma por `iLM`), `indexMaterial = iLM1`/`iLM2` |
-| `P` / `A` (dispositivo) | `StructureDispositivo` (pula `Complementar`); `iLM1`/`iLM2` do **modelo de contato** (`array4`, `LeOsModelosDeDeDicionarioContatos`) | até **2** (`indexModelo > 0` é a guarda) |
+| `M` (máscara) | `StructureMascara` (pula `Complementar`); `iLM1`/`iLM2` do **modelo de máscara** por `indexModelo` (sem modelo, os do XData) | até **2** (uma por `iLM`), `indexMaterial = iLM1`/`iLM2` |
+| `P` (dispositivo) | `StructureDispositivo` (pula `Complementar`); `iLM1`/`iLM2` do **modelo de contato** por `indexModelo` (sem modelo, os do XData) | até **2** |
 | `B` (borne) | `StructureBorne`: `lm`, `NomeRegua`, `tipo`, `indexPainel` | **1** agregada por `(Painel, TagRegua, tipo, lm)` |
 
-Cada linha é `(Ordem, Painel, Quantidade, IndiceMaterial, indexeModelo, TagMat, OrdemLay,
-TagAlt, sHandle)` — `TagMat` = `Nome1[/Nome2]`, `TagAlt` = `Alternativo` e `OrdemLay` =
-`BuscaOrdemEquipamento(painel, TagMat)` (o campo **virtual** de ordenação, linha 771, que
-é o único insumo que **não** está no desenho: sai de um modelo de página). Depois há a
-fusão por `(Painel, IndiceMaterial, TagMat, TagAlternativo)` com a ordenação por
-`OrdemLay`/`IndiceMaterial`, o **diálogo** `YesNoCancel` que decide se a ordem vem do
-banco ou do desenho (o `Cancel` aborta) e a resolução de `Quantidade`.
+A tabela acima **corrige** o levantamento anterior em dois pontos, os dois conferidos no
+reverso: o `switch` do fluxo trata **só `B`/`P`/`M`** (o `E`, o `A` e o `I` caem no
+`continue` — o `A` não entra, ao contrário do que estava escrito) e o
+`BuscaOrdemEquipamento` **não** lê modelo de página nenhum: ele lê o dicionário
+**`CENG_LAYOUT` do próprio desenho** (`LeDicLayout("P"&painel)` e `("C"&painel)`), o mesmo
+que o `FIA` já usava para o `PosicaoNum`/`Ordem` — era essa a pendência que mantinha a
+tabela de fora, e ela não existia.
 
-O que falta para portar, em ordem: os dicionários de **modelos de máscara** e de
-**contatos** (o `ReguasModelo` já existe — foi feito para o `FIA`) e o
-`BuscaOrdemEquipamento`. Enquanto a `OrdemLay` não tiver fonte no recorte, a tabela sai
-com a ordem errada — é o único ponto do fluxo que depende de um modelo **fora do
-desenho**, e é por isso que ele ainda não entrou.
+Cada linha é `(Ordem, Painel, Quantidade, IndiceMaterial, TagMat, OrdemLay, TagAlt,
+sHandle)` — `TagMat` = `Nome1[/Nome2]`, `TagAlt` = `Alternativo` e `OrdemLay` =
+`BuscaOrdemEquipamento(painel, TagMat)`, que é o **índice da tag** na lista do painel
+(0-based) ou **10000** quando o equipamento não está no layout. Depois vêm, na ordem do
+original: as **reservas** de todas as réguas (`LeDicBornesReservaTodos`, agregadas às
+linhas de borne equivalentes), a ordenação, a renumeração e o **diálogo**
+`YesNoCancel` que decide se a ordem vem do banco ou do desenho (o `Cancel` aborta) — no
+recoder, a configuração `ordemListaBanco`/`POSITRON_LM_ORDEM_BANCO`, com o padrão
+"ordem do desenho" (o `Não`).
+
+Dois detalhes do original **mudam o resultado** e foram reproduzidos de propósito (e
+estão travados por teste): a primeira bolha tem **três comparações independentes** (cada
+`if` roda sobre o estado já trocado) e a segunda é uma bolha **defeituosa** — a primeira
+comparação usa o índice **de fora** (`mMateriais[num42]` contra `mMateriais[num45 + 1]`)
+enquanto as outras três usam o par de dentro. Por isso a ordem de um painel depende da
+**lista inteira**, não só das suas linhas. O outro detalhe é a renumeração
+(`if UBound >= 2`): com **uma** linha só, o original não renumera e grava a `Ordem` do
+contador interno (10000+).
 
 **`Sinais` não é portável.** A tabela existe no schema (16 colunas: `ChavePrimaria`,
 `IndiceOrigem`/`IndiceDestino`, `TipoTag`, `Tag61850`, `Enderecos61850`…) mas o reverso

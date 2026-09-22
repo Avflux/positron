@@ -113,13 +113,21 @@ tabelas derivadas do diagrama.
 | `Aranha4` | mapa cabo→página ("aranha") | `Tag_Cabo, Painel, Caderno, Folha, Coluna` |
 | `Circuitos4F` | circuito por painel | `DWG, Painel, Circuito, Potencial` |
 | `Aplicacao4F` | aplicação de cabo (seção/cor/tipo) | `DWG, Numero, Nome, Secao, Cor, TipoCabo, Isolacao` |
+| `Plaquetas4` | plaquetas de identificação do desenho (o `EPLQ`) | `DWG, Painel, Tag, Modelo, Desc1..3` |
+| `ListaMateriais` | lista de material do diagrama (o `COMPLM`) | `DWG, Painel, Tag, IndiceMaterial, Quantidade, Ordem, Avulso, Handle, OrdemLay` |
 | `Atributos`, `Exportados` | atributos de bloco e projeção cross-DWG | `DWG, Handle, Nome, Valor` |
+
+> **`ListaMateriais` é do plugin desde a rodada 62**, com uma exceção: as linhas
+> `Avulso = true` são **do app** (itens lançados à mão na tela). O `COMPLM` não as
+> apaga — ele as relê (`CapturaMateriaisAvulso`), projeta as derivadas e regrava as
+> duas juntas, e o `IndiceLM` delas é preservado (`AtualizaIndiceLM` é outro fluxo).
+> O `Plaquetas4` (rodada 61) também é do plugin.
 
 ### Escrito pelo app (catálogo, projeto e configuração)
 
 | Tabela | Papel |
 |---|---|
-| `Materiais`, `ListaMateriais` | catálogo e lista de material |
+| `Materiais` | catálogo de material |
 | `ModelosCabos`, `Cabos`, `Veias` | **definições** (catalog) de cabo/veia |
 | `Cabos4`, `Veias4` | **instâncias** (o plugin grava as instâncias; ver nota) |
 | `Paineis`, `PaineisH`, `Plaquetas4` | projeto |
@@ -220,11 +228,12 @@ recorte mínimo:
 | `JMP` | projeta os jumpers do desenho para `Jumper4` (o `frmCompilarJumperExt`) |
 | `INDCABO` | **ação** "Corrigir cabos" do verificador da interligação (`IndefineCabosNaoExistentes`): regrava o XData do trecho cujo cabo não está no catálogo |
 | `EPLQ` | exporta as plaquetas do desenho para `Plaquetas4` (`clsDispositivoTacito.exportaPlaquetas`): lê o dicionário `CENG_PLAQUETA` do **próprio desenho** e resolve o nome de cada plaqueta pelo tipo (painel, dispositivo, texto livre ou régua) |
+| `COMPLM` | compila a **lista de material** do desenho para `ListaMateriais` (`clsLM.CompilaListaDeMateriais`): uma linha por LM da máscara/dispositivo, uma **agregada** por borne `(painel, régua, tipo, lm)` e as reservas das réguas; a `OrdemLay` sai do `CENG_LAYOUT` do próprio desenho |
 
-Implementados: `ELET`, `FIA`, `INT`, `SYNCD` e `VERIF` (sem tela ainda — ver
-`cad-plugin/README.md`). O `SYNCD` é a projeção em lote (fiação + interligação); o
-`VERIF` valida as tabelas **gravadas** e o **desenho** — read-only, cobre a fiação, a interligação
-e os modelos (`Portas4F`/`Bornes4F`/`Contatos4F`).
+Implementados: os **12** da tabela acima (o estado de cada um e as variáveis que cada
+fluxo lê estão no `cad-plugin/README.md`). O `SYNCD` é a projeção em lote (fiação +
+interligação); o `VERIF` valida as tabelas **gravadas** e o **desenho** — read-only,
+cobre a fiação, a interligação e os modelos (`Portas4F`/`Bornes4F`/`Contatos4F`).
 
 Os nomes vêm do `COMANDOS.txt` do reverso — evitamos inventar comandos novos para
 o usuário não reaprender.
@@ -507,11 +516,12 @@ reler o repositório inteiro.
 - **Plano e acompanhamento:** `docs/PLANO.md` (etapas 0–12, com o registro por
   rodada). **Receitas de verificação:** `docs/RUNBOOK.md`.
 
-**Estado (rodada 32):** as etapas 0–12 do `PLANO.md` estão **concluídas**, exceto a
+**Estado (rodada 62):** as etapas 0–12 do `PLANO.md` estão **concluídas**, exceto a
 **9** (licenciamento, relatórios e multi-usuário), que é decisão do dono e já tem os
-encaixes prontos. Números de hoje: **194** testes xunit + **27** no sidecar, contrato
-com **20 métodos** e **31 tabelas** em sincronia, **57** módulos no app, **9** comandos
-no CAD. O recorte roda no ZWCAD 2026 sobre o **desenho real** (`Funcional.dwg`):
+encaixes prontos. Números de hoje: **327** testes xunit + **27** no sidecar, contrato
+com **20 métodos** e **31 tabelas** em sincronia, **57** módulos no app, **12** comandos
+no CAD e **15** tabelas escritas pelo plugin (as 13 do diagrama + `Plaquetas4` e
+`ListaMateriais`). O recorte roda no ZWCAD 2026 sobre o **desenho real** (`Funcional.dwg`):
 `FIA` grava 494 linhas em `Fiacao`, 265 em `Portas4F`, 168 em `Bornes4F`, 70 em
 `Contatos4F`, 83 em `Dispositivos4F`, 11 em `Circuitos4F` e 15 em `Aplicacao4F`; o
 `INT` grava 20 em `Interligacao4`, 265 em `Portas4I` e 216 em `Bornes4I`, mais o
@@ -564,8 +574,9 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
    `Conf.incluirColuna` 0..6, configurado por `POSITRON_INCLUIR_COLUNA`).
 3. **Tabelas do contrato §3 ainda não projetadas:** o plugin grava `Fiacao`,
    `Interligacao4`, `Portas4F`, `Bornes4F`, `Contatos4F`, `Dispositivos4F`,
-   `Circuitos4F`, `Aplicacao4F`, `Portas4I`, `Bornes4I`, `Jumper4`, `Cabos4` e
-   `Veias4`. Ficam por cobrir `Aranha4`, `Atributos` e `Exportados` (aranha,
+   `Circuitos4F`, `Aplicacao4F`, `Portas4I`, `Bornes4I`, `Jumper4`, `Cabos4`,
+   `Veias4`, `Plaquetas4` (rodada 61, `EPLQ`) e `ListaMateriais` (rodada 62, `COMPLM`).
+   Ficam por cobrir `Aranha4`, `Atributos` e `Exportados` (aranha,
    atributos de bloco e projeção cross-DWG). O `Jumper4` tem o seu próprio comando
    (`JMP`), porque **não** vem do `FIA`: o `frmCompilarJumperExt` monta um ponto por
    ponta da conexão (`Tipo == 4` com `Disp1`/`Disp2`, e `Tipo == 3` com
@@ -591,7 +602,7 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 209 testes)
+npm run plugin:test       # xunit, net472 (hoje 327 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

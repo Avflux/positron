@@ -31,6 +31,7 @@ namespace Positron.Data.Configuracao
         public const string ChaveIncluirColuna = "incluirColuna";
         public const string ChaveSeparador = "separadorCruzamento";
         public const string ChaveRelatorio = "relatorio";
+        public const string ChaveOrdemListaBanco = "ordemListaBanco";
 
         public const string VariavelBanco = "POSITRON_DB_PATH";
         public const string VariavelDwg = "POSITRON_DWG";
@@ -40,6 +41,7 @@ namespace Positron.Data.Configuracao
         public const string VariavelIncluirColuna = "POSITRON_INCLUIR_COLUNA";
         public const string VariavelSeparador = "POSITRON_SEPARADOR_CRUZAMENTO";
         public const string VariavelRelatorio = "POSITRON_RELATORIO";
+        public const string VariavelOrdemListaBanco = "POSITRON_LM_ORDEM_BANCO";
 
         private static ConfiguracaoPositron _cache;
 
@@ -59,6 +61,13 @@ namespace Positron.Data.Configuracao
 
         /// <summary>Arquivo do relatório de verificação (<c>ELETREL</c>).</summary>
         public string Relatorio { get; set; }
+
+        /// <summary>
+        /// O <c>Sim</c>/<c>Não</c> do diálogo do <c>COMPLM</c> ("a ordem da lista de
+        /// materiais vem do banco?") — no original é um <c>MsgBox</c>; aqui é
+        /// configuração. <c>false</c> (padrão) = ordem do **desenho**, o <c>Não</c>.
+        /// </summary>
+        public bool OrdemListaNoBanco { get; set; }
 
         /// <summary>Arquivo padrão: <c>%APPDATA%\Positron\positron.ini</c> (ou o TEMP).</summary>
         public static string ArquivoPadrao
@@ -87,6 +96,7 @@ namespace Positron.Data.Configuracao
                 IncluirColuna = 0,
                 SeparadorCruzamento = null,
                 Relatorio = null,
+                OrdemListaNoBanco = false,
             };
         }
 
@@ -162,6 +172,7 @@ namespace Positron.Data.Configuracao
             texto.AppendLine(ChaveIncluirColuna + "=" + IncluirColuna.ToString(CultureInfo.InvariantCulture));
             texto.AppendLine(ChaveSeparador + "=" + (SeparadorCruzamento ?? string.Empty));
             texto.AppendLine(ChaveRelatorio + "=" + (Relatorio ?? string.Empty));
+            texto.AppendLine(ChaveOrdemListaBanco + "=" + (OrdemListaNoBanco ? "1" : "0"));
             return texto.ToString();
         }
 
@@ -209,7 +220,8 @@ namespace Positron.Data.Configuracao
             if (Mesma(chave, ChaveLog, VariavelLog)) { configuracao.Log = Vazio(valor); return; }
             if (Mesma(chave, ChaveIncluirColuna, VariavelIncluirColuna)) { configuracao.IncluirColuna = Inteiro(valor, configuracao.IncluirColuna); return; }
             if (Mesma(chave, ChaveSeparador, VariavelSeparador)) { configuracao.SeparadorCruzamento = Vazio(valor); return; }
-            if (Mesma(chave, ChaveRelatorio, VariavelRelatorio)) { configuracao.Relatorio = Vazio(valor); }
+            if (Mesma(chave, ChaveRelatorio, VariavelRelatorio)) { configuracao.Relatorio = Vazio(valor); return; }
+            if (Mesma(chave, ChaveOrdemListaBanco, VariavelOrdemListaBanco)) { configuracao.OrdemListaNoBanco = Logico(valor, configuracao.OrdemListaNoBanco); }
         }
 
         private static void AplicarAmbiente(ConfiguracaoPositron configuracao, IDictionary<string, string> ambiente)
@@ -233,7 +245,7 @@ namespace Positron.Data.Configuracao
         private static IDictionary<string, string> Ambiente()
         {
             Dictionary<string, string> ambiente = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio })
+            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio, VariavelOrdemListaBanco })
             {
                 string valor = Environment.GetEnvironmentVariable(nome);
                 if (!string.IsNullOrEmpty(valor))
@@ -265,6 +277,36 @@ namespace Positron.Data.Configuracao
 
             int numero;
             return int.TryParse(valor.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out numero) ? numero : padrao;
+        }
+
+        /// <summary>
+        /// Lê um booleano tolerante: <c>1</c>/<c>true</c>/<c>sim</c>/<c>on</c> ligam,
+        /// <c>0</c>/<c>false</c>/<c>nao</c>/<c>off</c> desligam e qualquer outra coisa
+        /// (inclusive vazio) mantém o valor anterior.
+        /// </summary>
+        private static bool Logico(string valor, bool padrao)
+        {
+            if (string.IsNullOrEmpty(valor))
+            {
+                return padrao;
+            }
+
+            switch (valor.Trim().ToUpperInvariant())
+            {
+                case "1":
+                case "TRUE":
+                case "SIM":
+                case "ON":
+                    return true;
+                case "0":
+                case "FALSE":
+                case "NAO":
+                case "NÃO":
+                case "OFF":
+                    return false;
+                default:
+                    return padrao;
+            }
         }
     }
 }

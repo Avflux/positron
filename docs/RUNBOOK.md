@@ -762,6 +762,102 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 62 — lista de materiais (`COMPLM`, o `CompilaListaDeMateriais`).** É o fluxo da
+tabela **`ListaMateriais`**: uma passada pelo ModelSpace vira uma lista de material por
+painel — uma linha por LM da **máscara** (`M`) e do **dispositivo** (`P`), uma linha
+**agregada** por `(painel, régua, tipo, lm)` para cada **borne** (`B`) e as **reservas**
+das réguas somadas às linhas equivalentes. O `E`, o `A` e o `I` **não** entram: o
+`switch` do original só trata `B`/`P`/`M`.
+
+Duas colunas merecem atenção na conferência:
+
+- **`OrdemLay`** — o `BuscaOrdemEquipamento`, que é o **índice** da tag na lista do painel
+  do dicionário **`CENG_LAYOUT` do próprio desenho** (`"P"&painel` e depois `"C"&painel`),
+  ou **10000** quando o equipamento não está no layout (e `0` nas reservas). A dedup da
+  lista é **ordinal** e a busca é **sem caixa**, como no original. Não é "modelo de
+  página fora do desenho": o `CENG_LAYOUT` é o mesmo dicionário que o `FIA` lê para o
+  `PosicaoNum`/`Ordem`.
+- **`Ordem`** — é **renumerada 1..N por painel** no fim do fluxo, e a ordem dentro do
+  painel sai da segunda bolha do original, que é **defeituosa** (a primeira comparação usa
+  o índice de fora). Ou seja: a ordem depende da **lista inteira**, não só do painel.
+
+O `COMPLM` não precisa de catálogo nem de cadastro — só do desenho e do banco:
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 \
+  -Dwg 63 -Desenho "..\Elet\Teste_prjeto_real\Funcional.dwg" \
+  -Banco "$TEMP\positron-complm.db" -Comandos ELET,COMPLM,COMPLM
+```
+
+Log medido no ZWCAD 2026 (o desenho real; `COMPLM` **duas vezes** de propósito):
+
+```text
+COMPLM: 104 linha(s) em ListaMateriais (8 painel(is); 0 avulso(s); 199 borne(s) do desenho, 0 sem régua no dicionário; ordem do desenho; 83 posição(ões) de layout).
+COMPLM: 104 linha(s) em ListaMateriais (8 painel(is); 0 avulso(s); 199 borne(s) do desenho, 0 sem régua no dicionário; ordem do desenho; 83 posição(ões) de layout).
+```
+
+As **duas** passadas darem 104 é a idempotência: a projeção apaga por `DWG`
+(`RemoveMateriaisLista` + `RemoveItemMaterial`) antes de inserir, como o `FIA`/`INT`. O
+`FIA` rodado na mesma sessão segue nos números de sempre (494/265/**168**/70/83/11/15) —
+o `COMPLM` não mexe em nenhuma outra tabela. O `cad-projeto-e2e.ps1` passou a rodar
+`COMPLM` no passo 4, então o ciclo completo (`npm run cad:projeto -- -Idempotencia`) já
+cobre a tabela.
+
+**A/B contra o produto.** A tabela **não tem `Revisao`** (a chave é o `DWG`), e é o
+`cad-ab-tabelas.ps1` que sabe disso (`-TabelasSemRevisao`, padrão `ListaMateriais`):
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/cad-ab-tabelas.ps1 \
+  -Mdb "..\Elet\Teste_prjeto_real\RCD.mdb" -Tabelas Bornes4F,ListaMateriais -SaidaDir "$TEMP\ab"
+python scripts/cad-ab-tabelas.py "$TEMP\positron-complm.db" "$TEMP\ab\mdb-<data>" \
+  --nosso-dwg 63 --nosso-revisao 3 --detalhe
+```
+
+Medido em 2026-09-22 no `Funcional.dwg` (DWG 63, com o `FIA` na mesma base): **104** linhas
+do recoder contra **111** do produto. O número engana — separando as linhas por família, o
+resultado é:
+
+| Família | Recoder | Produto | Chaves comuns | O que difere |
+|---|---|---|---|---|
+| dispositivo (`Handle` = handle do bloco) | 40 | 40 | **40** | só a `Ordem` |
+| máscara/modelo (`Handle` vazio) | 43 | 43 | **43** | só a `Ordem` |
+| borne (`Handle = "BORNE"`) | 21 | 25 | 15 | `Ordem` (7), `Quantidade` (2), 6 só no recoder e 10 só no produto |
+| avulso (`Avulso = true`) | 0 | 3 | 0 | itens manuais do app |
+
+As **83** linhas de dispositivo/máscara são **idênticas em conteúdo** — `IndiceMaterial`,
+`Quantidade`, `OrdemLay`, `Handle`, `Alternativo` e `Avulso` batem **todas**; só a `Ordem`
+difere (é o que está explicado abaixo). Isso valida o `OrdemLay` **linha a linha** contra o
+produto, inclusive as **83 posições** do layout.
+
+As linhas de **borne** divergem **exatamente** onde o `Bornes4F` diverge — e as chaves são
+as mesmas, o que atribui a diferença à **cópia do desenho**, não a regra:
+
+```text
+(Painel, Régua) só no recoder:  (9,'R8') 3   (503,'ENTR 1') 8   (503,'ENTR 2') 8
+(Painel, Régua) só no produto:  (503,'52-X1') 3   (503,'52-X2') 3
+contagem diferente:             (9,'R6') 48 x 46   (503,'BARRA') 4 x 6
+```
+
+É o mesmo `168 x 155` documentado desde a rodada 28 (a cópia local do `Funcional.dwg` não é
+a que o produto compilou; as réguas `ENTR 1`/`ENTR 2` do desenho são as `52-X1`/`52-X2` do
+banco do produto). O `COMPLM` ainda informa **199 bornes lidos e 0 sem régua no
+dicionário**, então nenhuma linha caiu por falta de régua: as linhas a mais do produto nos
+painéis **715/716** (4+4, réguas `A`/`B`/`C`/`N`) e as nossas a mais no painel **1** (`R16`)
+e nos **509/510** (`SAÍDA`) são a mesma diferença de população de bornes.
+
+**A `Ordem` do produto veio do "Sim" do diálogo.** O `CompilaListaDeMateriais` pergunta
+(`YesNoCancel`) se a ordem vem da **lista que já estava no banco**; no "Sim" ele soma
+`10000` a todas as linhas e sobrescreve cada uma com a `Ordem` anterior, o que faz a
+ordenação final das linhas **não avulsas** ser pela `Ordem` antiga. O rastro está no
+próprio produto: o `Indice` (autonumber) das 111 linhas do DWG 63 está agrupado pela
+`Ordem` — todas as "1" (`52-X1`, `72-27B`, `72-27A`, `R1`, `R6`, `NOTA 3`, `A`…) antes de
+todas as "2" —, ordem que só esse caminho produz. O recoder usa o **`Não`** por padrão
+(ordem do desenho), com o `Sim` em `ordemListaBanco`/`POSITRON_LM_ORDEM_BANCO`; é por isso
+que a coluna `Ordem` difere em **todas** as linhas das duas famílias idênticas. As **3**
+linhas `Avulso` do produto são itens lançados à mão no app: a projeção os relê
+(`CapturaMateriaisAvulso`) e os regrava, mas uma base nova não tem nenhum — o teste de
+unidade cobre a preservação (inclusive o `IndiceLM`, que a projeção **não** atribui).
+
 **Rodada 61 — exportação das plaquetas (`EPLQ`, o `exportaPlaquetas`).** É o fluxo da
 tabela **`Plaquetas4`** — a plaqueta de identificação de cada painel. Não vem do
 catálogo nem do diagrama: vem do **próprio desenho**, do dicionário

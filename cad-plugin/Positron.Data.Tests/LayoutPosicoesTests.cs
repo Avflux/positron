@@ -52,6 +52,60 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void Ordem_equipamento_e_o_indice_da_tag_no_layout()
+        {
+            // As tags do `P` vêm antes das do `C`, e o índice é o da lista concatenada
+            // — o `BuscaOrdemEquipamento` do original.
+            List<PosicaoLayout> posicoes = new List<PosicaoLayout>();
+            posicoes.AddRange(LayoutPosicoes.Interpretar(Xrecord("D1", "D2", "D3"), 1, "P"));
+            posicoes.AddRange(LayoutPosicoes.Interpretar(Xrecord("D4"), 1, "C"));
+
+            LayoutPosicoes tabela = LayoutPosicoes.Ler(posicoes);
+
+            Assert.Equal(0, tabela.OrdemEquipamento(1, "D1"));
+            Assert.Equal(2, tabela.OrdemEquipamento(1, "D3"));
+            Assert.Equal(3, tabela.OrdemEquipamento(1, "D4"));
+        }
+
+        [Fact]
+        public void Ordem_equipamento_ausente_e_10000_e_a_busca_ignora_caixa()
+        {
+            LayoutPosicoes tabela = LayoutPosicoes.Ler(LayoutPosicoes.Interpretar(Xrecord("D1", "D2"), 1, "P"));
+
+            Assert.Equal(LayoutPosicoes.OrdemEquipamentoAusente, tabela.OrdemEquipamento(1, "ZZ"));
+            Assert.Equal(LayoutPosicoes.OrdemEquipamentoAusente, tabela.OrdemEquipamento(2, "D1"));
+            Assert.Equal(LayoutPosicoes.OrdemEquipamentoAusente, tabela.OrdemEquipamento(1, null));
+
+            // A lista dedupa por **ordinal** (o `List.Contains` do original), mas a
+            // busca é sem diferenciar maiúsculas (`TextCompare: true`): duas grafias
+            // ficam as duas na lista e a primeira responde.
+            List<PosicaoLayout> posicoes = new List<PosicaoLayout>
+            {
+                new PosicaoLayout { Painel = 1, Tag = "D1", PosicaoNum = 3, Ordem = 1 },
+                new PosicaoLayout { Painel = 1, Tag = "d1", PosicaoNum = 3, Ordem = 2 },
+                new PosicaoLayout { Painel = 1, Tag = "D2", PosicaoNum = 3, Ordem = 3 },
+            };
+
+            LayoutPosicoes comDuasGrafias = LayoutPosicoes.Ler(posicoes);
+            Assert.Equal(0, comDuasGrafias.OrdemEquipamento(1, "D1"));
+            Assert.Equal(0, comDuasGrafias.OrdemEquipamento(1, "d1"));
+            Assert.Equal(2, comDuasGrafias.OrdemEquipamento(1, "D2"));
+        }
+
+        [Fact]
+        public void Ordem_equipamento_repetido_conta_uma_vez()
+        {
+            LayoutPosicoes tabela = LayoutPosicoes.Ler(new List<PosicaoLayout>
+            {
+                new PosicaoLayout { Painel = 1, Tag = "D1", PosicaoNum = 3, Ordem = 1 },
+                new PosicaoLayout { Painel = 1, Tag = "D1", PosicaoNum = 3, Ordem = 2 },
+                new PosicaoLayout { Painel = 1, Tag = "D2", PosicaoNum = 3, Ordem = 3 },
+            });
+
+            Assert.Equal(1, tabela.OrdemEquipamento(1, "D2"));
+        }
+
+        [Fact]
         public void Nao_borne_recebe_posicao_do_layout_na_ordenacao()
         {
             string caminho = BancoDeTeste.Criar();

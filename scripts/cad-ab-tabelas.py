@@ -36,6 +36,22 @@ COLUNAS = {
                        'BlocoLayout', 'PosicaoNum', 'Handle'],
     'Circuitos4F': ['Painel', 'Circuito', 'Potencial'],
     'Aplicacao4F': ['Numero', 'Nome', 'Secao', 'Cor', 'TipoCabo', 'Isolacao'],
+    # `ListaMateriais` e a unica do recorte **sem revisao**: a chave e o `DWG`.
+    # `IndiceLM` fica de fora como `Indice`/`Criador`/`Data`: quem o atribui e outro
+    # fluxo (`AtualizaIndiceLM`), nao a projecao. `Ordem` entra: e o que a projecao
+    # calcula — e onde a ordem preservada pelo "Sim" do produto aparece.
+    'ListaMateriais': ['Painel', 'Tag', 'IndiceMaterial', 'Quantidade', 'Ordem', 'Avulso',
+                       'Alternativo', 'Handle', 'OrdemLay'],
+}
+
+# Tabelas cujo filtro e so o `DWG` (nao tem coluna `Revisao`).
+SEM_REVISAO = {'ListaMateriais'}
+
+# Chave de casamento explicita, quando o `Handle` nao serve. Em `ListaMateriais` o
+# `Handle` e `"BORNE"` em todas as linhas de borne (e vazio nas de dispositivo),
+# entao a chave e o proprio item.
+CHAVE = {
+    'ListaMateriais': ['Painel', 'Tag', 'IndiceMaterial'],
 }
 
 
@@ -64,6 +80,9 @@ def norm(valor) -> str:
 
 
 def linhas_do_recoder(con, tabela, colunas, dwg, revisao):
+    if tabela in SEM_REVISAO:
+        sql = f"SELECT {', '.join(colunas)} FROM {tabela} WHERE DWG = ?"
+        return ['|'.join(norm(v) for v in linha) for linha in con.execute(sql, (dwg,))]
     sql = f"SELECT {', '.join(colunas)} FROM {tabela} WHERE DWG = ? AND Revisao = ?"
     return ['|'.join(norm(v) for v in linha) for linha in con.execute(sql, (dwg, revisao))]
 
@@ -77,22 +96,32 @@ def linhas_do_produto(pasta, tabela, colunas):
         return ['|'.join(norm(registro.get(coluna)) for coluna in colunas) for registro in leitor]
 
 
-def chave_da_linha(linha: str, indice_handle: int) -> str:
-    """Chave de casamento: o `Handle` quando existe (linhas de reserva não têm),
-    senão a própria linha — assim reservas só casam se forem idênticas."""
-    if indice_handle >= 0:
-        handle = linha.split('|')[indice_handle]
+def chave_da_linha(tabela: str, linha: str, colunas) -> str:
+    """Chave de casamento da linha.
+
+    A `CHAVE` declarada da tabela manda — em `ListaMateriais` o `Handle` é `"BORNE"`
+    em todas as linhas de borne (e vazio nas de dispositivo), então não identifica
+    nada. Sem ela, vale o `Handle` quando existe (as reservas não têm) e, por fim, a
+    própria linha: reserva só casa se for idêntica."""
+    partes = linha.split('|')
+    declarada = CHAVE.get(tabela)
+    if declarada:
+        return '|'.join(partes[colunas.index(coluna)] for coluna in declarada)
+
+    if 'Handle' in colunas:
+        handle = partes[colunas.index('Handle')]
         if handle and handle != '0.0000':
             return handle
+
     return linha
 
 
-def detalhe(tabela: str, colunas, nosso, produto, indice_handle: int) -> None:
+def detalhe(tabela: str, colunas, nosso, produto) -> None:
     """Para cada coluna, quantas linhas casadas divergem — o que o resumo não diz."""
     def por_chave(linhas):
         mapa = {}
         for linha in linhas:
-            mapa.setdefault(chave_da_linha(linha, indice_handle), linha)
+            mapa.setdefault(chave_da_linha(tabela, linha, colunas), linha)
         return mapa
 
     mapa_nosso, mapa_produto = por_chave(nosso), por_chave(produto)
@@ -166,15 +195,14 @@ def principal() -> int:
 
     if args.detalhe:
         print()
-        print('== detalhe por coluna (linhas casadas por Handle) ==')
+        print('== detalhe por coluna (linhas casadas pela chave da tabela) ==')
         for tabela in COLUNAS:
             colunas = COLUNAS[tabela]
             nosso = linhas_do_recoder(con, tabela, colunas, args.nosso_dwg, args.nosso_revisao)
             produto = linhas_do_produto(args.pasta_produto, tabela, colunas)
             if produto is None:
                 continue
-            indice = colunas.index('Handle') if 'Handle' in colunas else -1
-            detalhe(tabela, colunas, nosso, produto, indice)
+            detalhe(tabela, colunas, nosso, produto)
 
     print()
     print(f'{iguais} de {len(COLUNAS)} tabela(s) identicas')

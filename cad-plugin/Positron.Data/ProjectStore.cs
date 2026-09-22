@@ -4,6 +4,7 @@ using System.Data.SQLite;
 using Positron.Contract;
 using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
+using Positron.Data.Materiais;
 using Positron.Data.Modelos;
 using Positron.Data.Plaquetas;
 
@@ -1752,6 +1753,258 @@ namespace Positron.Data
 
                 transacao.Commit();
             }
+        }
+
+        /// <summary>
+        /// As linhas de <c>ListaMateriais</c> de um desenho, na ordem do original
+        /// (<c>ORDER BY Painel, Ordem</c>) — o <c>CarregaOrdemEmMateriais</c>.
+        ///
+        /// A lista **não tem revisão**: a chave é o <c>DWG</c>.
+        /// </summary>
+        public List<LinhaListaMaterial> LerListaMateriais(int dwg)
+        {
+            return LerListaMateriais(dwg, false, false);
+        }
+
+        /// <summary>As linhas <c>Avulso = true</c> do desenho — o <c>CapturaMateriaisAvulso</c>.</summary>
+        public List<LinhaListaMaterial> LerListaMateriaisAvulsos(int dwg)
+        {
+            return LerListaMateriais(dwg, true, false);
+        }
+
+        private List<LinhaListaMaterial> LerListaMateriais(int dwg, bool somenteAvulsos, bool somenteComIndiceLM)
+        {
+            List<LinhaListaMaterial> linhas = new List<LinhaListaMaterial>();
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT DWG, Painel, Tag, IndiceMaterial, Quantidade, Ordem, Avulso, Destino, " +
+                    "DescDestino, Alternativo, Handle, IndiceLM, OrdemLay FROM ListaMateriais WHERE DWG = @dwg";
+                if (somenteAvulsos)
+                {
+                    comando.CommandText += " AND Avulso = 1";
+                }
+
+                if (somenteComIndiceLM)
+                {
+                    comando.CommandText += " AND IndiceLM IS NOT NULL";
+                }
+
+                comando.CommandText += " ORDER BY Painel, Ordem";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new LinhaListaMaterial
+                        {
+                            DWG = (int)(Inteiro(leitor, "DWG") ?? 0),
+                            Painel = (int)(Inteiro(leitor, "Painel") ?? 0),
+                            Tag = Texto(leitor, "Tag"),
+                            IndiceMaterial = (int)(Inteiro(leitor, "IndiceMaterial") ?? 0),
+                            Quantidade = (int)(Inteiro(leitor, "Quantidade") ?? 0),
+                            Ordem = (int)(Inteiro(leitor, "Ordem") ?? 0),
+                            Avulso = Logico(leitor, "Avulso"),
+                            Destino = Texto(leitor, "Destino"),
+                            DescDestino = Texto(leitor, "DescDestino"),
+                            Alternativo = Texto(leitor, "Alternativo"),
+                            Handle = Texto(leitor, "Handle"),
+                            IndiceLM = (int)(Inteiro(leitor, "IndiceLM") ?? 0),
+                            OrdemLay = (int)(Inteiro(leitor, "OrdemLay") ?? 0),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
+        /// <summary>
+        /// Apaga as linhas **não-avulsas** do desenho — o <c>RemoveMateriaisLista</c>
+        /// do original. Os itens avulsos (o que o usuário lançou à mão no app) ficam:
+        /// o fluxo os relê em seguida (<c>CapturaMateriaisAvulso</c>) e os regrava.
+        /// </summary>
+        public int RemoverListaMateriaisNaoAvulsos(int dwg)
+        {
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText = "DELETE FROM ListaMateriais WHERE DWG = @dwg AND IFNULL(Avulso, 0) = 0";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                return comando.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Apaga a lista dos desenhos que **não estão no cadastro** (<c>DWG</c>) — o
+        /// <c>cDadosLM.AtualizaLMBaseadoNosDWGsCadastrados</c>.
+        ///
+        /// **Desvio deliberado:** o original roda isto sempre; aqui a limpeza é
+        /// **pulada quando o cadastro está vazio**. Sem nenhum desenho cadastrado não
+        /// há o que comparar, e apagar todas as listas por ausência de cadastro seria
+        /// concluir dado que não existe — a regra do recorte é não inventar.
+        /// </summary>
+        public int RemoverListaMateriaisDeDwgsForaDoCadastro()
+        {
+            using (SQLiteConnection conexao = Abrir())
+            {
+                using (SQLiteCommand contar = conexao.CreateCommand())
+                {
+                    contar.CommandText = "SELECT COUNT(*) FROM DWG";
+                    if (Convert.ToInt64(contar.ExecuteScalar()) == 0)
+                    {
+                        return 0;
+                    }
+                }
+
+                using (SQLiteCommand comando = conexao.CreateCommand())
+                {
+                    comando.CommandText =
+                        "DELETE FROM ListaMateriais WHERE DWG NOT IN (SELECT Indice FROM DWG)";
+                    return comando.ExecuteNonQuery();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Grava a lista do desenho — o <c>RemoveItemMaterial</c> do original: lê o
+        /// <c>IndiceLM</c> das linhas que ainda estão no banco (por
+        /// <c>DWG, Painel, Tag</c>), **apaga tudo do desenho** e insere o lote, na
+        /// mesma transação.
+        ///
+        /// O <c>IndiceLM</c> **não** vem do gerador: quem o atribui é outro fluxo
+        /// (<c>AtualizaIndiceLM</c>) e a projeção só o preserva.
+        /// </summary>
+        public int InserirListaMateriais(IEnumerable<LinhaListaMaterial> linhas, int dwg)
+        {
+            List<LinhaListaMaterial> lote = new List<LinhaListaMaterial>();
+            if (linhas != null)
+            {
+                foreach (LinhaListaMaterial linha in linhas)
+                {
+                    if (linha != null)
+                    {
+                        lote.Add(linha);
+                    }
+                }
+            }
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            {
+                Dictionary<string, int> indices = LerIndicesLM(conexao, dwg);
+
+                using (SQLiteCommand remover = conexao.CreateCommand())
+                {
+                    remover.CommandText = "DELETE FROM ListaMateriais WHERE DWG = @dwg";
+                    remover.Parameters.AddWithValue("@dwg", dwg);
+                    remover.ExecuteNonQuery();
+                }
+
+                using (SQLiteCommand comando = conexao.CreateCommand())
+                {
+                    comando.CommandText =
+                        "INSERT INTO ListaMateriais(DWG, Painel, Tag, IndiceMaterial, Quantidade, Ordem, " +
+                        "Avulso, Destino, DescDestino, Alternativo, Handle, IndiceLM, OrdemLay) " +
+                        "VALUES(@dwg, @painel, @tag, @indiceMaterial, @quantidade, @ordem, " +
+                        "@avulso, @destino, @descDestino, @alternativo, @handle, @indiceLM, @ordemLay)";
+
+                    SQLiteParameter[] parametros =
+                    {
+                        comando.Parameters.Add("@dwg", System.Data.DbType.Int64),
+                        comando.Parameters.Add("@painel", System.Data.DbType.Int64),
+                        comando.Parameters.Add("@tag", System.Data.DbType.String),
+                        comando.Parameters.Add("@indiceMaterial", System.Data.DbType.Int64),
+                        comando.Parameters.Add("@quantidade", System.Data.DbType.Int64),
+                        comando.Parameters.Add("@ordem", System.Data.DbType.Int64),
+                        comando.Parameters.Add("@avulso", System.Data.DbType.Int64),
+                        comando.Parameters.Add("@destino", System.Data.DbType.String),
+                        comando.Parameters.Add("@descDestino", System.Data.DbType.String),
+                        comando.Parameters.Add("@alternativo", System.Data.DbType.String),
+                        comando.Parameters.Add("@handle", System.Data.DbType.String),
+                        comando.Parameters.Add("@indiceLM", System.Data.DbType.Int64),
+                        comando.Parameters.Add("@ordemLay", System.Data.DbType.Int64),
+                    };
+
+                    foreach (LinhaListaMaterial linha in lote)
+                    {
+                        parametros[0].Value = linha.DWG != 0 ? linha.DWG : dwg;
+                        parametros[1].Value = linha.Painel;
+                        parametros[2].Value = Nulo(linha.Tag);
+                        parametros[3].Value = linha.IndiceMaterial;
+                        parametros[4].Value = linha.Quantidade;
+                        parametros[5].Value = linha.Ordem;
+                        parametros[6].Value = linha.Avulso ? 1 : 0;
+                        parametros[7].Value = Nulo(linha.Destino);
+                        parametros[8].Value = Nulo(linha.DescDestino);
+                        parametros[9].Value = Nulo(linha.Alternativo);
+                        parametros[10].Value = Nulo(linha.Handle);
+                        parametros[11].Value = IndiceLMDe(indices, linha, linha.IndiceLM);
+                        parametros[12].Value = linha.OrdemLay;
+                        comando.ExecuteNonQuery();
+                    }
+                }
+
+                transacao.Commit();
+                return lote.Count;
+            }
+        }
+
+        /// <summary>
+        /// O mapa <c>(Painel, Tag) → IndiceLM</c> das linhas que já estão no banco —
+        /// o <c>Select DWG, Painel, Tag, IndiceLM ... and IndiceLM IS NOT NULL</c> do
+        /// <c>RemoveItemMaterial</c>.
+        /// </summary>
+        private Dictionary<string, int> LerIndicesLM(SQLiteConnection conexao, int dwg)
+        {
+            Dictionary<string, int> indices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Painel, Tag, IndiceLM FROM ListaMateriais WHERE DWG = @dwg AND IndiceLM IS NOT NULL";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        long? painel = Inteiro(leitor, "Painel");
+                        string tag = Texto(leitor, "Tag");
+                        long? indice = Inteiro(leitor, "IndiceLM");
+                        if (indice.HasValue)
+                        {
+                            indices[ChaveIndiceLM((int)(painel ?? 0), tag)] = (int)indice.Value;
+                        }
+                    }
+                }
+            }
+
+            return indices;
+        }
+
+        private static object IndiceLMDe(Dictionary<string, int> indices, LinhaListaMaterial linha, int atual)
+        {
+            if (atual != 0)
+            {
+                return atual;
+            }
+
+            int guardado;
+            if (indices.TryGetValue(ChaveIndiceLM(linha.Painel, linha.Tag), out guardado))
+            {
+                return guardado;
+            }
+
+            return 0;
+        }
+
+        private static string ChaveIndiceLM(int painel, string tag)
+        {
+            return painel + "\u0000" + (tag ?? string.Empty);
         }
 
         private static object Nulo(string valor)

@@ -20,10 +20,18 @@ param(
     [int]    $Dwg = 63,
     [string] $Revisao = "3",
     [string] $SaidaDir = "$env:TEMP\positron-ab",
-    [string[]] $Tabelas = @('Fiacao', 'Portas4F', 'Bornes4F', 'Contatos4F', 'Dispositivos4F', 'Circuitos4F', 'Aplicacao4F')
+    [string[]] $Tabelas = @('Fiacao', 'Portas4F', 'Bornes4F', 'Contatos4F', 'Dispositivos4F', 'Circuitos4F', 'Aplicacao4F'),
+    # Tabelas que **nao tem** `Revisao`: o filtro e so o `DWG` (ex.: ListaMateriais).
+    [string[]] $TabelasSemRevisao = @('ListaMateriais')
 )
 
 $ErrorActionPreference = "Stop"
+
+# `-Tabelas A,B` chega como UMA string quando vem pelo `powershell -File` (foi o
+# mesmo defeito do harness: a lista de argumentos nao e repartida). Normaliza.
+$Tabelas = @($Tabelas -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_.Length -gt 0 })
+$TabelasSemRevisao = @($TabelasSemRevisao -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_.Length -gt 0 })
+
 if (-not (Test-Path $Mdb)) { throw "nao encontrei o .mdb em '$Mdb'" }
 New-Item -ItemType Directory -Force -Path $SaidaDir | Out-Null
 
@@ -37,7 +45,11 @@ $conn.Open()
 try {
     $cmd = $conn.CreateCommand()
     foreach ($tabela in $Tabelas) {
-        $cmd.CommandText = "SELECT * FROM [$tabela] WHERE DWG=$Dwg AND Revisao='$Revisao'"
+        if ($TabelasSemRevisao -contains $tabela) {
+            $cmd.CommandText = "SELECT * FROM [$tabela] WHERE DWG=$Dwg"
+        } else {
+            $cmd.CommandText = "SELECT * FROM [$tabela] WHERE DWG=$Dwg AND Revisao='$Revisao'"
+        }
         $dt = New-Object System.Data.DataTable
         $dt.Load($cmd.ExecuteReader())
         $destino = Join-Path $pasta ($tabela + '.csv')

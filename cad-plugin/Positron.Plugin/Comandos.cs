@@ -9,6 +9,7 @@ using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
 using Positron.Data.Layout;
 using Positron.Data.Licenca;
+using Positron.Data.Materiais;
 using Positron.Data.Modelos;
 using Positron.Data.Plaquetas;
 using Positron.Data.Relatorios;
@@ -396,6 +397,191 @@ namespace Positron.Plugin
             {
                 return "EPLQ: falhou — " + DescreverErro(erro);
             }
+        }
+
+        /// <summary>
+        /// <c>COMPLM</c> — compila a **lista de materiais** do desenho para
+        /// <c>ListaMateriais</c> (o <c>clsLM.CompilaListaDeMateriais()</c>, o
+        /// <c>COMPLM</c> do reverso).
+        ///
+        /// Cada bloco do ModelSpace vira linha de material: a **máscara** (<c>M</c>) e
+        /// o **dispositivo** (<c>P</c>) até duas (uma por LM do modelo) e o **borne**
+        /// (<c>B</c>) uma **agregada** por <c>(Painel, régua, tipo, lm)</c> — mais as
+        /// reservas das réguas. A ordenação e a renumeração por painel são as do
+        /// original, incluindo a bolha defeituosa da segunda passada (ver
+        /// <see cref="ListaMateriaisGerador"/>).
+        /// </summary>
+        [CommandMethod("COMPLM")]
+        public void CompilarListaDeMateriais()
+        {
+            Plugin.Escrever(ExecutarListaDeMateriais());
+        }
+
+        /// <summary>
+        /// Compila a lista de materiais e devolve a linha de resumo. Nunca lança.
+        ///
+        /// A ordem das operações é a do original: lê a ordem anterior (quando
+        /// <c>POSITRON_LM_ORDEM_BANCO</c>), apaga as linhas **não-avulsas** do desenho,
+        /// limpa as listas de desenhos fora do cadastro, relê os **avulsos** (que
+        /// sobrevivem e são regravados) e só então projeta e grava.
+        /// </summary>
+        internal static string ExecutarListaDeMateriais()
+        {
+            string bloqueio = BloqueioDeLicenca("COMPLM");
+            if (bloqueio != null)
+            {
+                return bloqueio;
+            }
+
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            string caminho = config.Banco;
+            if (string.IsNullOrEmpty(caminho))
+            {
+                return "COMPLM: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
+            }
+
+            try
+            {
+                ProjectStore store = new ProjectStore(caminho);
+                bool ordemDoBanco = config.OrdemListaNoBanco;
+
+                // `CarregaOrdemEmMateriais` — lê a ordem ANTES de apagar (o original
+                // pergunta ao usuário e, no "Sim", usa a lista que já estava no banco).
+                List<LinhaListaMaterial> ordem = ordemDoBanco ? store.LerListaMateriais(config.Dwg) : null;
+
+                // `RemoveMateriaisLista` + `AtualizaLMBaseadoNosDWGsCadastrados`.
+                store.RemoverListaMateriaisNaoAvulsos(config.Dwg);
+                store.RemoverListaMateriaisDeDwgsForaDoCadastro();
+
+                // `CapturaMateriaisAvulso` — o que o usuário lançou à mão sobrevive.
+                List<LinhaListaMaterial> avulsos = store.LerListaMateriaisAvulsos(config.Dwg);
+
+                ReguasModelo reguas = ReguasDoDesenho.Ler();
+                IReadOnlyList<PontoBorne> bornes = BornesDoDesenho.Ler(reguas);
+                IReadOnlyList<DispositivoFiacao> dispositivos = DispositivosDeFiacaoDoDesenho.Ler();
+
+                Dictionary<int, ModeloMascara> modelosMascara = IndexarPorIndice(ModelosMascaraDoDesenho.LerModelos());
+                Dictionary<int, ModeloContato> modelosContato = IndexarPorIndice(ContatosDoDesenho.LerModelos());
+
+                // As reservas de todas as réguas entram na lista (o
+                // `LeDicBornesReservaTodos` do original).
+                Dictionary<int, IReadOnlyList<BorneReserva>> reservasPorRegua =
+                    new Dictionary<int, IReadOnlyList<BorneReserva>>();
+                foreach (ReguaInfo regua in reguas.Ordenadas)
+                {
+                    if (regua != null)
+                    {
+                        reservasPorRegua[regua.Indice] = BornesReservaDoDesenho.Ler(regua.Indice);
+                    }
+                }
+
+                List<int> paineis = new List<int>();
+                foreach (ReguaInfo regua in reguas.Ordenadas)
+                {
+                    AcrescentarPainel(paineis, regua == null ? 0 : regua.Painel);
+                }
+
+                foreach (PontoBorne borne in bornes)
+                {
+                    AcrescentarPainel(paineis, borne.Painel);
+                }
+
+                foreach (DispositivoFiacao dispositivo in dispositivos)
+                {
+                    AcrescentarPainel(paineis, dispositivo.Painel);
+                }
+
+                LayoutPosicoes layout = LayoutDoDesenho.Ler(paineis);
+
+                // Bornes cuja régua não está no dicionário saem com painel 0 e **não**
+                // entram na lista — o `indexPainel != 0` do original. É o número que
+                // explica (ou não) uma diferença de população contra o produto, então
+                // ele vai no resumo.
+                int bornesSemRegua = 0;
+                foreach (PontoBorne borne in bornes)
+                {
+                    if (borne.Painel == 0)
+                    {
+                        bornesSemRegua++;
+                    }
+                }
+
+                List<LinhaListaMaterial> linhas = ListaMateriaisGerador.Gerar(
+                    config.Dwg,
+                    dispositivos,
+                    modelosMascara,
+                    modelosContato,
+                    bornes,
+                    reguas,
+                    reservasPorRegua,
+                    layout,
+                    avulsos,
+                    ordem,
+                    ordemDoBanco);
+
+                int gravados = store.InserirListaMateriais(linhas, config.Dwg);
+
+                return "COMPLM: " + gravados + " linha(s) em ListaMateriais ("
+                    + ContarPaineis(linhas) + " painel(is); " + avulsos.Count + " avulso(s); "
+                    + bornes.Count + " borne(s) do desenho, " + bornesSemRegua + " sem régua no dicionário; "
+                    + "ordem do " + (ordemDoBanco ? "banco" : "desenho") + "; "
+                    + (layout.EstaVazia ? "sem layout CENG_LAYOUT" : layout.NumPosicoes + " posição(ões) de layout")
+                    + ").";
+            }
+            catch (System.Exception erro)
+            {
+                return "COMPLM: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
+        {
+            Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();
+            foreach (ModeloMascara modelo in modelos)
+            {
+                if (modelo != null)
+                {
+                    indice[modelo.Indice] = modelo;
+                }
+            }
+
+            return indice;
+        }
+
+        private static Dictionary<int, ModeloContato> IndexarPorIndice(List<ModeloContato> modelos)
+        {
+            Dictionary<int, ModeloContato> indice = new Dictionary<int, ModeloContato>();
+            foreach (ModeloContato modelo in modelos)
+            {
+                if (modelo != null)
+                {
+                    indice[modelo.Indice] = modelo;
+                }
+            }
+
+            return indice;
+        }
+
+        private static void AcrescentarPainel(List<int> paineis, int painel)
+        {
+            if (painel > 0 && !paineis.Contains(painel))
+            {
+                paineis.Add(painel);
+            }
+        }
+
+        private static int ContarPaineis(IEnumerable<LinhaListaMaterial> linhas)
+        {
+            List<int> paineis = new List<int>();
+            foreach (LinhaListaMaterial linha in linhas)
+            {
+                if (!paineis.Contains(linha.Painel))
+                {
+                    paineis.Add(linha.Painel);
+                }
+            }
+
+            return paineis.Count;
         }
 
         /// <summary>

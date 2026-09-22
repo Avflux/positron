@@ -45,8 +45,29 @@ namespace Positron.Data.Layout
         /// <summary>Valores por posição no <c>Xrecord</c>.</summary>
         public const int ValoresPorPosicao = 5;
 
+        /// <summary>
+        /// O que o <c>BuscaOrdemEquipamento</c> devolve quando o equipamento não está
+        /// no layout — o <c>result = 10000</c> do original. Não é "sem ordem": é o
+        /// valor gravado em <c>OrdemLay</c> para quem não tem posição no layout.
+        /// </summary>
+        public const int OrdemEquipamentoAusente = 10000;
+
         private readonly Dictionary<string, PosicaoLayout> _porChave =
             new Dictionary<string, PosicaoLayout>(StringComparer.Ordinal);
+
+        /// <summary>
+        /// As tags de cada painel **na ordem em que aparecem** no dicionário
+        /// (<c>"P"&lt;painel&gt;</c> e depois <c>"C"&lt;painel&gt;</c>), já sem
+        /// repetição. É a lista que o <c>BuscaOrdemEquipamento</c> monta a cada
+        /// chamada para devolver o **índice** do equipamento.
+        ///
+        /// A repetição sai por comparação **ordinal** — o <c>List(Of String).Contains</c>
+        /// do original —, mas a busca é **sem diferenciar maiúsculas**
+        /// (<c>TextCompare: true</c>): duas grafias da mesma tag ficam as duas na
+        /// lista e a primeira é a que responde.
+        /// </summary>
+        private readonly Dictionary<int, List<string>> _tagsPorPainel =
+            new Dictionary<int, List<string>>();
 
         public static LayoutPosicoes Vazia
         {
@@ -80,9 +101,52 @@ namespace Positron.Data.Layout
                 }
 
                 tabela._porChave[Chave(posicao.Painel, posicao.Tag)] = posicao;
+                tabela.AnotarTag(posicao.Painel, posicao.Tag);
             }
 
             return tabela;
+        }
+
+        /// <summary>
+        /// O <c>OrdemLay</c> de um equipamento: o **índice** da tag na lista do
+        /// painel (<c>BuscaOrdemEquipamento</c> do original) ou
+        /// <see cref="OrdemEquipamentoAusente"/> quando não está no layout.
+        ///
+        /// A comparação é sem diferenciar maiúsculas, como o <c>TextCompare: true</c>
+        /// do original (a lista, essa, dedupa por ordinal).
+        /// </summary>
+        public int OrdemEquipamento(int painel, string tag)
+        {
+            List<string> tags;
+            if (tag == null || !_tagsPorPainel.TryGetValue(painel, out tags))
+            {
+                return OrdemEquipamentoAusente;
+            }
+
+            for (int i = 0; i < tags.Count; i++)
+            {
+                if (string.Equals(tag, tags[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    return i;
+                }
+            }
+
+            return OrdemEquipamentoAusente;
+        }
+
+        private void AnotarTag(int painel, string tag)
+        {
+            List<string> tags;
+            if (!_tagsPorPainel.TryGetValue(painel, out tags))
+            {
+                tags = new List<string>();
+                _tagsPorPainel[painel] = tags;
+            }
+
+            if (!tags.Contains(tag))
+            {
+                tags.Add(tag);
+            }
         }
 
         /// <summary>Posição de um ponto, ou <c>null</c> se o par não está no layout.</summary>

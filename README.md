@@ -136,7 +136,7 @@ processo ponta a ponta, `typecheck` limpo e build do web gerando `dist`.
 A reconstrução do Eletron4Z sobre este esqueleto (dois frontends, contrato de
 dados) está em `docs/POSITRON.md`.
 
-O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (294 testes xunit; veja
+O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (327 testes xunit; veja
 `cad-plugin/README.md` e `docs/POSITRON.md`). Ele builda com `npm run plugin:build`
 e testa com `npm run plugin:test`.
 
@@ -147,8 +147,9 @@ está instalado e carrega a DLL por `NETLOAD` (harness `npm run cad:smoke`) —
 `ELET`/`FIA`/
 `JMP`/`INT`/`SYNCD`/`VERIF` respondem, mais `ELETCFG` (tela de configuração),
 `ELETREL` (relatório da verificação em arquivo), `INDCABO` (a ação "Corrigir cabos" do
-verificador da interligação) e `EPLQ` (a exportação das plaquetas do desenho,
-tabela `Plaquetas4`). O ciclo completo roda num **desenho
+verificador da interligação), `EPLQ` (a exportação das plaquetas do desenho,
+tabela `Plaquetas4`) e `COMPLM` (a lista de material do desenho, tabela
+`ListaMateriais`). O ciclo completo roda num **desenho
 real** (`npm run cad:projeto`) com os números documentados (494 linhas em `Fiacao`,
 `VERIF` 249, `IDEMPOTENTE`) — ver `docs/RUNBOOK.md`. O alvo **AutoCAD** continua
 suportado; nesta máquina `npm run plugin:build:autocad` cai no stub

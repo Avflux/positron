@@ -10,8 +10,9 @@
   3. importa catalogo e cadastro de paineis do Access (`-Mdb`) para o banco;
   4. **projeta o `INT` de novo**, agora com o catalogo carregado — e o `INT` que
      carimba `Cabos4`/`Veias4` como snapshot do catalogo, entao sem esta segunda
-     passada o app mostraria zero cabo; roda tambem `VERIF,ELETREL`, para o relatorio
-     sair com o catalogo carregado (a regra `CaboSemCatalogo` so roda assim);
+     passada o app mostraria zero cabo; roda tambem `COMPLM,VERIF,ELETREL`, para a
+     lista de materiais sair junto e o relatorio sair com o catalogo carregado (a
+     regra `CaboSemCatalogo` so roda assim);
   5. roda as consultas do app (`scripts/app-consultas.py`);
   6. confere o relatorio do VERIF contra `scripts/verif-baseline.txt`;
   7. com `-Idempotencia`, projeta de novo, gera dois dumps e compara (`--ignorar Data`).
@@ -75,9 +76,9 @@ powershell -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'cad-importa-c
     -Banco $Banco -Mdb $Mdb | ForEach-Object { "  " + $_ }
 if ($LASTEXITCODE -ne 0) { throw "a importacao falhou (exit $LASTEXITCODE)" }
 
-Write-Host "=== 4/7 INT de novo, com o catalogo carregado (+ VERIF/ELETREL) ===" -ForegroundColor Cyan
-& powershell -NoProfile -ExecutionPolicy Bypass -File $smokeScript -Dwg $Dwg -Revisao $Revisao -Comandos INT,VERIF,ELETREL `
-    -Desenho $Desenho -Banco $Banco 2>&1 | Select-String -Pattern "INT:|VERIF:|ELETREL:" | ForEach-Object { "  " + $_.Line }
+Write-Host "=== 4/7 INT de novo, com o catalogo carregado (+ COMPLM/VERIF/ELETREL) ===" -ForegroundColor Cyan
+& powershell -NoProfile -ExecutionPolicy Bypass -File $smokeScript -Dwg $Dwg -Revisao $Revisao -Comandos INT,COMPLM,VERIF,ELETREL `
+    -Desenho $Desenho -Banco $Banco 2>&1 | Select-String -Pattern "INT:|COMPLM:|VERIF:|ELETREL:" | ForEach-Object { "  " + $_.Line }
 if ($LASTEXITCODE -ne 0) { throw "a segunda passada de INT falhou (exit $LASTEXITCODE)" }
 
 Write-Host "=== 5/7 consultas do app ===" -ForegroundColor Cyan
