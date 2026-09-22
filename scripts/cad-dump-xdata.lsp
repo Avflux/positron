@@ -22,6 +22,11 @@
 ;;;   BORNE;<handle>;<tipo>;<numero>;<complemento>;<ordem>;<indexRegua>;<layer>
 ;;;     ATT;T1=<texto>
 ;;;
+;;; O dicionario de plaquetas (`CENG_PLAQUETA`) sai **sempre**, em linhas
+;;; `PLAQUETA;<painel>;<entget do Xrecord>` — e o insumo do `EPLQ` (a tabela
+;;; `Plaquetas4`, registros de 7 valores) e o que permite conferir, fora do
+;;; plugin, quais paineis tem plaqueta e que nome cada uma resolve.
+;;;
 ;;; A linha `ATT;T1=` e o numero **visivel** do bloco — o insumo do
 ;;; `bt9Discrepantes` (o borne cujo T1 difere do numero da regua/XData).
 ;;; E o que permite reconstruir a sequencia de bornes de uma regua **fora do
