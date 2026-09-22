@@ -7,7 +7,7 @@
 ## 1. Objetivo
 
 Cobrir o máximo do recoder do `Eletron4Z` (reverso em
-`..\..\Elet\Eletron4_ZWcad`) sobre este repositório, com estas regras:
+`..\Elet\Eletron4_ZWcad`) sobre este repositório, com estas regras:
 
 1. **Toda etapa termina em commit** (um commit por etapa, mensagem descritiva).
 2. **Toda alteração fica registrada** aqui (tabela de registro + `git log`).
@@ -50,27 +50,29 @@ segunda execução de `FIA`/`INT` duplica linhas e o `ReordenarOrdemFiacao`
 passa a reescrever a `Ordem` das duas cópias (medido no `RUNBOOK.md`: `Fiacao`
 3→6, `Bornes4F` 2→4). **Corrigido na Etapa 1.**
 
-## 2.2 Estado atual (até a rodada 57)
+## 2.2 Estado atual (até a rodada 58)
 
 O recorte do plano — **9 comandos, 13 tabelas do diagrama, app lendo tudo** — está
 implementado, verificado e documentado. Os números de hoje:
 
 | Gate | Resultado |
 |---|---|
-| `npm run plugin:build` (ZWCAD→stub) / `:autocad` (API real) | exit 0, 0 avisos / 0 erros |
-| `npm run plugin:test` | **219** aprovados |
+| `npm run plugin:build` (ZWCAD→API real) / `:autocad` (stub) | exit 0, 0 avisos / 0 erros |
+| `npm run plugin:test` | **273** aprovados |
 | `npm run protocol:gen` | contrato OK (**20 métodos**; 31 tabelas) |
 | `npm run typecheck` / `build:web` | limpo / **57** módulos |
 | `npm run test:sidecar` / `ruff check` | 27 testes / limpo |
 | `npm run cad:projeto` (`-Idempotencia`) | verde nos 7 passos — projeção, cadastro, app, relatório, idempotência |
 
-**Host CAD desta máquina (rodada 47):** **não há ZWCAD**; o host verificado é o
-**AutoCAD 2020** via `accoreconsole.exe`, com o harness novo
-`scripts/cad-autocad-smoke.ps1` (`npm run cad:smoke:acad` / `cad:e2e:acad`) e o
-`cad:projeto:acad` (`-Cad AutoCAD` no `cad-projeto-e2e.ps1`). O alvo ZWCAD segue
-suportado, mas aqui compila contra o stub. O ciclo completo
-(`npm run cad:projeto:acad -- -Idempotencia`) reproduz o alvo linha a linha — ver
-§5, rodada 47.
+**Host CAD desta máquina (rodada 58):** o **ZWCAD 2026 está instalado** e é o host
+verificado — `npm run plugin:build` resolve a `ZWCadDir` e gera a DLL contra a API
+**real** (`ZwManaged`/`ZwDatabaseMgd`), o harness `scripts/cad-zwcad-smoke.ps1`
+(`npm run cad:smoke`/`cad:e2e`) roda por `/b` e o `cad-projeto-e2e.ps1` padrão
+(`npm run cad:projeto`) fecha o ciclo. O **AutoCAD não está instalado** aqui:
+`npm run plugin:build:autocad` cai no **stub** (`Positron.CadStub`) e é o gate de
+compilação daquela plataforma. O ciclo completo
+(`npm run cad:projeto -- -Idempotencia`) reproduz os números documentados — ver §5,
+rodada 58.
 
 **Projeção — matriz do A/B contra o banco do produto** (`Funcional.dwg`, DWG 63;
 receita no `RUNBOOK.md`):
@@ -198,7 +200,7 @@ escopo estrutural do recoder.
   - **fixture sintética** (`npm run cad:e2e`, `scripts/cad-fixture.lsp`): 2
     `CONEXAO` + 1 `INTERLIGACAO` → 2 linhas em `Fiacao` + 2 circuitos + 1 trecho,
     idempotente;
-  - **desenho real** (`-Desenho ..\Elet\RCD\Funcional.dwg`): `FIA` 365 linhas
+  - **desenho real** (`-Desenho ..\Elet\Teste_prjeto_real\Funcional.dwg`): `FIA` 365 linhas
     (199 bornes, 191 dispositivos, 83 posições), 265 portas, 88 contatos, 83
     dispositivos, 11 circuitos, 15 aplicações; `INT` 20 trechos; `SYNCD` repete
     **sem duplicar**; `VERIF` aponta 1.034 problemas. O sidecar lê tudo de volta.
@@ -527,7 +529,7 @@ aberto por **cópia no TEMP**).
 | 3 — Harness ZWCAD | 2026-10-09 | f5bc9a5 | `POSITRON_LOG` no `Plugin.Escrever`; `scripts/cad-zwcad-smoke.ps1` + `npm run cad:smoke`; receita no `RUNBOOK.md`; parser do `.ps1` OK e criação do `.db` (31 tabelas) validada — execução no CAD pendente do ZWCAD fechado |
 | 3b — Harness **executado** no ZWCAD | 2026-10-09 | ee042f4 | `npm run cad:smoke` exit 0: `NETLOAD` + `ELET`/`FIA`/`INT`/`SYNCD`/`VERIF` no ZWCAD 2026 (fase 4 fechada); 3 defeitos do harness corrigidos (`-Db`×`-Debug`, `/b` sem `.scr`, precedência da vírgula no `@()`) |
 | 4 — E2E com dados no ZWCAD | 2026-10-09 | 54fdcdf | `scripts/cad-fixture.lsp` + `npm run cad:e2e`: `FIA` 2 linhas + 2 circuitos, `INT` 1 `Interligacao4`, `SYNCD` repete sem duplicar, sidecar lê o mesmo conteúdo; falta fixture com blocos (fases 7–9) |
-| 4b — E2E com **desenho real** | 2026-10-09 | 0bff89d | `-Desenho ..\Elet\RCD\Funcional.dwg`: `FIA` 365 linhas (199 bornes, 191 dispositivos), 265 portas, 88 contatos, 83 dispositivos; `INT` 20 trechos; `SYNCD` sem duplicar; `VERIF` 1.034 problemas. Achou e corrigiu o `FormatException` do `ReguasModelo` (`XDataNumero` + `DescreverErro` + `-Desenho` no harness); `plugin:test` **160** aprovados |
+| 4b — E2E com **desenho real** | 2026-10-09 | 0bff89d | `-Desenho ..\Elet\Teste_prjeto_real\Funcional.dwg`: `FIA` 365 linhas (199 bornes, 191 dispositivos), 265 portas, 88 contatos, 83 dispositivos; `INT` 20 trechos; `SYNCD` sem duplicar; `VERIF` 1.034 problemas. Achou e corrigiu o `FormatException` do `ReguasModelo` (`XDataNumero` + `DescreverErro` + `-Desenho` no harness); `plugin:test` **160** aprovados |
 | 4c — 3 defeitos do desenho real (bornes) | 2026-10-09 | 58183d6 | `ReguasModelo` passa a ler do índice 1 (cabeçalho), `XDataNeutro.Para(Xrecord)` tolera `Xrecord.Data` que lança e os `registro.Data == null` saíram; no `Funcional.dwg` `Bornes4F` 0→**168** e `Bornes4I` 0→**216**; `plugin:test` **161** aprovados |
 | 5 — Pendências de projeção (parcial) | 2026-10-09 | bc59c8d | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; a `Pagina` com cruzamento veio na Etapa 12 (`ColunaPagina`) |
 | 6 — `VERIF` no desenho (parcial) | 2026-10-09 | 50e06b4 | área `Desenho` + `VerificarCabosSemCatalogo`/`VerificarBornesSemRegua` ligadas ao `VERIF`; `plugin:test` **126** aprovados; falta a regra de página ausente |
@@ -586,6 +588,8 @@ aberto por **cópia no TEMP**).
 | 52 — regra `ReguaMascara` (`bt13ReguaMascara`) portada | 2026-10-09 | 38b299e | porta o `AC1cAJLSDI` do `frmVerificadorProjetoFiacao`: para cada modelo de máscara, divide o campo `Régua` e o campo `Bornes` e aponta a régua **com separador `;` quando a contagem não fecha** — contagens iguais (uma régua por borne) ou 1 régua × N bornes são o caso legítimo; o `list` é por **modelo** (dedup) e a contagem espelha o `Geral.DivideTerminais(bRepete: true)` (descarta **uma** `;` final e conta os trechos), sem reusar o `Terminais.Dividir` (que descarta **todas** as `;` finais); lê só o dicionário `MASCARAS` do desenho (`ModelosMascaraDoDesenho`, o mesmo caminho das `Portas4F`), sem tabela nova nem geometria; **medido no desenho real**: a regra sai **vazia** — o dump cru do dicionário (o `cad-dump-xdata.lsp` ganhou as linhas `MASCARA;<indice>;…`) mostra que os modelos desta cópia guardam o `;` no campo **`Terminais`** (insumo do `bt14`), não no `Régua`; a linha de base do `VERIF` segue **249** e o ciclo completo no AutoCAD 2020 (`cad:projeto:acad`) reproduz tudo sem regressão; +6 testes (`plugin:test` **225**) e as duas builds 0 avisos |
 | 57 — verificador da interligação (`carregaTree`) portado | 2026-10-09 | b89d289 | porta as duas árvores do `clsVerificadorProjetoInterligacao` (o `carregaTree`, linha 352, alimentado pelo `buscaDadosDoDWG` e pelos convidados da tela de fiação): "External Jumper" (703) — jumper (conexão com `Jumper == "JUMPER"`) sem `Cor`/`Secao` ou em painel apagado, **um por potencial** (`iPotencial_Veia`) — e "Interconnection" (508) — trecho sem `Tag_Cabo` (o "Undefined", 740) ou em painel apagado, **um por handle**; o nó "Duplicates" (1567) é o `LFiacaoTTDuplicada` do modo `"J"` (`ClsVerificadorProjetoFiacao:797`): jumper `Tipo 4` com `Disp1 & Disp2` repetindo potencial (o primeiro é o legítimo, do segundo em diante o handle entra na lista); dois pontos de fidelidade reproduzidos: `lPnApagados` **não é do desenho** (vem da tela de fiação — é o painel fora do cadastro, sem o painel `0`) e o verificador **não filtra** `Num_Veia == -1000` (só o `frmCompilarInterligacao:1353` filtra), daí `InterligacaoDoDesenho.Ler(incluirVeiaIndefinida: true)` (a projeção segue no padrão `false`); entram `Disp1`/`Disp2` no `ConexaoFiacao` e os tipos `JumperIndefinido`/`JumperDuplicado`/`InterligacaoIndefinida` (área Desenho) com as regras puras `VerificarJumpersIndefinidos`/`VerificarJumpersDuplicados`/`VerificarTrechosInterligacaoIndefinidos`; **medido no desenho real**: `VERIF: 0 jumper(s) e 20 trecho(s) de interligação lido(s)` e as três regras saem **vazias** (a linha de base segue **249** e o `cad:projeto:acad -- -Idempotencia` reproduz o ciclo), com as duas causas conferidas — o `Funcional.dwg` **não tem jumper** (já registrado na rodada 35) e os 20 trechos têm `Tag_Cabo` preenchido e painel em cadastro (consulta direta ao banco: **0** e **0**); +7 testes (`plugin:test` **273**) e as duas builds 0 avisos |
 
+| 58 — ciclo completo no **ZWCAD 2026** (host do produto) | 2026-09-22 | — | toolchain montado nesta máquina (.NET SDK 8.0.425 local, uv 0.13 + Python 3.12.15, driver ODBC do Access); **gates**: `plugin:build` contra a **API real do ZWCAD 2026** 0 avisos, `plugin:build:autocad` (stub) 0 avisos, `plugin:test` **273**, `protocol:gen` 20 métodos/31 tabelas, `typecheck` limpo, `build:web` OK, `test:sidecar` 27, `ruff` limpo; **dentro do ZWCAD**: `cad:smoke` carrega a DLL por `NETLOAD` e `cad:e2e` grava 2 fios + 1 trecho; `cad:projeto` no projeto real (`..\Elet\Teste_prjeto_real`, DWG 63) reproduz o alvo linha a linha — `FIA` 494 (265/168/70/83/11/15), `INT` 20 (265/216/697/2388), `VERIF` **249** (107+119+11+10+2), linha de base confere, app **4.897** linhas e `IDEMPOTENTE` (hash igual); docs corrigidos (host CAD, caminhos `..\Elet\RCD` → `..\Elet\Teste_prjeto_real` e a saída do `cad:e2e`) |
+
 ## 6. Riscos e armadilhas
 
 - **ZWCAD é instância única.** Rodar o script com o ZWCAD já aberto entrega para a
@@ -598,8 +602,9 @@ aberto por **cópia no TEMP**).
 - **`WAL` não é opcional** — leitor longo sem WAL trava o plugin no meio do
   comando.
 - **O stub é gate de compilação, não host.** Não "consertar" o stub para fazer o
-  build passar por acidente. O **AutoCAD 2020 é o host CAD verificado** desta máquina
-  (`cad:smoke:acad`); o **ZWCAD segue o alvo do produto** e aqui compila contra o stub.
+  build passar por acidente. O **ZWCAD 2026 é o host CAD verificado** desta máquina
+  (`cad:smoke`, contra a API real); o alvo **AutoCAD** compila contra o stub aqui,
+  porque não há AutoCAD instalado.
 
 ## 7. Backlog verificado (o que ainda não está coberto)
 
@@ -616,7 +621,7 @@ interligação também. O que fica aberto:
 | 7.4 | Fixture sintética com blocos (o CAD hoje prova as fases 7–9 só no desenho real) | P3 | ⏳ pendente |
 | 7.5 | Decisões do dono — **Etapa 9** (licença, relatórios, banco) | P3 | ⏳ pendente |
 
-Auditoria de 2026-10-09 sobre `..\..\Elet\Eletron4_ZWcad\decompiled-cleaned` (o
+Auditoria de 2026-10-09 sobre `..\Elet\Eletron4_ZWcad\decompiled-cleaned` (o
 reverso limpo) cruzada com o código do recorte. Prioridade: **P1** = fecha o valor
 nuclear do recorte; **P2** = expansão do escopo; **P3** = decisão do dono/limpeza.
 

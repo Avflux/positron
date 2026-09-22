@@ -141,11 +141,13 @@ com um erro de compilação vermelho só atrapalha. `cargo check` é o gate.
 ## Rodar o plugin dentro de um CAD de verdade
 
 O `plugin:build` compila contra o **stub** quando não acha o CAD — isso valida a
-sintaxe, mas **não** prova que o plugin carrega. Nesta máquina **não há ZWCAD** e o
-host CAD verificado é o **AutoCAD 2020**: `npm run plugin:build:autocad` resolve a
-`AutoCadDir` (auto-detecção 2020–2026) e gera a DLL contra a API **real**, e o
-`accoreconsole` carrega o plugin sem interface (seção "AutoCAD 2020"). O alvo
-ZWCAD continua suportado, mas aqui compila contra o stub.
+sintaxe, mas **não** prova que o plugin carrega. Nesta máquina o **ZWCAD 2026 está
+instalado**, então `npm run plugin:build` resolve a `ZWCadDir` sozinho e gera
+`Positron.Plugin.ZWCAD.dll` contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`), e o
+`ZWCAD.exe` carrega a DLL por `NETLOAD` (seção "ZWCAD 2026 (alvo principal)" abaixo).
+O **AutoCAD não está instalado** aqui: `npm run plugin:build:autocad` cai no **stub**
+(`Positron.CadStub`) — é o único uso do stub nesta máquina, e serve de gate de
+compilação da plataforma AutoCAD.
 
 ### ZWCAD 2026 (alvo principal)
 
@@ -211,11 +213,11 @@ A fixture acima prova o caminho, mas quem acha defeito é desenho real. O harnes
 aceita um DWG e **abre a cópia** (o original nunca é tocado):
 
 ```bash
-npm run cad:smoke -- -Desenho "..\Elet\RCD\Funcional.dwg" -Comandos ELET,FIA,INT,SYNCD,VERIF -Revisao R0
+npm run cad:smoke -- -Desenho "..\Elet\Teste_prjeto_real\Funcional.dwg" -Comandos ELET,FIA,INT,SYNCD,VERIF -Revisao R0
 ```
 
 O desenho vai na **linha de comando** do ZWCAD (não por `_.OPEN`, que num script é
-assíncrono). Resultado medido em `..\Elet\RCD\Funcional.dwg` (1.541 entidades com
+assíncrono). Resultado medido em `..\Elet\Teste_prjeto_real\Funcional.dwg` (1.541 entidades com
 XData, painéis 503/509):
 
 ```text
@@ -331,14 +333,17 @@ npm run cad:e2e
 ```
 
 Log esperado (o `SYNCD` repete `FIA`+`INT`, e a projeção substitui a revisão — as
-contagens **não** dobram, que é a prova da idempotência no CAD de verdade):
+contagens **não** dobram, que é a prova da idempotência no CAD de verdade).
+Medido no ZWCAD 2026 (rodada 58 — o `VERIF` cresceu de 2 para **4** problemas: as
+regras `PainelSemCadastro` (rodada 45) e `InterligacaoIndefinida` (rodada 57)
+incidem sobre a fixture, que cita o painel `1`, fora do cadastro):
 
 ```text
 FIA: 2 linha(s) em Fiacao (...); 2 circuito(s) em Circuitos4F; ...
 INT: 1 linha(s) gravada(s) em Interligacao4 (...)
 VERIF: 2 fio(s), 1 trecho(s), 0 porta(s), 0 borne(s), 0 contato(s) na revisão.
-VERIF: 2 problema(s) — fiação: 0; interligação: 2; modelos: 0; desenho: 0.
-VERIF: por tipo — PontoSemTag: 2.
+VERIF: 4 problema(s) — fiação: 0; interligação: 2; modelos: 0; desenho: 2.
+VERIF: por tipo — PontoSemTag: 2; InterligacaoIndefinida: 1; PainelSemCadastro: 1.
 ```
 
 Confirme no banco com o leitor do app (o `.db` fica no `%TEMP%`, o script imprime o
@@ -348,13 +353,16 @@ caminho): `fiacao_por_painel(1)` traz os dois fios (`Pagina` = layer `12`,
 não tem blocos: bornes, máscaras e contatos saem vazios — é o que falta para
 exercitar as fases 7–9 num CAD.
 
-### AutoCAD 2020 (host verificado nesta máquina)
+### AutoCAD 2020 (evidência histórica — **não** instalado nesta máquina)
 
-O AutoCAD 2020 **está instalado** (`C:\Program Files\Autodesk\AutoCAD 2020`) e o
-`accoreconsole.exe` roda o plugin **headless** — é o host CAD desta máquina, já que
-não há ZWCAD. O harness `scripts/cad-autocad-smoke.ps1` faz o ciclo inteiro (confere
-o AutoCAD, cria o `.db` pelo `schema.sql`, escreve o `.scr`, roda e imprime o
-`POSITRON_LOG`):
+> **Histórico.** Esta seção foi escrita numa máquina que tinha o **AutoCAD 2020**
+> (`C:\Program Files\Autodesk\AutoCAD 2020`) e **não** tinha ZWCAD; os números
+> ficam registrados como estão. Nesta máquina o `C:\Program Files\Autodesk` não
+> existe e o host CAD verificado é o **ZWCAD 2026** (seção acima).
+
+O `accoreconsole.exe` roda o plugin **headless** e o harness
+`scripts/cad-autocad-smoke.ps1` faz o ciclo inteiro (confere o AutoCAD, cria o `.db`
+pelo `schema.sql`, escreve o `.scr`, roda e imprime o `POSITRON_LOG`):
 
 ```bash
 npm run plugin:build:autocad                 # DLL contra a API real (auto-detecta 2020..2026)
@@ -1015,14 +1023,15 @@ powershell -ExecutionPolicy Bypass -File scripts/cad-ab-tabelas.ps1 `
   "$env:TEMP\positron-projeto.db" "$env:TEMP\positron-ab\mdb-..." --nosso-dwg 63 --nosso-revisao R0
 ```
 
-Nesta máquina (sem ZWCAD) o lado do recoder sai do **AutoCAD 2020**:
+O lado do recoder sai do **host CAD instalado** (o ZWCAD 2026 nesta máquina):
 
 ```bash
-npm run cad:smoke:acad -- -Dwg 63 -Revisao R0 -Comandos ELET,FIA `
-  -Desenho "..\Elet\RCD\Funcional.dwg" -Banco "$TEMP/positron-ab.db"
+npm run cad:smoke -- -Dwg 63 -Revisao R0 -Comandos ELET,FIA `
+  -Desenho "..\Elet\Teste_prjeto_real\Funcional.dwg" -Banco "$TEMP/positron-ab.db"
 ```
 
-Rodado em 2026-10-09 (rodada 48), reproduz os vereditos da rodada 44 linha a linha:
+A rodada 48 rodou o mesmo A/B pelo AutoCAD 2020 (evidência histórica) e reproduz os
+vereditos da rodada 44 linha a linha:
 **4 idênticas** (`Portas4F` 265, `Contatos4F` 70, `Circuitos4F` 11, `Aplicacao4F` 15) e
 as 3 restantes com cada coluna divergente já explicada por **dado do desenho** (a
 tabela de veredito por coluna está logo abaixo).
@@ -1140,7 +1149,7 @@ das checagens) e as **portas de cada modelo de máscara**, uma linha por modelo
 ```bash
 # roda dentro do AutoCAD 2020, carregando o utilitario antes do NETLOAD
 powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 `
-  -Desenho "..\Elet\RCD\Funcional.dwg" -Fixture scripts/cad-dump-xdata.lsp -Comandos ELET
+  -Desenho "..\Elet\Teste_prjeto_real\Funcional.dwg" -Fixture scripts/cad-dump-xdata.lsp -Comandos ELET
 ```
 
 A saída vai para `%POSITRON_XDATA%` ou, sem ela, `%TEMP%\positron-xdata.txt`. Os
@@ -1172,7 +1181,7 @@ BORNE;<handle>;<tipo>;<numero>;<complemento>;<ordem>;<indexRegua>;<layer>
 ```bash
 POSITRON_XDATA_BORNES=1 POSITRON_XDATA="$TEMP/positron-bornes.txt" \
   powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 \
-    -Desenho "..\Elet\RCD\Funcional.dwg" -Dwg 63 -Comandos ELET \
+    -Desenho "..\Elet\Teste_prjeto_real\Funcional.dwg" -Dwg 63 -Comandos ELET \
     -Fixture scripts/cad-dump-xdata.lsp
 ```
 
@@ -1242,7 +1251,7 @@ gravada em `scripts/verif-baseline.txt` e há um conferidor:
 ```powershell
 # gera o relatorio (o ELETREL escreve em %TEMP%\positron-relatorio.txt)
 npm run cad:smoke -- -Dwg 63 -Revisao R0 -Comandos ELETREL `
-  -Desenho "..\Elet\RCD\Funcional.dwg" -Banco "$env:TEMP\positron-idem.db"
+  -Desenho "..\Elet\Teste_prjeto_real\Funcional.dwg" -Banco "$env:TEMP\positron-idem.db"
 
 # confere: sai 0 quando confere, 1 quando algum tipo mudou
 python scripts/cad-verif-baseline.py $env:TEMP\positron-relatorio.txt
@@ -1298,7 +1307,7 @@ Receita (roda no CAD e compara o **conteúdo**, não só a contagem):
 ```powershell
 # 1. projeta o desenho 63 num banco novo (o ELET ja roda FIA+INT)
 npm run cad:smoke -- -Dwg 63 -Revisao R0 -Comandos ELET,FIA,INT `
-  -Desenho "..\Elet\RCD\Funcional.dwg" -Banco "$env:TEMP\positron-idem.db"
+  -Desenho "..\Elet\Teste_prjeto_real\Funcional.dwg" -Banco "$env:TEMP\positron-idem.db"
 
 # 2. dump do conteudo (todas as tabelas do DWG 63, menos o autoincremento Indice)
 python scripts/cad-dump-tabelas.py dump $env:TEMP\positron-idem.db 63 $env:TEMP\dump-a.txt
@@ -1339,7 +1348,7 @@ recarrega as tabelas (a lista sai em `-Tabelas`):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/cad-importa-catalogo.ps1 `
-  -Banco "$env:TEMP\positron-idem.db" -Mdb "..\Elet\RCD\RCD.mdb"
+  -Banco "$env:TEMP\positron-idem.db" -Mdb "..\Elet\Teste_prjeto_real\RCD.mdb"
 ```
 
 Rodar duas vezes da o mesmo resultado (697 cabos, 2.388 veias, 210 materiais, **480
@@ -1377,12 +1386,12 @@ importado. O total segue **107 problemas, todos `BorneSemFiacao`**.
 
 ### A/B contra o banco do produto (`RCD.mdb`) — a verificação mais forte
 
-O `..\Elet\RCD\RCD.mdb` (19 MB, Access) é o banco **gerado pelo produto original**
+O `..\Elet\Teste_prjeto_real\RCD.mdb` (19 MB, Access) é o banco **gerado pelo produto original**
 para o mesmo projeto dos três DWGs. Ele abre por ODBC (driver 64-bit *Microsoft
 Access Driver*) — sempre na **cópia** em `%TEMP%`, nunca no original:
 
 ```powershell
-Copy-Item "..\Elet\RCD\RCD.mdb" "$env:TEMP\positron-rcd.mdb" -Force
+Copy-Item "..\Elet\Teste_prjeto_real\RCD.mdb" "$env:TEMP\positron-rcd.mdb" -Force
 $conn = New-Object System.Data.Odbc.OdbcConnection("Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=$env:TEMP\positron-rcd.mdb;ReadOnly=1;")
 ```
 
@@ -1471,7 +1480,7 @@ a que o produto compilou.** As evidências:
 2. **O nome da régua 1 e 2 é outro:** o dicionário do desenho de hoje diz `ENTR 1`/`ENTR 2`
    (lido no próprio ZWCAD pelo dump do `REGUAS/MODELOS2`); o banco do produto tem
    `52-X1`/`52-X2` — em **todas as 4 revisões**. A `DWG` do produto aponta para
-   `J:\Eletrobras\...\RCD-8-GGE-04`, um caminho externo: os arquivos de `..\Elet\RCD`
+   `J:\Eletrobras\...\RCD-8-GGE-04`, um caminho externo: os arquivos de `..\Elet\Teste_prjeto_real`
    são **cópias**, possivelmente de outro momento.
 3. **O número do borne dos mesmos handles é outro:** o handle `49538` é `Borne=' A '` no
    nosso recoder e `Borne='1'` no produto — mesma entidade (mesmo handle), XData
@@ -1538,18 +1547,19 @@ Salve sempre como **UTF-8 com BOM**.
 
 Para não passar a impressão de que tudo foi testado do mesmo jeito:
 
-**Executado e verificado nesta máquina (Windows, Python 3.14, Node 24):**
+**Executado e verificado nesta máquina (Windows, Python 3.12, Node 24, .NET SDK 8):**
 
 - `pytest` — 27 testes passando, com DEALER/ROUTER e SUB/PUB reais e leitura do
   SQLite do projeto.
-- `npm run plugin:build` — 0 erros/0 avisos; nesta máquina (sem ZWCAD) compila
-  contra o stub. `npm run plugin:build:autocad` resolve a `AutoCadDir` (detecta o
-  **AutoCAD 2020** instalado) e gera a DLL contra a API **real**, sem o stub.
+- `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
+  (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
+  não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
 - `npm run plugin:test` — 273 testes xunit (net472) do plugin CAD.
-- `npm run cad:smoke:acad` / `cad:e2e:acad` — smoke e fixture **dentro do AutoCAD
-  2020** (`accoreconsole`), o host CAD desta máquina.
-- `npm run cad:projeto:acad -- -Idempotencia` — o ciclo completo no projeto real
-  pelo AutoCAD 2020: mesma projeção, mesma linha de base (249) e idempotência.
+- `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
+  CAD desta máquina.
+- `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real
+  (`..\Elet\Teste_prjeto_real`) pelo ZWCAD 2026: mesma projeção, mesma linha de base
+  (249) e `IDEMPOTENTE`.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge
@@ -1557,17 +1567,17 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run typecheck` — `tsc --noEmit` limpo nos dois workspaces.
 - `npm run build` — gera `apps/web/dist` (57 módulos).
 - `ruff check .` no sidecar — limpo.
-- **No alvo ZWCAD 2026 (máquina que o tinha; aqui não reproduzível) com um desenho
-  real** — `-Desenho ..\Elet\RCD\Funcional.dwg`:
+- **No alvo ZWCAD 2026 desta máquina, com um desenho real** —
+  `-Desenho ..\Elet\Teste_prjeto_real\Funcional.dwg`:
   `FIA` grava 494 linhas (199 bornes, 191 dispositivos), `INT` 20 trechos, o
   `SYNCD` repete sem duplicar e as tabelas derivadas (portas, contatos,
   dispositivos, circuitos, aplicações) saem preenchidas. Foi esta rodada que achou
   o `FormatException` do `ReguasModelo` (ver armadilha abaixo).
-- **No alvo ZWCAD 2026 (histórico) com dados sintéticos** — `npm run cad:e2e` (fixture `scripts/cad-fixture.lsp`):
+- **No alvo ZWCAD 2026, com dados sintéticos** — `npm run cad:e2e` (fixture `scripts/cad-fixture.lsp`):
   `FIA` grava 2 linhas em `Fiacao` + 2 circuitos, `INT` grava 1 `Interligacao4`, o
   `SYNCD` repete e **não duplica** (idempotência no CAD) e o sidecar lê as mesmas
   linhas do `.db`.
-- **No alvo ZWCAD 2026 (histórico)** — `npm run cad:smoke` carrega a DLL por `NETLOAD` e roda
+- **No alvo ZWCAD 2026** — `npm run cad:smoke` carrega a DLL por `NETLOAD` e roda
   os comandos num desenho vazio. O `POSITRON_LOG` traz `Positron carregado.`,
   a resposta do `ELET`, `FIA: nenhuma LWPOLYLINE com XData CONEXAO no desenho.`,
   `INT: nenhuma LWPOLYLINE com XData INTERLIGACAO no desenho.`, o `SYNCD` (as
@@ -1585,7 +1595,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
   teste unitário, não dentro do CAD. **Obstáculo medido** (ver a armadilha do
   INSERT abaixo): carimbar XData num `INSERT` pelo LISP não funciona neste ZWCAD,
   então a fixture com blocos tem que vir de um DWG pronto.
-- **ZWCAD** — não está instalado nesta máquina; o alvo ZWCAD compila contra o stub
-  (`Positron.CadStub`) e não foi carregado por `NETLOAD` aqui. As execuções no ZWCAD
-  2026 acima são **evidência histórica** da máquina que o tinha.
+- **AutoCAD** — não está instalado nesta máquina; o alvo AutoCAD compila contra o
+  stub (`Positron.CadStub`) e não foi carregado por `NETLOAD` aqui. As execuções no
+  AutoCAD 2020 do `RUNBOOK` são **evidência histórica** da máquina que o tinha.
 - `npm run sidecar:build` (PyInstaller) — não executado aqui.

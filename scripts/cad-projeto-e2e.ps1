@@ -33,8 +33,8 @@ param(
     # `accoreconsole` do AutoCAD 2020 (harness `cad-autocad-smoke.ps1`).
     [ValidateSet('ZWCAD', 'AutoCAD')]
     [string] $Cad = 'ZWCAD',
-    [string] $Desenho = "..\Elet\RCD\Funcional.dwg",
-    [string] $Mdb = "..\Elet\RCD\RCD.mdb",
+    [string] $Desenho = "..\Elet\Teste_prjeto_real\Funcional.dwg",
+    [string] $Mdb = "..\Elet\Teste_prjeto_real\RCD.mdb",
     [string] $Banco = "$env:TEMP\positron-projeto.db",
     [int]    $Dwg = 63,
     [string] $Revisao = "R0",

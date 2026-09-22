@@ -18,7 +18,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $Mdb = "..\Elet\RCD\RCD.mdb",
+    [string] $Mdb = "..\Elet\Teste_prjeto_real\RCD.mdb",
     [string] $Banco,
     [string] $Pasta,
     # Tabelas do projeto que vivem no Access e sao carregadas para o SQLite. As

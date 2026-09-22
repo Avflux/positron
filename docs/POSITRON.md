@@ -2,7 +2,7 @@
 
 Este documento decide **como reconstruir o Eletron4Z** sobre o esqueleto do
 `positron`, a partir da engenharia reversa em
-`..\..\Elet\Eletron4_ZWcad` (veja `ARQUITETURA.md` daquela pasta).
+`..\Elet\Eletron4_ZWcad` (veja `ARQUITETURA.md` daquela pasta).
 
 Leia `ARCHITECTURE.md` e `PROTOCOL.md` antes: eles descrevem o esqueleto
 (Tauri + React/TS + sidecar Python por ZMQ) que este documento **estende**.
@@ -314,12 +314,13 @@ detalhes do harness que custaram tempo e ficaram documentados no `RUNBOOK.md`: o
 `/b` do ZWCAD espera o caminho **sem** a extensão `.scr`, e o `-Db` do script
 colide com o alias de `-Debug` (é `-Banco`).
 
-O alvo **AutoCAD** é host verificado nesta máquina: o `AutoCAD 2020` está
-instalado, o `csproj` auto-detecta 2020–2026, `npm run plugin:build:autocad` gera
-a DLL contra a API **real** e o `accoreconsole` carrega o plugin (harness
-`npm run cad:smoke:acad`; receita e números no `RUNBOOK.md`). O alvo **ZWCAD** (o
-alvo do produto) compila contra o stub aqui, porque não há ZWCAD nesta máquina.
-AutoCAD 2025+/TrueView 2027 (API .NET 8/10) **não** carregam um plugin net472.
+Nesta máquina o **ZWCAD 2026 está instalado** e é o host CAD verificado: o `csproj`
+auto-detecta a `ZWCadDir`, `npm run plugin:build` gera a DLL contra a API **real**
+(`ZwManaged`/`ZwDatabaseMgd`) e o `ZWCAD.exe` carrega o plugin (harness
+`npm run cad:smoke`; receita e números no `RUNBOOK.md`). O alvo **AutoCAD** segue
+suportado; nesta máquina `npm run plugin:build:autocad` cai no stub, porque não há
+AutoCAD instalado. AutoCAD 2025+/TrueView 2027 (API .NET 8/10) **não** carregam um
+plugin net472.
 
 A fase 5 está **fechada** (registro da época: *parcial*). Já existem e são testados: o comando `FIA`, o
 leitor do XData `CONEXAO`, a projeção para `Fiacao` (INSERT canônico) e a leitura
@@ -494,7 +495,7 @@ reler o repositório inteiro.
 - Repo: `C:\Users\rno\Desktop\APPs\positron`.
 - Reverso (referência): `C:\Users\rno\Desktop\APPs\Elet\Eletron4_ZWcad` — o código
   descompilado em `decompiled-cleaned/Eletron4/` (435 `.cs`) e `COMANDOS.txt`.
-- Projeto real do dono (desenhos + banco do produto): `..\Elet\RCD\`
+- Projeto real do dono (desenhos + banco do produto): `..\Elet\Teste_prjeto_real\`
   (`Funcional.dwg`, `Interligação.dwg`, `Fiação.dwg`, `RCD.mdb`).
 - Dono do contrato de dados: `services/sidecar/src/sidecar/db/schema.sql`
   (gera `packages/protocol/...`). Plugin: `cad-plugin/`.
@@ -516,7 +517,7 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
 
 **Verificação que sustenta isso** (tudo no `RUNBOOK.md`):
 
-- **A/B contra o banco do produto** (`..\Elet\RCD\RCD.mdb`, Access, aberto por ODBC
+- **A/B contra o banco do produto** (`..\Elet\Teste_prjeto_real\RCD.mdb`, Access, aberto por ODBC
   numa cópia): no mesmo desenho (DWG **63**, revisão 3) `Fiacao` 494, `Portas4F` 265,
   `Dispositivos4F` 83, `Aplicacao4F` 15, `Circuitos4F` 11 e `Contatos4F` 70 batem
   **exatamente** com o que o produto gravou; as **19 tabelas** do recorte batem
@@ -530,10 +531,10 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
 - **Catálogo real:** `scripts/cad-importa-catalogo.ps1` carrega `Cabos`/`Veias`/
   `Materiais` do Access (697/2.388/210) e o app passa a devolver esses dados
   (`cabos4_por_revisao` 697, `catalogo_listar_materiais` 210, …).
-- **Harness:** `npm run cad:smoke:acad`/`cad:e2e:acad`/`cad:projeto:acad` rodam no
-  **AutoCAD 2020** (`accoreconsole`), o host CAD desta máquina; o harness do ZWCAD
-  (`cad:smoke`/`cad:e2e`) segue para uma máquina com ZWCAD. Os dois builds de plugin
-  (`plugin:build` ZWCAD→stub aqui, `plugin:build:autocad`→API real).
+- **Harness:** `npm run cad:smoke`/`cad:e2e`/`cad:projeto` rodam no **ZWCAD 2026**,
+  o host CAD desta máquina; o harness do AutoCAD (`cad:smoke:acad`/`cad:e2e:acad`/
+  `cad:projeto:acad`) segue para uma máquina com AutoCAD. Os dois builds de plugin
+  (`plugin:build` ZWCAD→API real aqui, `plugin:build:autocad`→stub).
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
@@ -568,8 +569,8 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
    tabela. Os três restantes vêm de telas de relatório e de importação/exportação —
    a receita de cada um está no `PLANO.md`.
 4. **Pendências menores:** `ModelosCabos` está vazia no Access do projeto (nada a
-   importar); o ciclo completo roda no AutoCAD 2020 (`npm run cad:projeto:acad`,
-   ver `RUNBOOK.md`); o detalhe de cada tabela fora do recorte está no `PLANO.md`.
+   importar); o ciclo completo roda no ZWCAD 2026 (`npm run cad:projeto`, ver
+   `RUNBOOK.md`); o detalhe de cada tabela fora do recorte está no `PLANO.md`.
 
 **Convenções que não podem ser esquecidas**
 
