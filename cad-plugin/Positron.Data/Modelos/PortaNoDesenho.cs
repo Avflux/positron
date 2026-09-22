@@ -33,6 +33,19 @@ namespace Positron.Data.Modelos
         /// <summary>Índice da porta no modelo (<c>array[6]</c> do XData); 0 quando não é porta.</summary>
         public int IndiceDaPorta { get; set; }
 
+        /// <summary>Nome principal do XData da porta (<c>Nome1</c>) — entra no rótulo da máscara.</summary>
+        public string Nome1 { get; set; }
+
+        /// <summary>Nome complementar do XData da porta (<c>Nome2</c>).</summary>
+        public string Nome2 { get; set; }
+
+        /// <summary>
+        /// Painel da **máscara** referenciada (<c>BuscaPainelDispositivo</c> do original,
+        /// resolvido pelo bloco apontado em <c>array[4]</c>) — o prefixo do rótulo da
+        /// máscara (<c>BuscaNomeDoPainel(painel) + "/" + Nome1[-Nome2]</c>).
+        /// </summary>
+        public short Painel { get; set; }
+
         public IList<AtributoPorta> Atributos { get; } = new List<AtributoPorta>();
     }
 }

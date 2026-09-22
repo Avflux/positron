@@ -50,7 +50,7 @@ segunda execução de `FIA`/`INT` duplica linhas e o `ReordenarOrdemFiacao`
 passa a reescrever a `Ordem` das duas cópias (medido no `RUNBOOK.md`: `Fiacao`
 3→6, `Bornes4F` 2→4). **Corrigido na Etapa 1.**
 
-## 2.2 Estado atual (até a rodada 58)
+## 2.2 Estado atual (até a rodada 59)
 
 O recorte do plano — **9 comandos, 13 tabelas do diagrama, app lendo tudo** — está
 implementado, verificado e documentado. Os números de hoje:
@@ -58,7 +58,7 @@ implementado, verificado e documentado. Os números de hoje:
 | Gate | Resultado |
 |---|---|
 | `npm run plugin:build` (ZWCAD→API real) / `:autocad` (stub) | exit 0, 0 avisos / 0 erros |
-| `npm run plugin:test` | **273** aprovados |
+| `npm run plugin:test` | **279** aprovados |
 | `npm run protocol:gen` | contrato OK (**20 métodos**; 31 tabelas) |
 | `npm run typecheck` / `build:web` | limpo / **57** módulos |
 | `npm run test:sidecar` / `ruff check` | 27 testes / limpo |
@@ -113,10 +113,10 @@ verificador da **interligação** (`carregaTree`) entrou na rodada 57, e resta d
 **ação** `IndefineCabosNaoExistentes` (que regrava XData — não é checagem read-only).
 
 **Pendências abertas:** as frentes da §7 estão **marcadas com ⏳** — nenhuma é regra de
-verificação **ausente** (as **14** checagens da fiação e as **3** da interligação estão
-portadas). No P1 restam duas: as **2 checagens parciais** do `VERIF`
-(`bt5Terminais`/`bt6Portas`) e a **ação** `IndefineCabosNaoExistentes` da interligação (que
-regrava XData — é comando, não checagem). O resto é expansão de escopo (tabelas do schema
+verificação **ausente** (as **14** checagens da fiação, completadas na rodada 59, e as
+**3** da interligação estão portadas). No P1 resta uma: a **ação**
+`IndefineCabosNaoExistentes` da interligação (que regrava XData — é comando, não
+checagem). O resto é expansão de escopo (tabelas do schema
 fora do recorte e os 37 relatórios) ou **decisão do dono** — a **Etapa 9** (licença,
 relatórios, banco), que tem os três encaixes prontos — `ServicoDeLicenca`/`ILicenca` com
 gate nos comandos, o relatório em texto (`ELETREL`/`ELETCMP`) como base dos 37 relatórios,
@@ -588,6 +588,7 @@ aberto por **cópia no TEMP**).
 | 52 — regra `ReguaMascara` (`bt13ReguaMascara`) portada | 2026-10-09 | 38b299e | porta o `AC1cAJLSDI` do `frmVerificadorProjetoFiacao`: para cada modelo de máscara, divide o campo `Régua` e o campo `Bornes` e aponta a régua **com separador `;` quando a contagem não fecha** — contagens iguais (uma régua por borne) ou 1 régua × N bornes são o caso legítimo; o `list` é por **modelo** (dedup) e a contagem espelha o `Geral.DivideTerminais(bRepete: true)` (descarta **uma** `;` final e conta os trechos), sem reusar o `Terminais.Dividir` (que descarta **todas** as `;` finais); lê só o dicionário `MASCARAS` do desenho (`ModelosMascaraDoDesenho`, o mesmo caminho das `Portas4F`), sem tabela nova nem geometria; **medido no desenho real**: a regra sai **vazia** — o dump cru do dicionário (o `cad-dump-xdata.lsp` ganhou as linhas `MASCARA;<indice>;…`) mostra que os modelos desta cópia guardam o `;` no campo **`Terminais`** (insumo do `bt14`), não no `Régua`; a linha de base do `VERIF` segue **249** e o ciclo completo no AutoCAD 2020 (`cad:projeto:acad`) reproduz tudo sem regressão; +6 testes (`plugin:test` **225**) e as duas builds 0 avisos |
 | 57 — verificador da interligação (`carregaTree`) portado | 2026-10-09 | b89d289 | porta as duas árvores do `clsVerificadorProjetoInterligacao` (o `carregaTree`, linha 352, alimentado pelo `buscaDadosDoDWG` e pelos convidados da tela de fiação): "External Jumper" (703) — jumper (conexão com `Jumper == "JUMPER"`) sem `Cor`/`Secao` ou em painel apagado, **um por potencial** (`iPotencial_Veia`) — e "Interconnection" (508) — trecho sem `Tag_Cabo` (o "Undefined", 740) ou em painel apagado, **um por handle**; o nó "Duplicates" (1567) é o `LFiacaoTTDuplicada` do modo `"J"` (`ClsVerificadorProjetoFiacao:797`): jumper `Tipo 4` com `Disp1 & Disp2` repetindo potencial (o primeiro é o legítimo, do segundo em diante o handle entra na lista); dois pontos de fidelidade reproduzidos: `lPnApagados` **não é do desenho** (vem da tela de fiação — é o painel fora do cadastro, sem o painel `0`) e o verificador **não filtra** `Num_Veia == -1000` (só o `frmCompilarInterligacao:1353` filtra), daí `InterligacaoDoDesenho.Ler(incluirVeiaIndefinida: true)` (a projeção segue no padrão `false`); entram `Disp1`/`Disp2` no `ConexaoFiacao` e os tipos `JumperIndefinido`/`JumperDuplicado`/`InterligacaoIndefinida` (área Desenho) com as regras puras `VerificarJumpersIndefinidos`/`VerificarJumpersDuplicados`/`VerificarTrechosInterligacaoIndefinidos`; **medido no desenho real**: `VERIF: 0 jumper(s) e 20 trecho(s) de interligação lido(s)` e as três regras saem **vazias** (a linha de base segue **249** e o `cad:projeto:acad -- -Idempotencia` reproduz o ciclo), com as duas causas conferidas — o `Funcional.dwg` **não tem jumper** (já registrado na rodada 35) e os 20 trechos têm `Tag_Cabo` preenchido e painel em cadastro (consulta direta ao banco: **0** e **0**); +7 testes (`plugin:test` **273**) e as duas builds 0 avisos |
 
+| 59 — `bt5Terminais`/`bt6Portas` portadas (terminais e bornes das portas) | 2026-09-22 | — | porta o `yBNcmOtuQS` do `frmVerificadorProjetoFiacao`: as duas grades que faltavam da tela (a `dgTerminais` do `GroupBox5`, alimentada pelos **terminais**, e a `dgBornes` do `GroupBox8`, pelos **bornes**) saem dos atributos do **próprio bloco `E`** (`LeOsTerminaisDeUmaPorta`: `T*`/`B*`/`R*` ordenados pela tag, `"0"`/vazio → `"?"`, régua unida por `"; "` e deduplicada), com dois ajustes do original reproduzidos porque os dois mudam o resultado — bloco com **régua E bornes** zera os terminais, e o `sTermM` é **substituído** pelos terminais do **modelo de máscara** (`mPortas[i].sTerminais`); a chave de repetição é **global** entre as portas e é `BuscaNomeDoPainel(painel) + "/" + Nome1["-" + Nome2]` + valor (os bornes ainda levam a régua); entram `VerificarTerminaisDasPortas`/`VerificarBornesDasPortas`, o `Nome1`/`Nome2`/`Painel` no `PortaNoDesenho` (com o painel da máscara resolvido pelo `BuscaPainelDispositivo`) e o `ProjectStore.LerNomesDePaineis` (o cadastro `Paineis`, que responde `"???"` sem ele); **medido no desenho real**: as duas saem **vazias** (45 blocos de porta lidos) e a linha de base do `VERIF` segue **249** (`cad-verif-baseline.py` confere); +6 testes (`plugin:test` **279**) e as duas builds 0 avisos |
 | 58 — ciclo completo no **ZWCAD 2026** (host do produto) | 2026-09-22 | ba401fa | toolchain montado nesta máquina (.NET SDK 8.0.425 local, uv 0.13 + Python 3.12.15, driver ODBC do Access); **gates**: `plugin:build` contra a **API real do ZWCAD 2026** 0 avisos, `plugin:build:autocad` (stub) 0 avisos, `plugin:test` **273**, `protocol:gen` 20 métodos/31 tabelas, `typecheck` limpo, `build:web` OK, `test:sidecar` 27, `ruff` limpo; **dentro do ZWCAD**: `cad:smoke` carrega a DLL por `NETLOAD` e `cad:e2e` grava 2 fios + 1 trecho; `cad:projeto` no projeto real (`..\Elet\Teste_prjeto_real`, DWG 63) reproduz o alvo linha a linha — `FIA` 494 (265/168/70/83/11/15), `INT` 20 (265/216/697/2388), `VERIF` **249** (107+119+11+10+2), linha de base confere, app **4.897** linhas e `IDEMPOTENTE` (hash igual); docs corrigidos (host CAD, caminhos `..\Elet\RCD` → `..\Elet\Teste_prjeto_real` e a saída do `cad:e2e`) |
 
 ## 6. Riscos e armadilhas
@@ -609,12 +610,11 @@ aberto por **cópia no TEMP**).
 ## 7. Backlog verificado (o que ainda não está coberto)
 
 **Pendências abertas (⏳ = pendente)** — nada aqui é regra de verificação **ausente**: as
-**14** checagens da fiação estão portadas (**2** delas só parciais, o 7.1a) e as **3** da
-interligação também. O que fica aberto:
+**14** checagens da fiação estão portadas (a última dupla, `bt5Terminais`/`bt6Portas`, na
+rodada 59) e as **3** da interligação também. O que fica aberto:
 
 | # | Pendência | Prioridade | Situação |
 |---|---|---|---|
-| 7.1a | `bt5Terminais` / `bt6Portas` — 2 das 14 checagens são **parciais** (`VerificarModelos`) | P1 | ⏳ pendente |
 | 7.1b | `IndefineCabosNaoExistentes` — **ação** da interligação (regrava o XData; comando, não checagem) | P1 | ⏳ pendente |
 | 7.2 | Tabelas do schema fora do recorte (`Aranha4`, `Atributos`/`Exportados`, `Plaquetas4`/`ListaMateriais`/`Sinais`/`Correcao`) | P2 | ⏳ pendente |
 | 7.3 | Relatórios: **37** de 38 telas `frmRelatorio_*` (entregue só a verificação em texto) | P2 | ⏳ pendente |
@@ -629,7 +629,7 @@ nuclear do recorte; **P2** = expansão do escopo; **P3** = decisão do dono/limp
 
 A tela do produto tem **14** checagens (`bt1Fiacao` … `bt14PortasDiscrepantes`, em
 `frmVerificadorProjetoFiacao`); o recoder cobre **todas** — **12** casam 1:1 com um botão e
-**2** são parciais (`VerificarModelos`) — com **19 regras** em `VerificadorProjeto`, boa
+**2** eram parciais até a rodada 59 (`bt5Terminais`/`bt6Portas`) — com **21 regras** em `VerificadorProjeto`, boa
 parte delas também olhando as tabelas gravadas:
 
 | Botão | O que checa | Recoder |
@@ -640,8 +640,8 @@ parte delas também olhando as tabelas gravadas:
 | `bt8intervalos` | intervalos de borne (`nXnc5R08lF`) | ✅ `VerificarIntervalosBornes` |
 | `bt10BornesLM` | bornes sem LM (`GijcRTCGe3`) | ✅ `VerificarBornesSemLm` |
 | `bt11Paineis` | painel fora do cadastro (`lPnAoagado`) | ✅ `VerificarPaineisSemCadastro` |
-| `bt5Terminais` | terminais (`AtualizaTerminais`) | ⚠️ parcial (`VerificarModelos`) — ⏳ pendente |
-| `bt6Portas` | portas | ⚠️ parcial (`VerificarModelos`) — ⏳ pendente |
+| `bt5Terminais` | terminais das portas (`yBNcmOtuQS`, `dgTerminais`) | ✅ `VerificarTerminaisDasPortas` |
+| `bt6Portas` | bornes das portas (a `dgBornes`) | ✅ `VerificarBornesDasPortas` |
 | `bt3Principal` / `bt4Auxiliar` | principal × auxiliar | ✅ `VerificarDispositivosPrincipais` + `VerificarAuxiliaresDivergentes` |
 | `bt9Discrepantes` | bornes editados (atributo `T1` ≠ número da régua) | ✅ `VerificarBornesEditados` |
 | `bt12AMao` | blocos duplicados / itens feitos à mão (`clsBlocos.VerificaDuplicados`) | ✅ `VerificarBlocosDuplicados` |
@@ -680,9 +680,12 @@ o borne do desenho cujo atributo `T1` (número visível) difere do número da r�
 sai **vazio** aqui — os 199 bornes da cópia têm `T1` preenchido e nenhum diverge (conferido
 no dump cru). O `bt12AMao` (rodada 56) fecha o grupo: os blocos **duplicados**
 (o `clsBlocos.VerificaDuplicados`), e também sai **vazio** aqui — 406 itens lidos, 406
-chaves distintas (conferido no dump cru). **Todas as 14 checagens da fiação estão portadas**,
-e a rodada 57 trouxe as três da **interligação** (`carregaTree`); resta só a **ação**
-`IndefineCabosNaoExistentes` (regravação de XData, não checagem).
+chaves distintas (conferido no dump cru). O `bt5Terminais`/`bt6Portas` (rodada 59) fecha a
+tela: os terminais e os bornes dos **blocos de porta** (`yBNcmOtuQS`), chaveados pelo
+rótulo da máscara — e também sai **vazio** aqui (45 blocos lidos). **Todas as 14 checagens
+da fiação estão portadas**, e a rodada 57 trouxe as três da **interligação**
+(`carregaTree`); resta só a **ação** `IndefineCabosNaoExistentes` (regravação de XData,
+não checagem).
 
 ### 7.2 Tabelas do schema sem projeção · P2
 

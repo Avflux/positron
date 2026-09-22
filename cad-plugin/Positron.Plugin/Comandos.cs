@@ -748,6 +748,17 @@ namespace Positron.Plugin
             Plugin.Escrever("VERIF: " + portasDeBloco.Count + " bloco(s) de porta (E) lido(s) do desenho.");
             problemas.AddRange(VerificadorProjeto.VerificarPortasDiscrepantes(portasDoModelo, portasDeBloco));
 
+            // Terminais (`bt5Terminais`, a grade dgTerminais) e bornes
+            // (`bt6Portas`, a dgBornes) dos blocos de porta: os atributos T*/B*/R*
+            // do próprio bloco, com a chave de repetição por máscara. O prefixo da
+            // máscara é o nome do painel no cadastro (`Paineis`) — o
+            // `Dicionario.BuscaNomeDoPainel` do original.
+            IReadOnlyDictionary<int, string> nomesDePaineis = store.LerNomesDePaineis();
+            problemas.AddRange(VerificadorProjeto.VerificarTerminaisDasPortas(
+                portasDeBloco, portasDoModelo, nomesDePaineis));
+            problemas.AddRange(VerificadorProjeto.VerificarBornesDasPortas(
+                portasDeBloco, portasDoModelo, nomesDePaineis));
+
             // Dispositivos principais incompletos (`bt3Principal`) e auxiliares
             // divergentes (`bt4Auxiliar`): cruzam os blocos `P`/`A` do desenho com o
             // dicionário de contatos (o `CONTATOS`). O mesmo leitor da fiação já

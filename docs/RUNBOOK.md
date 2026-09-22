@@ -717,15 +717,44 @@ Como no original, as conexões com `Jumper == "JUMPER"` são **descartadas** ant
 montar o conjunto (`ClsVerificadorProjetoFiacao:791`) — são do `JMP`, não da fiação; o
 filtro está no código e tem teste (sem efeito neste desenho, que não tem jumper).
 
+**Rodada 59 — terminais e bornes das portas (`bt5Terminais`, `bt6Portas`).** As duas
+últimas checagens da tela são as grades que faltavam, e as duas saem do **mesmo**
+`yBNcmOtuQS` (`frmVerificadorProjetoFiacao`): a `dgTerminais` (o `GroupBox5`, mostrada
+pelo `bt5Terminais`) e a `dgBornes` (o `GroupBox8`, pelo `bt6Portas`).
+
+O insumo não é a tabela — é o **próprio bloco de porta** (`E`), via
+`LeOsTerminaisDeUmaPorta`: os atributos `T*`/`B*`/`R*` são lidos crus, ordenados pela tag
+e unidos (`T*` → `sTermM`/`sTerm`, `B*` → `sattB`/`sBorn`, `R*` → `sRegua` com `"; "` e
+dedup), e o texto `"0"` ou vazio vira o caracter indefinido `"?"`. Dois detalhes do
+original mudam o resultado e foram reproduzidos:
+
+- **bloco com régua E bornes zera os terminais** (a porta é de borne, não de terminal);
+- o `sTermM` é **substituído** pelos terminais do **modelo de máscara** quando a porta
+  casa com um por `(modelo, porta)` (`mPortas[i].sTerminais`).
+
+A grade monta dois grupos: **"Indefinido"** (algum valor `"?"`) e **"Duplicado"** — e a
+chave do `list` é **única para todas as portas**:
+`BuscaNomeDoPainel(painel) + "/" + Nome1["-" + Nome2]` + `"-"` + valor, com a **régua**
+ainda no meio dos bornes. É por isso que o cadastro de `Paineis` importa aqui: sem ele o
+`BuscaNomeDoPainel` responde `"???"` e todo mundo colide. Entrou o
+`ProjectStore.LerNomesDePaineis` (o mapa `índice → nome` da tabela `Paineis`, o mesmo
+caminho do `lPnAoagado`) e o `PortaNoDesenho` ganhou `Nome1`/`Nome2`/`Painel` (o painel da
+máscara resolvido pelo `BuscaPainelDispositivo`, no `PortasDoDesenho`).
+
+**Medido no desenho real:** o `VERIF` continua lendo **45 blocos de porta** e as duas
+regras saem **vazias** — a linha de base segue **249** e o `cad-verif-baseline.py`
+confere. Como nas rodadas 52–57, o zero é a cópia estar limpa: o insumo existe (os 45
+blocos têm atributos `T*`, e as chaves saem distintas).
+
 O verificador do produto é bem maior que as regras de tabela: a tela tem **14 checagens** (`bt1Fiacao` … `bt14PortasDiscrepantes`, rótulos em
 `DeclaracoesGeral.mMensagem[1, id]`) e o motor fica em
 `ClsVerificadorProjetoFiacao.cs` (2.173 linhas), com uma análise própria do desenho
-(`buscaDadosDeFiacaoDWG`, linha 430) que alimenta `carregaOrfao` (1311), `carregaTree`
-(1159) e companhia. O recoder cobre **as 14** checagens da tela (12 casam 1:1 com um
-botão; 2 são parciais), incluindo as que dependem da análise geométrica do desenho — o
-órfão, a régua, o LM, os intervalos de borne, a régua da máscara, as portas discrepantes,
-o principal × auxiliar, os bornes editados (`bt9`, rodada 55) e os blocos duplicados
-(`bt12`, rodada 56). O mapeamento botão a botão está no `PLANO.md` §7.1. O verificador
+(`buscaDadosDeFiacaoDWG`, linha 430) que alimenta `carregaOrfao` (1311), `carregaTree`(1159) e companhia. O recoder cobre **as 14** checagens da tela — todas casam 1:1 com um
+botão desde a rodada 59, quando o `bt5Terminais`/`bt6Portas` entrou —, incluindo as que
+dependem da análise geométrica do desenho — o órfão, a régua, o LM, os intervalos de
+borne, a régua da máscara, as portas discrepantes, o principal × auxiliar, os bornes
+editados (`bt9`, rodada 55), os blocos duplicados (`bt12`, rodada 56) e os terminais e
+bornes das portas (`bt5`/`bt6`, rodada 59). O mapeamento botão a botão está no `PLANO.md` §7.1. O verificador
 da **interligação** (outra tela) teve a árvore portada na rodada 57 (jumper indefinido,
 jumper duplicado e trecho indefinido, o `carregaTree`); resta só o **cabo indefinido**
 (`IndefineCabosNaoExistentes`), que é uma **ação** — regrava o XData do desenho — e não uma
@@ -1554,7 +1583,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 273 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 279 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

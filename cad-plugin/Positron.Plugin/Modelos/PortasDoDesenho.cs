@@ -63,11 +63,19 @@ namespace Positron.Plugin.Modelos
                         continue;
                     }
 
+                    if (dispositivo.PainelPendente)
+                    {
+                        ResolverPainel(banco, transacao, dispositivo);
+                    }
+
                     PortaNoDesenho porta = new PortaNoDesenho
                     {
                         Handle = bloco.Handle.ToString(),
                         IndiceModelo = dispositivo.IndexModelo,
                         IndiceDaPorta = dispositivo.IndiceDaPorta,
+                        Nome1 = dispositivo.Nome1,
+                        Nome2 = dispositivo.Nome2,
+                        Painel = dispositivo.Painel,
                     };
 
                     LerAtributos(transacao, bloco, porta);
@@ -97,6 +105,49 @@ namespace Positron.Plugin.Modelos
             }
 
             return DispositivoFiacaoXData.Ler(XDataNeutro.Para(xdata), out dispositivo);
+        }
+
+        /// <summary>
+        /// Resolve o painel do <c>E</c> a partir do bloco da máscara
+        /// (<c>HandleMascara</c>, o <c>array[4]</c> do XData): lê o <c>array[8]</c>
+        /// do XData de dispositivo do bloco apontado — o mesmo
+        /// <c>BuscaPainelDispositivo</c> do adapter da fiação.
+        /// </summary>
+        private static void ResolverPainel(Database banco, Transaction transacao, DispositivoFiacao dispositivo)
+        {
+            if (string.IsNullOrEmpty(dispositivo.HandleMascara))
+            {
+                return;
+            }
+
+            ObjectId id;
+            if (!banco.TryGetObjectId(new Handle(Convert.ToInt64(dispositivo.HandleMascara, 16)), out id))
+            {
+                return;
+            }
+
+            BlockReference mascara = transacao.GetObject(id, OpenMode.ForRead) as BlockReference;
+            if (mascara == null)
+            {
+                return;
+            }
+
+            ResultBuffer xdata = mascara.GetXDataForApplication(DispositivoFiacaoXData.AppName);
+            if (xdata == null)
+            {
+                xdata = mascara.GetXDataForApplication(DispositivoFiacaoXData.AppNameLegado);
+            }
+
+            if (xdata == null)
+            {
+                return;
+            }
+
+            short painel;
+            if (DispositivoFiacaoXData.LerPainel(XDataNeutro.Para(xdata), out painel))
+            {
+                dispositivo.DefinirPainel(painel);
+            }
         }
 
         /// <summary>Lê os atributos do bloco (tag, texto, visibilidade) para a porta.</summary>

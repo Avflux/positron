@@ -543,17 +543,16 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
    o provedor; (b) **relatórios**, hoje só o de verificação em texto (`ELETREL`), com
    a recomendação de começar pelos 4 tabulares no app; (c) **banco**, SQLite hoje,
    SQL Server quando/quando — o SQL está isolado no `ProjectStore`.
-2. **`VERIF` no desenho:** já portadas as regras de tabela e **doze** do desenho —
-   régua do borne, cabo fora do catálogo, página ausente, `ReguaVazia`
+2. **`VERIF` no desenho:** as regras de tabela e **todas** as do desenho estão
+   portadas — régua do borne, cabo fora do catálogo, página ausente, `ReguaVazia`
    (`buscaReguasVazias`, 10), `BorneSemLm` (`GijcRTCGe3`, 119), órfão por `HandleSup`
    (`carregaOrfao`, 2), painel fora do cadastro (`lPnAoagado`), intervalos de borne
    (`bt8intervalos`, 11), régua da máscara (`bt13ReguaMascara`, 0), portas discrepantes
-   (`bt14PortasDiscrepantes`, 0) e principal × auxiliar (`bt3Principal`/`bt4Auxiliar`,
-   0 e 0) —, e o `VERIF` fecha em **249** problemas no desenho
-   real. O que falta é o que depende da análise geométrica do
-   `ClsVerificadorProjetoFiacao` (`buscaDadosDeFiacaoDWG`, 2.173 linhas
-   no total): à mão (`bt12`), discrepantes (`bt9`) e o
-   verificador da interligação. A **matriz de páginas** já é lida do
+   (`bt14PortasDiscrepantes`, 0), principal × auxiliar (`bt3Principal`/`bt4Auxiliar`,
+   0 e 0), bornes editados (`bt9`), blocos duplicados (`bt12`) e terminais/bornes das
+   portas (`bt5Terminais`/`bt6Portas`, rodada 59) —, e o `VERIF` fecha em **249**
+   problemas no desenho real. O que falta é só a **ação** `IndefineCabosNaoExistentes`
+   (regravação de XData, comando e não checagem). A **matriz de páginas** já é lida do
    desenho (`PaginaMatrix`/`PaginasDoDesenho`, montada da `LayerTable` como o
    `Pagina.CarregaPaginas`) e alimenta a regra de **página ausente**
    (`VerificarPaginasAusentes`) e a coluna `Pagina` (`ColunaPagina`, o switch

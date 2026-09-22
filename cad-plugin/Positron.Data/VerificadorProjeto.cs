@@ -1527,6 +1527,296 @@ namespace Positron.Data
             }
         }
 
+        // ------------------------------------------------- Portas: terminais e bornes
+
+        /// <summary>
+        /// Terminais das portas do desenho — o <c>bt5Terminais</c> da tela de fiação
+        /// (<c>yBNcmOtuQS</c>, a grade <c>dgTerminais</c> do <c>GroupBox5</c>).
+        ///
+        /// Para cada **bloco de porta** (<c>E</c>) o original monta, dos próprios
+        /// atributos (<c>LeOsTerminaisDeUmaPorta</c>):
+        /// - <c>T&lt;n&gt;</c> → <c>sTermM</c> (tags) e <c>sTerm</c> (valores), ordenados
+        ///   pela tag e unidos por <c>", "</c>; valor <c>"0"</c> ou vazio vira
+        ///   <c>"?"</c> (o <c>CaracterTerminalIndefinido</c>);
+        /// - <c>B&lt;n&gt;</c> → <c>sattB</c> (tags) e <c>sBorn</c> (valores);
+        /// - <c>R&lt;n&gt;</c> → <c>sRegua</c>, unido por <c>"; "</c> e **deduplicado**
+        ///   (o acumulado é comparado antes de anexar).
+        ///
+        /// Dois ajustes do original são reproduzidos, e os dois mudam o resultado:
+        /// quando o bloco tem **régua E bornes**, os terminais são zerados (a porta é
+        /// de borne); e o <c>sTermM</c> é **substituído** pelos terminais do **modelo
+        /// de máscara** quando a porta casa com um por <c>(modelo, porta)</c>.
+        ///
+        /// A grade mostra dois blocos: "Indefinido" (algum valor <c>"?"</c>) e
+        /// "Duplicado" — a chave do <c>list</c>, **único para todas as portas**, é
+        /// <c>rótuloDaMáscara + "-" + valor</c>, com o rótulo
+        /// <c>BuscaNomeDoPainel(painel) + "/" + Nome1["-" + Nome2]</c>.
+        ///
+        /// A tag é lida em maiúsculas, como no original (que descarta atributos cuja
+        /// tag não é ela mesma em maiúsculas).
+        /// </summary>
+        public static List<Problema> VerificarTerminaisDasPortas(
+            IEnumerable<PortaNoDesenho> portas,
+            IEnumerable<ModeloPorta> portasDoModelo,
+            IReadOnlyDictionary<int, string> nomesDePaineis)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (portas == null)
+            {
+                return problemas;
+            }
+
+            List<ModeloPorta> definicoes = DefinicoesDePorta(portasDoModelo);
+            HashSet<string> vistos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (PortaNoDesenho porta in portas)
+            {
+                if (porta == null)
+                {
+                    continue;
+                }
+
+                string regua = ValoresDoBloco(porta, 'R', "; ", true);
+                string bornes = ValoresDoBloco(porta, 'B', ", ", false);
+                string terminais = ValoresDoBloco(porta, 'T', ", ", false);
+
+                if (regua.Length != 0 && bornes.Length != 0)
+                {
+                    terminais = string.Empty;
+                }
+
+                ModeloPorta definicao = DefinicaoDePorta(definicoes, porta);
+                string terminaisDoModelo = SemEspacos(definicao == null ? string.Empty : definicao.Terminais);
+
+                if (terminaisDoModelo.Length == 0 && terminais.Length == 0)
+                {
+                    continue;
+                }
+
+                string rotulo = RotuloDaMascara(porta, nomesDePaineis);
+                foreach (string valor in SemEspacos(terminais).Split(','))
+                {
+                    string item = valor.Trim();
+                    if (item.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    if (Igual(item, TerminalIndefinido))
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.TerminalIndefinido, "Portas", porta.Handle,
+                            "terminal indefinido (\"" + item + "\") na máscara \"" + rotulo + "\""));
+                    }
+                    else if (!vistos.Add(rotulo + "-" + item))
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.TerminalDuplicado, "Portas", porta.Handle,
+                            "terminal \"" + item + "\" repetido na máscara \"" + rotulo + "\""));
+                    }
+                }
+            }
+
+            return problemas;
+        }
+
+        /// <summary>
+        /// Bornes das portas do desenho — o <c>bt6Portas</c> da tela de fiação
+        /// (a mesma <c>yBNcmOtuQS</c>, a grade <c>dgBornes</c> do <c>GroupBox8</c>).
+        ///
+        /// É o segundo bloco da montagem: só entram as portas com <c>B&lt;n&gt;</c> ou
+        /// valor de borne, os valores saem de <c>sBorn</c> (os valores <c>B&lt;n&gt;</c>,
+        /// <c>"0"</c>/vazio → <c>"?"</c>) e a chave do <c>list</c> acrescenta a
+        /// **régua**: <c>rótulo + "-" + sRegua + "-" + valor</c>.
+        ///
+        /// O <c>Geral.DivideTerminais(ref lTerminais, sRegua, bRepete: true)</c> que o
+        /// original calcula aqui é **calculado e não usado** (o laço que monta a grade
+        /// usa o <c>Split</c> de <c>sBorn</c>), então não é reproduzido.
+        /// </summary>
+        public static List<Problema> VerificarBornesDasPortas(
+            IEnumerable<PortaNoDesenho> portas,
+            IEnumerable<ModeloPorta> portasDoModelo,
+            IReadOnlyDictionary<int, string> nomesDePaineis)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (portas == null)
+            {
+                return problemas;
+            }
+
+            HashSet<string> vistos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (PortaNoDesenho porta in portas)
+            {
+                if (porta == null)
+                {
+                    continue;
+                }
+
+                string regua = ValoresDoBloco(porta, 'R', "; ", true);
+                string bornes = ValoresDoBloco(porta, 'B', ", ", false);
+                string tagsDeBorne = TagsDoBloco(porta, 'B');
+
+                if (tagsDeBorne.Length == 0 && bornes.Length == 0)
+                {
+                    continue;
+                }
+
+                string rotulo = RotuloDaMascara(porta, nomesDePaineis);
+                foreach (string valor in SemEspacos(bornes).Split(','))
+                {
+                    string item = valor.Trim();
+                    if (item.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    if (Igual(item, TerminalIndefinido))
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.TerminalIndefinido, "Portas", porta.Handle,
+                            "borne indefinido (\"" + item + "\") na máscara \"" + rotulo + "\" (régua \"" + regua + "\")"));
+                    }
+                    else if (!vistos.Add(rotulo + "-" + regua + "-" + item))
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.TerminalDuplicado, "Portas", porta.Handle,
+                            "borne \"" + item + "\" repetido na máscara \"" + rotulo + "\" (régua \"" + regua + "\")"));
+                    }
+                }
+            }
+
+            return problemas;
+        }
+
+        private static List<ModeloPorta> DefinicoesDePorta(IEnumerable<ModeloPorta> portasDoModelo)
+        {
+            List<ModeloPorta> definicoes = new List<ModeloPorta>();
+            if (portasDoModelo != null)
+            {
+                foreach (ModeloPorta porta in portasDoModelo)
+                {
+                    if (porta != null)
+                    {
+                        definicoes.Add(porta);
+                    }
+                }
+            }
+
+            return definicoes;
+        }
+
+        /// <summary>O primeiro modelo que casa por <c>(modelo, porta)</c> — o <c>break</c> do original.</summary>
+        private static ModeloPorta DefinicaoDePorta(List<ModeloPorta> definicoes, PortaNoDesenho porta)
+        {
+            foreach (ModeloPorta definicao in definicoes)
+            {
+                if (definicao.IndiceModelo == porta.IndiceModelo
+                    && definicao.IndiceDaPorta == porta.IndiceDaPorta)
+                {
+                    return definicao;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Os valores dos atributos <c>T&lt;n&gt;</c>/<c>B&lt;n&gt;</c>/<c>R&lt;n&gt;</c> do
+        /// bloco, na ordem da tag e com <c>"0"</c>/vazio virando o caracter indefinido —
+        /// o <c>LeOsTerminaisDeUmaPorta</c>. A régua (<paramref name="unico"/>) entra com
+        /// <c>"; "</c> e só quando o acumulado difere do valor, como no original.
+        /// </summary>
+        private static string ValoresDoBloco(PortaNoDesenho porta, char tipo, string separador, bool unico)
+        {
+            SortedDictionary<string, string> valores =
+                new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (AtributoPorta atributo in porta.Atributos)
+            {
+                if (!TagDeAtributo(atributo.Tag, tipo, out _))
+                {
+                    continue;
+                }
+
+                string texto = atributo.Texto ?? string.Empty;
+                string limpo = texto.Trim();
+                valores[atributo.Tag] = limpo.Length == 0 || limpo == "0" ? TerminalIndefinido : texto;
+            }
+
+            string acumulado = string.Empty;
+            foreach (string valor in valores.Values)
+            {
+                if (acumulado.Length == 0)
+                {
+                    acumulado = valor;
+                }
+                else if (!unico || !Igual(acumulado, valor))
+                {
+                    acumulado = acumulado + separador + valor;
+                }
+            }
+
+            return acumulado;
+        }
+
+        /// <summary>As tags dos atributos de um tipo, unidas por <c>", "</c> — só o teste de vazio do original.</summary>
+        private static string TagsDoBloco(PortaNoDesenho porta, char tipo)
+        {
+            string tags = string.Empty;
+            foreach (AtributoPorta atributo in porta.Atributos)
+            {
+                if (!TagDeAtributo(atributo.Tag, tipo, out _))
+                {
+                    continue;
+                }
+
+                tags = tags.Length == 0 ? atributo.Tag : tags + ", " + atributo.Tag;
+            }
+
+            return tags;
+        }
+
+        /// <summary>
+        /// A tag de um atributo <c>T1</c>/<c>B2</c>/<c>R3</c> do tipo pedido. Reproduz o
+        /// filtro do original, que descarta o atributo cuja tag **não é ela mesma em
+        /// maiúsculas** (<c>left != tag</c>) — o <c>Versioned.IsNumeric</c> fica no
+        /// <c>TagsDePorta</c>.
+        /// </summary>
+        private static bool TagDeAtributo(string tag, char tipo, out int indice)
+        {
+            char lido;
+            if (!TagsDePorta(tag, out lido, out indice) || lido != tipo)
+            {
+                return false;
+            }
+
+            return string.Equals(tag, tag.ToUpperInvariant(), StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// O rótulo da máscara do original: <c>BuscaNomeDoPainel(painel) + "/" +
+        /// Nome1["-" + Nome2]</c>. Sem o cadastro, o <c>BuscaNomeDoPainel</c> responde
+        /// <c>"???"</c> — o mesmo valor daqui.
+        /// </summary>
+        private static string RotuloDaMascara(PortaNoDesenho porta, IReadOnlyDictionary<int, string> nomesDePaineis)
+        {
+            string nome;
+            if (nomesDePaineis == null || !nomesDePaineis.TryGetValue(porta.Painel, out nome) || nome == null)
+            {
+                nome = "???";
+            }
+
+            string rotulo = porta.Nome1 ?? string.Empty;
+            if (!string.IsNullOrEmpty(porta.Nome2))
+            {
+                rotulo = rotulo + "-" + porta.Nome2;
+            }
+
+            return nome + "/" + rotulo;
+        }
+
+        private static string SemEspacos(string texto)
+        {
+            return (texto ?? string.Empty).Replace(" ", string.Empty);
+        }
+
         /// <summary>
         /// Dispositivos principais incompletos — o <c>bt3Principal</c> da tela
         /// (<c>MbycXLEWI4</c>, que monta a <c>dgPrincipal</c> a partir de

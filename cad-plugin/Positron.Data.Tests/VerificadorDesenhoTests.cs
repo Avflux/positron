@@ -1199,6 +1199,106 @@ namespace Positron.Data.Tests
             return bloco;
         }
 
+        // ─────────────────── terminais e bornes das portas ─────────────────────
+        // O `yBNcmOtuQS` do `frmVerificadorProjetoFiacao`: a grade `dgTerminais`
+        // (`bt5Terminais`, o `GroupBox5`) e a `dgBornes` (`bt6Portas`, o `GroupBox8`).
+
+        [Fact]
+        public void Aponta_terminal_indefinido_no_bloco_de_porta()
+        {
+            // O `bt5Terminais`: `T1=0` vira o caracter indefinido (`?`) em `sTerm`.
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho> { BlocoDePorta(1, 1, "H1", "T1=0") };
+
+            Problema problema = Assert.Single(
+                VerificadorProjeto.VerificarTerminaisDasPortas(blocos, null, null));
+
+            Assert.Equal(AreaVerificacao.Desenho, problema.Area);
+            Assert.Equal(TipoProblema.TerminalIndefinido, problema.Tipo);
+            Assert.Equal("Portas", problema.Tabela);
+            Assert.Equal("H1", problema.Identificador);
+        }
+
+        [Fact]
+        public void Aponta_terminal_repetido_entre_blocos_da_mesma_mascara()
+        {
+            // A chave do `list` é `rótulo + "-" + valor` e vale para TODAS as portas:
+            // o segundo bloco com a mesma máscara e o mesmo terminal é o duplicado.
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho>
+            {
+                BlocoDePorta(1, 1, "H1", "T1=5"),
+                BlocoDePorta(1, 1, "H2", "T1=5"),
+            };
+
+            Problema problema = Assert.Single(
+                VerificadorProjeto.VerificarTerminaisDasPortas(blocos, null, null));
+
+            Assert.Equal(TipoProblema.TerminalDuplicado, problema.Tipo);
+            Assert.Equal("H2", problema.Identificador);
+        }
+
+        [Fact]
+        public void Regua_e_bornes_no_bloco_zeram_os_terminais()
+        {
+            // O original zera `sTermM`/`sTerm` quando o bloco tem régua E bornes:
+            // a porta é de borne, não de terminal.
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho>
+            {
+                BlocoDePorta(1, 1, "H1", "T1=0", "B1=1", "R1=2"),
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarTerminaisDasPortas(blocos, null, null));
+        }
+
+        [Fact]
+        public void Terminais_do_modelo_sustentam_o_bloco_na_grade()
+        {
+            // O `sTermM` é substituído pelos terminais do modelo de máscara quando a
+            // porta casa; é ele que põe o bloco na grade mesmo sem `T*` próprio.
+            List<ModeloPorta> modelo = new List<ModeloPorta> { PortaDoModelo(1, 1, "1;3") };
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho> { BlocoDePorta(1, 1, "H1", "T1=0") };
+
+            Assert.Single(VerificadorProjeto.VerificarTerminaisDasPortas(blocos, modelo, null));
+        }
+
+        [Fact]
+        public void Aponta_borne_indefinido_e_repetido_no_bloco_de_porta()
+        {
+            // O `bt6Portas` (a grade `dgBornes`): `B1=0` vira `?` e o mesmo par
+            // (máscara, régua, borne) repetido é duplicado.
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho>
+            {
+                BlocoDePorta(1, 1, "H1", "B1=0", "R1=10"),
+                BlocoDePorta(1, 1, "H2", "B1=7", "R1=10"),
+                BlocoDePorta(1, 1, "H3", "B1=7", "R1=10"),
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarBornesDasPortas(blocos, null, null);
+
+            Assert.Equal(2, problemas.Count);
+            Assert.Equal(TipoProblema.TerminalIndefinido, problemas[0].Tipo);
+            Assert.Equal("H1", problemas[0].Identificador);
+            Assert.Equal(TipoProblema.TerminalDuplicado, problemas[1].Tipo);
+            Assert.Equal("H3", problemas[1].Identificador);
+        }
+
+        [Fact]
+        public void Rotulo_da_mascara_usa_o_nome_do_painel()
+        {
+            // `BuscaNomeDoPainel(painel) + "/" + Nome1["-" + Nome2]`: com o cadastro
+            // é o nome da tabela `Paineis`; sem ele, o `???` do original.
+            PortaNoDesenho bloco = BlocoDePorta(1, 1, "H1", "T1=0");
+            bloco.Nome1 = "X1";
+            bloco.Nome2 = "B";
+            bloco.Painel = 503;
+
+            Dictionary<int, string> nomes = new Dictionary<int, string> { { 503, "PNL" } };
+
+            Assert.Contains("PNL/X1-B",
+                Assert.Single(VerificadorProjeto.VerificarTerminaisDasPortas(new[] { bloco }, null, nomes)).Detalhe);
+            Assert.Contains("???/X1-B",
+                Assert.Single(VerificadorProjeto.VerificarTerminaisDasPortas(new[] { bloco }, null, null)).Detalhe);
+        }
+
         // ───────────────────────── verificador da interligação ─────────────────
         // O `carregaTree` do `clsVerificadorProjetoInterligacao`: as duas árvores
         // sobre o desenho ("External Jumper" e "Interconnection").
