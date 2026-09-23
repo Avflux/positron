@@ -366,11 +366,29 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         public double Radius { get; set; }
     }
 
+    /// <summary>Fatores de escala de um bloco (o <c>Scale3d</c> da API real).</summary>
+    public struct Scale3d
+    {
+        public double X;
+        public double Y;
+        public double Z;
+
+        public Scale3d(double x, double y, double z)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+        }
+    }
+
     public class BlockReference : Entity
     {
         public Point3d Position { get; set; }
 
         public string Name { get; set; }
+
+        /// <summary>Escalas do bloco (o <c>BlockReference.ScaleFactors</c> da API real).</summary>
+        public Scale3d ScaleFactors { get; set; }
 
         public IEnumerable<ObjectId> AttributeCollection
         {

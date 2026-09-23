@@ -762,6 +762,36 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 93 — `ApagaBlocosMirror` (frente 2 do §7.6, parte 21: os blocos espelhados).**
+O `clsUtilitarios.cs`: apaga os blocos de referência que
+
+1. têm **algum** XData (`val6.XData != null`);
+2. **não** têm o app `DINTERLIG` (o cabo de aranha);
+3. estão **espelhados** — fator de escala em X **negativo** (`ScaleFactors.X &lt; 0`).
+
+O original apaga em silêncio (sem contagem nem mensagem); o comando do recoder **reporta** os
+números.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+ApagaBlocosMirror: 0 bloco(s) espelhado(s) apagado(s) (0 espelhado(s) entre 521 com XData; 0 são cabo de aranha e ficam; 557 bloco(s) lido(s)).
+```
+
+**Não há bloco espelhado com XData nesta cópia** — 557 blocos lidos, 521 com XData e **0** com
+escala X negativa —, então o caminho de apagar **não é exercitado** aqui: fica registrado como
+pendência de fixture sintética (um `INSERT` com `(41 . -1)` e um XData qualquer resolve).
+
+> **Nota de ferramenta:** o contador `scripts/cad-conta-mirror.lsp` **não produziu saída** (a
+> mesma família de armadilhas do `entget` com app names / `APPID` das rodadas 90/91); os
+> números acima vêm do próprio comando.
+
+**Classificação registrada — a família de atributos sai do recorte:**
+`LeAtributos`/`LeTodosAtributos` + `CorrigeAtributos`/`CorrigeAtributosSemMsg`/
+`PreencheNovosAtributos` operam sobre o buffer **estático** `clsTrocaEditaBlocosMat.mAtributos`,
+que é preenchido por uma **tela** (a grade de atributos) e aplicado depois — sem a tela não há o
+que aplicar (mesmo caso do `PesquisaBlocos`).
+
 **Rodada 92 — `Limpahandle` (frente 2 do §7.6, parte 20: os handles das derivações).**
 O `limpaHandleSuperior` do `Correcao.cs`, que é `[CommandMethod("Limpahandle")]` — e a
 **primeira metade** do `CorrigeHandleSuperior`: zera o `Handle` do XData `CONEXAO` de cada
@@ -3267,7 +3297,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 478 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 481 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

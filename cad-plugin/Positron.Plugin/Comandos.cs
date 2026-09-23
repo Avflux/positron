@@ -1307,6 +1307,35 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>ApagaBlocosMirror</c> — apaga os blocos espelhados (escala X negativa) que
+        /// têm algum XData e não são cabo de aranha (DINTERLIG), como o <c>clsUtilitarios.cs</c>.
+        /// </summary>
+        [CommandMethod("ApagaBlocosMirror")]
+        public void ApagarBlocosMirror()
+        {
+            Plugin.Escrever(ExecutarApagarBlocosMirror());
+        }
+
+        /// <summary>Apaga os blocos espelhados e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarApagarBlocosMirror()
+        {
+            try
+            {
+                Correcoes.BlocosMirrorDoDesenho.Resultado resultado =
+                    Correcoes.BlocosMirrorDoDesenho.Executar();
+
+                return "ApagaBlocosMirror: " + resultado.Apagados + " bloco(s) espelhado(s) apagado(s) ("
+                    + resultado.Espelhados + " espelhado(s) entre " + resultado.ComXData
+                    + " com XData; " + resultado.CabosDeAranha + " são cabo de aranha e ficam; "
+                    + resultado.BlocosLidos + " bloco(s) lido(s)).";
+            }
+            catch (System.Exception erro)
+            {
+                return "ApagaBlocosMirror: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();
