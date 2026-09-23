@@ -800,6 +800,43 @@ O comando passou a compor, na ordem do original, os passos que o recoder tem:
 
 Os três passos rodam no desenho real, e a projeção repete exatamente os números do `SYNCD` da
 rodada 107 — a segunda testemunha do mesmo cálculo.
+**Rodada 113 — o `RESTPROJ` (o pipeline-mãe) e o `ApagaERROS`.**
+O `RESTPROJ` do reverso é o **pipeline-mãe**: **dezesseis** passos (barra de progresso com
+`Quantidade = 16`) que **superam** o `SYNCD` (rodada 107) e o `SYNCV` (rodada 111).
+O comando passou a compor, na ordem do original, os passos que o recoder tem:
+
+| passo | o que é |
+|---|---|
+| `[1/5]` os textos dos cabos | pelo `Conf.InterligacaoLayout` (o `RECRIACABOS`) |
+| `[2/5] ApagaERROS` | **novo nesta rodada** |
+| `[3/5] CorrigeModelosDeContatos` | as duas metades (o dicionário e o desenho) |
+| `[4/5] FIA` + `INT` | a **projeção**, que no original são os quatro `Sincroniza*` |
+| `[5/5] os opcionais do cabo | **só quando `InterligacaoLayout == 3`**, como no original |
+
+**O `ApagaERROS`** (o único passo do `RESTPROJ` que não tinha par): o
+`clsBlocos.ApagaERROS` lê o XData `ERRO` e confere se o **primeiro valor** é a marca —
+a mesma regra que o `clsPortas` usa com a marca `PORTAS`. Entraram a regra pura
+`EntidadesDeErro` e o adapter, que percorre o espaço de modelo e apaga as marcadas.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63, com cópia do banco):
+
+```text
+[1/5] RecriaTextosCabo: 24 rótulo(s) apagado(s) e 20 reinserido(s) de 20 trecho(s) (0 já tinham rótulo; 305 cabo(s) singelo(s) no catálogo).
+[2/5] ApagaERROS: 0 entidade(s) marcada(s) apagada(s) de 3286 no espaço de modelo.
+[3/5] CorrigeModelosDeContatos: nenhum contato fora da posição (8 modelo(s) e 26 contato(s) no CONTATOS) — nada a corrigir.
+[4/5] FIA: 494 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 0 reordenada(s), 83 posicao(oes), 450 ponto(s) de bloco); 265 porta(s) em Portas4F; ...
+[4/5] INT: 20 linha(s) gravada(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I; 216 borne(s) em Bornes4I; 697 cabo(s) em Cabos4; 2388 veia(s) em Veias4.
+[5/5] os opcionais do cabo ficam de fora: o original só os atualiza com InterligacaoLayout = 3 (aqui = 0).
+```
+
+**Seis passos no desenho real**, com os números repetindo as medições das rodadas 107 e 111 — a
+**terceira testemunha** do mesmo cálculo. E o `ApagaERROS` mostra o tamanho da varredura: **3286
+entidades** no espaço de modelo (0 marcadas nesta cópia).
+
+> **Fora do recorte, documentado:** o `ApagaContatosOrfaos`, o
+> `EditaPortaDipAuxPainelModeloFabricante`, o `sincronizaCircuitos` (coberto pela projeção), o
+> `InsereTextosDeCabos`, a família do **cruzamento**, o `AtualizaNomesDosCabos` e os modelos
+> de bobina.
 **Rodada 112 — a triagem das frentes 8 e 9 e o `CBD` (compactar o banco).**
 As duas últimas frentes do §7.6: a **8** (materiais, 3) tem 2 só UI (`GERLM` =
 `frmGerenciadorMateriais`, `ATINDEP` = `frmGerenciadorMatIndep`) e 1 destrutivo com
@@ -3865,7 +3902,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 511 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 513 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

@@ -2599,5 +2599,78 @@ namespace Positron.Plugin
                 return "CBD: falhou — " + DescreverErro(erro) + ".";
             }
         }
+
+        /// <summary>
+        /// <c>ApagaERROS</c> — apaga as entidades marcadas com o XData <c>ERRO</c> (o
+        /// <c>clsBlocos.ApagaERROS</c>, passo 2 do <c>RESTPROJ</c>).
+        /// </summary>
+        [CommandMethod("ApagaERROS")]
+        public void ApagarEntidadesDeErro()
+        {
+            Plugin.Escrever(ExecutarApagarEntidadesDeErro());
+        }
+
+        /// <summary>Apaga as entidades marcadas e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarApagarEntidadesDeErro()
+        {
+            try
+            {
+                Correcoes.EntidadesDeErroDoDesenho.Resultado resultado =
+                    Correcoes.EntidadesDeErroDoDesenho.Executar(Positron.Data.Correcoes.EntidadesDeErro.Marca);
+
+                return "ApagaERROS: " + resultado.Marcadas + " entidade(s) marcada(s) apagada(s) de "
+                    + resultado.Entidades + " no espaço de modelo.";
+            }
+            catch (System.Exception erro)
+            {
+                return "ApagaERROS: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+        /// <summary>
+        /// <c>RESTPROJ</c> — o **pipeline-mãe** do original: **dezesseis** passos (barra de
+        /// progresso com <c>Quantidade = 16</c>) que **superam** o <c>SYNCD</c> (rodada 107) e o
+        /// <c>SYNCV</c> (rodada 111).
+        ///
+        /// Aqui entram, na ordem do original, os passos que o recoder **tem**: os textos dos
+        /// cabos pelo <c>Conf.InterligacaoLayout</c> (o <c>RECRIACABOS</c>), o <c>ApagaERROS</c>
+        /// (novo nesta rodada), o <c>CorrigeModelosDeContatos</c>, a **projeção** (<c>FIA</c> +
+        /// <c>INT</c>, que é o que no original fazem os quatro <c>Sincroniza*</c>) e os
+        /// **opcionais do cabo** — estes só quando <c>Conf.InterligacaoLayout == 3</c>, como no
+        /// original.
+        ///
+        /// **Fora do recorte, documentado:** o <c>ApagaContatosOrfaos</c>, o
+        /// <c>EditaPortaDipAuxPainelModeloFabricante</c>, o <c>sincronizaCircuitos</c> (coberto
+        /// pela projeção), o <c>InsereTextosDeCabos</c>, a família do **cruzamento**, o
+        /// <c>AtualizaNomesDosCabos</c> e os modelos de bobina.
+        /// </summary>
+        [CommandMethod("RESTPROJ")]
+        public void RestaurarProjeto()
+        {
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+
+            if (config.InterligacaoLayout == 1)
+            {
+                Plugin.Escrever("[1/5] " + ExecutarRecriarTextosDeCaboEletrosul());
+            }
+            else
+            {
+                Plugin.Escrever("[1/5] " + ExecutarRecriarTextosDeCabo());
+            }
+
+            Plugin.Escrever("[2/5] " + ExecutarApagarEntidadesDeErro());
+            Plugin.Escrever("[3/5] " + ExecutarCorrigirModelosDeContatos());
+            Plugin.Escrever("[4/5] " + ExecutarFiacao());
+            Plugin.Escrever("[4/5] " + ExecutarInterligacao());
+
+            if (config.InterligacaoLayout == 3)
+            {
+                Plugin.Escrever("[5/5] " + ExecutarAtualizarOpcionaisDoCabo());
+            }
+            else
+            {
+                Plugin.Escrever("[5/5] os opcionais do cabo ficam de fora: o original só os atualiza com InterligacaoLayout = 3 (aqui = " + config.InterligacaoLayout + ").");
+            }
+        }
     }
 }
