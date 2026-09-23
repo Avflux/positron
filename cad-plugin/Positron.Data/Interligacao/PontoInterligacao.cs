@@ -239,7 +239,16 @@ namespace Positron.Data.Interligacao
         {
             Tag1 = MontarTag(borne);
             Alternativo1 = borne.Alternativo;
-            NRegua1 = borne.NomeRegua;
+            // `NRegua1` fica **vazio**: e um parametro de saida do casamento de terminal
+            // (`ltZUHdAX7R`, ref P_6) que o original so preenche no caminho da **porta**
+            // (`E`), e a `Interligacao4` do produto **nunca** o tem preenchido — das
+            // **5.042 linhas** do banco do produto, **0** tem `NRegua1`/`NRegua2` (medido
+            // em 2026-09-22, todas as revisoes e desenhos). O nome da regua fica na
+            // `Tag1` (o `MontarTag` abaixo), que e o que o relatorio de interligacao le
+            // (`Tag1 = regua` com `NRegua1 = ''`). Mesma regra da `Fiacao`
+            // (`PontoFiacao.AplicarBorne`, rodada 43) — aqui ela vale para a tabela
+            // inteira, e nao so para o caminho do borne.
+            NRegua1 = string.Empty;
             Terminal1 = borne.Terminal;
             TerminalNum1 = borne.Ordem;
             TipoBorne1 = borne.Tipo;
@@ -254,7 +263,8 @@ namespace Positron.Data.Interligacao
         {
             Tag2 = MontarTag(borne);
             Alternativo2 = borne.Alternativo;
-            NRegua2 = borne.NomeRegua;
+            // Pelo mesmo motivo da ponta 1: `NRegua2` nunca sai preenchida no original.
+            NRegua2 = string.Empty;
             Terminal2 = borne.Terminal;
             TerminalNum2 = borne.Ordem;
             TipoBorne2 = borne.Tipo;

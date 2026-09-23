@@ -762,6 +762,72 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 66 — `NRegua1`/`NRegua2` da `Interligacao4`: o bug que o relatório de
+interligação denunciou.** O levantamento dos relatórios de Fiação/Interligação (§7.3 do
+`PLANO.md`) mostrou que o relatório de interligação identifica a **ponta de régua** assim
+(`cDadosAccessInterligacao2.CarregaCabosNosBornesRI`):
+
+```sql
+SELECT ... FROM Interligacao4
+WHERE Revisao=@revisao AND Painel1=@painel AND Tag1=@tag AND NRegua1=@nRegua AND Terminal1=@terminal
+```
+
+…com `Tag = <nome da régua>` e **`NRegua = ''`** (é o que o `CarregaReguas` monta para as
+réguas de borne: `Tag = Regua`, `NRegua = ""`). A nossa projeção preenchia
+`NRegua1`/`NRegua2` com o nome da régua — ou seja, a consulta do relatório original
+**não acharia nenhum cabo** no nosso banco.
+
+A medição no produto (a mesma forma da rodada 43, que corrigiu isso na `Fiacao`):
+
+```text
+Interligacao4 no produto (todas as revisões/desenhos):
+   total de linhas      : 5042
+   NRegua1 preenchido   : 0
+   NRegua2 preenchido   : 0
+   TipoBorne1 <> 0      : 55      (as pontas de porta também têm NRegua vazio)
+Fiacao no produto:
+   total de linhas      : 38221
+   NRegua preenchido    : 14      (o número que a rodada 43 mediu)
+```
+
+**A coluna nunca é preenchida** — a regra é mais forte que na `Fiacao` (onde 14 linhas
+têm). A correção foi a de `PontoFiacao.AplicarBorne` aplicada a
+`PontoInterligacao.AplicarBornePonta1/Ponta2` (`NRegua1/2 = ""`, com a medição no
+comentário), e o teste do projetor passou a travar isso.
+
+**Por que sobreviveu desde a rodada 39:** a `Interligacao4` **não estava** no
+`cad-ab-tabelas` — a ferramenta comparava só as 7 tabelas do `FIA`, e a conferência da
+interligação era por *hash* de conteúdo, não coluna a coluna. A tabela entrou na
+ferramenta (`COLUNAS`/`CHAVE` com as 22 colunas das duas pontas, chave
+`Tag_Cabo`+`Num_Veia`), e a receita é a mesma dos outros A/B — só a **revisão** é
+diferente do lado do produto (a interligação usa `00A-n`/`CORR`, a fiação `1..4`):
+
+```powershell
+# lado do produto, na revisão DELE
+powershell -ExecutionPolicy Bypass -File scripts/cad-ab-tabelas.ps1 `
+  -Mdb "..\Elet\Teste_projeto_real\RCD.mdb" -Tabelas Interligacao4 -Revisao 00A-1 -SaidaDir "$TEMP\ab-il4"
+
+# lado do recoder (a nossa revisão do ciclo é R0)
+python scripts/cad-ab-tabelas.py "$TEMP\positron-projeto.db" "$TEMP\ab-il4\mdb-<data>" `
+  --nosso-dwg 63 --nosso-revisao R0 --detalhe
+```
+
+Medido em 2026-09-22, **depois** da correção:
+
+```text
+Interligacao4          20       20        0  IDENTICO (b4919622ef820429)
+
+== detalhe por coluna (linhas casadas pela chave da tabela) ==
+  Interligacao4: 20 x 20 linhas, 20 chave(s) em comum
+    so no recoder: 0 | so no produto: 0
+    colunas iguais nas chaves em comum
+```
+
+São 22 colunas conferidas por linha (as duas pontas: `Painel`, `Tag`, `Alternativo`,
+`NRegua`, `Terminal`, `TerminalNum`, `TipoBorne`, `Handle`, `Pagina`, `IndexModelo`), o que
+é mais forte que o *hash* anterior. `Documento1`/`Documento2` ficam de fora da lista de
+propósito: eles saem do `Conf.Local` do ambiente (`POSITRON_LOCAL`), não do desenho.
+
 **Rodada 65 — relatórios tabulares no app (`Lista de Veias` e `Lista de Materiais`).** O
 original tinha **38 telas** `frmRelatorio_*`, todas WinForms com grade e exportação para
 Excel/DWG. O caminho escolhido (decisão 9b do `PLANO.md`) é renderizar no **app Python**:

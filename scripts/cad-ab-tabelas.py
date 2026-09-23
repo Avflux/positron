@@ -42,6 +42,14 @@ COLUNAS = {
     # calcula — e onde a ordem preservada pelo "Sim" do produto aparece.
     'ListaMateriais': ['Painel', 'Tag', 'IndiceMaterial', 'Quantidade', 'Ordem', 'Avulso',
                        'Alternativo', 'Handle', 'OrdemLay'],
+    # `Interligacao4` ficou **fora** desta ferramenta ate a rodada 66 — e por isso o
+    # `NRegua1`/`NRegua2` (que a projecao preenchia e o produto **nunca** preenche)
+    # sobreviveu desde a rodada 39. As duas pontas entram coluna a coluna.
+    'Interligacao4': ['Tag_Cabo', 'Num_Veia',
+                      'Painel1', 'Tag1', 'Alternativo1', 'NRegua1', 'Terminal1', 'TerminalNum1',
+                      'TipoBorne1', 'Handle1', 'Pagina1', 'IndexModelo1',
+                      'Painel2', 'Tag2', 'Alternativo2', 'NRegua2', 'Terminal2', 'TerminalNum2',
+                      'TipoBorne2', 'Handle2', 'Pagina2', 'IndexModelo2'],
 }
 
 # Tabelas cujo filtro e so o `DWG` (nao tem coluna `Revisao`).
@@ -52,6 +60,7 @@ SEM_REVISAO = {'ListaMateriais'}
 # entao a chave e o proprio item.
 CHAVE = {
     'ListaMateriais': ['Painel', 'Tag', 'IndiceMaterial'],
+    'Interligacao4': ['Tag_Cabo', 'Num_Veia'],
 }
 
 
