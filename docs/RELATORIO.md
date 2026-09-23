@@ -114,6 +114,10 @@ $env:POSITRON_DIAG = "$env:TEMPpositron-diag.txt"
 powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 -Comandos "pzDiag,SYNCD,STATBORN" -Desenho "..\Elet\Teste_projeto_real\Funcional.dwg" -Banco "$env:TEMP\positron-limpeza.db"
 ```
 
+> **Cobertura medida:** o `docs/AUDITORIA.md` responde, com números, o que está coberto e o que
+> não está (216 comandos classificados; o recoder é ≈6% das 408 mil linhas do reverso e ≈22% da
+> lógica `cls*`) — a leitura obrigatória antes de dizer "só falta UI".
+
 ## 7. Pendências
 
 - **De implementação: nenhuma.** Todas as pendências registradas das rodadas 86, 87 e 101 foram
