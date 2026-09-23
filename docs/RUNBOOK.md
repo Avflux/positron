@@ -762,6 +762,79 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 76 — `corrigeDicMascaras` (frente 2 do §7.6, parte 7: o dicionário de máscaras).**
+A quinta `Corrige*` e o **par de escrita do `bt13ReguaMascara`** (a checagem da régua da
+máscara, rodada 52): normaliza a lista de portas de cada modelo do dicionário `MASCARAS`. O
+que é puro está em `Positron.Data/Correcoes/CorrecaoPortasDaMascara.cs`; o XRecord é regravado
+por `ModelosMascara.ParaValores` (o avesso do `LerPortas`).
+
+| Passo | Do original | No recoder |
+|---|---|---|
+| dedup | `List.Contains` por `IndiceDaPorta`, fica a **primeira** | igual |
+| ordem | `OrdenaAsPortasDoModeloMascara` (bolha por índice) | igual (o original ordena **duas** vezes — a segunda, dentro do gravador, é no-op) |
+| `MaxIndice` | o cabeçalho começa em 0 e vira o **maior índice mantido** — não é preservado | igual — **quirk reproduzido** |
+| gravação | regrava o registro de **todo** modelo, sempre | regrava **só o que muda** (desvio de propósito: a 2ª passada converge) |
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63) — o dicionário tem
+**16** registros e a lista `MODELOS2` **7** modelos (o plugin segue a lista, como o original):
+
+```text
+corrigeDicMascaras: 6 de 7 modelo(s) de máscara normalizado(s) (0 porta(s) duplicada(s) descartada(s); 240 porta(s) lida(s); 0 sem registro de portas).
+corrigeDicMascaras: 0 de 7 modelo(s) de máscara normalizado(s) (0 porta(s) duplicada(s) descartada(s); 240 porta(s) lida(s); 0 sem registro de portas).
+```
+
+A conferência **independente** é o `scripts/cad-conta-mascaras.lsp`: ele lê o **XRECORD cru**
+(o `entget` de um `XRECORD` mostra os valores **depois do grupo 280**, medido na sonda que
+escolheu esta rodada) e conta, por modelo, o cabeçalho, as portas e as duplicadas:
+
+```text
+ANTES  MODELO;1;0;16;1,2,...,16;0      DEPOIS  MODELO;1;16;16;...;0     <- cinco cabeçalhos zerados viram 16/90/90/10/16
+ANTES  MODELO;3;16;8;1,2,...,8;0       DEPOIS  MODELO;3;8;8;...;0       <- rebaixado: 16 com portas 1..8
+ANTES  TOTAL;modelos;16;portas;240;duplicadas;0;header_zero;14
+DEPOIS TOTAL;modelos;16;portas;240;duplicadas;0;header_zero;9
+```
+
+O caso do modelo 3 é o **quirk** do original medido no desenho: o cabeçalho era o **maior** (16)
+e a maior porta é 8, então a correção o **rebaixa** — o gravador não lê o cabeçalho antigo.
+
+Receita completa (a correção **antes** da projeção, para provar que o `Portas4F` não muda):
+
+```powershell
+$env:POSITRON_XDATA = "$env:TEMP\positron-mascaras.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 `
+  -Fixture scripts/cad-conta-mascaras.lsp `
+  -Comandos "corrigeDicMascaras,corrigeDicMascaras,FIA,VERIF,(pz-masc:conta)" `
+  -Desenho ..\Elet\Teste_projeto_real\Funcional.dwg -Banco "$env:TEMP\positron-limpeza.db"
+```
+
+```text
+FIA: 494 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 83 posicao(oes)); 265 porta(s) em Portas4F; 168 borne(s) em Bornes4F; 70 contato(s) em Contatos4F; 83 dispositivo(s) em Dispositivos4F; 11 circuito(s) em Circuitos4F; 15 tipo(s) em Aplicacao4F.
+VERIF: 249 problema(s) — fiação: 0; interligação: 0; modelos: 0; desenho: 249.
+```
+
+> **Por que a projeção não muda:** o valor 0 do XRecord é o `MaxIndice` e o leitor começa no
+> índice 1 (`for i = 1; ...; i += 8`). Como o desenho real não tem **nenhuma** porta duplicada,
+> o conjunto de portas é o mesmo: mudam só o cabeçalho (que a projeção não lê) e um campo de
+> orientação que o gravador passa a maiúsculas.
+
+Como o desenho real não exercita o **dedup** (0 duplicadas), entra a fixture
+`scripts/cad-fixture-mascaras.lsp` — um modelo (900) com a porta 3 repetida (terminais `T3` e
+`T3BIS`) e fora de ordem (3, 1, 3), com o cabeçalho em 0:
+
+```powershell
+$env:POSITRON_XDATA = "$env:TEMP\positron-masc-fixture.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 1 -Revisao R0 `
+  -Fixture scripts/cad-fixture-mascaras.lsp `
+  -Comandos "corrigeDicMascaras,corrigeDicMascaras,(pz-masc:dump)" `
+  -Banco "$env:TEMP\positron-masc.db"
+```
+
+```text
+corrigeDicMascaras: 1 de 1 modelo(s) de máscara normalizado(s) (1 porta(s) duplicada(s) descartada(s); 3 porta(s) lida(s); 0 sem registro de portas).
+corrigeDicMascaras: 0 de 1 modelo(s) de máscara normalizado(s) (0 porta(s) duplicada(s) descartada(s); 2 porta(s) lida(s); 0 sem registro de portas).
+MODELO;900;3;1,3;T1,T3     <- cabeçalho 0->3, ordem 1,3 e ficou a PRIMEIRA porta 3 (terminais T3, não T3BIS)
+```
+
 **Rodada 75 — `apagarTodosOsTextosDasVeias` (frente 2 do §7.6, parte 6: a quinta limpeza).**
 A quinta ação de limpeza do `Correcao.cs` e a primeira que **apaga por XData**: varre o
 ModelSpace e apaga os **rótulos auxiliares das veias** — o `DBText` com `AUXINTERLIG` do tipo
@@ -2499,7 +2572,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 385 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 393 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

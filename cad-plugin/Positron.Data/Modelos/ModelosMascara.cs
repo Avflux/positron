@@ -114,6 +114,47 @@ namespace Positron.Data.Modelos
             return portas;
         }
 
+        /// <summary>
+        /// Monta o XRecord das portas de um modelo, no layout que o
+        /// <c>GravaAsPortasDoModeloDoDicionario</c> escreve: o valor 0 é o
+        /// <c>MaxIndice</c> e cada porta ocupa **8 valores** — o índice (+0, grupo
+        /// 90), orientação (+1, grupo 1 e **em maiúsculas**, o <c>ToUpper</c> do
+        /// original), EFC (+2), terminais (+3), bornes (+4), um campo vazio (+5),
+        /// régua (+6) e outro vazio (+7). É o caminho de **escrita** do
+        /// <c>corrigeDicMascaras</c> (o avesso de <see cref="LerPortas"/>).
+        /// </summary>
+        public static IReadOnlyList<TypedXData> ParaValores(int maxIndice, IReadOnlyList<ModeloPorta> portas)
+        {
+            List<TypedXData> valores = new List<TypedXData>
+            {
+                new TypedXData(90, maxIndice),
+            };
+
+            if (portas == null)
+            {
+                return valores;
+            }
+
+            foreach (ModeloPorta porta in portas)
+            {
+                if (porta == null)
+                {
+                    continue;
+                }
+
+                valores.Add(new TypedXData(90, porta.IndiceDaPorta));
+                valores.Add(new TypedXData(1, (porta.Orientacao ?? string.Empty).ToUpperInvariant()));
+                valores.Add(new TypedXData(1, porta.EFC ?? string.Empty));
+                valores.Add(new TypedXData(1, porta.Terminais ?? string.Empty));
+                valores.Add(new TypedXData(1, porta.Bornes ?? string.Empty));
+                valores.Add(new TypedXData(1, string.Empty));
+                valores.Add(new TypedXData(1, porta.Regua ?? string.Empty));
+                valores.Add(new TypedXData(1, string.Empty));
+            }
+
+            return valores;
+        }
+
         private static int Inteiro(object valor)
         {
             return valor == null || valor is DBNull ? 0 : XDataNumero.Inteiro(valor);

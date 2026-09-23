@@ -47,7 +47,8 @@ namespace Positron.Plugin
     /// (rodada 72) e a dos estilos de texto <c>CorrigeStyle</c> (rodada 73), mais o
     /// <c>SobeLm</c> (rodada 74) — **comando próprio**, sem par no original: sobe o
     /// <c>lm</c> dos bornes a partir do dicionário de réguas, fechando a pendência
-    /// do §7.2. As outras <c>Corrige*</c> são o próximo passo da mesma frente.
+    /// do §7.2, e o <c>corrigeDicMascaras</c> (rodada 76) — o dicionário de máscaras.
+    /// As outras <c>Corrige*</c> são o próximo passo da mesma frente.
     ///
     /// **Sem licença:** o produto é open source e nenhum comando verifica licença. O
     /// gate que existia aqui (o <c>ServicoDeLicenca</c>/<c>ILicenca</c> da rodada 29,
@@ -838,6 +839,44 @@ namespace Positron.Plugin
             catch (System.Exception erro)
             {
                 return "SobeLm: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>corrigeDicMascaras</c> — normaliza a lista de portas de cada modelo de
+        /// máscara no dicionário <c>MASCARAS</c> do desenho: tira as portas com índice
+        /// repetido (fica a **primeira**), ordena por índice e acerta o <c>MaxIndice</c>
+        /// do registro (frente 2 do §7.6, o <c>Correcao.cs</c>). É o par de escrita do
+        /// <c>bt13ReguaMascara</c>. Só olha o desenho.
+        /// </summary>
+        [CommandMethod("corrigeDicMascaras")]
+        public void CorrigirDicionarioDeMascaras()
+        {
+            Plugin.Escrever(ExecutarCorrigirDicionarioDeMascaras());
+        }
+
+        /// <summary>Normaliza o dicionário de máscaras e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirDicionarioDeMascaras()
+        {
+            try
+            {
+                Correcoes.PortasDaMascaraDoDesenho.Resultado resultado =
+                    Correcoes.PortasDaMascaraDoDesenho.Executar();
+
+                if (resultado.ModelosLidos == 0)
+                {
+                    return "corrigeDicMascaras: o desenho não tem modelos de máscara no dicionário MASCARAS.";
+                }
+
+                return "corrigeDicMascaras: " + resultado.ModelosAlterados + " de "
+                    + resultado.ModelosLidos + " modelo(s) de máscara normalizado(s) ("
+                    + resultado.PortasDuplicadas + " porta(s) duplicada(s) descartada(s); "
+                    + resultado.PortasLidas + " porta(s) lida(s); "
+                    + resultado.ModelosSemRegistro + " sem registro de portas).";
+            }
+            catch (System.Exception erro)
+            {
+                return "corrigeDicMascaras: falhou — " + DescreverErro(erro);
             }
         }
 
