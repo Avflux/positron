@@ -4,6 +4,7 @@ using Positron.Data;
 using Positron.Data.Correcoes;
 using Positron.Data.Fiacao;
 using Positron.Data.Modelos;
+using Positron.Plugin.Bornes;
 #if AUTOCAD
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -88,7 +89,9 @@ namespace Positron.Plugin.Correcoes
 
                     int indiceModelo;
                     int indiceDaPorta;
-                    if (!LerPorta(bloco, out indiceModelo, out indiceDaPorta))
+                    string handleDaMascara;
+                    string handleDaDefinicao;
+                    if (!LerPorta(bloco, out indiceModelo, out indiceDaPorta, out handleDaMascara, out handleDaDefinicao))
                     {
                         continue;
                     }
@@ -107,7 +110,15 @@ namespace Positron.Plugin.Correcoes
                     }
 
                     resultado.Casados++;
-                    Aplicar(bloco, transacao, porta, resultado);
+
+                    // Os dois `Busca*` do original: o nome da máscara e a página do texto da
+                    // definição (a página sai do layer do texto, com prefixo/sufixo vazios —
+                    // os campos `Conf.PrefixoCruzInterno`/`SufixoCruzInterno` ainda não existem
+                    // no recoder e o padrão assumido é vazio, registrado no RUNBOOK).
+                    string nomeDaMascara = NomeDaMascara(transacao, banco, handleDaMascara);
+                    string pagina = PaginaDoTexto(transacao, banco, handleDaDefinicao);
+
+                    Aplicar(bloco, transacao, porta, nomeDaMascara, pagina, resultado);
                 }
 
                 transacao.Commit();
@@ -183,11 +194,23 @@ namespace Positron.Plugin.Correcoes
             return null;
         }
 
-        /// <summary>O <c>verificaTipoDispositivo == "E"</c> e o par do XData Dispositivo (5 e 6).</summary>
-        private static bool LerPorta(BlockReference bloco, out int indiceModelo, out int indiceDaPorta)
+        /// <summary>
+        /// O <c>verificaTipoDispositivo == "E"</c> e o par do XData Dispositivo (5 e 6),
+        /// mais os dois handles que o <c>EditaTodasPortas</c> usa: o da **máscara**
+        /// (o <c>array[4]</c>, para o <c>NOME1</c>) e o da **definição** (o <c>array[9]</c>,
+        /// para a <c>ORIGEM</c>).
+        /// </summary>
+        private static bool LerPorta(
+            BlockReference bloco,
+            out int indiceModelo,
+            out int indiceDaPorta,
+            out string handleDaMascara,
+            out string handleDaDefinicao)
         {
             indiceModelo = 0;
             indiceDaPorta = 0;
+            handleDaMascara = null;
+            handleDaDefinicao = null;
 
             ResultBuffer xdata = bloco.GetXDataForApplication(DispositivoXData.AppName);
             if (xdata == null)
@@ -209,13 +232,80 @@ namespace Positron.Plugin.Correcoes
 
             indiceModelo = XDataNumero.Inteiro(valores[5].Valor);
             indiceDaPorta = XDataNumero.Inteiro(valores[6].Valor);
+            handleDaMascara = valores[4].Valor as string;
+            handleDaDefinicao = valores[9].Valor as string;
             return true;
+        }
+
+        /// <summary>
+        /// O <c>clsMascara.BuscaNomeDaMascara</c>: o <c>Nome1</c> da máscara (e o <c>Nome2</c>
+        /// depois de uma barra, quando preenchido), pelo handle do bloco da máscara.
+        /// </summary>
+        private static string NomeDaMascara(Transaction transacao, Database banco, string handle)
+        {
+            BlockReference bloco = BornesDaCorrecao.AbrirPorHandle(transacao, banco, handle);
+            if (bloco == null)
+            {
+                return string.Empty;
+            }
+
+            ResultBuffer xdata = bloco.GetXDataForApplication(MascaraXData.AppName);
+            MascaraXData mascara;
+            if (xdata == null || !MascaraXData.Ler(XDataNeutro.Para(xdata), out mascara))
+            {
+                return string.Empty;
+            }
+
+            string nome = mascara.Nome1 ?? string.Empty;
+            if (!string.IsNullOrEmpty(mascara.Nome2))
+            {
+                nome = nome + "/" + mascara.Nome2;
+            }
+
+            return nome;
+        }
+
+        /// <summary>
+        /// O <c>clsTextos.EncontraPaginaDoTexto</c>: a página é o **layer** do texto da
+        /// definição (o original envolve com <c>Conf.PrefixoCruzInterno</c>/
+        /// <c>SufixoCruzInterno</c>, que aqui saem vazios).
+        /// </summary>
+        private static string PaginaDoTexto(Transaction transacao, Database banco, string handle)
+        {
+            Entity entidade = AbrirEntidade(transacao, banco, handle);
+            DBText texto = entidade as DBText;
+            return texto == null ? string.Empty : (texto.Layer ?? string.Empty);
+        }
+
+        private static Entity AbrirEntidade(Transaction transacao, Database banco, string handle)
+        {
+            if (string.IsNullOrEmpty(handle))
+            {
+                return null;
+            }
+
+            ObjectId id;
+            try
+            {
+                if (!banco.TryGetObjectId(new Handle(Convert.ToInt64(handle, 16)), out id))
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+            return transacao.GetObject(id, OpenMode.ForRead) as Entity;
         }
 
         private static void Aplicar(
             BlockReference bloco,
             Transaction transacao,
             ModeloPorta porta,
+            string nomeDaMascara,
+            string pagina,
             Resultado resultado)
         {
             BornesDaPorta bornes = CorrecaoDasPortas.SepararBornes(porta.Bornes);
@@ -232,7 +322,7 @@ namespace Positron.Plugin.Correcoes
                 bool? visivel;
                 string valor = CorrecaoDasPortas.ValorDoAtributo(
                     atributo.Tag, terminais, bornes, porta.Regua, porta.EFC,
-                    VerificadorTerminalIndefinido, out visivel);
+                    VerificadorTerminalIndefinido, nomeDaMascara, pagina, out visivel);
 
                 bool mudaTexto = !string.Equals(valor, CorrecaoDasPortas.NaoMexer, StringComparison.Ordinal)
                     && !string.Equals(atributo.TextString ?? string.Empty, valor, StringComparison.Ordinal);

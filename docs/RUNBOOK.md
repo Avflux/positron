@@ -762,6 +762,36 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 100 — o `NOME1`/`ORIGEM` do `corrigePortas` (pendência da rodada 87).**
+Fecha a **metade de atributos** da pendência, implementando os dois `Busca*` que faltavam:
+
+- `clsMascara.BuscaNomeDaMascara`: abre o bloco da **máscara** pelo `HandleDaMascara`, lê o XData
+  `Dispositivo` dela com o `MascaraXData` e devolve o `Nome1` — com `/Nome2` quando o segundo
+  nome existe;
+- `clsTextos.EncontraPaginaDoTexto`: abre a **definição** pelo `HandleDaDefinicao` e usa o
+  **layer** do texto.
+
+> Os dois campos `Conf.PrefixoCruzInterno`/`SufixoCruzInterno` que o original usa em volta da
+> página **ainda não existem** como configuração no recoder: aqui saem vazios (registrado).
+
+A regra pura ganhou uma sobrecarga com os dois valores (`NOME1` = a máscara, `ORIGEM` = a página) e a
+antiga virou o caso "sem os dois"; o `LerPorta` do adapter passou a devolver também os handles do
+`array[4]` e do `array[9]`, resolvidos uma vez por porta.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+1ª chamada: corrigePortas: 9 atributo(s) e 0 visibilidade(s) regravado(s) em 45 de 45 bloco(s) de porta (240 porta(s) no dicionário; 0 fora dele).
+2ª chamada: corrigePortas: 0 atributo(s) e 0 visibilidade(s) regravado(s) em 45 de 45 bloco(s) de porta
+```
+
+**9 atributos** que a rodada 87 não tocava agora são corrigidos — e a segunda chamada zera
+(idempotência **de verdade**, sem a limpeza que o `CorrigeHandleSuperior` faz).
+
+**O que ainda fica fora:** o `IndefineUmaPorta` da porta que **não** está no dicionário (0 nesta
+cópia) — ele depende do `LimpaPorta`, uma varredura de atributos/layers que fica como fatia
+registrada — e os dois campos de prefixo/sufixo do cruzamento.
+
 **Rodada 99 — a renumeração do dicionário do `CorrigeModelosDeContatos` (pendência da rodada 86).**
 A pendência estava registrada com o motivo: o **leitor tipado recalcula a orientação** ao ler
 (`OrientacaoContato.Verificar`) e gravar de volta o que se leu persistiria o valor recalculado. A
@@ -3473,7 +3503,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 495 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 498 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

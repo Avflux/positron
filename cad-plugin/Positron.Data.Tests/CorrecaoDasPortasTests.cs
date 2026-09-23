@@ -89,10 +89,11 @@ namespace Positron.Data.Tests
         {
             bool? visivel;
 
-            // `NOME1` e `ORIGEM` ficam fora do recorte (as duas Busca* do original).
-            Assert.Equal(CorrecaoDasPortas.NaoMexer, CorrecaoDasPortas.ValorDoAtributo(
+            // `NOME1` e `ORIGEM` passaram a ser resolvidos na rodada 100 (as duas Busca*);
+            // o que sobra sem regra é o resto.
+            Assert.Equal(string.Empty, CorrecaoDasPortas.ValorDoAtributo(
                 "NOME1", Terminais("X"), Bornes("A"), "R", "E", "?", out visivel));
-            Assert.Equal(CorrecaoDasPortas.NaoMexer, CorrecaoDasPortas.ValorDoAtributo(
+            Assert.Equal(string.Empty, CorrecaoDasPortas.ValorDoAtributo(
                 "ORIGEM", Terminais("X"), Bornes("A"), "R", "E", "?", out visivel));
             Assert.Equal(CorrecaoDasPortas.NaoMexer, CorrecaoDasPortas.ValorDoAtributo(
                 "X1", Terminais("X"), Bornes("A"), "R", "E", "?", out visivel));

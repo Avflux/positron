@@ -74,8 +74,36 @@ namespace Positron.Data.Correcoes
             string caracterTerminalIndefinido,
             out bool? visivel)
         {
+            return ValorDoAtributo(tag, terminais, bornes, regua, efc, caracterTerminalIndefinido, null, null, out visivel);
+        }
+
+        /// <summary>
+        /// A versão com o **nome da máscara** (<c>NOME1</c>) e a **página** (<c>ORIGEM</c>) —
+        /// os dois <c>Busca*</c> que o adapter resolve no desenho.
+        /// </summary>
+        public static string ValorDoAtributo(
+            string tag,
+            IReadOnlyList<string> terminais,
+            BornesDaPorta bornes,
+            string regua,
+            string efc,
+            string caracterTerminalIndefinido,
+            string nomeDaMascara,
+            string pagina,
+            out bool? visivel)
+        {
             visivel = null;
             string etiqueta = tag ?? string.Empty;
+
+            if (Mesmo(etiqueta, "NOME1"))
+            {
+                return nomeDaMascara ?? string.Empty;
+            }
+
+            if (Mesmo(etiqueta, "ORIGEM"))
+            {
+                return pagina ?? string.Empty;
+            }
 
             if (Mesmo(etiqueta, "EFC"))
             {
