@@ -38,6 +38,12 @@ namespace Positron.Data.Configuracao
 
     /// <summary>Chave do separador entre o painel e a régua no `NOME1` do borne (o `Conf.SeparadorPainelRegua`).</summary>
     public const string ChaveSeparadorPainelRegua = "separadorPainelRegua";
+
+    /// <summary>Chave do prefixo do cruzamento interno (o `Conf.PrefixoCruzInterno`, padrão `(`).</summary>
+    public const string ChavePrefixoCruzInterno = "prefixoCruzInterno";
+
+    /// <summary>Chave do sufixo do cruzamento interno (o `Conf.SufixoCruzInterno`, padrão `)`).</summary>
+    public const string ChaveSufixoCruzInterno = "sufixoCruzInterno";
         public const string ChaveInterligacaoLayout = "interligacaoLayout";
         public const string ChaveCorInterligacao = "corInterligacao";
         public const string ChaveEstiloLinha = "estiloLinha";
@@ -58,6 +64,12 @@ namespace Positron.Data.Configuracao
 
     /// <summary>Variável de ambiente do separador painel/régua.</summary>
     public const string VariavelSeparadorPainelRegua = "POSITRON_SEPARADOR_PAINEL_REGUA";
+
+    /// <summary>Variável de ambiente do prefixo do cruzamento interno.</summary>
+    public const string VariavelPrefixoCruzInterno = "POSITRON_PREFIXO_CRUZ_INTERNO";
+
+    /// <summary>Variável de ambiente do sufixo do cruzamento interno.</summary>
+    public const string VariavelSufixoCruzInterno = "POSITRON_SUFIXO_CRUZ_INTERNO";
         public const string VariavelInterligacaoLayout = "POSITRON_INTERLIGACAO_LAYOUT";
         public const string VariavelCorInterligacao = "POSITRON_COR_INTERLIGACAO";
         public const string VariavelEstiloLinha = "POSITRON_ESTILO_LINHA";
@@ -100,6 +112,12 @@ namespace Positron.Data.Configuracao
 
         /// <summary>Separador entre o painel e a régua no `NOME1` do borne (o `Conf.SeparadorPainelRegua`, padrão `/`).</summary>
         public string SeparadorPainelRegua { get; set; }
+
+        /// <summary>Prefixo do cruzamento interno (o `Conf.PrefixoCruzInterno`, padrão `(`).</summary>
+        public string PrefixoCruzInterno { get; set; }
+
+        /// <summary>Sufixo do cruzamento interno (o `Conf.SufixoCruzInterno`, padrão `)`).</summary>
+        public string SufixoCruzInterno { get; set; }
 
         /// <summary>Layout da interligação (o <c>Conf.InterligacaoLayout</c>, padrão 0 — o recoder só porta o caminho do layout padrão).</summary>
         public int InterligacaoLayout { get; set; }
@@ -145,6 +163,8 @@ namespace Positron.Data.Configuracao
                 FonteCabos = 1.5,
                 SeparadorCaboVeia = "/",
             SeparadorPainelRegua = "/",
+            PrefixoCruzInterno = "(",
+            SufixoCruzInterno = ")",
                 InterligacaoLayout = 0,
                 CorInterligacao = 7,
                 EstiloLinha = "Continuous",
@@ -229,6 +249,8 @@ namespace Positron.Data.Configuracao
             texto.AppendLine(ChaveFonteCabos + "=" + FonteCabos.ToString(CultureInfo.InvariantCulture));
             texto.AppendLine(ChaveSeparadorCaboVeia + "=" + (SeparadorCaboVeia ?? string.Empty));
             texto.AppendLine(ChaveSeparadorPainelRegua + "=" + (SeparadorPainelRegua ?? string.Empty));
+            texto.AppendLine(ChavePrefixoCruzInterno + "=" + (PrefixoCruzInterno ?? string.Empty));
+            texto.AppendLine(ChaveSufixoCruzInterno + "=" + (SufixoCruzInterno ?? string.Empty));
             texto.AppendLine(ChaveInterligacaoLayout + "=" + InterligacaoLayout.ToString(CultureInfo.InvariantCulture));
             texto.AppendLine(ChaveCorInterligacao + "=" + CorInterligacao.ToString(CultureInfo.InvariantCulture));
             texto.AppendLine(ChaveEstiloLinha + "=" + (EstiloLinha ?? string.Empty));
@@ -286,6 +308,8 @@ namespace Positron.Data.Configuracao
             if (Mesma(chave, ChaveFonteCabos, VariavelFonteCabos)) { configuracao.FonteCabos = Real(valor, configuracao.FonteCabos); return; }
             if (Mesma(chave, ChaveSeparadorCaboVeia, VariavelSeparadorCaboVeia)) { configuracao.SeparadorCaboVeia = Vazio(valor); return; }
             if (Mesma(chave, ChaveSeparadorPainelRegua, VariavelSeparadorPainelRegua)) { configuracao.SeparadorPainelRegua = Vazio(valor); return; }
+            if (Mesma(chave, ChavePrefixoCruzInterno, VariavelPrefixoCruzInterno)) { configuracao.PrefixoCruzInterno = Vazio(valor); return; }
+            if (Mesma(chave, ChaveSufixoCruzInterno, VariavelSufixoCruzInterno)) { configuracao.SufixoCruzInterno = Vazio(valor); return; }
             if (Mesma(chave, ChaveInterligacaoLayout, VariavelInterligacaoLayout)) { configuracao.InterligacaoLayout = Inteiro(valor, configuracao.InterligacaoLayout); return; }
             if (Mesma(chave, ChaveCorInterligacao, VariavelCorInterligacao)) { configuracao.CorInterligacao = Inteiro(valor, configuracao.CorInterligacao); return; }
             if (Mesma(chave, ChaveEstiloLinha, VariavelEstiloLinha)) { configuracao.EstiloLinha = Vazio(valor); return; }
@@ -313,7 +337,7 @@ namespace Positron.Data.Configuracao
         private static IDictionary<string, string> Ambiente()
         {
             Dictionary<string, string> ambiente = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio, VariavelOrdemListaBanco, VariavelCorTextoInterligacao, VariavelFonteCabos, VariavelSeparadorCaboVeia, VariavelSeparadorPainelRegua, VariavelInterligacaoLayout, VariavelCorInterligacao, VariavelEstiloLinha, VariavelEstiloLinhaEscala })
+            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio, VariavelOrdemListaBanco, VariavelCorTextoInterligacao, VariavelFonteCabos, VariavelSeparadorCaboVeia, VariavelSeparadorPainelRegua, VariavelPrefixoCruzInterno, VariavelSufixoCruzInterno, VariavelInterligacaoLayout, VariavelCorInterligacao, VariavelEstiloLinha, VariavelEstiloLinhaEscala })
             {
                 string valor = Environment.GetEnvironmentVariable(nome);
                 if (!string.IsNullOrEmpty(valor))

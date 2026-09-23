@@ -762,6 +762,31 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 102 — o prefixo/sufixo do cruzamento na `ORIGEM` (correção de fidelidade).**
+A rodada 100 portou a `ORIGEM` como o **layer** do texto da definição, assumindo vazios os dois
+campos `Conf.PrefixoCruzInterno`/`SufixoCruzInterno`. Caçando os padrões no reverso
+(`XDataGeral.cs:312-313`) eles são o **abre-parênteses** e o **fecha-parênteses** — a `ORIGEM`
+correta é `(layer)` e o recoder estava gravando `layer`. **Erro meu**, pego por não ter
+procurado o padrão antes de assumir.
+
+**O que entrou:** os dois campos de configuração completos (chave, variável de ambiente,
+propriedade, padrão `(` e `)`, `Texto`, `Definir` e `Ambiente`) e o `PaginaDoTexto` passa a
+envolver o layer com eles.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+corrigePortas: 9 atributo(s) e 0 visibilidade(s) regravado(s) em 45 de 45 bloco(s) de porta (240 porta(s) no dicionário; 0 fora dele, 0 indefinida(s)).
+2ª chamada: 0 atributo(s) e 0 visibilidade(s)
+```
+
+Os **mesmos 9** atributos de antes, agora com o valor **certo** (e a idempotência preservada).
+
+> **Pendências de ferramenta que seguem abertas:** o contador `cad-conta-cores.lsp` e a fixture do
+> `IndefineUmaPorta`. Tentei as duas nesta rodada — a fixture enxuta ficou com um parêntese a
+> mais e a de rastro para em `0 load` (o mesmo bloqueio das rodadas 90/91): o caminho de
+> indefinir continua sem prova sintética, embora a regra esteja coberta por 4 testes unitários.
+
 **Rodada 101 — o `IndefineUmaPorta`/`LimpaPorta` do `corrigePortas` (cauda da pendência da rodada 87).**
 A porta cujo par `(indiceDoModelo, indiceDaPorta)` **não** está no dicionário passa a ser
 **indefinida**:

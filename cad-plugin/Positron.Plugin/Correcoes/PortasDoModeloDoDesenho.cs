@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Positron.Data;
+using Positron.Data.Configuracao;
 using Positron.Data.Correcoes;
 using Positron.Data.Fiacao;
 using Positron.Data.Modelos;
@@ -69,6 +70,7 @@ namespace Positron.Plugin.Correcoes
             }
 
             Database banco = documento.Database;
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
             List<ModeloPorta> portas = LerPortasDoDicionario(banco);
             resultado.Portas = portas.Count;
             if (portas.Count == 0)
@@ -126,7 +128,7 @@ namespace Positron.Plugin.Correcoes
                     // os campos `Conf.PrefixoCruzInterno`/`SufixoCruzInterno` ainda não existem
                     // no recoder e o padrão assumido é vazio, registrado no RUNBOOK).
                     string nomeDaMascara = NomeDaMascara(transacao, banco, handleDaMascara);
-                    string pagina = PaginaDoTexto(transacao, banco, handleDaDefinicao);
+                    string pagina = PaginaDoTexto(transacao, banco, handleDaDefinicao, config);
 
                     Aplicar(bloco, transacao, porta, nomeDaMascara, pagina, resultado);
                 }
@@ -280,11 +282,20 @@ namespace Positron.Plugin.Correcoes
         /// definição (o original envolve com <c>Conf.PrefixoCruzInterno</c>/
         /// <c>SufixoCruzInterno</c>, que aqui saem vazios).
         /// </summary>
-        private static string PaginaDoTexto(Transaction transacao, Database banco, string handle)
+        private static string PaginaDoTexto(Transaction transacao, Database banco, string handle, ConfiguracaoPositron config)
         {
             Entity entidade = AbrirEntidade(transacao, banco, handle);
             DBText texto = entidade as DBText;
-            return texto == null ? string.Empty : (texto.Layer ?? string.Empty);
+            if (texto == null)
+            {
+                return string.Empty;
+            }
+
+            // O original envolve o layer com o prefixo e o sufixo do cruzamento interno
+            // (`Conf.PrefixoCruzInterno`/`SufixoCruzInterno`, cujo padrão é `(` e `)`).
+            return (config.PrefixoCruzInterno ?? string.Empty)
+                + (texto.Layer ?? string.Empty)
+                + (config.SufixoCruzInterno ?? string.Empty);
         }
 
         private static Entity AbrirEntidade(Transaction transacao, Database banco, string handle)
