@@ -40,9 +40,10 @@ namespace Positron.Plugin
     /// Depois do recorte veio a **frente 2** do §7.6 do plano (o <c>Correcao.cs</c>
     /// do reverso): as quatro **ações de limpeza** do CAD
     /// (<c>ApagarTextosEmBranco</c>, <c>apagaXDataTerceiros</c>, <c>ApagaLayouts</c>
-    /// e <c>ApagaPlaquetas</c>, rodada 70) e a primeira **correção** —
-    /// <c>corrigeOrdemBornes</c>, que conserta um defeito que o <c>VERIF</c> aponta
-    /// (rodada 71). As outras <c>Corrige*</c> são o próximo passo da mesma frente.
+    /// e <c>ApagaPlaquetas</c>, rodada 70) e as **correções** —
+    /// <c>corrigeOrdemBornes</c> (a que conserta um defeito que o <c>VERIF</c> aponta,
+    /// rodada 71) e as de um campo <c>CorrigeBornes</c>/<c>CorrigeDisp</c>
+    /// (rodada 72). As outras <c>Corrige*</c> são o próximo passo da mesma frente.
     ///
     /// **Sem licença:** o produto é open source e nenhum comando verifica licença. O
     /// gate que existia aqui (o <c>ServicoDeLicenca</c>/<c>ILicenca</c> da rodada 29,
@@ -659,6 +660,69 @@ namespace Positron.Plugin
             catch (System.Exception erro)
             {
                 return "corrigeOrdemBornes: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>CorrigeBornes</c> — põe em <c>0</c> o campo <c>Visivel</c> do borne que
+        /// está em <c>-1</c> (o <c>CorrecaoBornesVisiveis</c> do <c>Correcao.cs</c>),
+        /// regravando o XData pelo mesmo caminho do original.
+        /// </summary>
+        [CommandMethod("CorrigeBornes")]
+        public void CorrigirVisibilidadeDosBornes()
+        {
+            Plugin.Escrever(ExecutarCorrigirVisibilidadeDosBornes());
+        }
+
+        /// <summary>Corrige a visibilidade dos bornes e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirVisibilidadeDosBornes()
+        {
+            try
+            {
+                Correcoes.BornesVisiveisDoDesenho.Resultado resultado =
+                    Correcoes.BornesVisiveisDoDesenho.Executar();
+
+                return "CorrigeBornes: " + resultado.BornesCorrigidos + " de "
+                    + resultado.BornesLidos + " borne(s) com a visibilidade corrigida"
+                    + (resultado.LmResolvidos > 0
+                        ? " (" + resultado.LmResolvidos + " com o lm do dicionário de réguas)"
+                        : string.Empty)
+                    + ".";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigeBornes: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>CorrigeDisp</c> — renomeia o app name legado <c>DISPOSITIVO</c> para
+        /// <c>Dispositivo</c> na tabela <c>APPID</c> do desenho (o <c>CorrecaoDisp</c>
+        /// do <c>Correcao.cs</c>). Os leitores já aceitam os dois nomes; a migração
+        /// deixa um só.
+        /// </summary>
+        [CommandMethod("CorrigeDisp")]
+        public void CorrigirAppNameDosDispositivos()
+        {
+            Plugin.Escrever(ExecutarCorrigirAppNameDosDispositivos());
+        }
+
+        /// <summary>Renomeia o app name legado e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirAppNameDosDispositivos()
+        {
+            try
+            {
+                Correcoes.AppNameDoDesenho.Resultado resultado = Correcoes.AppNameDoDesenho.Executar();
+
+                return "CorrigeDisp: " + (resultado.Renomeado
+                    ? "app name DISPOSITIVO renomeado para Dispositivo."
+                    : resultado.TinhaLegado
+                        ? "o CAD não aplicou o rename do app name DISPOSITIVO (a busca de app name não diferencia caixa, então não há o que migrar)."
+                        : "o desenho não tem o app name legado DISPOSITIVO.");
+            }
+            catch (System.Exception excecao)
+            {
+                return "CorrigeDisp: falhou — " + DescreverErro(excecao);
             }
         }
 

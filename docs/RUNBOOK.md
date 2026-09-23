@@ -762,6 +762,53 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 72 — `CorrigeBornes` e `CorrigeDisp` (frente 2 do §7.6, parte 3).** As duas
+correções de **um campo** do `Correcao.cs` — as duas só olham o desenho:
+
+| Comando | O que faz (do original) | Puro (testado) |
+|---|---|---|
+| `CorrigeBornes` | o borne com `Visivel == -1` volta para `0`, com o XData regravado pelo mesmo `GravarXDataDispBorne` (que resolve o `lm`) | `CorrecaoVisibilidadeBorne.PrecisaCorrigir` |
+| `CorrigeDisp` | renomeia o app name **legado** `DISPOSITIVO` para `Dispositivo` na tabela `APPID` | `CorrecaoAppNameDispositivo` (os dois nomes + a checagem contra os leitores) |
+
+No desenho real **nenhum dos dois tem o que corrigir** (o zero é o dado, não um no-op):
+
+```text
+CorrigeDisp: o desenho não tem o app name legado DISPOSITIVO.
+CorrigeBornes: 0 de 199 borne(s) com a visibilidade corrigida.
+```
+
+O dump cru confirma os dois: os **199** bornes só têm `Visivel` `0` (51) ou `1` (148) — o campo
+foi **acrescentado no fim** da linha `BORNE` justamente para isso, sem quebrar quem lia os
+campos anteriores — e a tabela `APPID` do desenho tem só `Dispositivo` (a seção `APPID` do
+`cad-dump-xdata.lsp` mostra os dois nomes quando existem).
+
+Como o desenho real não exercita **escrita** nenhuma, os dois caminhos são provados numa
+**fixture sintética** (`scripts/cad-fixture-correcoes.lsp`: bloco `B` com `Visivel = -1` e
+`lm = 0`, o app name legado e um `REGUAS/MODELOS2` com o `lm` da régua):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 1 -Revisao R0 `
+  -Comandos "CorrigeDisp,CorrigeBornes,CorrigeDisp,CorrigeBornes" `
+  -Fixture scripts/cad-fixture-correcoes.lsp -Banco "$env:TEMP\positron-correcoes.db"
+```
+
+```text
+CorrigeDisp: app name DISPOSITIVO renomeado para Dispositivo.
+CorrigeBornes: 1 de 1 borne(s) com a visibilidade corrigida (1 com o lm do dicionário de réguas).
+CorrigeDisp: o desenho não tem o app name legado DISPOSITIVO.      <- 2a passada: converge
+CorrigeBornes: 0 de 1 borne(s) com a visibilidade corrigida.       <- 2a passada: converge
+```
+
+> **Achado (e bug pego pela medição):** a busca de app name do CAD **não diferencia caixa** —
+> `Has("DISPOSITIVO")` acha a entrada `Dispositivo`. O primeiro recorte do `CorrigeDisp` usava
+> esse `Has` e por isso dizia *"o app name legado existe, mas não deu para renomear"* **em todo
+> desenho**, inclusive no real (onde não há legado nenhum). A correção é **enumerar a tabela
+> `APPID` e comparar a caixa gravada** (`string.Equals(..., Ordinal)`), e reconferir o efeito
+> numa transação nova — só assim "renomeou" quer dizer que o CAD aceitou.
+>
+> A busca por caixa também explica por que os leitores do recoder aceitarem os dois nomes já
+> basta: o dado gravado sob `DISPOSITIVO` é achado pedindo `Dispositivo`.
+
 **Rodada 71 — `corrigeOrdemBornes` (frente 2 do §7.6, parte 2: a primeira `Corrige*`).**
 Renumera a `Ordem` dos bornes por régua (1..N), **pulando as ordens dos bornes de reserva**
 (`CENG_BORNES`) — o botão de correção do `Correcao.cs`. O que é puro está em

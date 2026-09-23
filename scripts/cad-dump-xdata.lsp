@@ -119,7 +119,9 @@
 ;; Um bloco de borne por linha. O XData e lido pelo app name `Dispositivo` (o
 ;; legado `DISPOSITIVO` tambem vale) e os valores saem na ordem do layout do
 ;; `BorneXData`: tipo, Numero, NumeroComplem, Ordem, IndiceRegua — o mesmo indice
-;; "depois do app name" que o `pz-dump:entidade` usa.
+;; "depois do app name" que o `pz-dump:entidade` usa. O ultimo campo, `Visivel`
+;; (array[16] do leitor, vals[14] aqui), foi **acrescentado no fim** para o
+;; `CorrigeBornes` — quem lia os campos 1..7 continua lendo.
 (defun pz-dump:linha-borne (e d app / vals)
   (setq vals (mapcar 'cdr (cdr app)))
   (if (= (strcase (vl-princ-to-string (nth 0 vals))) "B")
@@ -129,7 +131,8 @@
             ";" (vl-princ-to-string (nth 5 vals))
             ";" (vl-princ-to-string (nth 6 vals))
             ";" (vl-princ-to-string (nth 7 vals))
-            ";" (vl-princ-to-string (cdr (assoc 8 d))) "\n")
+            ";" (vl-princ-to-string (cdr (assoc 8 d)))
+            ";" (vl-princ-to-string (nth 14 vals)) "\n")
     nil))
 
 (defun pz-dump:bornes (f / sel i e d x linha att ad)
@@ -323,6 +326,18 @@
 ;; plaquetas daquele painel — o insumo do `EPLQ` (registros de 7 valores:
 ;; tipo, handle, indexRegua, desc1, desc2, desc3, modelo). E o que permite ver se
 ;; o desenho tem plaqueta e conferir, fora do plugin, o nome que cada uma resolve.
+;; A tabela APPID, so com os dois nomes do app name de dispositivo: e o insumo do
+;; `CorrigeDisp` (renomear o legado `DISPOSITIVO` para `Dispositivo`). Dumpar a
+;; tabela inteira poluiria o arquivo; o que interessa e se o legado existe.
+(defun pz-dump:appids (f / t1 nome)
+  (pz-dump:escreve f "\nAPPID (nomes de dispositivo):\n")
+  (setq t1 (tblnext "APPID" T))
+  (while t1
+    (setq nome (cdr (assoc 2 t1)))
+    (if (or (= nome "DISPOSITIVO") (= nome "Dispositivo"))
+      (pz-dump:escreve f (strcat "APPID;" nome "\n")))
+    (setq t1 (tblnext "APPID"))))
+
 ;; O dicionario CENG_BORNES: uma entrada por **regua** com o Xrecord dos bornes
 ;; de reserva (registros de 10 valores; +3 = ordem, +4 = tipo). E o insumo do
 ;; `LeOrdemDicBornesReserva` — as ordens que a correção `corrigeOrdemBornes`
@@ -387,6 +402,7 @@
       ;; explica por que a checagem de intervalos ignora uma regua.
       (pz-dump:dicionario "REGUAS" "MODELOS2" f)
       (pz-dump:reservas f)
+      (pz-dump:appids f)
       (pz-dump:plaquetas f)
       (if (= (getenv "POSITRON_XDATA_BORNES") "1")
         (pz-dump:bornes f)

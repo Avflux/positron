@@ -302,6 +302,15 @@ namespace ZwSoft.ZwCAD.DatabaseServices
 
     public class SymbolTable : DBObject, IEnumerable
     {
+        /// <summary>
+        /// Índice por nome (<c>SymbolTable[string]</c> da API real) — o
+        /// <c>CorrigeDisp</c> o usa para abrir o registro e renomear o app name.
+        /// </summary>
+        public ObjectId this[string nome]
+        {
+            get { return default(ObjectId); }
+        }
+
         public bool Has(string nome)
         {
             return false;
@@ -331,12 +340,10 @@ namespace ZwSoft.ZwCAD.DatabaseServices
     {
     }
 
+    // O índice por nome sai da base (`SymbolTable`), como na API real — não
+    // redeclarar aqui: escondia o membro herdado e o build do stub reprovava.
     public class BlockTable : SymbolTable
     {
-        public ObjectId this[string nome]
-        {
-            get { return default(ObjectId); }
-        }
     }
 
     public class BlockTableRecord : DBObject, IEnumerable
