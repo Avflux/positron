@@ -762,6 +762,44 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 83 — `LimpaTextosLPCopiados` (frente 2 do §7.6, parte 14: a sexta limpeza).**
+Tira o XData `TextoLP` (o rótulo **copiado de outra página**) do ModelSpace. A regra:
+
+| entidade | condição |
+|---|---|
+| `DBText` | sai **sempre** (o ramo do original não olha o Y) |
+| `MText` | sai só quando está **abaixo do topo** do desenho — o maior Y arredondado das polilinhas `CONEXAO` do **tipo 1** |
+
+A gravação é o `LimpaXData` do original: o buffer inteiro vira a **marca única** (um 1001
+com o app name), a mesma gravação do `apagaXDataTerceiros` da rodada 70 — o `MarcaUnica`
+ficou compartilhado em `LimpezaDoDesenho`.
+
+**Medido na fixture** (`scripts/cad-fixture-textolp.lsp`: topo em y=10, MTEXT em y=5, MTEXT em
+y=20, TEXT em y=30 e TEXT sem XData em y=40):
+
+```text
+LimpaTextosLPCopiados: 2 de 3 texto(s) com XData TextoLP limpo(s) (topo do desenho 10).
+TEXTO;MTEXT;(0.0 5.0 0.0);       <- abaixo do topo: limpo (só a marca, grupo vazio)
+TEXTO;MTEXT;(0.0 20.0 0.0);1     <- acima do topo: FICOU com o XData (1 valor)
+TEXTO;TEXT;(0.0 30.0 0.0);       <- DBText acima do topo: limpo
+TEXTO;TEXT;(0.0 40.0 0.0);       <- sem o XData: não é tocado
+```
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+LimpaTextosLPCopiados: nenhum texto com XData TextoLP (136 MTEXT e 616 TEXT lido(s); topo do desenho 255,3).
+```
+
+O `TextoLP` não aparece nesta cópia (também não estava no inventário de app names da rodada 77),
+então o comando é **no-op** aqui — e o caminho de escrita fica provado pela fixture. Os 616
+TEXT lidos batem com o número da rodada 70.
+
+> **Lição de ferramenta:** a fixture passou a definir o **dump antes do desenho**. No primeiro
+> recorte o saldo de parênteses estava certo e, mesmo assim, o arquivo de saída não saía — uma
+> linha do setup estourava e levava o `defun` do dump junto. Com as definições primeiro, o
+> dump sobrevive ao setup.
+
 **Rodada 82 — `AtualizaOpcionaisDoCabo` (frente 2 do §7.6, parte 13: a receita de opcionais).**
 O comando do `clsUtilitarios.cs` que o `RecriaTextosCabo` chama no layout 3 — e o único
 ponto daquele caminho que ficava por documentar. O campo **opcionais** do XData
@@ -2880,7 +2918,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 443 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 448 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

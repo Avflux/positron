@@ -1063,6 +1063,42 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>LimpaTextosLPCopiados</c> — tira o XData <c>TextoLP</c> dos textos copiados
+        /// (o <c>Correcao.cs</c>): o <c>DBText</c> sempre e o <c>MText</c> só abaixo do topo
+        /// do desenho (as <c>CONEXAO</c> tipo 1).
+        /// </summary>
+        [CommandMethod("LimpaTextosLPCopiados")]
+        public void LimparTextosLPCopiados()
+        {
+            Plugin.Escrever(ExecutarLimparTextosLPCopiados());
+        }
+
+        /// <summary>Limpa o XData dos textos copiados e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarLimparTextosLPCopiados()
+        {
+            try
+            {
+                Limpeza.TextosLPCopiadosDoDesenho.Resultado resultado =
+                    Limpeza.TextosLPCopiadosDoDesenho.Executar();
+
+                if (resultado.ComTextoLP == 0)
+                {
+                    return "LimpaTextosLPCopiados: nenhum texto com XData TextoLP ("
+                        + resultado.MTextosLidos + " MTEXT e " + resultado.TextosLidos
+                        + " TEXT lido(s); topo do desenho " + resultado.Topo + ").";
+                }
+
+                return "LimpaTextosLPCopiados: " + resultado.Limpos + " de "
+                    + resultado.ComTextoLP + " texto(s) com XData TextoLP limpo(s) (topo do desenho "
+                    + resultado.Topo + ").";
+            }
+            catch (System.Exception erro)
+            {
+                return "LimpaTextosLPCopiados: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

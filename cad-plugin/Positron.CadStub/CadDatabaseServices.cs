@@ -421,6 +421,18 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         public TextHorizontalMode HorizontalMode { get; set; }
     }
 
+    /// <summary>
+    /// Texto múltiplo (o <c>MText</c> da API real). O stub só precisa do que a limpeza
+    /// dos textos copiados usa: o texto e a posição (o <c>Bounds</c> vem do
+    /// <see cref="Drawable"/>).
+    /// </summary>
+    public class MText : Entity
+    {
+        public string TextString { get; set; }
+
+        public Point3d Location { get; set; }
+    }
+
     public class Xrecord : DBObject
     {
         public ResultBuffer Data { get; set; }

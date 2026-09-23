@@ -45,6 +45,12 @@ namespace Positron.Data.Limpeza
         }
 
         /// <summary>
+        /// App name do rótulo **copiado** de outra página (o <c>TextoLP</c> do
+        /// <c>LimpaTextosLPCopiados</c>) — o XData que a sexta limpeza tira.
+        /// </summary>
+        public const string AppNameTextoLP = "TextoLP";
+
+        /// <summary>
         /// O XData que o <c>apagaXDataTerceiros</c> **grava** por cima do que a
         /// entidade tinha: o original troca o buffer inteiro por um único registro
         /// 1001 com o próprio app name — some o conteúdo, fica a marca. É um
@@ -52,10 +58,40 @@ namespace Positron.Data.Limpeza
         /// </summary>
         public static IReadOnlyList<TypedXData> XDataDeTerceirosSubstituido()
         {
+            return MarcaUnica(XDataTerceiros);
+        }
+
+        /// <summary>
+        /// O <c>LimpaXData</c> do original: troca o XData inteiro da entidade por um
+        /// **registro único** com o app name — é a mesma gravação do
+        /// <c>apagaXDataTerceiros</c>, usada também pelo <c>LimpaTextosLPCopiados</c>.
+        /// </summary>
+        public static IReadOnlyList<TypedXData> MarcaUnica(string appName)
+        {
             return new List<TypedXData>
             {
-                new TypedXData(1001, XDataTerceiros),
+                new TypedXData(1001, appName),
             };
+        }
+
+        /// <summary>
+        /// A regra do <c>LimpaTextosLPCopiados</c>: tira o XData <c>TextoLP</c> do
+        /// **DBText** sempre, e do **MText** só quando ele está **abaixo do topo** do
+        /// desenho (o maior Y arredondado das polilinhas <c>CONEXAO</c> tipo 1) — o
+        /// original supõe que o MText copiado fica fora da área útil.
+        /// </summary>
+        public static bool ApagarXDataTextoLP(
+            bool ehMText,
+            bool temXDataTextoLP,
+            double topoDoDesenho,
+            double maxY)
+        {
+            if (!temXDataTextoLP)
+            {
+                return false;
+            }
+
+            return ehMText ? maxY < topoDoDesenho : true;
         }
 
         /// <summary>
