@@ -1449,6 +1449,36 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>CorrigeHandleSuperior</c> — limpa os handles das derivações (a primeira metade,
+        /// o <c>limpaHandleSuperior</c>) e re-resolve cada uma com o <c>verificaConexao</c>
+        /// (a conexão vizinha do ponto inicial da polilinha).
+        /// </summary>
+        [CommandMethod("CorrigeHandleSuperior")]
+        public void CorrigirHandleSuperior()
+        {
+            Plugin.Escrever(ExecutarCorrigirHandleSuperior());
+        }
+
+        /// <summary>Limpa e re-resolve as derivações e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirHandleSuperior()
+        {
+            try
+            {
+                Correcoes.DerivacoesDoHandleSuperiorDoDesenho.Resultado resultado =
+                    Correcoes.DerivacoesDoHandleSuperiorDoDesenho.Executar();
+
+                return "CorrigeHandleSuperior: " + resultado.HandlesLimpos + " handle(s) limpo(s); "
+                    + resultado.Resolvidas + " de " + resultado.Derivacoes + " derivação(ões) resolvida(s)"
+                    + " e " + resultado.Alteradas + " regravada(s) (" + resultado.Conexoes
+                    + " conexão(ões) no desenho; as páginas do original ficam fora do recorte).";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigeHandleSuperior: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

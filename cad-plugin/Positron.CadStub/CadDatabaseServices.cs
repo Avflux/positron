@@ -352,6 +352,26 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         {
             _vertices.Add(ponto);
         }
+
+        /// <summary>Primeiro vértice como ponto 3D (o <c>Curve.StartPoint</c> da API real).</summary>
+        public Point3d StartPoint
+        {
+            get
+            {
+                Point2d p = _vertices.Count > 0 ? _vertices[0] : default(Point2d);
+                return new Point3d(p.X, p.Y, 0.0);
+            }
+        }
+
+        /// <summary>Último vértice como ponto 3D (o <c>Curve.EndPoint</c> da API real).</summary>
+        public Point3d EndPoint
+        {
+            get
+            {
+                Point2d p = _vertices.Count > 0 ? _vertices[_vertices.Count - 1] : default(Point2d);
+                return new Point3d(p.X, p.Y, 0.0);
+            }
+        }
     }
 
     /// <summary>

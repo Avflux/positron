@@ -762,6 +762,33 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 98 — `CorrigeHandleSuperior` (frente 2 do §7.6, parte 25: o resolvedor por ponto).**
+Fecha o comando. A **primeira metade** é o `limpaHandleSuperior` (o `Limpahandle` da rodada 92,
+reusado) e a **segunda** é o `verificaConexao` — o resolvedor que faltava:
+
+| passo | regra |
+|---|---|
+| a janela | ±**0.2** em volta do **ponto inicial** da derivação (o `SelectCrossingWindow` do original; aqui os limites da polilinha contra a mesma janela, sem editor) |
+| o vizinho | o **primeiro** que esteja na **mesma camada** (sem caixa), **não** seja ela mesma (handle, comparação sem caixa) e tenha XData `CONEXAO` |
+| o que grava | **handle**, **nome** e **potencial** (índices 2, 6 e 1 do app), trocando só o registro do app |
+| o tipo | do `Jumper`: vazio → `"C"`; `"JUMPER"` → `"J"`; outro valor → não mexe |
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+CorrigeHandleSuperior: 167 handle(s) limpo(s); 167 de 167 derivação(ões) resolvida(s) e 167 regravada(s) (365 conexão(ões) no desenho).
+```
+
+**Todas as 167 derivações** acharam um vizinho e foram regravadas. A segunda chamada repete os
+167 — **não** é falha de convergência: o comando **começa** limpando os handles (é o
+`limpaHandleSuperior()` do original), então a re-resolução sempre tem trabalho.
+
+> **Fora do recorte, documentado:** a parte de **páginas** do original
+> (`AtivaTodasAsPagina`, `Pagina.AtivaPagina`) e o gate de hardlock.
+
+**Ferramenta:** o stub ganhou `Polyline.StartPoint`/`EndPoint` e o adapter usa o alias do
+`Polyline` (o `GraphicsInterface` do ZWCAD traz outro `Polyline`, que dá ambiguidade).
+
 **Rodada 97 — `CorrigeCabos` (frente 2 do §7.6, parte 24: o `CorrigeNothing` do banco).**
 O `CorrigeCabos` do `Correcao.cs` é **só banco** (não olha o desenho): o
 `CorrigeNothing("Funcao")` do `cDadosAccessInterligacao2` roda **três** atualizações:
@@ -3420,7 +3447,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 488 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 492 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real
