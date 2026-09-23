@@ -70,8 +70,19 @@ namespace Positron.Data.Interligacao
         /// </summary>
         public static bool Ler(IReadOnlyList<TypedXData> valores, out short tipo, out string handle)
         {
+            string opcionais;
+            return Ler(valores, out tipo, out handle, out opcionais);
+        }
+
+        /// <summary>
+        /// Lê o tipo, o handle do trecho e os **opcionais** (o campo +7, a receita do
+        /// <c>AtualizaOpcionaisDoCabo</c>).
+        /// </summary>
+        public static bool Ler(IReadOnlyList<TypedXData> valores, out short tipo, out string handle, out string opcionais)
+        {
             tipo = 0;
             handle = null;
+            opcionais = null;
 
             if (valores == null || valores.Count < QuantidadeMinima)
             {
@@ -85,6 +96,7 @@ namespace Positron.Data.Interligacao
 
             tipo = XDataNumero.Curto(valores[1].Valor);
             handle = valores.Count > 2 ? valores[2].Valor as string : null;
+            opcionais = valores.Count > 7 ? valores[7].Valor as string : null;
             return true;
         }
     }

@@ -762,6 +762,48 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 82 — `AtualizaOpcionaisDoCabo` (frente 2 do §7.6, parte 13: a receita de opcionais).**
+O comando do `clsUtilitarios.cs` que o `RecriaTextosCabo` chama no layout 3 — e o único
+ponto daquele caminho que ficava por documentar. O campo **opcionais** do XData
+`AUXINTERLIG` é uma **receita** separada por `#`; cada token vira um pedaço do texto:
+
+| token | vira |
+|---|---|
+| `C` | a tag do cabo |
+| `V` | o nome da veia no catálogo (`BuscaNomeVeia`, que devolve o **número** quando o nome está vazio) |
+| `N` | o `NomeVeia` do trecho |
+| `FU` / `FO` | a função da veia / a formação do cabo (do catálogo) |
+| `(` `)` `/` `-` | eles mesmos; `E` vira espaço |
+| qualquer outro | nada |
+
+**Quirks reproduzidos:** o laço vai de `0` a `UBound - 1` — o **último token é
+descartado** (a receita termina com um token que não entra); com `NumVeia == -1000` o texto
+inteiro é **zerado** (no `V` e de novo depois do laço); texto só de pontuação/espaço vira o
+`?` do terminal indefinido; o `()` some e os espaços duplos colapsam em **duas** passadas.
+
+**Medido na fixture** (`scripts/cad-fixture-opcionais.lsp`: um rótulo tipo 3 com a receita
+`C#-#N#` e um tipo 1 ao lado):
+
+```text
+AtualizaOpcionaisDoCabo: 1 de 1 rótulo(s) com os opcionais atualizados (2 rótulo(s) auxiliares lido(s); 0 sem trecho resolvido).
+AtualizaOpcionaisDoCabo: 0 de 1 rótulo(s) com os opcionais atualizados (2 rótulo(s) auxiliares lido(s); 0 sem trecho resolvido).
+ROTULO;CABO-1-V1;3;C#-#N#      <- C + - + N (o último token, vazio, é descartado)
+ROTULO;NAO-MEXE;1;             <- o tipo 1 fica intacto
+```
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+AtualizaOpcionaisDoCabo: 0 de 0 rótulo(s) com os opcionais atualizados (24 rótulo(s) auxiliares lido(s); 0 sem trecho resolvido).
+```
+
+Os 24 rótulos da cópia são do **tipo 1** — nenhum dos tipos 3..6 que este comando olha —, então
+aqui ele é **no-op**; o caminho de escrita fica provado pela fixture. É o mesmo tipo de medição
+honesta das rodadas 74 e 77 (o zero é o dado, não um silêncio do comando).
+
+> **Fora do recorte, documentado:** o `clsEditarInterligacao.AtualizaNomesDosCabos` do fim do
+> original (outra passada de nomes) e a barra de progresso (`_uscPagina`).
+
 **Rodada 81 — `CorrigeCabosSingelos` (frente 2 do §7.6, parte 12: os cabos singelos do catálogo).**
 A primeira correção da frente que mexe **no banco e no desenho**. O original:
 
@@ -2838,7 +2880,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 433 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 443 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

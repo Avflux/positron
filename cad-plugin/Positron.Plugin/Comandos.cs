@@ -1029,6 +1029,40 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>AtualizaOpcionaisDoCabo</c> — reescreve o texto dos rótulos auxiliares dos
+        /// tipos 3..6 a partir da receita de opcionais do XData <c>AUXINTERLIG</c>
+        /// (o <c>clsUtilitarios.AtualizaTodosOpcionaisDoCabo</c>).
+        /// </summary>
+        [CommandMethod("AtualizaOpcionaisDoCabo")]
+        public void AtualizarOpcionaisDoCabo()
+        {
+            Plugin.Escrever(ExecutarAtualizarOpcionaisDoCabo());
+        }
+
+        /// <summary>Atualiza os opcionais dos rótulos e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarAtualizarOpcionaisDoCabo()
+        {
+            try
+            {
+                OpcionaisDoCaboDoDesenho.Resultado resultado = OpcionaisDoCaboDoDesenho.Executar();
+
+                if (resultado.SemBanco)
+                {
+                    return "AtualizaOpcionaisDoCabo: defina POSITRON_DB_PATH — as formações e as funções vêm dele.";
+                }
+
+                return "AtualizaOpcionaisDoCabo: " + resultado.Alterados + " de "
+                    + resultado.Rotulos + " rótulo(s) com os opcionais atualizados ("
+                    + resultado.Lidos + " rótulo(s) auxiliares lido(s); "
+                    + resultado.SemTrecho + " sem trecho resolvido).";
+            }
+            catch (System.Exception erro)
+            {
+                return "AtualizaOpcionaisDoCabo: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();
