@@ -991,6 +991,44 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>CorrigeCabosSingelos</c> — corrige os cabos **singelos** do catálogo cujo
+        /// nome de veia tem o marcador <c>#</c>: limpa o <c>Nome_Veia</c> no banco e o
+        /// <c>NomeVeia</c> do XData dos trechos, e no fim recria os rótulos (o
+        /// <c>RecriaTextosCaboEletrosul</c>), como o original.
+        /// </summary>
+        [CommandMethod("CorrigeCabosSingelos")]
+        public void CorrigirCabosSingelos()
+        {
+            Plugin.Escrever(ExecutarCorrigirCabosSingelos());
+            Plugin.Escrever(ExecutarRecriarTextosDeCaboEletrosul());
+        }
+
+        /// <summary>Corrige os cabos singelos e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirCabosSingelos()
+        {
+            try
+            {
+                CabosSingelosDoDesenho.Resultado resultado = CabosSingelosDoDesenho.Executar();
+
+                if (resultado.SemBanco)
+                {
+                    return "CorrigeCabosSingelos: defina POSITRON_DB_PATH — o catálogo e as veias vêm dele.";
+                }
+
+                return "CorrigeCabosSingelos: " + resultado.TrechosLimpos + " trecho(s) com o NomeVeia limpo ("
+                    + resultado.Candidatos + " cabo(s) candidato(s); "
+                    + resultado.TagsComFlag + " tag(s) com Cabos = 1; "
+                    + resultado.VeiasLidas + " veia(s) no catálogo; "
+                    + resultado.VeiasLimparNoBanco + " linha(s) do banco atualizada(s); "
+                    + resultado.TrechosLidos + " trecho(s) varrido(s)).";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigeCabosSingelos: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

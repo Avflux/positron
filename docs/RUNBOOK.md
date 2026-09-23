@@ -762,6 +762,55 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 81 — `CorrigeCabosSingelos` (frente 2 do §7.6, parte 12: os cabos singelos do catálogo).**
+A primeira correção da frente que mexe **no banco e no desenho**. O original:
+
+1. `SELECT Tag FROM Cabos WHERE Cabos = 1` — os candidatos do catálogo;
+2. para cada um, `SELECT Nome_Veia FROM Veias WHERE DWG=@dwg And Tag=@tag And indice > 0`, e entra na lista quando vem **exatamente uma** linha e o nome tem `#`;
+3. `UPDATE Veias Set Nome_Veia='' WHERE Tag=@tag` — **sem** o filtro de arquivo (quirk reproduzido: o update é mais largo que a leitura);
+4. limpa o `NomeVeia` do XData dos trechos com aquele `Tag_Cabo` e, no fim, **sempre** chama o `RecriaTextosCaboEletrosul`.
+
+> **Achado medido — a consulta 2 do reverso não roda.** Ela cita uma coluna `DWG` que a
+> tabela `Veias` **não tem**, nem no `RCD.mdb` do próprio produto: as colunas são
+> `Tag, Indice, Nome_Veia, Uso, Handle, Arquivo, Pagina, Chave, Funcao`. Com a coluna do
+> reverso a consulta estoura, o `catch` do original relança e o comando **não faz nada**.
+> O recoder usa `Arquivo` — a coluna que existe e a que o `LerVeias` lê — e registra o
+> desvio.
+
+**Medido com o banco semeado** (`scripts/cad-seed-singelos.py` cria um `Cabos` com
+`Cabos = 1` e uma `Veias` com `#`):
+
+```powershell
+& services/sidecar/.venv/Scripts/python.exe scripts/cad-seed-singelos.py "$env:TEMP\positron-singelos.db" 63 CABO-SINGELO
+$env:POSITRON_XDATA = "$env:TEMP\positron-singelos.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R1 `
+  -Fixture scripts/cad-fixture-singelos.lsp `
+  -Comandos "CorrigeCabosSingelos,(pz-sing:dump)" `
+  -Banco "$env:TEMP\positron-singelos.db"
+```
+
+```text
+CorrigeCabosSingelos: 1 trecho(s) com o NomeVeia limpo (1 cabo(s) candidato(s); 1 tag(s) com Cabos = 1; 1 veia(s) no catálogo; 1 linha(s) do banco atualizada(s); 1 trecho(s) varrido(s)).
+RecriaTextosCaboEletrosul: 1 texto(s) e 0 ornamento(s) apagado(s); 1 rótulo(s) e 2 ornamento(s) reinserido(s) de 1 trecho(s) (1 cabo(s) singelo(s) no catálogo).
+TRECHO;23F;CABO-SINGELO;1;          <- o NomeVeia do XData ficou vazio
+ROTULO;CABO-SINGELO;1                <- o rótulo recriado: só a tag (o cabo é singelo)
+```
+
+E o banco, conferido **por fora** do plugin (`sqlite3`): `[('CABO-SINGELO', '')]`.
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63) — o mesmo 0 que
+a consulta direta ao projeto previa:
+
+```text
+CorrigeCabosSingelos: 0 trecho(s) com o NomeVeia limpo (0 cabo(s) candidato(s); 697 tag(s) com Cabos = 1; 2388 veia(s) no catálogo; 0 linha(s) do banco atualizada(s); 0 trecho(s) varrido(s)).
+RecriaTextosCaboEletrosul: 24 texto(s) e 0 ornamento(s) apagado(s); 20 rótulo(s) e 40 ornamento(s) reinserido(s) de 20 trecho(s) (305 cabo(s) singelo(s) no catálogo).
+```
+
+> **Lição de ferramenta (a terceira da família):** de novo o **saldo de parênteses** da fixture —
+> desta vez com um `)` a mais no fim do dump, o `load` parou antes de definir a função e o
+> arquivo de saída simplesmente não existia, sem erro no `POSITRON_LOG`. Conferir o saldo antes
+> de rodar continua sendo mais barato.
+
 **Rodada 80 — `AdicionaCaboEletrosul` (frente 2 do §7.6, parte 11) e a correção da geometria da Eletrosul.**
 Fecha o que a rodada 79 deixou de fora (as duas entidades) e **corrige** o que ela mediu errado:
 o `criarTextoNomeCaboEletrosul` chama o `AdicionaCaboEletrosul`, que **reescreve o
@@ -2789,7 +2838,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 427 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 433 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

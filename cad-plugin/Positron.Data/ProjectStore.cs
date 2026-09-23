@@ -1025,6 +1025,65 @@ namespace Positron.Data
             return linhas;
         }
 
+        /// <summary>
+        /// Os tags do catálogo com a coluna <c>Cabos = 1</c> — a consulta 1 do
+        /// <c>CorrigeOsCabosSingelos</c> (<c>SELECT Tag FROM Cabos WHERE Cabos = 1</c>).
+        /// </summary>
+        public IReadOnlyList<string> LerTagsDeCabosComFlag()
+        {
+            List<string> tags = new List<string>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText = "SELECT Tag FROM Cabos WHERE Cabos = 1 ORDER BY Tag";
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        tags.Add(Texto(leitor, "Tag"));
+                    }
+                }
+            }
+
+            return tags;
+        }
+
+        /// <summary>
+        /// O <c>UPDATE Veias Set Nome_Veia='' WHERE Tag=@tag</c> do
+        /// <c>CorrigeOsCabosSingelos</c> — **sem** o filtro de arquivo (quirk do original:
+        /// a leitura é por <c>Arquivo</c> e o update é por <c>Tag</c> apenas).
+        /// </summary>
+        public int LimparNomeDeVeiaDasVeias(IReadOnlyCollection<string> tags)
+        {
+            if (tags == null || tags.Count == 0)
+            {
+                return 0;
+            }
+
+            int alteradas = 0;
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText = "UPDATE Veias SET Nome_Veia = '' WHERE Tag = @tag";
+                comando.Parameters.AddWithValue("@tag", string.Empty);
+
+                foreach (string tag in tags)
+                {
+                    if (!string.IsNullOrEmpty(tag))
+                    {
+                        comando.Parameters["@tag"].Value = tag;
+                        alteradas += comando.ExecuteNonQuery();
+                    }
+                }
+
+                transacao.Commit();
+            }
+
+            return alteradas;
+        }
+
         /// <summary>Lê o catálogo de veias (<c>Veias</c>) — fonte do snapshot <c>Veias4</c>.</summary>
         public IReadOnlyList<VeiasRow> LerVeias()
         {
