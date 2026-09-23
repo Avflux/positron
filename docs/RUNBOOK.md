@@ -762,6 +762,47 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 91 — o quirk do nome, medido no desenho real (frente 2, ferramenta/evidência).**
+Fecha a segunda pendência da rodada 88 **por outra via** e mede a consequência do quirk.
+
+**Duas coisas atrapalharam o contador** `scripts/cad-conta-cores.lsp`, e as duas ficaram
+diagnosticadas:
+
+- a **linha de comando LISP** depois do `NETLOAD` **não executa** no desenho real (o comando do
+  plugin roda na mesma passada, a LISP não — rodada 90);
+- o arquivo tem um **erro de aninhamento**: o `(defun pz-cor:conta ...)` fecha **depois** das formas
+  finais — o saldo total do arquivo é 0, mas a chamada do fim fica **dentro** do defun. A prova são
+  os marcadores de carga, que param em `6 conta` sem nenhum `C0 entrou no conta`.
+
+A contagem saiu então do **dump da própria fixture** (`pz-cf:conta`), que roda no desenho real como
+rodou no sintético.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+CorrigeCoresDosBlocos: 1 atributo(s) com a cor corrigida (1 bloco(s); 198 atributo(s) de definição em 45 nome(s) de bloco).
+COR;396E;MascaraM.DWG;ALTERNATIVO;256;2
+...
+TOTAL;referencias;1979;diferencas;50;insercoes;558
+```
+
+(O dump escreve **uma linha por referência** e o `TOTAL` traz a contagem real de diferenças — o
+`diferencas;50` é o número.)
+
+**O achado:** as **50 diferenças estão todas num único bloco, o `MascaraM.DWG`** — justamente o
+bloco cujo nome **quebra o quirk do original**: a passada 3 compara
+`P_1.Contains(val6.Name.ToUpper())` e a lista da passada 1 guarda o nome **cru** (`MascaraM.DWG`),
+então o `MASCARAM.DWG` procurado **não está** na lista e o bloco é pulado. Todos os outros **44**
+nomes têm **0** diferenças.
+
+Ou seja: o port **reproduz fielmente** o original (que também pula esse bloco), e a **única**
+divergência entre referência e definição no desenho real é exatamente a **fronteira de cobertura do
+quirk** — e o caminho de escrita, quando o nome casa, funciona (foi o caso do `BTZX` da fixture,
+com a cor 1 → 3).
+
+> **Pendência que sobra (pequena):** consertar o aninhamento do `cad-conta-cores.lsp` para ele rodar
+> sozinho no desenho real (ou manter a via do dump da fixture, que é a que deu a evidência).
+
 **Rodada 90 — o caminho de escrita do `CorrigeCoresDosBlocos`, provado (frente 2, ferramenta/evidência).**
 Fecha o **achado 1** da rodada 89 e a pendência de evidência da 88.
 

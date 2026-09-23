@@ -116,5 +116,9 @@
       (close f)
       (princ (strcat "cad-conta-cores: " (itoa (length nomes)) " nome(s), " (itoa difs) " diferenca(s)")))))))
 
-(princ "contador de cores carregado: rode (pz-cor:conta)")
+; A contagem roda no LOAD (fim do arquivo): no desenho real a linha de comando LISP
+; depois do NETLOAD nao executa (rodada 90), e o estado "antes" ja prova o que se quer --
+; se o desenho nao tem diferenca nenhuma, nao ha o que o comando corrija.
+(pz-cor:conta)
+(princ "contador de cores carregado e rodado")
 (princ)
