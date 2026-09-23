@@ -204,15 +204,17 @@ ferramenta.
 | `relatorio_gerar` | `{ relatorio, painel, revisao? }` | `{ relatorio, titulo, colunas, linhas, total }` |
 
 As duas de `Plaquetas4`/`ListaMateriais` são as tabelas **sem revisão** (a chave é o
-`DWG`): o recorte da consulta é o `Painel`. As duas de relatório são a frente aberta na
-rodada 65 — `relatorio_listar` é o catálogo (id, título, colunas, parâmetros, para a UI
+`DWG`): o recorte da consulta é o `Painel`. As duas de relatório são a frente aberta nas
+rodadas 65–67 — `relatorio_listar` é o catálogo (id, título, colunas, parâmetros, para a UI
 montar o seletor) e `relatorio_gerar` devolve a grade pronta; `revisao` é exigida pelos
-relatórios que leem tabelas com revisão (a lista de veias). O catálogo e a conferência de
-cada relatório estão no `RUNBOOK.md` (rodada 65) e a montagem em
+relatórios que leem tabelas com revisão (a lista de veias e o de interligação). São **três**
+relatórios hoje: `veias`, `materiais` e `interligacao`. O catálogo e a conferência de
+cada relatório estão no `RUNBOOK.md` (rodadas 65 e 67) e a montagem em
 `services/sidecar/src/sidecar/relatorios/`.
 
 O tipo de cada linha (`Paineis`, `Fiacao`, …) vem de `schema.generated.ts`, não de
-modelos escritos à mão. `relatorio_gerar` fica para a fase de relatórios.
+modelos escritos à mão. `relatorio_gerar` entrou na rodada 65 (ver o item 4 do backlog,
+abaixo).
 
 As tabelas que o `FIA`/`INT` passaram a gravar também chegam ao app:
 `circuitos_por_painel`, `dispositivos_por_painel` e `aplicacoes_por_revisao`
@@ -532,11 +534,12 @@ reler o repositório inteiro.
 
 **Estado (rodada 62):** as etapas 0–12 do `PLANO.md` estão **concluídas**, exceto a
 **9** (licenciamento, relatórios e multi-usuário), que é decisão do dono e já tem os
-encaixes prontos. Números de hoje: **323** testes xunit + **34** no sidecar, contrato
+encaixes prontos. Números de hoje: **323** testes xunit + **36** no sidecar, contrato
 com **24 métodos** e **31 tabelas** em sincronia, **12** comandos
 no CAD, **15** tabelas escritas pelo plugin (as 13 do diagrama + `Plaquetas4` e
-`ListaMateriais`) — todas lidas pelo app — e **2** relatórios tabulares entregues
-dos 37 do original. O recorte roda no ZWCAD 2026 sobre o **desenho real** (`Funcional.dwg`):
+`ListaMateriais`) — todas lidas pelo app — e **3** relatórios entregues
+dos 38 do original (2 tabulares e o de Interligação, além da verificação em texto). O
+recorte roda no ZWCAD 2026 sobre o **desenho real** (`Funcional.dwg`):
 `FIA` grava 494 linhas em `Fiacao`, 265 em `Portas4F`, 168 em `Bornes4F`, 70 em
 `Contatos4F`, 83 em `Dispositivos4F`, 11 em `Circuitos4F` e 15 em `Aplicacao4F`; o
 `INT` grava 20 em `Interligacao4`, 265 em `Portas4I` e 216 em `Bornes4I`, mais o
@@ -599,13 +602,19 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
    `Jumper == "JUMPER"`) e usa a mesma máquina de casamento do `FIA`, só trocando a
    tabela. Os três restantes vêm de telas de relatório e de importação/exportação —
    a receita de cada um está no `PLANO.md`.
-4. **Relatórios (frente aberta na rodada 65):** o app entrega **2** dos **37** tabulares do
-   original — a **Lista de Veias** e a **Lista de Materiais** (o motor em
-   `services/sidecar/src/sidecar/relatorios/`, o contrato `relatorio_listar`/
-   `relatorio_gerar` e a área de relatórios na visão de painel). Ficam os relatórios de
-   **Fiação** e **Interligação** (que remontam bornes/réguas de várias tabelas), as
+4. **Relatórios (frente aberta na rodada 65):** o app entrega **3** dos **38** do original
+   — a **Lista de Veias**, a **Lista de Materiais** e o **Relatório de Interligação**
+   (modo texto; o motor em `services/sidecar/src/sidecar/relatorios/`, o contrato
+   `relatorio_listar`/`relatorio_gerar` e a área de relatórios na visão de painel). Fica o
+   relatório de **Fiação** (que é um grafo: terminal → potencial → outras pontas, o
+   `CarregaLigacoesTerminal`), o modo gráfico e as veias de reserva do de Interligação, as
    variantes por concessionária e a **exportação** (Excel/DWG/PDF) — a ordem e o porquê de
    cada bloco estão no `PLANO.md` §7.3.
+
+   **Armadilha registrada:** o original roda em **Jet/Access, que não distingue `''` de
+   `NULL`** — comparações com string vazia no SQL do reverso precisam de
+   `IFNULL(coluna, '')` no SQLite (o `ProjectStore` grava `DBNull` para vazio). Sem isso
+   o relatório de Interligação saía vazio.
 5. **Pendências menores:** `ModelosCabos` está vazia no Access do projeto (nada a
    importar); o ciclo completo roda no ZWCAD 2026 (`npm run cad:projeto`, ver
    `RUNBOOK.md`); o detalhe de cada tabela fora do recorte está no `PLANO.md`.

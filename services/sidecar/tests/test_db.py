@@ -55,7 +55,11 @@ def make_project_db(target: Path) -> Path:
                    (21, 'R0', 1, 'C-100', 2, 1, '8', 'A2', '', '2', 'DOC-A',
                     2, '9', 'B2', '', '2', 'DOC-B'),
                    (22, 'R0', 1, 'C-200', 1, 1, '8', 'A1', '', '1', 'DOC-A',
-                    3, '9', 'C1', '', '1', 'DOC-C');
+                    3, '9', 'C1', '', '1', 'DOC-C'),
+                   -- ponta 1 = a REGUA (Tag1 = nome da regua, NRegua1 NULL): e o que o
+                   -- relatorio de interligacao procura. Terminal2 = '0' cai no `?`.
+                   (23, 'R0', 1, 'C-100', 3, 1, '9', 'R1', NULL, '11', 'DOC-A',
+                    2, '9', 'B1', '', '0', 'DOC-B');
 
         INSERT INTO Circuitos4F(Indice, Revisao, DWG, Painel, Circuito, Potencial)
             VALUES (30, 'R0', 1, 1, 'C1', 5),
@@ -79,9 +83,11 @@ def make_project_db(target: Path) -> Path:
         INSERT INTO Portas4I(Indice, Revisao, DWG, IndexModelo, NomeModelo, Regua, Borne, Tipo)
             VALUES (70, 'R0', 1, 8, 'M8', 'R1', '11', 'B');
 
-        INSERT INTO Bornes4I(Indice, Painel, IndexRegua, Regua, Borne, Ordem, bReserva)
-            VALUES (80, 1, 5, 'R1', '12', 2.0, 0),
-                   (81, 1, 5, 'R1', '11', 1.0, 0);
+        INSERT INTO Bornes4I(
+            Indice, Revisao, Painel, IndexRegua, Regua, Borne, Ordem, bReserva, Tipo
+        )
+            VALUES (80, 'R0', 1, 5, 'R1', '12', 2.0, 0, 0),
+                   (81, 'R0', 1, 5, 'R1', '11', 1.0, 0, 0);
 
         INSERT INTO Cabos4(
             Indice, Revisao, Tag, Blindagem, Formacao, Funcao, Aterrar, Pn1, Pn2, Cabos, Comprimento
@@ -183,9 +189,12 @@ async def test_fiacao_por_painel_filtra_revisao(project_db: Path):
 async def test_interligacao_por_cabo_traz_trechos_ordenados(project_db: Path):
     handlers = Handlers(str(project_db))
     trechos = await handlers.dispatch("interligacao_por_cabo", {"tag_cabo": "C-100"})
-    assert [t["Num_Veia"] for t in trechos["trechos"]] == [1, 2]
+    # As duas veias de ponta 1 de dispositivo e a veia de ponta 1 de **régua** (a do
+    # relatório de interligação).
+    assert [t["Num_Veia"] for t in trechos["trechos"]] == [1, 2, 3]
     assert trechos["trechos"][0]["Tag1"] == "A1"
     assert trechos["trechos"][0]["Tag2"] == "B1"
+    assert trechos["trechos"][2]["Tag1"] == "R1"
 
 
 async def test_interligacao_por_painel_pega_as_duas_pontas(project_db: Path):
@@ -324,18 +333,21 @@ async def test_plaquetas_e_lista_de_material_exigem_painel(project_db: Path):
         await handlers.dispatch("lista_materiais_por_painel", {})
 
 
-async def test_relatorio_listar_traz_os_dois_relatorios(project_db: Path):
+async def test_relatorio_listar_traz_os_relatorios(project_db: Path):
     handlers = Handlers(str(project_db))
     catalogo = await handlers.dispatch("relatorio_listar")
 
-    assert [r["id"] for r in catalogo["relatorios"]] == ["veias", "materiais"]
-    veias, materiais = catalogo["relatorios"]
+    assert [r["id"] for r in catalogo["relatorios"]] == ["veias", "materiais", "interligacao"]
+    veias, materiais, interligacao = catalogo["relatorios"]
     assert veias["titulo"] == "Lista de Veias"
     assert veias["colunas"][:4] == ["Tag", "Formação", "Função", "Veias"]
     assert veias["parametros"] == ["painel", "revisao"]
     # A lista de material não tem revisão: a tabela dela é por desenho.
     assert materiais["titulo"] == "Lista de Materiais"
     assert materiais["parametros"] == ["painel"]
+    assert interligacao["titulo"] == "Relatório de Interligação"
+    assert interligacao["parametros"] == ["painel", "revisao"]
+    assert interligacao["colunas"][0] == "Régua"
 
 
 async def test_relatorio_materiais_junta_o_catalogo(project_db: Path):
@@ -414,6 +426,39 @@ async def test_relatorio_veias_exige_revisao_e_id_conhecido(project_db: Path):
         await handlers.dispatch("relatorio_gerar", {"relatorio": "veias", "painel": 1})
     with pytest.raises(BadParams):
         await handlers.dispatch("relatorio_gerar", {"relatorio": "fiacao", "painel": 1})
+
+
+async def test_relatorio_interligacao_monta_a_arvore_regua_borne_cabo(project_db: Path):
+    handlers = Handlers(str(project_db))
+    gerado = await handlers.dispatch(
+        "relatorio_gerar", {"relatorio": "interligacao", "painel": 1, "revisao": "R0"}
+    )
+
+    assert gerado["titulo"] == "Relatório de Interligação"
+    # Uma régua (`R1`, a única do painel 1 no `Bornes4I`) vira **linha de grupo** e o
+    # único cabo que passa no borne `11` vira a linha de cabo — o borne `12` não tem cabo.
+    assert gerado["total"] == 2
+    assert gerado["linhas"][0] == ["R1"] + [""] * 11
+    assert gerado["linhas"][1] == [
+        "11",                                    # Régua (o borne, como no original)
+        "",                                      # (coluna sem rótulo)
+        "C-100-3",                               # Tag: formação não começa com 1x → Tag-NumVeia
+        "2x(3x2,5)",                             # Formação: blindagem + `Nx`
+        "R1-11",                                 # Anilha: RÉGUA-BORNE
+        "PT2",                                   # Destino: o nome do painel da outra ponta
+        "B1",                                    # Régua destino (sem NRegua → só a tag)
+        "?",                                     # Borne destino: terminal `"0"` vira `?`
+        "F1",                                    # Função do cabo
+        "DOC-A/9, DOC-B/9",                      # Documento das duas pontas
+        "0",                                     # coluna sem rótulo: o Tipo do borne
+        "",                                      # Trajeto (vazio no `Cabos4` do teste)
+    ]
+
+
+async def test_relatorio_interligacao_exige_revisao(project_db: Path):
+    handlers = Handlers(str(project_db))
+    with pytest.raises(BadParams):
+        await handlers.dispatch("relatorio_gerar", {"relatorio": "interligacao", "painel": 1})
 
 
 async def test_catalogo_materiais_com_e_sem_filtro(project_db: Path):

@@ -762,6 +762,61 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 67 — relatório de Interligação no app (o modo texto).** É o terceiro tabular, e o
+único dos dois "intricados" que dava para fechar: o de Fiação é um **grafo** (terminal →
+potencial → outras pontas) e ficou para a próxima. O de Interligação é uma **árvore**
+`régua → bornes → cabos`, montada em `sidecar/relatorios/interligacao.py` a partir do
+`cDadosAccessInterligacao2`:
+
+| Peça | Do original | No recoder |
+|---|---|---|
+| réguas de borne | `CarregaReguas`: `SELECT DISTINCT Regua, DWG FROM Bornes4I WHERE Revisao=? AND Painel=? AND Tipo<2` com `Tag = Regua`, `NRegua = ""`, `Tipo = "B"` | igual |
+| réguas de **porta** | `CarregaReguasPortas`: pontas da `Interligacao4` com `NRegua<>''` e `TipoBorne` `-1`/`-2` (`Tag = Tag1`, `NRegua = NRegua1`, `Tipo = "E"`) | igual |
+| bornes | `CarregaBornesReguas` no modo **cadastro**: `Bornes4I` por régua, dedup, `Array.Reverse` | igual (o modo "desenho" não entrou) |
+| cabos do borne | `CarregaCabosNosBornesRI`: ponta 1 = `(Painel1, Tag1, NRegua1, Terminal1)`; destino = ponta 2 | igual |
+| linhas | laço `rbTexto`: `Tag`, `Formação`, `Anilha`, `Destino`, `Régua`/`Borne` destino, `Função`, `Documento`, `Trajeto` | igual (as regras estão no docstring do módulo) |
+
+Receita (a mesma dos outros relatórios):
+
+```powershell
+& services\sidecar\.venv\Scripts\python.exe scripts\app-relatorios.py "$env:TEMP\positron-projeto.db" `
+  --painel 503 --revisao R0
+```
+
+Medido em 2026-09-22 (DWG 63, painel 503, revisão `R0`):
+
+```text
+== interligacao == Relatório de Interligação (27 linha(s))
+   Régua |  | Tag | Formação | Anilha | Destino | Régua | Borne | Função | Documento |  | Trajeto
+   R9 | - | - | - | - | - | - | - | - | - | - | -
+   ...
+   ENTR 1 | - | - | - | - | - | - | - | - | - | - | -
+    A  | - | 8-CCE-001 | 1x300 | ENTR 1- A  | 400G1 | SAÍDA |  A  | - | LOCAL-A/8 | 0 | -
+   ...
+   R6 | - | - | - | - | - | - | - | - | - | - | -
+   22 | - | 8-GGE-017-1 | (2x2,5) | R6-22 | 400G1 | NOTA 3 | XX  | - | LOCAL-A/19 | 0 | -
+   ... mais 19 linha(s)
+```
+
+**A conta foi refeita por SQL independente**, régua a régua e borne a borne, no mesmo
+banco: **8** réguas (`Bornes4I` do painel 503 com `Tipo<2`) + **19** cabos (a consulta da
+ponta 1, pulando `$REP$`) = **27** — igual ao relatório. As linhas também batem com o
+`Interligacao4`/`Cabos4`/`Paineis` crus: o `8-CCE-001` não tem `Nome_Veia` e a formação
+começa com `1x` → a `Tag` sai o próprio `Tag_Cabo`; o `8-GGE-017-1` cai no caminho
+`Tag-Num_Veia`; a `Anilha` é `RÉGUA-BORNE`; o `Destino` é o nome do painel do cadastro
+(`400G1`/`400G2`).
+
+**Achado que vale para qualquer relatório novo: o original roda em Jet/Access, e o Jet
+não distingue string vazia de `NULL`.** O `WHERE ... AND NRegua1 = @nRegua` dele casa
+`''` **e** `NULL`; no SQLite a coluna vazia é `NULL` (o `ProjectStore` grava `DBNull`) e
+`NULL = ''` é falso — a primeira versão do relatório saiu com **0 cabo** por isso. As
+comparações com `''` levam `IFNULL(coluna, '')` no módulo, com o motivo comentado. A
+mesma armadilha vale para `<> ''`.
+
+O que **não** entrou (registrado no §7.3): o modo **gráfico** (`rbGrafico`, que desenha a
+árvore de jumpers com `bEntra`/`bSai`) e a seção de **veias de reserva** (`cbReserva`); o
+modo **texto** é o que lista os cabos por borne.
+
 **Rodada 66 — `NRegua1`/`NRegua2` da `Interligacao4`: o bug que o relatório de
 interligação denunciou.** O levantamento dos relatórios de Fiação/Interligação (§7.3 do
 `PLANO.md`) mostrou que o relatório de interligação identifica a **ponta de régua** assim
