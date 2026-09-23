@@ -762,6 +762,41 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 107 — o `SYNCD` virou o pipeline do original.**
+O `SYNCD` do reverso **não** é uma projeção simples: é um **pipeline** de seis passos com barra de
+progresso (`Quantidade = 6`).
+
+```text
+ApagaContatosOrfaos -> CorrigeModelosDeContatos -> SincronizaContatos -> SincronizaPortas
+  -> SincronizaDePara -> EditaPortaDipAuxPainelModeloFabricante -> CorrigeCoresDosBlocos
+```
+
+O recoder só fazia a projeção (`FIA` + `INT`). O comando passou a compor, **na ordem do
+original**, os passos que o recoder tem:
+
+| passo | o que é |
+|---|---|
+| `[1/4] CorrigeModelosDeContatos` | as duas metades (o dicionário e o desenho) |
+| `[2/4] FIA` e `[3/4] INT` | a **projeção** para o banco — é o que no original fazem os três `Sincroniza*` |
+| `[4/4] CorrigeCoresDosBlocos` | o original fecha com ele |
+
+> **Fora do recorte, documentado:** o `ApagaContatosOrfaos` e o
+> `EditaPortaDipAuxPainelModeloFabricante` (a família de sincronização de tabelas/UI que o
+> recoder não porta) e a barra de progresso.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63, com uma cópia do
+banco):
+
+```text
+[1/4] CorrigeModelosDeContatos: nenhum contato fora da posição (8 modelo(s) e 26 contato(s) no CONTATOS) — nada a corrigir.
+[2/4] FIA: 494 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 0 reordenada(s), 83 posicao(oes), 450 ponto(s) de bloco); 265 porta(s) em Portas4F; 168 borne(s) em Bornes4F; 70 contato(s) em Contatos4F; 83 dispositivo(s) em Dispositivos4F; 11 circuito(s) em Circuitos4F; 15 tipo(s) em Aplicacao4F.
+[3/4] INT: 20 linha(s) gravada(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I; 216 borne(s) em Bornes4I; 697 cabo(s) em Cabos4; 2388 veia(s) em Veias4.
+[4/4] CorrigeCoresDosBlocos: 0 atributo(s) com a cor corrigida (0 bloco(s); 197 atributo(s) de definição em 44 nome(s) de bloco).
+```
+
+É a **primeira passada que roda correção + projeção + correção num comando só** — e ela mostra o
+pipeline completo do produto funcionando de ponta a ponta no desenho real.
+
 **Rodada 106 — a triagem da frente 4 (dispositivos, máscaras, portas e contatos).**
 Li o corpo dos **28** comandos. O resultado repete o da frente 3: **20 são só UI** e **8 são
 interativos ou dirigidos por arquivo**.

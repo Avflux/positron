@@ -1689,16 +1689,31 @@ namespace Positron.Plugin
         }
 
         /// <summary>
-        /// <c>SYNCD</c> — projeta o **desenho inteiro** para o banco do projeto
-        /// (fiação + interligação) num passo só: a regra "quem desenha, grava". O
-        /// original sincroniza tabelas de apoio numa UI; aqui cada projetor já
-        /// deriva o que precisa, então o sincronizar é <c>FIA</c> + <c>INT</c>.
+        /// <c>SYNCD</c> — o **pipeline** do original num comando só. No reverso o <c>SYNCD</c> não é
+        /// uma projeção simples: ele roda seis passos (a barra de progresso com
+        /// <c>Quantidade = 6</c>) — <c>ApagaContatosOrfaos</c>, <c>CorrigeModelosDeContatos</c>,
+        /// <c>SincronizaContatos</c>, <c>SincronizaPortas</c>, <c>SincronizaDePara</c>,
+        /// <c>EditaPortaDipAuxPainelModeloFabricante</c> — e termina com o
+        /// <c>CorrigeCoresDosBlocos</c>.
+        ///
+        /// Aqui entram, na ordem do original, os passos que o recoder **tem**:
+        ///
+        /// 1. <c>CorrigeModelosDeContatos</c> (as duas metades: o dicionário e o desenho);
+        /// 2. e 3. a **projeção** para o banco (<c>FIA</c> + <c>INT</c>), que é o que no original
+        ///    fazem os três <c>Sincroniza*</c>;
+        /// 4. <c>CorrigeCoresDosBlocos</c>, como o original fecha.
+        ///
+        /// **Fora do recorte, documentado:** o <c>ApagaContatosOrfaos</c> e o
+        /// <c>EditaPortaDipAuxPainelModeloFabricante</c> (a família de sincronização de
+        /// tabelas/UI que o recoder não porta) e a barra de progresso.
         /// </summary>
         [CommandMethod("SYNCD")]
         public void SincD()
         {
-            Plugin.Escrever(ExecutarFiacao());
-            Plugin.Escrever(ExecutarInterligacao());
+            Plugin.Escrever("[1/4] " + ExecutarCorrigirModelosDeContatos());
+            Plugin.Escrever("[2/4] " + ExecutarFiacao());
+            Plugin.Escrever("[3/4] " + ExecutarInterligacao());
+            Plugin.Escrever("[4/4] " + ExecutarCorrigirCoresDosBlocos());
         }
 
         /// <summary>
