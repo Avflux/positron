@@ -826,12 +826,23 @@ TOTAL;24;AUXINTERLIG;24;ELETROSUL;0
 TOTAL;0;AUXINTERLIG;0;ELETROSUL;0              <- depois da ação: 0
 ```
 
-> **Lição de ferramenta (o primeiro recorte deste contador errou feio):** ele filtrava o
-> `ssget` por tipo (`'((0 . "TEXT,MTEXT,LWPOLYLINE"))`) e passava uma **lista fixa** de app
-> names ao `entget` — e devolveu `TOTAL;0` num desenho em que o plugin apagou 24. A
-> varredura tem de ser **sem filtro de tipo** (a lista separada por vírgula no `ssget "_X"`
-> não achou nada no ZWCAD 2026) e com os app names **lidos da tabela `APPID` do desenho** —
-> a mesma lição da rodada 70, que agora vale para os dois contadores.
+> **Lição de ferramenta (medida e isolada).** O primeiro recorte deste contador passava uma
+> **lista fixa** de app names ao `entget` (`'("AUXINTERLIG" "ELETROSUL")`) e devolveu
+> `TOTAL;0` num desenho em que o plugin apagou **24**. Uma sonda no mesmo desenho comparou
+> os recortes, todos contando as entidades com XData `AUXINTERLIG`:
+>
+> ```text
+> A_SEMFILTRO_APPID;24            (ssget "_X" sem filtro + app names da tabela APPID)
+> B_FILTRO_TEXTO_APPID;24         (ssget "_X" '((0 . "TEXT")) + APPID)
+> C_FILTRO_LISTA_APPID;24         (ssget "_X" '((0 . "TEXT,MTEXT,LWPOLYLINE")) + APPID)
+> D_SEMFILTRO_FIXO;0              (sem filtro + lista fixa '("AUXINTERLIG" "ELETROSUL"))
+> E_SEMFILTRO_APPID_TEXTO;0       (filtro TEXT + lista fixa)
+> ```
+>
+> Ou seja: o filtro de tipo (inclusive a lista separada por vírgula) **não** era o problema —
+> o `entget` com a **lista fixa** é que não devolveu o grupo `-3` dos rótulos. A lição da
+> rodada 70 continua valendo e agora está isolada: a lista de app names **tem de vir da tabela
+> `APPID` do desenho**.
 
 Como o desenho real exercita só um dos ramos (24 textos tipo 1, nenhum `ELETROSUL`), entra a
 fixture `scripts/cad-fixture-veias.lsp`, com os quatro casos num desenho só — texto tipo 1
