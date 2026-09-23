@@ -762,6 +762,36 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 106 — a triagem da frente 4 (dispositivos, máscaras, portas e contatos).**
+Li o corpo dos **28** comandos. O resultado repete o da frente 3: **20 são só UI** e **8 são
+interativos ou dirigidos por arquivo**.
+
+**Só UI (20):** `PN` (`frmCadastroDePaineis`), `GERCONT`, `GERMASC`, `DISP`, `PORT`,
+`CONT`, `MASC`, `MOVPN`, `CONFLP`, `ADDDESC`, `MIGPOR`, `MCONT`, `MMASC`,
+`EDTFUNC`, `EDTDISPSA`, `EDTDISPS`, `LAYMEC`, `PLAQ`, `TPG`, `ATPG`.
+
+**Interativos ou por arquivo (8):**
+
+| comando | por quê |
+|---|---|
+| `DEPARA` | `clsDePara.CriarDePara` com um contador **estático** de tipo — inserção a cada clique |
+| `LDAT` | `clsAtributos.ligaNomedeDispositivos` → `selecionaUmBloco` (escolhe **um** bloco) |
+| `PINC` | `clsAtributos.Pincel` → `selecionaUmBloco` |
+| `MOV` | `clsUtilitarios.moverElementos` |
+| `CHVAUT` | `clsPortas.AtribuiChavePrimaria`: exige a **lista de pontos** num arquivo externo (`cDadosExcel.ImportarPaginasPosLogico`) + `MsgBox` de confirmação |
+| `SYNCLP` | `clsPortas.ExportaImportarPortas` (o mesmo arquivo) |
+| `LXLS`, `PortasChesf` | `clsDispositivo.LPDisponivel` + `Process` (abrem programa externo) |
+
+> **Achado da triagem:** o `SYNCD` do original **não** é uma projeção simples — é um **pipeline**:
+> `ApagaContatosOrfaos` → `CorrigeModelosDeContatos` → `SincronizaContatos` →
+> `SincronizaPortas` → `SincronizaDePara` → `EditaPortaDipAuxPainelModeloFabricante`.
+> O `SYNCD` do recoder projeta o desenho no banco; a composição do pipeline fica **proposta**
+> para uma rodada futura (é mudança num comando já entregue — não entra por conta própria).
+
+**Conclusão das duas triagens (frentes 3 e 4):** as frentes restantes do §7.6 são **editores de UI**
+e ferramentas de interação; o trabalho **em lote** do plugin estava concentrado na frente 2, que
+está entregue (27 de 38) e sem pendências.
+
 **Rodada 105 — a triagem da frente 3 (réguas e bornes).**
 A frente 3 tem 13 comandos. Li o corpo de cada um no reverso; **nenhum é correção em lote** e a
 classificação fecha assim:
