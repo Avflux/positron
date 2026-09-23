@@ -1372,6 +1372,40 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>CorrigePainelET1DosBornes</c> — escreve os atributos do borne (Dispositivo tipo B)
+        /// com o painel e a régua do dicionário REGUAS e o nome do painel do cadastro
+        /// (o <c>clsUtilitarios.cs</c>).
+        /// </summary>
+        [CommandMethod("CorrigePainelET1DosBornes")]
+        public void CorrigirPainelET1DosBornes()
+        {
+            Plugin.Escrever(ExecutarCorrigirPainelET1DosBornes());
+        }
+
+        /// <summary>Corrige o painel e o T1 dos bornes e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirPainelET1DosBornes()
+        {
+            try
+            {
+                Correcoes.PainelDoBorneDoDesenho.Resultado resultado =
+                    Correcoes.PainelDoBorneDoDesenho.Executar();
+
+                if (resultado.SemBanco)
+                {
+                    return "CorrigePainelET1DosBornes: defina POSITRON_DB_PATH — o nome do painel vem do cadastro.";
+                }
+
+                return "CorrigePainelET1DosBornes: " + resultado.AtributosAlterados
+                    + " atributo(s) regravado(s) em " + resultado.ReguasResolvidas + " de "
+                    + resultado.BornesLidos + " borne(s) (" + resultado.Reguas + " régua(s) no dicionário).";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigePainelET1DosBornes: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

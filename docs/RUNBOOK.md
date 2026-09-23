@@ -762,6 +762,42 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 96 — `CorrigePainelET1DosBornes` (frente 2 do §7.6, parte 23: os atributos do borne).**
+O `clsUtilitarios.cs` que reescreve os atributos do bloco do **borne** (Dispositivo tipo
+`B`): resolve a **régua** pelo `IndiceRegua` no dicionário `REGUAS` (o
+`BuscaPainelDoBorneNoDicionario` do reverso — no recoder é o `ReguasDoDesenho`, que já traz o
+`Painel` de cada régua) e o **nome do painel** pelo cadastro (`LerNomesDePaineis`).
+
+| tag | valor |
+|---|---|
+| `NOME1` | a régua — ou **painel + separador + régua** quando o borne **não** está visível (`Visivel != 1`) |
+| `PAINEL` | o nome do painel |
+| `REGUA` | o nome da régua |
+| `T1` | o número — ou o caracter de terminal indefinido quando é **`0`** |
+| outra | não mexe |
+
+**Quirk reproduzido:** a sentinela do original é a **string `OK`** — um atributo cujo valor
+calculado for exatamente `OK` **não é escrito** (é o "só grava o que muda" do original, com um
+literal no lugar de um nulo). Entrou também o campo de configuração
+`SeparadorPainelRegua` (chave/variável/Texto/Definir/Ambiente, padrão `/`).
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63) — contador
+independente no load:
+
+```text
+contador: TOTAL;bornes;199;comPainel;0
+          BORNE;4E8B;H_B_FECH_CIMA_PNL_REGUA;PNL-GGE/R9;;;1     <- NOME1 já na forma painel/régua
+comando:  CorrigePainelET1DosBornes: 0 atributo(s) regravado(s) em 199 de 199 borne(s) (31 régua(s) no dicionário).
+          2ª chamada: 0 de novo (idempotência)
+```
+
+Ou seja: **todos os 199 bornes** casaram com uma régua (das **31** do dicionário) e nenhum
+atributo precisou mudar — esta cópia não tem os atributos `PAINEL`/`REGUA`, e o `NOME1`/`T1` já
+estão certos. O caminho de escrita fica provado pelos 5 testes das regras.
+
+> **Classificação registrada:** o `CorrigeJanelas` é só de UI (`Geral.moveFormOrigem()`) e sai do
+> recorte.
+
 **Rodada 95 — `CorrigeTextosDasLigacoes`: um comando **duplicado** no reverso.**
 O achado é do tipo que só aparece lendo o corpo: o `CorrigeTextosDasLigacoes` do
 `clsUtilitarios.cs` tem o **mesmo corpo** do `ApagaBlocosMirror` — o laço idêntico
@@ -3351,7 +3387,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 481 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 486 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real
