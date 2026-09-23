@@ -30,9 +30,13 @@ def make_project_db(target: Path) -> Path:
             (2, 'PT2', 'ana', 'bia'),
             (1, 'PT1', 'ana', 'bia');
 
-        INSERT INTO Materiais(Indice, CodigoInterno, CodigoCliente, DescricaoResumida, Fabricante)
-            VALUES (1, 1001, 'CLI-1', 'Disjuntor 20A', 'Siemens'),
-                   (2, 1002, 'CLI-2', 'Borne 4mm', 'Wago');
+        INSERT INTO Materiais(
+            Indice, CodigoInterno, CodigoCliente, DescricaoResumida, DescricaoCompleta,
+            Modelo, Fabricante
+        )
+            VALUES (1, 1001, 'CLI-1', 'Disjuntor 20A', 'DISJUNTOR 20A COMPLETA', 'DJ-20A',
+                    'Siemens'),
+                   (2, 1002, 'CLI-2', 'Borne 4mm', 'BORNE 4MM COMPLETA', 'BR-4', 'Wago');
 
         INSERT INTO ModelosCabos(Indice, CodigoCliente, Descricao) VALUES
             (1, 'M-1', 'Cabo blindado');
@@ -43,11 +47,15 @@ def make_project_db(target: Path) -> Path:
                    (12, 'R0', 1, 2, 1, 'B1', '1', 0, 0);
 
         INSERT INTO Interligacao4(
-            Indice, Revisao, DWG, Tag_Cabo, Num_Veia, Painel1, Tag1, Painel2, Tag2
+            Indice, Revisao, DWG, Tag_Cabo, Num_Veia, Painel1, Pagina1, Tag1, NRegua1, Terminal1,
+            Documento1, Painel2, Pagina2, Tag2, NRegua2, Terminal2, Documento2
         )
-            VALUES (20, 'R0', 1, 'C-100', 1, 1, 'A1', 2, 'B1'),
-                   (21, 'R0', 1, 'C-100', 2, 1, 'A2', 2, 'B2'),
-                   (22, 'R0', 1, 'C-200', 1, 1, 'A1', 3, 'C1');
+            VALUES (20, 'R0', 1, 'C-100', 1, 1, '8', 'A1', '', '1', 'DOC-A',
+                    2, '9', 'B1', 'R1', NULL, 'DOC-B'),
+                   (21, 'R0', 1, 'C-100', 2, 1, '8', 'A2', '', '2', 'DOC-A',
+                    2, '9', 'B2', '', '2', 'DOC-B'),
+                   (22, 'R0', 1, 'C-200', 1, 1, '8', 'A1', '', '1', 'DOC-A',
+                    3, '9', 'C1', '', '1', 'DOC-C');
 
         INSERT INTO Circuitos4F(Indice, Revisao, DWG, Painel, Circuito, Potencial)
             VALUES (30, 'R0', 1, 1, 'C1', 5),
@@ -75,8 +83,10 @@ def make_project_db(target: Path) -> Path:
             VALUES (80, 1, 5, 'R1', '12', 2.0, 0),
                    (81, 1, 5, 'R1', '11', 1.0, 0);
 
-        INSERT INTO Cabos4(Indice, Revisao, Tag, Blindagem)
-            VALUES (90, 'R0', 'C-100', 0);
+        INSERT INTO Cabos4(
+            Indice, Revisao, Tag, Blindagem, Formacao, Funcao, Aterrar, Pn1, Pn2, Cabos, Comprimento
+        )
+            VALUES (90, 'R0', 'C-100', 1, '3x2,5', 'F1', 3, 1, 2, 2, 12.5);
 
         INSERT INTO Contatos4F(Indice, Revisao, DWG, IndexModelo, NomeModelo, Terminal)
             VALUES (120, 'R0', 1, 7, 'FUSIVEL', '1');
@@ -88,8 +98,10 @@ def make_project_db(target: Path) -> Path:
         INSERT INTO Bornes4F(Indice, Revisao, Painel, IndexRegua, Regua, Borne, Ordem, bReserva)
             VALUES (110, 'R0', 503, 5, 'R1', '11', 1.0, 0);
 
-        INSERT INTO Veias4(Indice, Revisao, Tag, Num_Veia, Uso)
-            VALUES (95, 'R0', 'C-100', 1, 0);
+        INSERT INTO Veias4(Indice, Revisao, Tag, Num_Veia, Uso, Nome_Veia, Funcao)
+            VALUES (95, 'R0', 'C-100', 1, 0, 'V1', 'FV'),
+                   (96, 'R0', 'C-100', 2, 0, '', 'FV2'),
+                   (97, 'R0', 'C-100', -60, 0, 'RESERVA', '');
 
         INSERT INTO Plaquetas4(Indice, DWG, Painel, Tag, Modelo, Desc1, Desc2)
             VALUES (130, 1, 1, 'PLACA-B', 'MB', 'Placa B', NULL),
@@ -97,11 +109,13 @@ def make_project_db(target: Path) -> Path:
                    (132, 1, 2, 'PLACA-C', 'MC', 'Placa C', NULL);
 
         INSERT INTO ListaMateriais(
-            Indice, DWG, Painel, Tag, IndiceMaterial, Quantidade, Ordem, Avulso, Handle, OrdemLay
+            Indice, DWG, Painel, Tag, IndiceMaterial, Quantidade, Ordem, Avulso, Handle,
+            IndiceLM, OrdemLay
         )
-            VALUES (140, 1, 1, 'D2', 459, 1, 2, 0, '4B', 12),
-                   (141, 1, 1, 'R6', 476, 63, 1, 0, 'BORNE', 10000),
-                   (142, 1, 2, 'MF', 518, 1, 1, 1, NULL, 0);
+            VALUES (140, 1, 1, 'D2', 459, 1, 2, 0, '4B', 0, 12),
+                   (141, 1, 1, 'R6', 476, 63, 1, 0, 'BORNE', 0, 10000),
+                   (143, 1, 1, 'D1', 1001, 2, 1, 0, NULL, 7, 0),
+                   (142, 1, 2, 'MF', 518, 1, 1, 1, NULL, 44, 0);
         """
     )
     connection.commit()
@@ -239,10 +253,11 @@ async def test_cabos4_e_veias4_por_revisao(project_db: Path):
 
     cabos = await handlers.dispatch("cabos4_por_revisao", {})
     assert [c["Tag"] for c in cabos["cabos"]] == ["C-100"]
-    assert cabos["cabos"][0]["Blindagem"] is False
+    assert cabos["cabos"][0]["Blindagem"] is True
 
     veias = await handlers.dispatch("veias4_por_revisao", {"revisao": "R0"})
-    assert [v["Num_Veia"] for v in veias["veias"]] == [1]
+    # A ordem é `Tag, Num_Veia`: a veia de reserva (-60) vem primeiro.
+    assert [v["Num_Veia"] for v in veias["veias"]] == [-60, 1, 2]
 
     vazio = await handlers.dispatch("veias4_por_revisao", {"revisao": "R9"})
     assert vazio["veias"] == []
@@ -285,12 +300,14 @@ async def test_lista_materiais_por_painel_ordenada_pela_ordem_do_diagrama(projec
     handlers = Handlers(str(project_db))
 
     painel1 = await handlers.dispatch("lista_materiais_por_painel", {"painel": 1})
-    # A `Ordem` é a do diagrama (renumerada pelo `COMPLM`), não a alfabética.
-    assert [m["Tag"] for m in painel1["materiais"]] == ["R6", "D2"]
+    # A `Ordem` é a do diagrama (renumerada pelo `COMPLM`), não a alfabética: R6 e D1
+    # têm `Ordem` 1 e desempatam pelo `Indice` do banco; o D2 (Ordem 2) vem por último.
+    assert [m["Tag"] for m in painel1["materiais"]] == ["R6", "D1", "D2"]
     assert painel1["materiais"][0]["Quantidade"] == 63
     assert painel1["materiais"][0]["OrdemLay"] == 10000
     # `Avulso` é BOOL no schema: chega como `bool`, não como 0/1.
     assert painel1["materiais"][0]["Avulso"] is False
+    assert painel1["materiais"][1]["IndiceLM"] == 7
 
     # O item avulso (lançado à mão no app) aparece com a marca dele e sem handle.
     painel2 = await handlers.dispatch("lista_materiais_por_painel", {"painel": 2})
@@ -305,6 +322,98 @@ async def test_plaquetas_e_lista_de_material_exigem_painel(project_db: Path):
         await handlers.dispatch("plaquetas_por_painel", {})
     with pytest.raises(BadParams):
         await handlers.dispatch("lista_materiais_por_painel", {})
+
+
+async def test_relatorio_listar_traz_os_dois_relatorios(project_db: Path):
+    handlers = Handlers(str(project_db))
+    catalogo = await handlers.dispatch("relatorio_listar")
+
+    assert [r["id"] for r in catalogo["relatorios"]] == ["veias", "materiais"]
+    veias, materiais = catalogo["relatorios"]
+    assert veias["titulo"] == "Lista de Veias"
+    assert veias["colunas"][:4] == ["Tag", "Formação", "Função", "Veias"]
+    assert veias["parametros"] == ["painel", "revisao"]
+    # A lista de material não tem revisão: a tabela dela é por desenho.
+    assert materiais["titulo"] == "Lista de Materiais"
+    assert materiais["parametros"] == ["painel"]
+
+
+async def test_relatorio_materiais_junta_o_catalogo(project_db: Path):
+    handlers = Handlers(str(project_db))
+    gerado = await handlers.dispatch("relatorio_gerar", {"relatorio": "materiais", "painel": 1})
+
+    assert gerado["titulo"] == "Lista de Materiais"
+    assert gerado["colunas"] == [
+        "Índice",
+        "Quant",
+        "Tag",
+        "Descrição",
+        "Modelo",
+        "Fabricante",
+        "Código do Cliente",
+        "INDEXLM",
+    ]
+    # O `INNER JOIN` com `IndiceMaterial <> 0` descarta os 459 e 476 (sem catálogo):
+    # sobra só o material 1001, com a descrição **completa**.
+    assert gerado["total"] == 1
+    assert gerado["linhas"][0] == [
+        "1",
+        "2",
+        "D1",
+        "DISJUNTOR 20A COMPLETA",
+        "DJ-20A",
+        "Siemens",
+        "CLI-1",
+        "7",
+    ]
+
+    # No painel 2 só há o item avulso (518), que não está no catálogo.
+    painel2 = await handlers.dispatch("relatorio_gerar", {"relatorio": "materiais", "painel": 2})
+    assert painel2["linhas"] == []
+
+
+async def test_relatorio_veias_monta_as_duas_pontas(project_db: Path):
+    handlers = Handlers(str(project_db))
+    gerado = await handlers.dispatch(
+        "relatorio_gerar", {"relatorio": "veias", "painel": 1, "revisao": "R0"}
+    )
+
+    assert gerado["titulo"] == "Lista de Veias"
+    assert gerado["total"] == 2  # a veia -60 fica fora (`Num_Veia > -51`)
+    assert gerado["linhas"][0] == [
+        "C-100",
+        "2x(3x2,5)",  # `Cabos` > 1 e blindagem, como o original monta a formação
+        "F1",
+        "V1",
+        "PT1",
+        "A1",
+        "1",
+        "X",  # `Aterrar == 3` marca as duas pontas
+        "PT2",
+        "R1",  # o `NRegua` da ponta manda no lugar da tag
+        "?",  # terminal vazio vira o caracter indefinido
+        "X",
+        "DOC-A, DOC-B",
+        "8, 9",
+        "12.5",
+    ]
+    # A segunda veia não tem `Nome_Veia`: o rótulo é o número dela.
+    assert gerado["linhas"][1][3] == "2"
+    assert gerado["linhas"][1][5] == "A2"
+
+    # Sem o painel do cabo (3 não tem cabo nenhum), o relatório sai vazio.
+    vazio = await handlers.dispatch(
+        "relatorio_gerar", {"relatorio": "veias", "painel": 3, "revisao": "R0"}
+    )
+    assert vazio["linhas"] == []
+
+
+async def test_relatorio_veias_exige_revisao_e_id_conhecido(project_db: Path):
+    handlers = Handlers(str(project_db))
+    with pytest.raises(BadParams):
+        await handlers.dispatch("relatorio_gerar", {"relatorio": "veias", "painel": 1})
+    with pytest.raises(BadParams):
+        await handlers.dispatch("relatorio_gerar", {"relatorio": "fiacao", "painel": 1})
 
 
 async def test_catalogo_materiais_com_e_sem_filtro(project_db: Path):

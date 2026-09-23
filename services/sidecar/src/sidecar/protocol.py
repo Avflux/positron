@@ -178,6 +178,18 @@ class ListaMateriaisPorPainelParams(BaseModel):
     painel: int
 
 
+class RelatorioGerarParams(BaseModel):
+    """Gera um dos relatórios tabulares do app (ver `sidecar.relatorios`).
+
+    `revisao` é exigida pelos relatórios que leem tabelas com revisão (a lista de
+    veias); o `relatorio_listar` diz quais são.
+    """
+
+    relatorio: str = Field(min_length=1)
+    painel: int
+    revisao: str | None = None
+
+
 #: Erros do domínio do sidecar. `code` é o que a UI usa para decidir o que mostrar.
 class SidecarError(Exception):
     def __init__(self, code: str, message: str, detail: Any | None = None) -> None:

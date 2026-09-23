@@ -762,6 +762,83 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 65 — relatórios tabulares no app (`Lista de Veias` e `Lista de Materiais`).** O
+original tinha **38 telas** `frmRelatorio_*`, todas WinForms com grade e exportação para
+Excel/DWG. O caminho escolhido (decisão 9b do `PLANO.md`) é renderizar no **app Python**:
+o conteúdo vem do banco, que o plugin projeta e que já está conferido contra o produto.
+
+O motor vive em `services/sidecar/src/sidecar/relatorios/` — cada relatório é um módulo que
+declara as **colunas** (com o texto do resource `Mensagens` do original, extraído do
+`Eletron4.Resources.resx` descompilado) e monta as linhas com SQL leitor. Os textos usados
+ficam citados por **id** no módulo, então a conferência não depende de adivinhação:
+
+| Relatório | Título | Colunas (ids do `Mensagens`) | Consulta do reverso |
+|---|---|---|---|
+| `veias` | `Lista de Veias` (895) | Tag 176, Formação 1285, Função 1430, Veias 1239, Painel 1081, Dispositivos 518, Borne 1429, Aterrar 1243 (×2), Documento Funcional 253, Página 9, Comprimento 1246 | `CDadosAccessInterligacao.CarregaVeias4` + `CarregaUmaVeias4Copel` + `CarregaDadosInterlig4` |
+| `materiais` | `Lista de Materiais` (656) | Índice 915, Quant 1218, Tag 176, Descrição 64, Modelo 654, Fabricante 1169, Código do Cliente 1163, INDEXLM | `cDadosLM.CarregaDadosDispositivosMultiplosPN` (o caso de um painel) |
+
+Receita (o mesmo caminho da UI — handlers do sidecar, sem ZMQ e sem CAD):
+
+```powershell
+# o banco do ciclo completo, com o catalogo e o cadastro importados
+npm run cad:projeto -- -Desenho "..\Elet\Teste_projeto_real\Funcional.dwg" `
+  -Mdb "..\Elet\Teste_projeto_real\RCD.mdb" -Banco "$env:TEMP\positron-rel.db"
+
+& services\sidecar\.venv\Scripts\python.exe scripts\app-relatorios.py "$env:TEMP\positron-rel.db" `
+  --painel 503 --revisao R0
+```
+
+Medido em 2026-09-22 (DWG 63, painel 503, revisão `R0`):
+
+```text
+relatorios: veias, materiais
+
+== veias == Lista de Veias (22 linha(s))
+   Tag | Formação | Função | Veias | Painel | Dispositivos | Borne | Aterrar | Painel | ...
+   8-CCE-001 | 1x300 | - | 1 | PNL-GGE | ENTR 1 | A | - | 400G1 | SAÍDA | A | - | LOCAL-A | 8 | 0.0
+   ... mais 18 linha(s)
+
+== materiais == Lista de Materiais (86 linha(s))
+   Índice | Quant | Tag | Descrição | Modelo | Fabricante | Código do Cliente | INDEXLM
+   1 | 1 | TP1-X1 | TRANSFORMADOR DE POTENCIAL BT; ... | KP101 | KRON | - | 0
+   ... mais 82 linha(s)
+```
+
+**As duas contagens foram conferidas por SQL independente** (sem passar pelo relatório), no
+mesmo banco:
+
+| Conta | SQL | Relatório |
+|---|---|---|
+| `ListaMateriais` do painel 503 | 91 | — |
+| com `IndiceMaterial <> 0` **e** no catálogo (`INNER JOIN Materiais`) | **86** | **86** ✔ |
+| veias dos cabos do painel 503 (`Num_Veia > -51`) | 122 | — |
+| dessas, com trecho próprio no `Interligacao4` | **20** | — |
+| veias de reserva (índice ≤ 0) que caem no trecho da **seguinte** | **2** | — |
+| **total do relatório** | 20 + 2 = **22** | **22** ✔ |
+
+O `+2` é uma regra do original reproduzida de propósito (item 8 do módulo): nas veias de
+índice negativo o `CarregaVeias4` ainda tenta o trecho da veia **seguinte**
+(`mVeia[k + 1].iIndice`). Sem ela o relatório daria 20.
+
+Dois detalhes do relatório de materiais que vieram do original e não são escolha nossa: a
+descrição é a **`DescricaoCompleta`** e o `INNER JOIN` com `IndiceMaterial <> 0`
+**descarta** as linhas sem material no catálogo (no painel 503, 5 das 91) — é por isso que
+o relatório tem 86 linhas onde a tela do painel mostra 91.
+
+O passo **5b** do `cad-projeto-e2e.ps1` roda os relatórios no ciclo, então a regressão é
+pega automaticamente:
+
+```text
+=== 5b/7 relatorios tabulares do app ===
+  == veias == Lista de Veias (22 linha(s))
+  == materiais == Lista de Materiais (86 linha(s))
+```
+
+O que **não** entrou: os relatórios de **Fiação** e **Interligação** (os outros dois
+tabulares do começo recomendado — remontam bornes/réguas/dispositivos de várias tabelas),
+a exportação para Excel/DWG/PDF e o `OrdenaAVeia` do original (a ordenação das veias de
+reserva usa heurísticas sobre o nome; aqui elas saem por `Num_Veia`). Ver `PLANO.md` §7.3.
+
 **Rodada 64 — as duas tabelas sem revisão no app (`plaquetas_por_painel` e
 `lista_materiais_por_painel`).** O `Plaquetas4` (rodada 61) e o `ListaMateriais` (rodada
 62) eram gravados pelo plugin e conferidos **direto no banco**, sem leitura no app. Aqui

@@ -172,6 +172,31 @@ export interface ListaMateriaisPorPainelParams {
   painel: number;
 }
 
+/** Um relatório tabular do app (o original tinha 37 telas `frmRelatorio_*`). */
+export interface RelatorioGerarParams {
+  relatorio: string;
+  painel: number;
+  /** Exigida pelos relatórios que leem tabelas com revisão (a lista de veias). */
+  revisao?: string | null;
+}
+
+export interface RelatorioInfo {
+  id: string;
+  titulo: string;
+  descricao: string;
+  colunas: string[];
+  /** Os parâmetros que o relatório aceita (`painel`, `revisao`, ...). */
+  parametros: string[];
+}
+
+export interface RelatorioGerado {
+  relatorio: string;
+  titulo: string;
+  colunas: string[];
+  linhas: string[][];
+  total: number;
+}
+
 /** Mapa método -> assinatura. É a única fonte de tipos para `request()`. */
 export interface MethodMap {
   ping: { params: Record<string, never>; result: PingResult };
@@ -247,6 +272,11 @@ export interface MethodMap {
     params: ListaMateriaisPorPainelParams;
     result: { materiais: ListaMateriais[] };
   };
+  relatorio_listar: {
+    params: Record<string, never>;
+    result: { relatorios: RelatorioInfo[] };
+  };
+  relatorio_gerar: { params: RelatorioGerarParams; result: RelatorioGerado };
 }
 
 export type Method = keyof MethodMap;

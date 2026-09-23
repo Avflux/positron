@@ -85,6 +85,11 @@ Write-Host "=== 5/7 consultas do app ===" -ForegroundColor Cyan
 & $python (Join-Path $PSScriptRoot 'app-consultas.py') $Banco --painel $Painel | ForEach-Object { "  $_" }
 if ($LASTEXITCODE -ne 0) { throw "as consultas do app falharam (exit $LASTEXITCODE)" }
 
+Write-Host "=== 5b/7 relatorios tabulares do app ===" -ForegroundColor Cyan
+& $python (Join-Path $PSScriptRoot 'app-relatorios.py') $Banco --painel $Painel --revisao $Revisao --amostra 2 |
+    Select-String -Pattern "^== |^   \.\.\. mais" | ForEach-Object { "  " + $_.Line }
+if ($LASTEXITCODE -ne 0) { throw "os relatorios do app falharam (exit $LASTEXITCODE)" }
+
 Write-Host "=== 6/7 relatorio do VERIF contra a linha de base ===" -ForegroundColor Cyan
 if (-not (Test-Path $relatorio)) { throw "o ELETREL nao escreveu o relatorio em $relatorio" }
 & $python (Join-Path $PSScriptRoot 'cad-verif-baseline.py') $relatorio | ForEach-Object { "  $_" }

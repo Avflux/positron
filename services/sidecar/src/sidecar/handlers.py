@@ -14,7 +14,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from . import __version__
+from . import __version__, relatorios
 from .db import ProjectDatabase
 from .protocol import (
     AplicacoesPorRevisaoParams,
@@ -39,6 +39,7 @@ from .protocol import (
     Portas4FPorRevisaoParams,
     Portas4IPorModeloParams,
     ProjetoAbrirParams,
+    RelatorioGerarParams,
     SidecarError,
     UnknownMethod,
     Veias4PorRevisaoParams,
@@ -77,6 +78,8 @@ class Handlers:
             "contatos4f_por_revisao": self._contatos4f_por_revisao,
             "plaquetas_por_painel": self._plaquetas_por_painel,
             "lista_materiais_por_painel": self._lista_materiais_por_painel,
+            "relatorio_listar": self._relatorio_listar,
+            "relatorio_gerar": self._relatorio_gerar,
         }
 
     @property
@@ -190,6 +193,39 @@ class Handlers:
     async def _lista_materiais_por_painel(self, params: dict[str, Any]) -> dict[str, Any]:
         parsed = _validate("lista_materiais_por_painel", ListaMateriaisPorPainelParams, params)
         return {"materiais": await self._require_db().lista_materiais_por_painel(parsed.painel)}
+
+    # ------------------------------------------------------------- relatórios
+    #
+    # Os relatórios tabulares do app (o original tinha 37 telas `frmRelatorio_*`, a
+    # maioria dependente do CAD). A montagem de cada um vive em `sidecar.relatorios`.
+
+    async def _relatorio_listar(self, _params: dict[str, Any]) -> dict[str, Any]:
+        return {"relatorios": relatorios.listar()}
+
+    async def _relatorio_gerar(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("relatorio_gerar", RelatorioGerarParams, params)
+        relatorio = relatorios.buscar(parsed.relatorio)
+        if relatorio is None:
+            disponiveis = ", ".join(item["id"] for item in relatorios.listar())
+            raise BadParams(
+                "relatorio_gerar",
+                f"relatório desconhecido: {parsed.relatorio!r} (há: {disponiveis})",
+            )
+
+        dados = {"painel": parsed.painel}
+        if "revisao" in relatorio.parametros:
+            if not parsed.revisao:
+                raise BadParams("relatorio_gerar", f"o relatório {relatorio.id!r} exige 'revisao'")
+            dados["revisao"] = parsed.revisao
+
+        linhas = await relatorio.linhas(self._require_db(), dados)
+        return {
+            "relatorio": relatorio.id,
+            "titulo": relatorio.titulo,
+            "colunas": list(relatorio.colunas),
+            "linhas": linhas,
+            "total": len(linhas),
+        }
 
     def _require_db(self) -> ProjectDatabase:
         if self._db is None:

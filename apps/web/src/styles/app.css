@@ -141,6 +141,15 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
 }
 .busca button:disabled { opacity: .6; cursor: default; }
 
+/* Controles dos relatórios tabulares (RelatoriosPanel) */
+.relatorio-controles { display: flex; gap: 16px; align-items: center; margin-bottom: 8px; }
+.relatorio-controles label { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+.relatorio-controles select {
+  max-width: 280px; padding: 8px 10px;
+  background: var(--bg); color: var(--fg);
+  border: 1px solid var(--panel-border); border-radius: 6px;
+}
+
 /* Drill-down do modelo/régua (PortasPanel/BornesPanel) */
 .drill {
   margin-top: 12px; padding: 12px;

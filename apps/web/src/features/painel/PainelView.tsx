@@ -12,6 +12,7 @@ import { JumpersPanel } from "@/features/jumpers/JumpersPanel";
 import { ListaMateriaisPanel } from "@/features/materiais/ListaMateriaisPanel";
 import { PlaquetasPanel } from "@/features/plaquetas/PlaquetasPanel";
 import { PortasPanel } from "@/features/portas/PortasPanel";
+import { RelatoriosPanel } from "@/features/relatorios/RelatoriosPanel";
 
 export function PainelView({ painel }: { painel: Paineis }) {
   const {
@@ -58,6 +59,7 @@ export function PainelView({ painel }: { painel: Paineis }) {
             materiais={materiais}
             modelosCabo={modelosCabo}
           />
+          <RelatoriosPanel painel={painel.Indice} />
         </>
       )}
     </section>
