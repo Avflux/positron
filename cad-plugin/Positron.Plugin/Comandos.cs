@@ -1480,6 +1480,36 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>pzDiag</c> — a ferramenta de diagnóstico em C# (substitui os contadores LISP):
+        /// escreve um arquivo com a seção das portas (o estado que o Indefine muda) e a das
+        /// cores (a diferença entre a referência e a definição). O caminho vem de
+        /// POSITRON_DIAG ou, sem ele, de %TEMP%\positron-diag.txt.
+        /// </summary>
+        [CommandMethod("pzDiag")]
+        public void DiagnosticoDoDesenho()
+        {
+            Plugin.Escrever(ExecutarDiagnostico());
+        }
+
+        /// <summary>Escreve o diagnóstico e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarDiagnostico()
+        {
+            try
+            {
+                Diagnostico.DiagnosticoDoDesenho.Resultado resultado =
+                    Diagnostico.DiagnosticoDoDesenho.Escrever();
+
+                return "pzDiag: " + resultado.Portas + " porta(s), " + resultado.Referencias
+                    + " referência(s) de cor e " + resultado.Diferencas + " diferença(s) — escrito em "
+                    + resultado.Caminho + ".";
+            }
+            catch (System.Exception erro)
+            {
+                return "pzDiag: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

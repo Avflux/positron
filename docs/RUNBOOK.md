@@ -762,6 +762,42 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 103 — o `pzDiag`: a ferramenta de diagnóstico em **C#** (e o fecho do contador da cor).**
+A lição das rodadas 90/91/102 era que o gargalo das evidências era o **LISP** — contador sem
+saída, rastro parando em `0 load`, parênteses. A saída foi trocar a ferramenta de linguagem.
+
+**O comando** `pzDiag` escreve, no runtime do plugin (sem `entget`/`tblsearch`/parênteses), um
+arquivo com **duas seções**:
+
+- `PORTA`: cada bloco de Dispositivo tipo `E` com o par modelo/porta, os dois handles e os
+  atributos `NOME1`/`T1`/`PAINEL`/`EFC` (a metade que faltava da fixture do
+  `IndefineUmaPorta`);
+- `COR`: cada referência cujo nome de bloco tem definição, com a cor da referência e a da
+  definição, e o total de diferenças (o contador da cor).
+
+O formato é puro e testado (`RelatorioDeDiagnostico`), e o caminho sai de `POSITRON_DIAG` ou, sem
+ele, de `%TEMP%\positron-diag.txt`.
+
+**Medido no ZWCAD 2026 — na primeira tentativa** (`..\Elet\Teste_projeto_real\Funcional.dwg`,
+DWG 63):
+
+```text
+pzDiag: 45 porta(s), 1834 referência(s) de cor e 50 diferença(s) — escrito em C:\...\positron-diag.txt.
+--- arquivo ---
+TOTAL;portas;45;1834;50
+COR;396E;MascaraM.DWG;ALTERNATIVO;256;2
+...
+TOTAL;diferencas;50
+```
+
+**As 50 diferenças são exatamente as da rodada 91**, e todas no `MascaraM.DWG` — o bloco cujo nome
+quebra o quirk do `CorrigeCoresDosBlocos` — agora corroboradas por uma ferramenta **C#**,
+independente do LISP. **A pendência do contador da cor fica fechada.**
+
+> **O que sobra:** o desenho sintético da porta fora do dicionário (para exercitar o
+> `IndefineUmaPorta`) — o dump está pronto nesta ferramenta e a criação pode ir pela mesma via,
+> em C#.
+
 **Rodada 102 — o prefixo/sufixo do cruzamento na `ORIGEM` (correção de fidelidade).**
 A rodada 100 portou a `ORIGEM` como o **layer** do texto da definição, assumindo vazios os dois
 campos `Conf.PrefixoCruzInterno`/`SufixoCruzInterno`. Caçando os padrões no reverso
@@ -3557,7 +3593,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 502 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 506 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real
