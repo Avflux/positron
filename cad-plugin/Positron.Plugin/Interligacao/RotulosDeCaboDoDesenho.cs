@@ -56,6 +56,26 @@ namespace Positron.Plugin.Interligacao
 
         internal static Resultado Executar()
         {
+            return Executar(false);
+        }
+
+        /// <summary>
+        /// <c>RecriaTextosCaboEletrosul</c> — o irmão da Eletrosul: **a mesma limpeza** e um
+        /// rótulo por trecho, mas com a geometria própria
+        /// (<c>criarTextoNomeCaboEletrosul</c>: alinhamento no **meio do segmento**, rotação
+        /// 0 e horizontal à esquerda), **sem** o teste de "já tem rótulo" (o original
+        /// reinsere para todo trecho) e com <c>iModeloVeiaFuncao = 1</c>.
+        ///
+        /// Fora do recorte: o <c>AdicionaCaboEletrosul</c> (duas entidades extras com o
+        /// XData <c>ELETROSUL</c>) e a marca <c>H</c>/<c>V</c> que ele grava.
+        /// </summary>
+        internal static Resultado ExecutarEletrosul()
+        {
+            return Executar(true);
+        }
+
+        private static Resultado Executar(bool eletrosul)
+        {
             Resultado resultado = new Resultado();
 
             Document documento = Application.DocumentManager.MdiActiveDocument;
@@ -65,55 +85,20 @@ namespace Positron.Plugin.Interligacao
             }
 
             ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
-            HashSet<string> singelos = LerSingelos(config, resultado);
+            bool semCatalogo;
+            int quantosSingelos;
+            HashSet<string> singelos = LerSingelos(config, out semCatalogo, out quantosSingelos);
+            resultado.SemCatalogo = semCatalogo;
+            resultado.CabosSingelos = quantosSingelos;
             Database banco = documento.Database;
             string usuario = Environment.UserName;
             string data = DateTime.Now.ToString();
 
-            // Fase 1 — a limpeza do `clsEletron.ApagarTodosOsTextosDasVeias`.
-            using (Transaction transacao = banco.TransactionManager.StartTransaction())
-            {
-                BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForRead);
-                foreach (ObjectId id in espaco)
-                {
-                    Entity entidade = transacao.GetObject(id, OpenMode.ForRead) as Entity;
-                    if (entidade == null)
-                    {
-                        continue;
-                    }
-
-                    resultado.EntidadesLidas++;
-
-                    bool apagar;
-                    if (entidade is DBText)
-                    {
-                        short tipo;
-                        bool auxiliar = AuxInterligacaoXData.Ler(
-                            LerXData(entidade, AuxInterligacaoXData.AppName), out tipo);
-                        apagar = CorrecaoTextosCabo.ApagarRotulo(
-                            true, false, auxiliar, tipo, config.InterligacaoLayout, false);
-                    }
-                    else
-                    {
-                        bool eletrosul = TemXData(entidade, AuxInterligacaoEletrosulXData.AppName);
-                        bool auxiliar = TemXData(entidade, AuxInterligacaoXData.AppName);
-                        apagar = CorrecaoTextosCabo.ApagarRotulo(
-                            false, eletrosul, auxiliar, 0, config.InterligacaoLayout, false);
-                    }
-
-                    if (!apagar)
-                    {
-                        continue;
-                    }
-
-                    entidade.UpgradeOpen();
-                    entidade.Erase();
-                    entidade.DowngradeOpen();
-                    resultado.RotulosApagados++;
-                }
-
-                transacao.Commit();
-            }
+            // Fase 1 — a limpeza do `clsEletron.ApagarTodosOsTextosDasVeias`, a mesma
+            // das duas recriações (helper compartilhado).
+            ApagarRotulosDeCabo.Resultado limpeza = ApagarRotulosDeCabo.Executar(config);
+            resultado.EntidadesLidas = limpeza.EntidadesLidas;
+            resultado.RotulosApagados = limpeza.Apagados;
 
             // Fase 2 — reinserir o que ficou sem rótulo (o `InsereTextosDeCabos`).
             using (Transaction transacao = banco.TransactionManager.StartTransaction())
@@ -135,7 +120,8 @@ namespace Positron.Plugin.Interligacao
                     {
                         short tipo;
                         string handle;
-                        if (AuxInterligacaoXData.Ler(
+                        if (!eletrosul
+                            && AuxInterligacaoXData.Ler(
                                 LerXData(entidade, AuxInterligacaoXData.AppName), out tipo, out handle)
                             && (tipo == CorrecaoTextosCabo.TipoRotuloCabo || tipo == 3))
                         {
@@ -175,7 +161,10 @@ namespace Positron.Plugin.Interligacao
                     handles.Add(trecho.Handle);
                 }
 
-                IReadOnlyList<string> semRotulo = CorrecaoTextosCabo.SemRotulo(handles, rotulados);
+                // A Eletrosul **não** olha se o trecho já tem rótulo: reinsere para todos.
+                IReadOnlyList<string> semRotulo = eletrosul
+                    ? handles
+                    : CorrecaoTextosCabo.SemRotulo(handles, rotulados);
                 resultado.TrechosComRotulo = trechos.Count - semRotulo.Count;
 
                 TextStyleTable estilos =
@@ -200,12 +189,16 @@ namespace Positron.Plugin.Interligacao
                         config.SeparadorCaboVeia,
                         VerificadorTerminalIndefinido,
                         singelos.Contains(trecho.Ligacao.Tag_Cabo));
-                    PosicaoDoRotulo posicao = PosicaoDoRotuloDeCabo.Calcular(trecho.Vertices);
+                    PosicaoDoRotulo posicao = eletrosul
+                        ? PosicaoDoRotuloDeCabo.CalcularEletrosul(trecho.Vertices)
+                        : PosicaoDoRotuloDeCabo.Calcular(trecho.Vertices);
 
                     DBText novo = new DBText();
                     novo.TextStyleId = estiloId;
                     novo.VerticalMode = TextVerticalMode.TextBottom;
-                    novo.HorizontalMode = TextHorizontalMode.TextCenter;
+                    novo.HorizontalMode = eletrosul
+                        ? TextHorizontalMode.TextLeft
+                        : TextHorizontalMode.TextCenter;
                     novo.ColorIndex = (short)config.CorTextoInterligacao;
                     novo.Layer = trecho.Layer;
                     novo.TextString = texto;
@@ -222,7 +215,7 @@ namespace Positron.Plugin.Interligacao
                         trecho.Handle, CorrecaoTextosCabo.TipoRotuloCabo, string.Empty, usuario, data, string.Empty));
 
                     // `ilig.iModeloVeiaFuncao = num` (0 no modelo padrão).
-                    trecho.Ligacao.IndexModeloVeiaFuncao = 0;
+                    trecho.Ligacao.IndexModeloVeiaFuncao = eletrosul ? 1 : 0;
                     Polyline linha = transacao.GetObject(trecho.Id, OpenMode.ForWrite) as Polyline;
                     if (linha != null)
                     {
@@ -255,12 +248,18 @@ namespace Positron.Plugin.Interligacao
         }
 
         /// <summary>Os cabos <c>singelos</c> do catálogo: <c>SELECT Tag FROM Cabos WHERE Formacao like 1x</c>.</summary>
-        private static HashSet<string> LerSingelos(ConfiguracaoPositron config, Resultado resultado)
+        /// <summary>
+        /// Os cabos **singelos** do catálogo — o mesmo <c>CaboSingelo</c> das duas
+        /// recriações de rótulo (compartilhado).
+        /// </summary>
+        internal static HashSet<string> LerSingelos(ConfiguracaoPositron config, out bool semCatalogo, out int quantos)
         {
             HashSet<string> singelos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            semCatalogo = false;
+            quantos = 0;
             if (string.IsNullOrEmpty(config.Banco))
             {
-                resultado.SemCatalogo = true;
+                semCatalogo = true;
                 return singelos;
             }
 
@@ -278,10 +277,10 @@ namespace Positron.Plugin.Interligacao
             }
             catch (Exception)
             {
-                resultado.SemCatalogo = true;
+                semCatalogo = true;
             }
 
-            resultado.CabosSingelos = singelos.Count;
+            quantos = singelos.Count;
             return singelos;
         }
 

@@ -89,6 +89,52 @@ namespace Positron.Data.Interligacao
             return posicao;
         }
 
+        /// <summary>
+        /// A geometria do <c>criarTextoNomeCaboEletrosul</c> (o rótulo da variante
+        /// Eletrosul): o **mesmo segmento** do rótulo padrão, mas com o afastamento
+        /// perpendicular **zero** (`num5 = 0.0`) e a rotação **sempre 0** — o texto
+        /// sai horizontal, alinhado à esquerda (`TextHorizontalMode.TextLeft`) no
+        /// **meio do segmento**, e não bottom-center 1 unidade acima como no padrão.
+        /// </summary>
+        public static PosicaoDoRotulo CalcularEletrosul(IReadOnlyList<PontoDoRotulo> vertices)
+        {
+            PosicaoDoRotulo posicao = new PosicaoDoRotulo();
+            if (vertices == null || vertices.Count < 2)
+            {
+                return posicao;
+            }
+
+            PontoDoRotulo inicio;
+            PontoDoRotulo fim;
+            EscolherSegmento(vertices, out inicio, out fim);
+
+            double meio = Distancia(inicio, fim) / 2.0;
+            double angulo = Math.Round(Math.Atan2(fim.Y - inicio.Y, fim.X - inicio.X), 2);
+
+            posicao.AlignX = inicio.X + meio * Math.Cos(angulo);
+            posicao.AlignY = inicio.Y + meio * Math.Sin(angulo);
+            posicao.Rotation = 0.0;
+            return posicao;
+        }
+
+        /// <summary>
+        /// A marca <c>H</c>/<c>V</c> da Eletrosul (`sRotaHV`): <c>true</c> quando o
+        /// segmento escolhido é **vertical** — o teste do original é o X arredondado
+        /// em 2 casas igual nas duas pontas.
+        /// </summary>
+        public static bool SegmentoVertical(IReadOnlyList<PontoDoRotulo> vertices)
+        {
+            if (vertices == null || vertices.Count < 2)
+            {
+                return false;
+            }
+
+            PontoDoRotulo inicio;
+            PontoDoRotulo fim;
+            EscolherSegmento(vertices, out inicio, out fim);
+            return Math.Round(inicio.X, 2) == Math.Round(fim.X, 2);
+        }
+
         private static void EscolherSegmento(
             IReadOnlyList<PontoDoRotulo> vertices,
             out PontoDoRotulo inicio,

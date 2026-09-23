@@ -125,6 +125,48 @@ namespace Positron.Data.Tests
             Assert.Equal(0.0, PosicaoDoRotuloDeCabo.Calcular(new List<PontoDoRotulo>()).AlignX, 6);
         }
 
+        [Fact]
+        public void Eletrosul_poe_o_rotulo_no_meio_do_segmento()
+        {
+            // `num5 = 0.0` no `criarTextoNomeCaboEletrosul`: sem o afastamento de 1
+            // unidade do rótulo padrão, e a rotação é sempre 0.
+            PosicaoDoRotulo posicao = PosicaoDoRotuloDeCabo.CalcularEletrosul(Vertices(0, 0, 10, 0));
+
+            Assert.Equal(5.0, posicao.AlignX, 6);
+            Assert.Equal(0.0, posicao.AlignY, 6);
+            Assert.Equal(0.0, posicao.Rotation, 6);
+        }
+
+        [Fact]
+        public void Eletrosul_no_segmento_vertical_nao_gira()
+        {
+            PosicaoDoRotulo posicao = PosicaoDoRotuloDeCabo.CalcularEletrosul(Vertices(0, 0, 0, 10));
+
+            Assert.InRange(posicao.AlignX, -0.01, 0.01);
+            Assert.Equal(5.0, posicao.AlignY, 3);
+            Assert.Equal(0.0, posicao.Rotation, 6);
+        }
+
+        [Fact]
+        public void Eletrosul_marca_o_segmento_vertical()
+        {
+            // O `sRotaHV` do original: "H" quando o X arredondado bate nas duas pontas.
+            Assert.True(PosicaoDoRotuloDeCabo.SegmentoVertical(Vertices(0, 0, 0, 10)));
+            Assert.False(PosicaoDoRotuloDeCabo.SegmentoVertical(Vertices(0, 0, 10, 0)));
+
+            // Com três vértices vale o maior segmento — aqui o vertical.
+            Assert.True(PosicaoDoRotuloDeCabo.SegmentoVertical(Vertices(0, 0, 1, 0, 1, 10)));
+        }
+
+        [Fact]
+        public void Eletrosul_sem_vertices_zera()
+        {
+            PosicaoDoRotulo posicao = PosicaoDoRotuloDeCabo.CalcularEletrosul(null);
+            Assert.Equal(0.0, posicao.AlignX, 6);
+            Assert.Equal(0.0, posicao.AlignY, 6);
+            Assert.False(PosicaoDoRotuloDeCabo.SegmentoVertical(null));
+        }
+
         // ── Quem sai e quem entra ─────────────────────────────────────────────
 
         [Fact]

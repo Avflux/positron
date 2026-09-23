@@ -762,6 +762,47 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 79 — `RecriaTextosCaboEletrosul` (frente 2 do §7.6, parte 10: o irmão da Eletrosul).**
+O segundo comando da dupla: **a mesma limpeza** da rodada 78 e um rótulo por trecho, com a
+geometria própria da Eletrosul.
+
+| Peça | Padrão (rodada 78) | Eletrosul (rodada 79) |
+|---|---|---|
+| alinhamento | meio do segmento + **1** unidade na perpendicular | **meio do segmento** (`num5 = 0.0`) |
+| rotação | a do segmento (com meia volta fora do meio-plano) | **0** sempre |
+| modo horizontal | bottom-**center** | bottom-**left** |
+| quem entra | só o trecho **sem** rótulo | **todo** trecho |
+| `iModeloVeiaFuncao` | 0 | **1** |
+| texto, catálogo, XData | — | **os mesmos** (`TextoDoRotuloDeCabo`, `LerSingelos`, `AUXINTERLIG` tipo 1) |
+| limpeza | `clsEletron.ApagarTodosOsTextosDasVeias` | **a mesma** (helper `ApagarRotulosDeCabo`) |
+
+**Medido na fixture** (`scripts/cad-fixture-rotulos.lsp`, a mesma da rodada 78, só trocando o
+comando): o alinhamento sai no **meio** do segmento e a rotação fica 0 —
+
+```text
+RecriaTextosCaboEletrosul: 3 rótulo(s) apagado(s) e 1 reinserido(s) de 1 trecho(s) (0 cabo(s) singelo(s) no catálogo).
+TRECHO;240;CABO-1;2;1
+AUXILIAR;AUXINTERLIG;1;CABO-1/2;(5.0 0.444065 0.0);(5.0 0.0 0.0);0.0     <- (5.0 1.0 0.0) no padrão
+```
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63) — os mesmos números e
+**os mesmos textos** da rodada 78 (o texto não depende da geometria):
+
+```text
+RecriaTextosCaboEletrosul: 24 rótulo(s) apagado(s) e 20 reinserido(s) de 20 trecho(s) (305 cabo(s) singelo(s) no catálogo).
+RecriaTextosCaboEletrosul: 20 rótulo(s) apagado(s) e 20 reinserido(s) de 20 trecho(s)   <- 2a passada: apaga e recria
+INT: 20 linha(s) gravada(s) em Interligacao4 (199 borne(s)); 265/216/697/2388.
+VERIF: 249 problema(s) — fiação: 0; interligação: 0; modelos: 0; desenho: 249.
+```
+
+E o contador confirma os 20 rótulos com os textos do produto
+(`TOTAL;20;AUXINTERLIG;20;ELETROSUL;0`).
+
+> **Fora do recorte, documentado:** o `AdicionaCaboEletrosul` (que o
+> `criarTextoNomeCaboEletrosul` chama e que cria **duas entidades extras** com o XData
+> `ELETROSUL`, mais a marca `H`/`V`) e o `bApaga`. A marca `H`/`V` já está isolada em
+> `PosicaoDoRotuloDeCabo.SegmentoVertical`, pronta para o dia em que essas entidades entrarem.
+
 **Rodada 78 — `RecriaTextosCabo` (frente 2 do §7.6, parte 9: o par de escrita dos rótulos).**
 Fecha o par da limpeza da rodada 75: o `clsEletron.RecriaTextosCabo` apaga os rótulos
 auxiliares e **reinsere um por trecho de interligação** que ficou sem rótulo, no **modelo
@@ -2710,7 +2751,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 422 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 426 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

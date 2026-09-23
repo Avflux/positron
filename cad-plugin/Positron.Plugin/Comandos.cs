@@ -954,6 +954,41 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>RecriaTextosCaboEletrosul</c> — o irmão da Eletrosul do
+        /// <c>RecriaTextosCabo</c>: a mesma limpeza e um rótulo por trecho, com a
+        /// geometria própria (<c>criarTextoNomeCaboEletrosul</c>: meio do segmento,
+        /// rotação 0, horizontal à esquerda) e <c>iModeloVeiaFuncao = 1</c>.
+        /// </summary>
+        [CommandMethod("RecriaTextosCaboEletrosul")]
+        public void RecriarTextosDeCaboEletrosul()
+        {
+            Plugin.Escrever(ExecutarRecriarTextosDeCaboEletrosul());
+        }
+
+        /// <summary>Recria os rótulos no modelo da Eletrosul e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarRecriarTextosDeCaboEletrosul()
+        {
+            try
+            {
+                RotulosDeCaboDoDesenho.Resultado resultado = RotulosDeCaboDoDesenho.ExecutarEletrosul();
+
+                if (resultado.TrechosLidos == 0 && resultado.RotulosApagados == 0)
+                {
+                    return "RecriaTextosCaboEletrosul: o desenho não tem trechos de interligação nem rótulos auxiliares.";
+                }
+
+                return "RecriaTextosCaboEletrosul: " + resultado.RotulosApagados + " rótulo(s) apagado(s) e "
+                    + resultado.RotulosInseridos + " reinserido(s) de " + resultado.TrechosLidos
+                    + " trecho(s) (" + resultado.CabosSingelos + " cabo(s) singelo(s) no catálogo"
+                    + (resultado.SemCatalogo ? "; sem catálogo" : "") + ").";
+            }
+            catch (System.Exception erro)
+            {
+                return "RecriaTextosCaboEletrosul: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();
