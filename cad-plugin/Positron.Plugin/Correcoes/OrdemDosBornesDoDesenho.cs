@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using Positron.Data.Bornes;
 using Positron.Data.Correcoes;
 using Positron.Data.Fiacao;
@@ -22,7 +21,7 @@ namespace Positron.Plugin.Correcoes
     /// (<see cref="CorrecaoOrdemBornes"/>) e regrava o XData dos que mudam — o
     /// mesmo caminho de escrita do original
     /// (<c>XDataDispositivosMaster.GravarXDataDispBorne</c>), que **também resolve
-    /// o <c>lm</c>** no dicionário de réguas quando ele está zerado.
+    /// o <c>lm</c>** quando ele está zerado.
     ///
     /// Três fases, como o original: uma transação para ler os bornes, as leituras
     /// do dicionário <c>CENG_BORNES</c> (uma por régua, com cache) para planejar, e
@@ -57,7 +56,7 @@ namespace Positron.Plugin.Correcoes
             List<BorneDeOrdem> bornes = new List<BorneDeOrdem>();
             using (Transaction transacao = banco.TransactionManager.StartTransaction())
             {
-                BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForRead);
+                BlockTableRecord espaco = BornesDaCorrecao.EspacoDeModelo(transacao, banco, OpenMode.ForRead);
                 foreach (ObjectId id in espaco)
                 {
                     BlockReference bloco = transacao.GetObject(id, OpenMode.ForRead) as BlockReference;
@@ -66,7 +65,7 @@ namespace Positron.Plugin.Correcoes
                         continue;
                     }
 
-                    IReadOnlyList<TypedXData> valores = LerXData(bloco);
+                    IReadOnlyList<TypedXData> valores = BornesDaCorrecao.LerXData(bloco);
                     BorneXData borne;
                     if (valores == null || !BorneXData.Ler(valores, out borne))
                     {
@@ -112,19 +111,7 @@ namespace Positron.Plugin.Correcoes
             {
                 foreach (CorrecaoOrdemBornes.Ajuste ajuste in ajustes)
                 {
-                    long numero;
-                    if (!long.TryParse(ajuste.Handle, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out numero))
-                    {
-                        continue;
-                    }
-
-                    ObjectId id;
-                    if (!banco.TryGetObjectId(new Handle(numero), out id))
-                    {
-                        continue;
-                    }
-
-                    BlockReference bloco = transacao.GetObject(id, OpenMode.ForRead) as BlockReference;
+                    BlockReference bloco = BornesDaCorrecao.AbrirPorHandle(transacao, banco, ajuste.Handle);
                     if (bloco == null)
                     {
                         continue;
@@ -132,7 +119,7 @@ namespace Positron.Plugin.Correcoes
 
                     // O original relê o borne antes de gravar e só grava se a ordem
                     // ainda difere (protege contra o desenho ter mudado no meio).
-                    IReadOnlyList<TypedXData> valores = LerXData(bloco);
+                    IReadOnlyList<TypedXData> valores = BornesDaCorrecao.LerXData(bloco);
                     BorneXData borne;
                     if (valores == null || !BorneXData.Ler(valores, out borne) || borne.Ordem == ajuste.OrdemNova)
                     {
@@ -153,10 +140,10 @@ namespace Positron.Plugin.Correcoes
                         }
                     }
 
-                    GarantirAppName(transacao, banco, BorneXData.AppName);
+                    BornesDaCorrecao.GarantirAppName(transacao, banco, BorneXData.AppName);
                     DBObject objeto = bloco;
                     objeto.UpgradeOpen();
-                    objeto.XData = ParaResultBuffer(borne.ParaValores(
+                    objeto.XData = BornesDaCorrecao.ParaResultBuffer(borne.ParaValores(
                         Environment.UserName,
                         DateTime.Now.ToString()));
 
@@ -167,46 +154,6 @@ namespace Positron.Plugin.Correcoes
             }
 
             return resultado;
-        }
-
-        private static BlockTableRecord EspacoDeModelo(Transaction transacao, Database banco, OpenMode modo)
-        {
-            BlockTable tabela = (BlockTable)transacao.GetObject(banco.BlockTableId, modo);
-            return (BlockTableRecord)transacao.GetObject(tabela[BlockTableRecord.ModelSpace], modo);
-        }
-
-        private static IReadOnlyList<TypedXData> LerXData(BlockReference bloco)
-        {
-            ResultBuffer xdata = bloco.GetXDataForApplication(BorneXData.AppName)
-                ?? bloco.GetXDataForApplication(BorneXData.AppNameLegado);
-
-            return xdata == null ? null : XDataNeutro.Para(xdata);
-        }
-
-        private static ResultBuffer ParaResultBuffer(IReadOnlyList<TypedXData> valores)
-        {
-            TypedValue[] array = new TypedValue[valores.Count];
-            for (int i = 0; i < valores.Count; i++)
-            {
-                array[i] = new TypedValue(valores[i].Codigo, valores[i].Valor);
-            }
-
-            return new ResultBuffer(array);
-        }
-
-        /// <summary>Registra o app name antes de gravar (o borne que se regrava já o tem; sem registro o CAD lança).</summary>
-        private static void GarantirAppName(Transaction transacao, Database banco, string appName)
-        {
-            SymbolTable tabela = (SymbolTable)transacao.GetObject(banco.RegAppTableId, OpenMode.ForWrite);
-            if (tabela.Has(appName))
-            {
-                return;
-            }
-
-            RegAppTableRecord registro = new RegAppTableRecord();
-            registro.Name = appName;
-            tabela.Add(registro);
-            transacao.AddNewlyCreatedDBObject(registro, true);
         }
     }
 }

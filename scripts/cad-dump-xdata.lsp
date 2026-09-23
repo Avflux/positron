@@ -121,7 +121,9 @@
 ;; `BorneXData`: tipo, Numero, NumeroComplem, Ordem, IndiceRegua — o mesmo indice
 ;; "depois do app name" que o `pz-dump:entidade` usa. O ultimo campo, `Visivel`
 ;; (array[16] do leitor, vals[14] aqui), foi **acrescentado no fim** para o
-;; `CorrigeBornes` — quem lia os campos 1..7 continua lendo.
+;; `CorrigeBornes` e agora vao tambem o `lm` (vals[9], o campo que o `VERIF` olha
+;; e que o `SobeLm` sobe) e o `tipo` do borne (vals[13], que casa o `lm` com o
+;; dicionario `CENG_BORNES`) — quem lia os campos 1..7 continua lendo.
 (defun pz-dump:linha-borne (e d app / vals)
   (setq vals (mapcar 'cdr (cdr app)))
   (if (= (strcase (vl-princ-to-string (nth 0 vals))) "B")
@@ -132,7 +134,9 @@
             ";" (vl-princ-to-string (nth 6 vals))
             ";" (vl-princ-to-string (nth 7 vals))
             ";" (vl-princ-to-string (cdr (assoc 8 d)))
-            ";" (vl-princ-to-string (nth 14 vals)) "\n")
+            ";" (vl-princ-to-string (nth 14 vals))
+            ";" (vl-princ-to-string (nth 9 vals))
+            ";" (vl-princ-to-string (nth 13 vals)) "\n")
     nil))
 
 (defun pz-dump:bornes (f / sel i e d x linha att ad)

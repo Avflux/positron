@@ -52,7 +52,7 @@ namespace Positron.Plugin.Correcoes
 
             using (Transaction transacao = banco.TransactionManager.StartTransaction())
             {
-                BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForRead);
+                BlockTableRecord espaco = BornesDaCorrecao.EspacoDeModelo(transacao, banco, OpenMode.ForRead);
                 foreach (ObjectId id in espaco)
                 {
                     BlockReference bloco = transacao.GetObject(id, OpenMode.ForRead) as BlockReference;
@@ -61,7 +61,7 @@ namespace Positron.Plugin.Correcoes
                         continue;
                     }
 
-                    IReadOnlyList<TypedXData> valores = LerXData(bloco);
+                    IReadOnlyList<TypedXData> valores = BornesDaCorrecao.LerXData(bloco);
                     BorneXData borne;
                     if (valores == null || !BorneXData.Ler(valores, out borne))
                     {
@@ -87,10 +87,10 @@ namespace Positron.Plugin.Correcoes
                         }
                     }
 
-                    GarantirAppName(transacao, banco, BorneXData.AppName);
+                    BornesDaCorrecao.GarantirAppName(transacao, banco, BorneXData.AppName);
                     DBObject objeto = bloco;
                     objeto.UpgradeOpen();
-                    objeto.XData = ParaResultBuffer(borne.ParaValores(
+                    objeto.XData = BornesDaCorrecao.ParaResultBuffer(borne.ParaValores(
                         Environment.UserName,
                         DateTime.Now.ToString()));
 
@@ -101,45 +101,6 @@ namespace Positron.Plugin.Correcoes
             }
 
             return resultado;
-        }
-
-        private static BlockTableRecord EspacoDeModelo(Transaction transacao, Database banco, OpenMode modo)
-        {
-            BlockTable tabela = (BlockTable)transacao.GetObject(banco.BlockTableId, modo);
-            return (BlockTableRecord)transacao.GetObject(tabela[BlockTableRecord.ModelSpace], modo);
-        }
-
-        private static IReadOnlyList<TypedXData> LerXData(BlockReference bloco)
-        {
-            ResultBuffer xdata = bloco.GetXDataForApplication(BorneXData.AppName)
-                ?? bloco.GetXDataForApplication(BorneXData.AppNameLegado);
-
-            return xdata == null ? null : XDataNeutro.Para(xdata);
-        }
-
-        private static ResultBuffer ParaResultBuffer(IReadOnlyList<TypedXData> valores)
-        {
-            TypedValue[] array = new TypedValue[valores.Count];
-            for (int i = 0; i < valores.Count; i++)
-            {
-                array[i] = new TypedValue(valores[i].Codigo, valores[i].Valor);
-            }
-
-            return new ResultBuffer(array);
-        }
-
-        private static void GarantirAppName(Transaction transacao, Database banco, string appName)
-        {
-            SymbolTable tabela = (SymbolTable)transacao.GetObject(banco.RegAppTableId, OpenMode.ForWrite);
-            if (tabela.Has(appName))
-            {
-                return;
-            }
-
-            RegAppTableRecord registro = new RegAppTableRecord();
-            registro.Name = appName;
-            tabela.Add(registro);
-            transacao.AddNewlyCreatedDBObject(registro, true);
         }
     }
 

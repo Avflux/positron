@@ -762,6 +762,93 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 74 — `SobeLm` (comando próprio: fecha o `BorneSemLm`).** O `lm` que o
+`VERIF` aponta como zerado (`BorneSemLm`, **119** no desenho real) não tinha conserto no
+recoder — e o reverso também não tem botão para isso: o original só resolve o `lm` **na
+gravação** do borne (`GravarXDataDispBorne` → `DicionarioBorne.BuscaLMdaRegua`), e o campo que
+ele lê (+6/+7 do `REGUAS/MODELOS2`) é **zerado pelo próprio gravador**
+(`GravaOsModelosDeRegua` escreve `0` em +4..+8). O recoder resolve o `lm` por **duas
+fontes**, nesta ordem:
+
+| Fonte | O que é | Do original? |
+|---|---|---|
+| `REGUAS/MODELOS2` (+6 = tipo 0, +7 = tipo 1) | o campo que o `BuscaLMdaRegua` lê | ✅ o original |
+| dicionário de bornes da régua (`CENG_BORNES`, o `lm` do primeiro borne de reserva **do tipo**) | onde o dado existe de verdade | ⚠️ **desvio do recoder**, com medição |
+
+A regra é pura (`Positron.Data/Bornes/LmDasReguas.cs`) e só entra o borne **zerado** e
+**com** definição (`CorrecaoLmBornes.Planejar`); quem a régua não define fica como está — é
+**dado faltando no desenho**, não regra. O adapter
+(`Positron.Plugin/Correcoes/LmDosBornesDoDesenho.cs`) faz as duas transações do
+`GravarXDataDispBorne` e lê o dicionário **uma vez por régua**; o que era copiado em três
+adapters (`EspacoDeModelo`, `LerXData`, `ParaResultBuffer`, `GarantirAppName`,
+`AbrirPorHandle`) virou o `Positron.Plugin/Bornes/BornesDaCorrecao.cs`, adotado também
+pelas rodadas 71/72.
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63) — o zero é o
+**dado**: nenhuma das duas fontes define o `lm` dos 119, então a subida é 0 e o `VERIF` não
+muda:
+
+```text
+FIA: 494 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 83 posicao(oes)); 265 porta(s) em Portas4F;
+     168 borne(s) em Bornes4F; 70 contato(s) em Contatos4F; 83 dispositivo(s) em Dispositivos4F;
+     11 circuito(s) em Circuitos4F; 15 tipo(s) em Aplicacao4F.
+SobeLm: 0 de 199 borne(s) ganharam o lm da régua (119 com lm zerado; 119 sem definição para o tipo na régua).
+SobeLm: 0 de 199 borne(s) ganharam o lm da régua (119 com lm zerado; 119 sem definição para o tipo na régua).
+VERIF: 249 problema(s) — fiação: 0; interligação: 0; modelos: 0; desenho: 249.
+VERIF: por tipo — BorneSemLm: 119; BorneSemFiacao: 107; IntervaloBorneInvalido: 11; ReguaVazia: 10; SobreposicaoAusente: 2.
+```
+
+A conferência **independente** é o dump cru dos bornes (`POSITRON_XDATA_BORNES=1`), que passou
+a trazer o `lm` (o campo que o `VERIF` olha) e o `tipo` **no fim** da linha `BORNE` —
+quem lia os campos anteriores continua lendo:
+
+```powershell
+$env:POSITRON_XDATA = "$env:TEMP\positron-xdata.txt"
+$env:POSITRON_XDATA_BORNES = "1"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 -Comandos ELET `
+  -Fixture scripts/cad-dump-xdata.lsp -Desenho ..\Elet\Teste_projeto_real\Funcional.dwg -Banco "$env:TEMP\positron-limpeza.db"
+```
+
+```text
+BORNE;4E8B;B;1;;1.0;39;15;0;496;0      <- lm = 496 (já tinha)
+BORNE;1425A;B;412;;7.0;37;20;1;0;0     <- lm = 0: é um dos 119
+199 bornes: 119 com lm = 0, 73 com 476 e 7 com 496 — a mesma população de 119 do BorneSemLm
+```
+
+Receita do comando no desenho real (o `FIA` antes do `SobeLm` é o controle de regressão —
+seguem os mesmos 494/265/168/70/83/11/15 das rodadas anteriores):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 `
+  -Comandos "FIA,SobeLm,SobeLm,VERIF" `
+  -Desenho ..\Elet\Teste_projeto_real\Funcional.dwg -Banco "$env:TEMP\positron-limpeza.db"
+```
+
+Como o desenho real **não exercita a escrita** (não há o que subir), entra a fixture
+sintética `scripts/cad-fixture-lm.lsp` com as **duas fontes** — a régua 39 define `496` no
+`MODELOS2` e a régua 44 tem um borne de reserva com `497` no `CENG_BORNES`, mais um borne que
+já tinha `lm` (10) e **não** pode entrar:
+
+```powershell
+$env:POSITRON_XDATA = "$env:TEMP\positron-lm.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 1 -Revisao R0 `
+  -Fixture scripts/cad-fixture-lm.lsp -Comandos "SobeLm,SobeLm,(pz-lm:dump)" `
+  -Banco "$env:TEMP\positron-lm.db"
+```
+
+```text
+SobeLm: 3 de 4 borne(s) ganharam o lm da régua (3 com lm zerado; 0 sem definição para o tipo na régua).
+SobeLm: os 4 borne(s) do desenho já têm lm.          <- 2a passada: converge
+BORNE;247;496;0;39     <- caminho do REGUAS/MODELOS2
+BORNE;248;497;0;44     <- caminho do CENG_BORNES
+BORNE;249;497;0;44
+BORNE;24A;10;0;39      <- já tinha lm: não entrou
+```
+
+> **Nota de ferramenta:** a fixture é **auto-contida** (monta os dois dicionários, os bornes e
+> o próprio dump) porque o harness aceita **um** `-Fixture`; o `(pz-lm:dump)` roda como
+> comando, **depois** do `SobeLm`, e é o que confere fora do plugin os valores gravados.
+
 **Rodada 73 — `CorrigeStyle` (frente 2 do §7.6, parte 4: os estilos de texto).** O
 `corrigeStyles` do `Correcao.cs` mexe na **`TextStyleTable`** do desenho (não lê banco nem
 cadastro). O que é puro está em `Positron.Data/Correcoes/CorrecaoEstiloTexto.cs`:
@@ -2309,7 +2396,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 279 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 374 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

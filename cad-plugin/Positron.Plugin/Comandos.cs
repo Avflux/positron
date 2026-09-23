@@ -43,7 +43,10 @@ namespace Positron.Plugin
     /// e <c>ApagaPlaquetas</c>, rodada 70) e as **correções** —
     /// <c>corrigeOrdemBornes</c> (a que conserta um defeito que o <c>VERIF</c> aponta,
     /// rodada 71), as de um campo <c>CorrigeBornes</c>/<c>CorrigeDisp</c>
-    /// (rodada 72) e a dos estilos de texto <c>CorrigeStyle</c> (rodada 73). As outras <c>Corrige*</c> são o próximo passo da mesma frente.
+    /// (rodada 72) e a dos estilos de texto <c>CorrigeStyle</c> (rodada 73), mais o
+    /// <c>SobeLm</c> (rodada 74) — **comando próprio**, sem par no original: sobe o
+    /// <c>lm</c> dos bornes a partir do dicionário de réguas, fechando a pendência
+    /// do §7.2. As outras <c>Corrige*</c> são o próximo passo da mesma frente.
     ///
     /// **Sem licença:** o produto é open source e nenhum comando verifica licença. O
     /// gate que existia aqui (o <c>ServicoDeLicenca</c>/<c>ILicenca</c> da rodada 29,
@@ -763,6 +766,47 @@ namespace Positron.Plugin
             catch (System.Exception erro)
             {
                 return "CorrigeStyle: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>SobeLm</c> — **sobe o <c>lm</c> da régua** para o XData dos bornes: o
+        /// borne com <c>lm == 0</c> (o <c>BorneSemLm</c> que o <c>VERIF</c> aponta)
+        /// recebe o <c>lm</c> que a régua dele define para o tipo — o campo +6/+7 do
+        /// <c>REGUAS/MODELOS2</c> (o que o original lê) ou, quando ele não define, o
+        /// dicionário de bornes da régua (<c>CENG_BORNES</c>), medido na rodada 74.
+        /// Comando **próprio do recoder**: o original só resolve o <c>lm</c> ao
+        /// regravar um borne, e o campo do <c>MODELOS2</c> que ele lê nunca é
+        /// gravado pelo próprio original (o <c>GravaOsModelosDeRegua</c> escreve 0).
+        /// </summary>
+        [CommandMethod("SobeLm")]
+        public void SubirLmDosBornes()
+        {
+            Plugin.Escrever(ExecutarSubirLmDosBornes());
+        }
+
+        /// <summary>Sobe o lm dos bornes e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarSubirLmDosBornes()
+        {
+            try
+            {
+                Correcoes.LmDosBornesDoDesenho.Resultado resultado =
+                    Correcoes.LmDosBornesDoDesenho.Executar();
+
+                if (resultado.BornesSemLm == 0)
+                {
+                    return "SobeLm: os " + resultado.BornesLidos
+                        + " borne(s) do desenho já têm lm.";
+                }
+
+                return "SobeLm: " + resultado.BornesCorrigidos + " de "
+                    + resultado.BornesLidos + " borne(s) ganharam o lm da régua ("
+                    + resultado.BornesSemLm + " com lm zerado; "
+                    + resultado.SemDefinicao + " sem definição para o tipo na régua).";
+            }
+            catch (System.Exception erro)
+            {
+                return "SobeLm: falhou — " + DescreverErro(erro);
             }
         }
 
