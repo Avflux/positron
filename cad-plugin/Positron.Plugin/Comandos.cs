@@ -1243,6 +1243,41 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>CorrigeCoresDosBlocos</c> — a cor dos atributos das referências passa a ser a
+        /// da definição do bloco, para os blocos inseridos que têm XData (o <c>Correcao.cs</c>:
+        /// carregaBlocosInseridos + MMg1xjoRaA + lu61bhmRNc).
+        /// </summary>
+        [CommandMethod("CorrigeCoresDosBlocos")]
+        public void CorrigirCoresDosBlocos()
+        {
+            Plugin.Escrever(ExecutarCorrigirCoresDosBlocos());
+        }
+
+        /// <summary>Corrige as cores dos atributos e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirCoresDosBlocos()
+        {
+            try
+            {
+                Correcoes.CoresDosBlocosDoDesenho.Resultado resultado =
+                    Correcoes.CoresDosBlocosDoDesenho.Executar();
+
+                if (resultado.Definicoes == 0)
+                {
+                    return "CorrigeCoresDosBlocos: nenhum atributo de definição nos blocos inseridos ("
+                        + resultado.BlocosInseridos + " nome(s) de bloco com XData).";
+                }
+
+                return "CorrigeCoresDosBlocos: " + resultado.AtributosAlterados + " atributo(s) com a cor corrigida ("
+                    + resultado.BlocosAlterados + " bloco(s); " + resultado.Definicoes
+                    + " atributo(s) de definição em " + resultado.BlocosInseridos + " nome(s) de bloco).";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigeCoresDosBlocos: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

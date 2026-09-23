@@ -762,6 +762,37 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 88 — `CorrigeCoresDosBlocos` (frente 2 do §7.6, parte 19: a cor dos atributos).**
+O comando com os três métodos do `Correcao.cs` — e o único até agora com nomes ofuscados
+(`MMg1xjoRaA` e `lu61bhmRNc`):
+
+1. `carregaBlocosInseridos` — os **nomes** dos blocos inseridos no ModelSpace que têm **algum**
+   XData (**44** nomes nesta cópia);
+2. `MMg1xjoRaA` — para cada nome, varre a **definição** (`BlockTable[nome]`) e guarda a cor de
+   cada `AttributeDefinition` (**197** atributos);
+3. `lu61bhmRNc` — para cada inserção cujo nome entra na lista, acerta a cor de cada
+   `AttributeReference` com a da definição (só quando difere).
+
+> **Quirk reproduzido:** a lista da passada 1 guarda o nome **cru**, e a passada 3 compara com
+> `nome.ToUpper()` — o original só acerta os blocos cujo nome já está em caixa alta. A
+> comparação do **tag** é sem caixa (`TextCompare`).
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+CorrigeCoresDosBlocos: 0 atributo(s) com a cor corrigida (0 bloco(s); 197 atributo(s) de definição em 44 nome(s) de bloco).
+```
+
+Ou seja: 44 nomes de bloco entraram, 197 definições de atributo foram lidas e **nenhuma**
+referência precisou mudar — o desenho já está consistente. O caminho de escrita **não é
+exercitado** nesta cópia: fica registrado como pendência de fixture sintética (um desenho com
+uma referência de cor diferente da definição).
+
+> **Nota de ferramenta:** o contador `scripts/cad-conta-cores.lsp` **não produziu saída** nesta
+> rodada (falha de carga/runtime do LISP — o saldo de parênteses está em 0; a suspeita é o
+> `tblnext`/a lista de app names), então ele **não** entrou como evidência. O número acima vem
+> do próprio comando. Fica como pendência fechar o contador junto da fixture sintética.
+
 **Rodada 87 — `corrigePortas` (frente 2 do §7.6, parte 18: os atributos das portas).**
 O `EditaTodasPortas` do `clsPortas.cs`: junta as portas de todos os modelos do dicionário
 `MASCARAS` (o `MODELOS2` + a chave `<indice>` de cada modelo — **240 portas** nesta cópia) e
@@ -3073,7 +3104,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 474 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 476 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

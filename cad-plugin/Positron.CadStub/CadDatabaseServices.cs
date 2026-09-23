@@ -378,6 +378,12 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         }
     }
 
+    /// <summary>Definição de atributo (o <c>AttributeDefinition</c> da API real).</summary>
+    public class AttributeDefinition : Entity
+    {
+        public string Tag { get; set; }
+    }
+
     public class AttributeReference : Entity
     {
         public string Tag { get; set; }
