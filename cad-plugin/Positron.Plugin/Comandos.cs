@@ -1336,6 +1336,42 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>CorrigeTextosDasLigacoes</c> — **achado do reverso:** o corpo desse comando no
+        /// <c>clsUtilitarios.cs</c> é **idêntico** ao do <c>ApagaBlocosMirror</c> (o mesmo
+        /// laço que apaga os blocos espelhados com XData e sem <c>DINTERLIG</c>); ele não
+        /// toca em texto nenhum. Aqui ele reusa o mesmo adapter, e a linha de resumo
+        /// registra o achado.
+        /// </summary>
+        [CommandMethod("CorrigeTextosDasLigacoes")]
+        public void CorrigirTextosDasLigacoes()
+        {
+            Plugin.Escrever(ExecutarCorrigirTextosDasLigacoes());
+        }
+
+        /// <summary>
+        /// O mesmo efeito do <c>ApagaBlocosMirror</c> (o corpo do original é o mesmo) e
+        /// devolve a linha de resumo. Nunca lança.
+        /// </summary>
+        internal static string ExecutarCorrigirTextosDasLigacoes()
+        {
+            try
+            {
+                Correcoes.BlocosMirrorDoDesenho.Resultado resultado =
+                    Correcoes.BlocosMirrorDoDesenho.Executar();
+
+                return "CorrigeTextosDasLigacoes: " + resultado.Apagados
+                    + " bloco(s) espelhado(s) apagado(s) — o corpo deste comando no original é o MESMO do"
+                    + " ApagaBlocosMirror (não há correção de texto): " + resultado.Espelhados
+                    + " espelhado(s) entre " + resultado.ComXData + " com XData; "
+                    + resultado.CabosDeAranha + " são cabo de aranha e ficam.";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigeTextosDasLigacoes: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

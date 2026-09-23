@@ -762,6 +762,31 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 95 — `CorrigeTextosDasLigacoes`: um comando **duplicado** no reverso.**
+O achado é do tipo que só aparece lendo o corpo: o `CorrigeTextosDasLigacoes` do
+`clsUtilitarios.cs` tem o **mesmo corpo** do `ApagaBlocosMirror` — o laço idêntico
+
+1. bloco com **algum** XData;
+2. **sem** o app `DINTERLIG`;
+3. `ScaleFactors.X &lt; 0` → `Erase`.
+
+Ele **não toca em texto nenhum**, apesar do nome. O recoder entrega o comportamento fiel
+reusando o mesmo adapter (`BlocosMirrorDoDesenho`) e a linha de resumo declara o achado; não
+há teste novo porque a regra é a mesma (já coberta pelos 3 testes de `CorrecaoDosBlocosMirror`).
+
+**Medido no ZWCAD 2026** no desenho da fixture `scripts/cad-fixture-mirror.lsp` (as mesmas três
+inserções da rodada 94):
+
+```text
+CorrigeTextosDasLigacoes: 1 bloco(s) espelhado(s) apagado(s) — o corpo deste comando no original é o MESMO do ApagaBlocosMirror (não há correção de texto): 2 espelhado(s) entre 3 com XData; 1 são cabo de aranha e ficam.
+dump: BLOCO;245;BTMIRROR;-1;NAO;SIM      <- o espelhado com DINTERLIG ficou
+      BLOCO;246;BTMIRROR;1;SIM;NAO       <- o normal ficou
+      TOTAL;blocos;2;espelhados;1
+```
+
+Exatamente o resultado do `ApagaBlocosMirror` na rodada 94 — a duplicação, provada pela
+medição.
+
 **Rodada 94 — o caminho de apagar do `ApagaBlocosMirror`, provado (frente 2, ferramenta/evidência).**
 Fecha a pendência de fixture da rodada 93. A `scripts/cad-fixture-mirror.lsp` monta **três**
 inserções do mesmo bloco vazio:
