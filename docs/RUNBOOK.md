@@ -800,6 +800,27 @@ O comando passou a compor, na ordem do original, os passos que o recoder tem:
 
 Os três passos rodam no desenho real, e a projeção repete exatamente os números do `SYNCD` da
 rodada 107 — a segunda testemunha do mesmo cálculo.
+**Rodada 115 — o `RECRIACABOS` (o `MsgBox` + o `switch` do layout).**
+Última ponta do mapa da frente 7: o `RECRIACABOS` do reverso é um `MsgBox` de
+confirmação e um `switch` sobre o `Conf.InterligacaoLayout` — o caso **1** chama
+`clsEletrosul.RecriaTextosCaboEletrosul()` e os casos **0/2/3** chamam
+`clsEletron.RecriaTextosCabo()` (a substância das rodadas 78/79).
+
+Entraram a regra pura `LayoutDaInterligacao.EhEletrosul` (com teste) e o comando, que
+**não pergunta nada**: o harness roda os comandos sem ninguém para responder, então a
+**confirmação é o próprio ato de rodar o comando** — a mesma razão que deixa as rotinas
+destrutivas do original (com `MsgBox`) fora do recorte.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+RECRIACABOS: layout 0 (Eletron). RecriaTextosCabo: 24 rótulo(s) apagado(s) e 20 reinserido(s) de 20 trecho(s) (0 já tinham rótulo; 305 cabo(s) singelo(s) no catálogo).
+```
+
+> **Limite de evidência registrado:** o branch do **Eletrosul** não é exercitado no CAD — o
+> harness passa as variáveis ao plugin pelo `.scr` (não herda as do processo), então o
+> `POSITRON_INTERLIGACAO_LAYOUT` não chega. O branch fica coberto pelo **teste unitário** da
+> regra pura e pela medição do próprio `RecriaTextosCaboEletrosul` na rodada 79.
 **Rodada 113 — o `RESTPROJ` (o pipeline-mãe) e o `ApagaERROS`.**
 O `RESTPROJ` do reverso é o **pipeline-mãe**: **dezesseis** passos (barra de progresso com
 `Quantidade = 16`) que **superam** o `SYNCD` (rodada 107) e o `SYNCV` (rodada 111).
@@ -3902,7 +3923,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 513 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 514 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

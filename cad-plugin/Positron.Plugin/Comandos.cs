@@ -2672,5 +2672,31 @@ namespace Positron.Plugin
                 Plugin.Escrever("[5/5] os opcionais do cabo ficam de fora: o original só os atualiza com InterligacaoLayout = 3 (aqui = " + config.InterligacaoLayout + ").");
             }
         }
+
+        /// <summary>
+        /// <c>RECRIACABOS</c> — recria os rótulos dos cabos **pelo layout da interligação**: no
+        /// reverso é um <c>MsgBox</c> de confirmação e um <c>switch</c> sobre o
+        /// <c>Conf.InterligacaoLayout</c> (o caso <c>1</c> usa o Eletrosul, os demais o Eletron).
+        ///
+        /// Aqui não há diálogo: o harness roda os comandos sem ninguém para responder, então a
+        /// **confirmação é o próprio ato de rodar o comando** — a mesma decisão que deixa as
+        /// rotinas destrutivas do original (com <c>MsgBox</c>) fora do recorte.
+        /// </summary>
+        [CommandMethod("RECRIACABOS")]
+        public void RecriarCabosPeloLayout()
+        {
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+
+            if (Positron.Data.Configuracao.LayoutDaInterligacao.EhEletrosul(config.InterligacaoLayout))
+            {
+                Plugin.Escrever("RECRIACABOS: layout " + config.InterligacaoLayout + " (Eletrosul). "
+                    + ExecutarRecriarTextosDeCaboEletrosul());
+            }
+            else
+            {
+                Plugin.Escrever("RECRIACABOS: layout " + config.InterligacaoLayout + " (Eletron). "
+                    + ExecutarRecriarTextosDeCabo());
+            }
+        }
     }
 }
