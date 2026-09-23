@@ -12,12 +12,12 @@
 (defun pz-cor:texto (v)
   (if (null v) "" (if (= (type v) (quote STR)) v (vl-princ-to-string v))))
 
-(defun pz-cor:appids ( / l e d)
-  (setq l nil e (tblnext "APPID" T))
-  (while e
-    (setq l (cons (cdr (assoc 2 e)) l))
-    (setq e (tblnext "APPID")))
-  l)
+; A lista FIXA dos app names que o desenho usa (a `tblnext` sobre o APPID estourava no
+; ZWCAD; a licao da rodada 75 e que a lista precisa ser conhecida).
+(defun pz-cor:apps ()
+  (list "Dispositivo" "Modelo" "MODELO" "CONEXAO" "INTERLIGACAO" "AUXINTERLIG"
+        "BORNE" "BORNES" "Fiacao" "MASCARAS" "CONTATOS" "CENG_LAYOUT"
+        "Plaqueta" "TextoLP" "ELETROSUL" "DiagLog" "AUXCONEXAO" "Construtor"))
 
 (defun pz-cor:cor (d)
   (if (assoc 62 d) (cdr (assoc 62 d)) 256))
@@ -44,7 +44,7 @@
   (if (null f)
     (princ "cad-conta-cores: falha ao abrir a saida")
     (progn
-      (setq apps (pz-cor:appids))
+      (setq apps (pz-cor:apps))
       (pz-cor:escreve f "COR;handle;nome;tag;corRef;corDef\n")
       (setq nomes nil sel (ssget "_X" (list (cons 0 "INSERT"))))
       (if sel

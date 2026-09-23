@@ -762,6 +762,55 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 89 — diagnóstico da evidência da cor dos blocos (frente 2, sem comando novo).**
+A pendência da rodada 88 era de **evidência**, não de código: o caminho de escrita do
+`CorrigeCoresDosBlocos` não era exercitado (o desenho já está consistente) e o contador
+`scripts/cad-conta-cores.lsp` não produzia saída. O que entrou e o que se aprendeu:
+
+**1) A fixture sintética** `scripts/cad-fixture-cores.lsp` (e a versão com rastro
+`scripts/cad-fixture-cores-trace.lsp`): um bloco com `ATTDEF` de cor **3**, uma inserção com o
+`ATTRIB` em BYLAYER (256) e **algum XData** — o cenário mínimo em que o comando tem o que
+corrigir.
+
+**Achado 1 — o `entmake` do `ATTDEF` falha no ZWCAD.** O rastro para em `2 BLOCK-ok`:
+
+```text
+1 antes-do-BLOCK
+2 BLOCK-ok
+```
+
+Nem o `ATTDEF` nem o `INSERT` entram: o comando vê `0 nome(s) de bloco com XData` e o dump
+`insercoes;0`. Não adiantou pôr os marcadores de subclasse
+(`100 AcDbEntity`/`AcDbText`/`AcDbAttributeDefinition`) nem corrigir a ordem dos grupos
+(o `62` antes do `70`). Registrado como bloqueio de ferramenta; o caminho para o cenário
+sintético de blocos com atributos passa por outra via (definir o bloco por `_.BLOCK` e o
+atributo por `_.ATTDEF` em script, ou usar um bloco existente do próprio desenho).
+
+**2) O contador** foi reescrito para usar uma **lista fixa** de app names no lugar do
+`tblnext` sobre o `APPID` (que estourava no ZWCAD — de novo a lição da rodada 75).
+
+**Achado 2 — o contador roda na fixture, mas não no desenho real.** No desenho da fixture o
+dump sai completo:
+
+```text
+COR;handle;nome;tag;corRef;corDef
+TOTAL;referencias;0;diferencas;0;insercoes;0
+```
+
+No `Funcional.dwg` (DWG 63) o arquivo de saída **continua não sendo criado**, mesmo com o
+comando rodando (o `POSITRON_LOG` mostra a linha do plugin). A causa **não foi isolada**; o
+próximo passo é pôr marcadores de carga no próprio contador — a mesma técnica do rastro que
+resolveu o achado 1.
+
+**O que ficou provado:** a medição do comando no desenho real se reconfirma —
+`CorrigeCoresDosBlocos: 0 atributo(s) com a cor corrigida (0 bloco(s); 197 atributo(s) de definição em 44 nome(s) de bloco)`.
+
+> **Pendência que segue aberta (registrada):** exercitar o caminho de escrita do
+> `CorrigeCoresDosBlocos` — bloqueada pelo `entmake` do `ATTDEF` — e fazer o contador rodar
+> no desenho real. Junto delas continuam as pendências das rodadas 86 e 87: a renumeração do
+> dicionário do `CorrigeModelosDeContatos` e o `NOME1`/`ORIGEM` + `IndefineUmaPorta` do
+> `corrigePortas`.
+
 **Rodada 88 — `CorrigeCoresDosBlocos` (frente 2 do §7.6, parte 19: a cor dos atributos).**
 O comando com os três métodos do `Correcao.cs` — e o único até agora com nomes ofuscados
 (`MMg1xjoRaA` e `lu61bhmRNc`):
