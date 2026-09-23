@@ -2564,5 +2564,40 @@ namespace Positron.Plugin
             Plugin.Escrever("[2/3] " + ExecutarInterligacao());
             Plugin.Escrever("[3/3] " + ExecutarAtualizarOpcionaisDoCabo());
         }
+
+        /// <summary>
+        /// <c>CBD</c> — compacta o banco do projeto (o <c>clsCompactador.CompactarBD()</c> do
+        /// original): no SQLite é o <c>VACUUM</c>, que devolve o espaço livre. É só banco: não olha
+        /// o desenho.
+        /// </summary>
+        [CommandMethod("CBD")]
+        public void CompactarBanco()
+        {
+            Plugin.Escrever(ExecutarCompactarBanco());
+        }
+
+        /// <summary>Compacta o banco e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCompactarBanco()
+        {
+            try
+            {
+                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+                if (string.IsNullOrEmpty(config.Banco))
+                {
+                    return "CBD: defina POSITRON_DB_PATH — a compactação é no banco do projeto.";
+                }
+
+                ProjectStore store = new ProjectStore(config.Banco);
+                long[] tamanhos = store.Compactar();
+                long liberado = tamanhos[0] - tamanhos[1];
+
+                return "CBD: banco compactado — " + (tamanhos[0] / 1024) + " KB antes, "
+                    + (tamanhos[1] / 1024) + " KB depois (" + (liberado / 1024) + " KB liberado(s)).";
+            }
+            catch (System.Exception erro)
+            {
+                return "CBD: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
     }
 }

@@ -1121,6 +1121,32 @@ namespace Positron.Data
             return linhas;
         }
 
+        /// <summary>
+        /// O <c>CBD</c> do original (`clsCompactador.CompactarBD()`): **compacta o banco** do
+        /// projeto. No SQLite o equivalente exato é o <c>VACUUM</c>, que reconstrói o arquivo e
+        /// devolve o espaço livre — e que **não** pode rodar dentro de transação.
+        /// </summary>
+        /// <returns>Os bytes do arquivo antes e depois da compactação.</returns>
+        public long[] Compactar()
+        {
+            long antes = Tamanho();
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText = "VACUUM";
+                comando.ExecuteNonQuery();
+            }
+
+            return new long[] { antes, Tamanho() };
+        }
+
+        /// <summary>O tamanho do arquivo do banco, em bytes (0 quando não existe).</summary>
+        public long Tamanho()
+        {
+            return System.IO.File.Exists(Caminho) ? new System.IO.FileInfo(Caminho).Length : 0L;
+        }
+
         /// <summary>Lê o catálogo de veias (<c>Veias</c>) — fonte do snapshot <c>Veias4</c>.</summary>
         public IReadOnlyList<VeiasRow> LerVeias()
         {

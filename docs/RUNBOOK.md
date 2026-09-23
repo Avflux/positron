@@ -800,6 +800,36 @@ O comando passou a compor, na ordem do original, os passos que o recoder tem:
 
 Os três passos rodam no desenho real, e a projeção repete exatamente os números do `SYNCD` da
 rodada 107 — a segunda testemunha do mesmo cálculo.
+**Rodada 112 — a triagem das frentes 8 e 9 e o `CBD` (compactar o banco).**
+As duas últimas frentes do §7.6: a **8** (materiais, 3) tem 2 só UI (`GERLM` =
+`frmGerenciadorMateriais`, `ATINDEP` = `frmGerenciadorMatIndep`) e 1 destrutivo com
+confirmação (`DELLM`); a **9** (exportar/importar, 17) tem **13 só UI**, o `IMPBD` (ambiente,
+com arquivo) e o `DELPLA` (destrutivo) — e **dois candidatos reais**.
+
+**Candidato 1, entregue: `CBD`.** O original chama `clsCompactador.CompactarBD()`; no SQLite o
+equivalente exato é o `VACUUM` (que não pode rodar dentro de transação). Entrou o
+`ProjectStore.Compactar` e o comando, que reporta o tamanho antes e depois.
+
+**Medido no ZWCAD 2026**, sobre uma cópia do banco do projeto (DWG 63):
+
+```text
+CBD: banco compactado — 584 KB antes, 572 KB depois (12 KB liberado(s)).
+```
+
+**Candidato 2, o próximo: `RESTPROJ`.** É o **pipeline-mãe de 16 passos**
+(`Quantidade = 16`) e um **superconjunto** do `SYNCD` (rodada 107) e do `SYNCV` (111):
+`CorrigeOsTextosDosCabos`, `ApagaERROS`, `ApagaContatosOrfaos`,
+`CorrigeModelosDeContatos`, `SincronizaContatos`, `SincronizaPortas`,
+`SincronizaDePara`, `EditaPortaDipAuxPainelModeloFabricante`, `sincronizaCircuitos`,
+`InsereTextosDeCabos`, `SincronizaVeiasDoCaderno`, `SincronizaCruzamentoInterlig`,
+`RecriaOCruzamentoInterligTipo2Apagados`, `AtualizaNomesDosCabos` e (se `InterligacaoLayout == 3`)
+`AtualizaTodosOpcionaisDoCabo` — o `RESTPROJ` pode virar o terceiro pipeline do recoder, compondo
+tudo o que já foi portado (mais o `ApagaERROS`, que ainda não tem par).
+
+**Com as triagens 105, 106, 110 e 112, o mapa do §7.6 está completo** (frentes 1–9): o trabalho
+em lote está entregue e o que resta são editores de UI, interação e arquivo — mais o
+`RESTPROJ`.
+
 **Rodada 110 — a triagem das frentes 5, 6 e 7.**
 Li o corpo dos **49** comandos das três frentes. O veredito repete o das frentes 3 e 4 — são
 editores de UI, interação e ambiente —, mas desta vez **sobrou um candidato grande**.
