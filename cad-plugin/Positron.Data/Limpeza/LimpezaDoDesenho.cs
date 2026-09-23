@@ -27,6 +27,13 @@ namespace Positron.Data.Limpeza
         public const string DicionarioPlaquetas = "CENG_PLAQUETA";
 
         /// <summary>
+        /// Tipo do rótulo <c>AUXINTERLIG</c> que a <c>apagarTodosOsTextosDasVeias</c>
+        /// apaga — o mesmo que o <c>INDCABO</c> trata como o rótulo do trecho
+        /// (a função do reverso é <c>tipo == 1</c>).
+        /// </summary>
+        public const short TipoRotuloAuxiliar = 1;
+
+        /// <summary>
         /// O <c>DBText</c> conta como **em branco** quando é só espaços (o
         /// <c>TextString.Trim()</c> do original) **e** não tem XData. A segunda
         /// condição é do original e importa: um rótulo sem texto mas com XData
@@ -49,6 +56,29 @@ namespace Positron.Data.Limpeza
             {
                 new TypedXData(1001, XDataTerceiros),
             };
+        }
+
+        /// <summary>
+        /// A regra do <c>apagarTodosOsTextosDasVeias</c> do <c>Correcao.cs</c>:
+        /// apaga o **rótulo auxiliar**. Duas condições, na ordem do original:
+        ///
+        /// 1. qualquer entidade (texto ou não) com o XData <c>ELETROSUL</c> — o
+        ///    original apaga sem olhar o tipo nem o conteúdo;
+        /// 2. o <c>DBText</c> com XData <c>AUXINTERLIG</c> do tipo
+        ///    <see cref="TipoRotuloAuxiliar"/> (1).
+        ///
+        /// O <c>ehTexto</c> só vale para a segunda: um <c>AUXINTERLIG</c> tipo 1
+        /// num não-texto **fica** (é o ramo do <c>DBText val6 = ... as DBText</c>
+        /// do original).
+        /// </summary>
+        public static bool ApagarRotuloAuxiliar(bool ehTexto, bool temXDataEletrosul, short tipoAuxInterligacao)
+        {
+            if (temXDataEletrosul)
+            {
+                return true;
+            }
+
+            return ehTexto && tipoAuxInterligacao == TipoRotuloAuxiliar;
         }
     }
 }

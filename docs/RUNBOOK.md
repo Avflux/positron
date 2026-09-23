@@ -762,6 +762,98 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 75 — `apagarTodosOsTextosDasVeias` (frente 2 do §7.6, parte 6: a quinta limpeza).**
+A quinta ação de limpeza do `Correcao.cs` e a primeira que **apaga por XData**: varre o
+ModelSpace e apaga os **rótulos auxiliares das veias** — o `DBText` com `AUXINTERLIG` do tipo
+1 (o mesmo tipo que o `INDCABO` reescreve, rodada 60) e **qualquer** entidade com o XData
+`ELETROSUL`. A regra pura está em `LimpezaDoDesenho.ApagarRotuloAuxiliar`:
+
+| Ramo | Condição | Do original |
+|---|---|---|
+| 1 | qualquer entidade com XData `ELETROSUL` (texto ou não) | ✅ `lerXDataAuxInterligacaoEletrosul` |
+| 2 | `DBText` com `AUXINTERLIG` do **tipo 1** | ✅ `lerXDataAuxInterligacao(...) && tipo == 1` |
+
+O `ehTexto` só vale no ramo 2: um `AUXINTERLIG` tipo 1 numa polyline **fica**. E o app name
+do ramo 1 é `ELETROSUL`, **não** `AUXINTERLIGELETROSUL` — o nome da função do reverso
+(`lerXDataAuxInterligacaoEletrosul`) engana; o layout que o
+`GravarXDataAuxInterligacaoEletrosul` grava é app name, usuário, data, **handle** (+3) e o
+`1071 1` (o leitor do recoder é tolerante onde o original estoura no `array[3]`).
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63) — as 24 são os
+rótulos dos cabos da interligação:
+
+```text
+apagarTodosOsTextosDasVeias: 24 rótulo(s) de veia apagado(s) (3290 entidade(s) no ModelSpace; 24 com AUXINTERLIG e 0 com ELETROSUL).
+apagarTodosOsTextosDasVeias: 0 rótulo(s) de veia apagado(s) (3266 entidade(s) no ModelSpace; 0 com AUXINTERLIG e 0 com ELETROSUL).
+```
+
+A segunda passada converge na aritmética do próprio resumo: **3290 − 24 = 3266**. E o resto do
+ciclo não muda (a receita roda a projeção **antes** da limpeza):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 `
+  -Comandos "FIA,INT,apagarTodosOsTextosDasVeias,apagarTodosOsTextosDasVeias,VERIF" `
+  -Desenho ..\Elet\Teste_projeto_real\Funcional.dwg -Banco "$env:TEMP\positron-limpeza.db"
+```
+
+```text
+FIA: 494 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 83 posicao(oes)); 265 porta(s) em Portas4F; 168 borne(s) em Bornes4F; 70 contato(s) em Contatos4F; 83 dispositivo(s) em Dispositivos4F; 11 circuito(s) em Circuitos4F; 15 tipo(s) em Aplicacao4F.
+INT: 20 linha(s) gravada(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I; 216 borne(s) em Bornes4I; 697 cabo(s) em Cabos4; 2388 veia(s) em Veias4.
+apagarTodosOsTextosDasVeias: 24 rótulo(s) de veia apagado(s) (3290 entidade(s) no ModelSpace; 24 com AUXINTERLIG e 0 com ELETROSUL).
+apagarTodosOsTextosDasVeias: 0 rótulo(s) de veia apagado(s) (3266 entidade(s) no ModelSpace; 0 com AUXINTERLIG e 0 com ELETROSUL).
+VERIF: 0 jumper(s) e 20 trecho(s) de interligação lido(s) do desenho.
+VERIF: 249 problema(s) — fiação: 0; interligação: 0; modelos: 0; desenho: 249.   <- sem regressão
+```
+
+A conferência **independente** é o `scripts/cad-conta-auxiliares.lsp`, que lista cada entidade
+com um dos dois XData e fecha com `TOTAL;…`. Como o `-Fixture` carrega antes do NETLOAD, o
+comando `(pz-aux:dump)` roda **depois** da ação — a mesma contagem serve para o antes e para o
+depois:
+
+```powershell
+$env:POSITRON_XDATA = "$env:TEMP\positron-aux.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 `
+  -Fixture scripts/cad-conta-auxiliares.lsp `
+  -Comandos "apagarTodosOsTextosDasVeias,(pz-aux:dump)" `
+  -Desenho ..\Elet\Teste_projeto_real\Funcional.dwg -Banco "$env:TEMP\positron-limpeza.db"
+```
+
+```text
+AUXILIAR;TEXT;4DD26;8-CCE-001;tipo=1;          <- antes da ação: 24 linhas
+AUXILIAR;TEXT;4DDC6;8-GGE-017/2;tipo=1;
+TOTAL;24;AUXINTERLIG;24;ELETROSUL;0
+...
+TOTAL;0;AUXINTERLIG;0;ELETROSUL;0              <- depois da ação: 0
+```
+
+> **Lição de ferramenta (o primeiro recorte deste contador errou feio):** ele filtrava o
+> `ssget` por tipo (`'((0 . "TEXT,MTEXT,LWPOLYLINE"))`) e passava uma **lista fixa** de app
+> names ao `entget` — e devolveu `TOTAL;0` num desenho em que o plugin apagou 24. A
+> varredura tem de ser **sem filtro de tipo** (a lista separada por vírgula no `ssget "_X"`
+> não achou nada no ZWCAD 2026) e com os app names **lidos da tabela `APPID` do desenho** —
+> a mesma lição da rodada 70, que agora vale para os dois contadores.
+
+Como o desenho real exercita só um dos ramos (24 textos tipo 1, nenhum `ELETROSUL`), entra a
+fixture `scripts/cad-fixture-veias.lsp`, com os quatro casos num desenho só — texto tipo 1
+(sai), texto tipo 2 (fica), `ELETROSUL` em polyline e em texto (saem), `AUXINTERLIG` tipo 1
+em polyline (fica) e texto sem XData (fica):
+
+```powershell
+$env:POSITRON_XDATA = "$env:TEMP\positron-veias.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 1 -Revisao R0 `
+  -Fixture scripts/cad-fixture-veias.lsp `
+  -Comandos "apagarTodosOsTextosDasVeias,apagarTodosOsTextosDasVeias,(pz-veias:dump)" `
+  -Banco "$env:TEMP\positron-veias.db"
+```
+
+```text
+apagarTodosOsTextosDasVeias: 3 rótulo(s) de veia apagado(s) (6 entidade(s) no ModelSpace; 3 com AUXINTERLIG e 2 com ELETROSUL).
+apagarTodosOsTextosDasVeias: 0 rótulo(s) de veia apagado(s) (3 entidade(s) no ModelSpace; 2 com AUXINTERLIG e 0 com ELETROSUL).
+ENTIDADE;TEXT;PONTA-2;tipo=2;      <- o tipo 2 fica
+ENTIDADE;LWPOLYLINE;;tipo=1;       <- o tipo 1 fora de texto fica
+ENTIDADE;TEXT;SEM-XDATA;;          <- sem XData nenhum fica
+```
+
 **Rodada 74 — `SobeLm` (comando próprio: fecha o `BorneSemLm`).** O `lm` que o
 `VERIF` aponta como zerado (`BorneSemLm`, **119** no desenho real) não tinha conserto no
 recoder — e o reverso também não tem botão para isso: o original só resolve o `lm` **na
@@ -2396,7 +2488,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 374 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 385 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

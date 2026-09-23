@@ -38,9 +38,10 @@ namespace Positron.Plugin
     /// <c>COMPLM</c>).
     ///
     /// Depois do recorte veio a **frente 2** do §7.6 do plano (o <c>Correcao.cs</c>
-    /// do reverso): as quatro **ações de limpeza** do CAD
+    /// do reverso): as **ações de limpeza** do CAD
     /// (<c>ApagarTextosEmBranco</c>, <c>apagaXDataTerceiros</c>, <c>ApagaLayouts</c>
-    /// e <c>ApagaPlaquetas</c>, rodada 70) e as **correções** —
+    /// e <c>ApagaPlaquetas</c>, rodada 70; <c>apagarTodosOsTextosDasVeias</c>,
+    /// rodada 75) e as **correções** —
     /// <c>corrigeOrdemBornes</c> (a que conserta um defeito que o <c>VERIF</c> aponta,
     /// rodada 71), as de um campo <c>CorrigeBornes</c>/<c>CorrigeDisp</c>
     /// (rodada 72) e a dos estilos de texto <c>CorrigeStyle</c> (rodada 73), mais o
@@ -628,6 +629,36 @@ namespace Positron.Plugin
             catch (System.Exception erro)
             {
                 return "ApagaPlaquetas: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>apagarTodosOsTextosDasVeias</c> — apaga os **rótulos auxiliares** das
+        /// veias do ModelSpace: o <c>DBText</c> com XData <c>AUXINTERLIG</c> do tipo 1
+        /// e qualquer entidade com o XData <c>ELETROSUL</c> (frente 2 do §7.6, o
+        /// <c>Correcao.cs</c>). Limpeza pura de desenho: não lê banco nem cadastro.
+        /// </summary>
+        [CommandMethod("apagarTodosOsTextosDasVeias")]
+        public void ApagarTextosDasVeias()
+        {
+            Plugin.Escrever(ExecutarApagarTextosDasVeias());
+        }
+
+        /// <summary>Apaga os rótulos auxiliares das veias e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarApagarTextosDasVeias()
+        {
+            try
+            {
+                Limpeza.TextosDasVeiasDoDesenho.Resultado resultado =
+                    Limpeza.TextosDasVeiasDoDesenho.Executar();
+                return "apagarTodosOsTextosDasVeias: " + resultado.Apagados + " rótulo(s) de veia apagado(s) ("
+                    + resultado.EntidadesLidas + " entidade(s) no ModelSpace; "
+                    + resultado.RotulosAuxiliares + " com AUXINTERLIG e "
+                    + resultado.RotulosEletrosul + " com ELETROSUL).";
+            }
+            catch (System.Exception erro)
+            {
+                return "apagarTodosOsTextosDasVeias: falhou — " + DescreverErro(erro);
             }
         }
 
