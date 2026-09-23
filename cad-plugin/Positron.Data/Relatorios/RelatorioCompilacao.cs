@@ -49,6 +49,16 @@ namespace Positron.Data.Relatorios
     {
         private readonly List<LinhaRelatorio> _linhas = new List<LinhaRelatorio>();
 
+        /// <summary>
+        /// Quando o relatório foi **criado** — e não quando <see cref="Texto"/> foi
+        /// chamado. O carimbo é fixo porque o mesmo relatório é impresso e gravado
+        /// (o <c>ELETREL</c> chama <see cref="Salvar"/>, que chama <see cref="Texto"/>,
+        /// e a tela mostra outro); com <c>DateTime.Now</c> dentro do <c>Texto()</c>, duas
+        /// leituras do **mesmo** relatório saíam diferentes quando cruzavam um segundo
+        /// (o teste do arquivo pegou isso).
+        /// </summary>
+        private readonly DateTime _geradoEm = DateTime.Now;
+
         public string Titulo { get; set; }
 
         /// <summary>A linha de resumo que o comando imprime (e que os E2E leem).</summary>
@@ -105,7 +115,7 @@ namespace Positron.Data.Relatorios
         {
             StringBuilder texto = new StringBuilder();
             texto.AppendLine("# " + (Titulo ?? "Relatório do Positron"));
-            texto.AppendLine("# " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture));
+            texto.AppendLine("# " + _geradoEm.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture));
             if (!string.IsNullOrEmpty(Resumo))
             {
                 texto.AppendLine(Resumo);

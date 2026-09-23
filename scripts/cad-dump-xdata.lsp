@@ -323,6 +323,25 @@
 ;; plaquetas daquele painel — o insumo do `EPLQ` (registros de 7 valores:
 ;; tipo, handle, indexRegua, desc1, desc2, desc3, modelo). E o que permite ver se
 ;; o desenho tem plaqueta e conferir, fora do plugin, o nome que cada uma resolve.
+;; O dicionario CENG_BORNES: uma entrada por **regua** com o Xrecord dos bornes
+;; de reserva (registros de 10 valores; +3 = ordem, +4 = tipo). E o insumo do
+;; `LeOrdemDicBornesReserva` — as ordens que a correção `corrigeOrdemBornes`
+;; **pula** na renumeracao. Duma todas as entradas, porque o desenho tem uma por
+;; regua que usa reserva.
+(defun pz-dump:reservas (f / d item r)
+  (setq d (dictsearch (namedobjdict) "CENG_BORNES"))
+  (if (null d)
+    (pz-dump:escreve f "\nCENG_BORNES: nao existe\n")
+    (foreach item d
+      (if (= (car item) 3)
+        (progn
+          (setq r (dictsearch (cdr (assoc -1 d)) (cdr item)))
+          (pz-dump:escreve f
+            (strcat "\nRESERVA;" (cdr item) ";"
+                    (if (null r) "NAO EXISTE"
+                        (vl-princ-to-string (entget (cdr (assoc -1 r)))))
+                    "\n")))))))
+
 (defun pz-dump:plaquetas (f / d item r)
   (setq d (dictsearch (namedobjdict) "CENG_PLAQUETA"))
   (if (null d)
@@ -367,6 +386,7 @@
       ;; Reguas: e o dicionario que diz de que painel e cada regua — o que
       ;; explica por que a checagem de intervalos ignora uma regua.
       (pz-dump:dicionario "REGUAS" "MODELOS2" f)
+      (pz-dump:reservas f)
       (pz-dump:plaquetas f)
       (if (= (getenv "POSITRON_XDATA_BORNES") "1")
         (pz-dump:bornes f)

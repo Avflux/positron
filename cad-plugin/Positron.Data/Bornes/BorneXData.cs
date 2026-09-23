@@ -83,6 +83,40 @@ namespace Positron.Data.Bornes
         }
 
         /// <summary>
+        /// Monta o XData do borne no layout de 18 valores do original
+        /// (<c>XDataDispositivosMaster.GravarXDataDispBorne</c>). É o caminho de
+        /// **escrita** — usado pelas ações de correção, que regravam o borne.
+        ///
+        /// Dois detalhes do original: o índice 1 sai sempre com o literal
+        /// <c>"B"</c> (não com o campo lido) e os dois reais reservados (12/13)
+        /// saem zerados.
+        /// </summary>
+        public IReadOnlyList<TypedXData> ParaValores(string usuario, string data)
+        {
+            return new List<TypedXData>
+            {
+                new TypedXData(1001, AppName),
+                new TypedXData(1000, TipoBorne),
+                new TypedXData(1000, string.Empty),
+                new TypedXData(1000, PosIntJumper ?? string.Empty),
+                new TypedXData(1000, BlocoLayout ?? string.Empty),
+                new TypedXData(1000, (Numero ?? string.Empty) + (NumeroComplem ?? string.Empty)),
+                new TypedXData(1000, string.Empty),
+                new TypedXData(1040, Ordem),
+                new TypedXData(1071, IndiceRegua),
+                new TypedXData(1000, Conector ?? string.Empty),
+                new TypedXData(1000, Lm.ToString()),
+                new TypedXData(1000, Orientacao ?? string.Empty),
+                new TypedXData(1040, 0.0),
+                new TypedXData(1040, 0.0),
+                new TypedXData(1071, Tipo),
+                new TypedXData(1071, Visivel),
+                new TypedXData(1000, usuario ?? string.Empty),
+                new TypedXData(1000, data ?? string.Empty),
+            };
+        }
+
+        /// <summary>
         /// Lê o XData de um borne. Devolve <c>false</c> (sem exceção) quando não é
         /// um borne válido — dado de terceiro não deve virar erro fatal.
         /// </summary>

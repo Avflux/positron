@@ -49,6 +49,31 @@ namespace Positron.Data.Modelos
     {
         public const int ValoresPorBorne = 10;
 
+        /// <summary>
+        /// As **ordens já ocupadas** pelas reservas de uma régua — o
+        /// <c>DicionarioBorne.LeOrdemDicBornesReserva</c> do original, que a
+        /// correção de ordem usa para não renumerar um borne em cima de uma reserva.
+        ///
+        /// Duas diferenças de <see cref="Ler"/> que são do original: aqui entra
+        /// **todo** registro (sem o filtro de <c>tipo</c>) e a ordem sai como
+        /// **inteiro** (<c>Conversions.ToInteger</c>), não como real.
+        /// </summary>
+        public static List<int> OrdensReservadas(IReadOnlyList<TypedXData> valores)
+        {
+            List<int> ordens = new List<int>();
+            if (valores == null)
+            {
+                return ordens;
+            }
+
+            for (int i = 0; i + 3 < valores.Count; i += ValoresPorBorne)
+            {
+                ordens.Add(Inteiro(valores[i + 3].Valor));
+            }
+
+            return ordens;
+        }
+
         public static List<BorneReserva> Ler(IReadOnlyList<TypedXData> valores)
         {
             List<BorneReserva> bornes = new List<BorneReserva>();

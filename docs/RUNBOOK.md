@@ -762,6 +762,66 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 71 — `corrigeOrdemBornes` (frente 2 do §7.6, parte 2: a primeira `Corrige*`).**
+Renumera a `Ordem` dos bornes por régua (1..N), **pulando as ordens dos bornes de reserva**
+(`CENG_BORNES`) — o botão de correção do `Correcao.cs`. O que é puro está em
+`Positron.Data/Correcoes/CorrecaoOrdemBornes.cs`:
+
+| Peça | Do original | No recoder |
+|---|---|---|
+| ordenação | bolha por `IndiceRegua` e, na mesma régua, por `Ordem` | igual, com as **duas comparações independentes** (a segunda é avaliada depois de um eventual primeiro swap — não é uma comparação composta) |
+| renumeração | `1..N` por régua, com `k` avançando enquanto a ordem está reservada | igual |
+| ordens reservadas | `LeOrdemDicBornesReserva` — ordem (+3) de **todo** registro de `CENG_BORNES` da régua, **sem** o filtro de `tipo` | `BornesReserva.OrdensReservadas` |
+| gravação | `GravarXDataDispBorne`: relê o borne e só grava se a ordem difere; resolve o `lm` no dicionário de réguas quando está zerado | `BorneXData.ParaValores` (18 valores) + `ReguasModelo.BuscarLm` (campos +6/+7 por tipo) |
+
+Receita (`-Comandos` aceita o nome do comando como no original):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 `
+  -Comandos "VERIF,corrigeOrdemBornes,corrigeOrdemBornes,VERIF" `
+  -Desenho ..\Elet\Teste_projeto_real\Funcional.dwg -Banco "$env:TEMP\positron-limpeza.db"
+```
+
+Medido em 2026-09-23 (ZWCAD 2026, `Funcional.dwg`, DWG 63):
+
+```text
+VERIF: por tipo — BorneSemLm: 119; BorneSemFiacao: 107; IntervaloBorneInvalido: 11; ReguaVazia: 10; SobreposicaoAusente: 2.
+corrigeOrdemBornes: 32 de 199 borne(s) renumerado(s).
+corrigeOrdemBornes: 0 de 199 borne(s) renumerado(s).          <- 2a passada: converge
+VERIF: por tipo — BorneSemLm: 119; BorneSemFiacao: 107; IntervaloBorneInvalido: 11; ReguaVazia: 10; SobreposicaoAusente: 2.
+```
+
+Duas leituras do resultado, para não confundir regra com dado:
+
+- **As 11 lacunas continuam lá** porque a regra `IntervaloBorneInvalido` olha o **número**
+  do borne (`Terminal` = `Numero` + `NumeroComplem`), não a `Ordem`: a correção normaliza a
+  ordem (32 bornes nas réguas 476/477/480/481/483/487/489), e as lacunas de numeração são
+  **dado** do desenho.
+- **O `lm` não mudou nada aqui**: o dicionário de réguas desta cópia tem `+6`/`+7` zerados
+  (conferido no dump: 31 réguas, todas com `+4..+9` vazios), então a resolução do
+  `GravarXDataDispBorne` é no-op — a pendência do §7.2 (subir o `lm`) segue aberta.
+
+**Conferência independente** — o `cad-dump-xdata.lsp` ganhou a seção `RESERVA` (uma entrada
+por régua do `CENG_BORNES`) e, com `POSITRON_XDATA_BORNES=1`, dumou os 199 bornes:
+
+```powershell
+$env:POSITRON_XDATA = "$env:TEMP\positron-xdata.txt"
+$env:POSITRON_XDATA_BORNES = "1"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 -Comandos ELET `
+  -Fixture scripts/cad-dump-xdata.lsp -Desenho ..\Elet\Teste_projeto_real\Funcional.dwg -Banco "$env:TEMP\positron-limpeza.db"
+```
+
+A reconstrução em Python (fora do plugin) refaz a ordenação e a renumeração sobre o dump cru
+e prevê **32 ajustes** — os mesmos do plugin, com os handles e as ordens novas. As **19
+réguas** com reserva entram na conta (o plano lê as mesmas ordens do dicionário), mas a
+interseção com as réguas que mudam é **vazia** neste desenho: o ramo do pulo é exercitado no
+código, não altera o resultado aqui.
+
+> **Teste flaky corrigido no caminho:** o `RelatorioCompilacao` carimbava a data dentro de
+> `Texto()`, então duas leituras do mesmo relatório podiam cair em segundos diferentes e o
+> teste do arquivo falhava de vez em quando (observado nesta rodada). O carimbo passou para a
+> **criação** do relatório.
+
 **Rodada 70 — limpeza do CAD no plugin (frente 2 do §7.6, parte 1).** As quatro ações de
 limpeza do `Correcao.cs` que **só olham o desenho** (nenhuma lê banco nem cadastro) — é a
 abertura da frente que fecha o laço *detecta → corrige* do `VERIF`:

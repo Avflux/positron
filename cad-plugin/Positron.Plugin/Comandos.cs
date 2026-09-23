@@ -40,8 +40,9 @@ namespace Positron.Plugin
     /// Depois do recorte veio a **frente 2** do §7.6 do plano (o <c>Correcao.cs</c>
     /// do reverso): as quatro **ações de limpeza** do CAD
     /// (<c>ApagarTextosEmBranco</c>, <c>apagaXDataTerceiros</c>, <c>ApagaLayouts</c>
-    /// e <c>ApagaPlaquetas</c>). As <c>Corrige*</c> — as que consertam um defeito que
-    /// o <c>VERIF</c> aponta — são o próximo passo da mesma frente.
+    /// e <c>ApagaPlaquetas</c>, rodada 70) e a primeira **correção** —
+    /// <c>corrigeOrdemBornes</c>, que conserta um defeito que o <c>VERIF</c> aponta
+    /// (rodada 71). As outras <c>Corrige*</c> são o próximo passo da mesma frente.
     ///
     /// **Sem licença:** o produto é open source e nenhum comando verifica licença. O
     /// gate que existia aqui (o <c>ServicoDeLicenca</c>/<c>ILicenca</c> da rodada 29,
@@ -623,6 +624,41 @@ namespace Positron.Plugin
             catch (System.Exception erro)
             {
                 return "ApagaPlaquetas: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>corrigeOrdemBornes</c> — renumerar a <c>Ordem</c> dos bornes por régua
+        /// (1..N, pulando as ordens das reservas), o botão de correção do
+        /// <c>Correcao.cs</c> do original — a contrapartida de **escrita** do
+        /// <c>IntervaloBorneInvalido</c> que o <c>VERIF</c> aponta. Regrava o XData
+        /// dos bornes que mudam, resolvendo o <c>lm</c> no dicionário de réguas
+        /// (como o <c>GravarXDataDispBorne</c> do original).
+        /// </summary>
+        [CommandMethod("corrigeOrdemBornes")]
+        public void CorrigirOrdemDosBornes()
+        {
+            Plugin.Escrever(ExecutarCorrigirOrdemDosBornes());
+        }
+
+        /// <summary>Corrige a ordem dos bornes e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirOrdemDosBornes()
+        {
+            try
+            {
+                Correcoes.OrdemDosBornesDoDesenho.Resultado resultado =
+                    Correcoes.OrdemDosBornesDoDesenho.Executar();
+
+                return "corrigeOrdemBornes: " + resultado.BornesAjustados + " de "
+                    + resultado.BornesLidos + " borne(s) renumerado(s)"
+                    + (resultado.LmResolvidos > 0
+                        ? " (" + resultado.LmResolvidos + " com o lm do dicionário de réguas)"
+                        : string.Empty)
+                    + ".";
+            }
+            catch (System.Exception erro)
+            {
+                return "corrigeOrdemBornes: falhou — " + DescreverErro(erro);
             }
         }
 

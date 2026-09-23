@@ -105,6 +105,7 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 | `apagaXDataTerceiros` | **implementado** — limpeza: nas entidades com o app name de terceiro `AEC_XDATA_BOUND_SPACE`, troca o XData pelo registro único de marca (o conteúdo de terceiro some, como no original). Roda por script |
 | `ApagaLayouts` | **implementado** — limpeza: apaga o dicionário `CENG_LAYOUT` do desenho (o `PosicaoNum` do `FIA` e a `OrdemLay` do `COMPLM`). Roda por script |
 | `ApagaPlaquetas` | **implementado** — limpeza: apaga o dicionário `CENG_PLAQUETA` do desenho (o insumo do `EPLQ`). Roda por script |
+| `corrigeOrdemBornes` | **implementado** — correção: renumera a `Ordem` dos bornes por régua (1..N), **pulando as ordens dos bornes de reserva** (`CENG_BORNES`), e regrava o XData dos que mudam (resolvendo o `lm` no dicionário de réguas, como o `GravarXDataDispBorne` do original). Roda por script |
 
 ### Fluxo de fiação (`FIA`)
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Positron.Data.Fiacao;
 using Positron.Data.Modelos;
 #if AUTOCAD
 using Autodesk.AutoCAD.ApplicationServices;
@@ -19,10 +20,27 @@ namespace Positron.Plugin.Modelos
     {
         public static List<BorneReserva> Ler(int indexRegua)
         {
+            IReadOnlyList<TypedXData> valores = LerValores(indexRegua);
+            return valores == null ? new List<BorneReserva>() : BornesReserva.Ler(valores);
+        }
+
+        /// <summary>
+        /// As ordens já ocupadas pelas reservas da régua
+        /// (<c>DicionarioBorne.LeOrdemDicBornesReserva</c>) — o insumo da correção
+        /// de ordem dos bornes.
+        /// </summary>
+        public static List<int> LerOrdensReservadas(int indexRegua)
+        {
+            IReadOnlyList<TypedXData> valores = LerValores(indexRegua);
+            return valores == null ? new List<int>() : BornesReserva.OrdensReservadas(valores);
+        }
+
+        private static IReadOnlyList<TypedXData> LerValores(int indexRegua)
+        {
             Document documento = Application.DocumentManager.MdiActiveDocument;
             if (documento == null)
             {
-                return new List<BorneReserva>();
+                return null;
             }
 
             Database banco = documento.Database;
@@ -33,22 +51,22 @@ namespace Positron.Plugin.Modelos
                 if (raiz == null || !raiz.Contains("CENG_BORNES"))
                 {
                     transacao.Commit();
-                    return new List<BorneReserva>();
+                    return null;
                 }
 
                 DBDictionary bornes = transacao.GetObject(raiz.GetAt("CENG_BORNES"), OpenMode.ForRead) as DBDictionary;
                 if (bornes == null || !bornes.Contains(chave))
                 {
                     transacao.Commit();
-                    return new List<BorneReserva>();
+                    return null;
                 }
 
                 Xrecord registro = transacao.GetObject(bornes.GetAt(chave), OpenMode.ForRead) as Xrecord;
-                List<BorneReserva> reservas = registro == null
-                    ? new List<BorneReserva>()
-                    : BornesReserva.Ler(XDataNeutro.Para(registro));
+                IReadOnlyList<TypedXData> valores = registro == null
+                    ? null
+                    : XDataNeutro.Para(registro);
                 transacao.Commit();
-                return reservas;
+                return valores;
             }
         }
     }
