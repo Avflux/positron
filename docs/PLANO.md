@@ -50,7 +50,7 @@ segunda execução de `FIA`/`INT` duplica linhas e o `ReordenarOrdemFiacao`
 passa a reescrever a `Ordem` das duas cópias (medido no `RUNBOOK.md`: `Fiacao`
 3→6, `Bornes4F` 2→4). **Corrigido na Etapa 1.**
 
-## 2.2 Estado atual (até a rodada 108)
+## 2.2 Estado atual (até a rodada 109)
 
 O recorte do plano — **13 tabelas derivadas do diagrama e o app lendo todas elas** — está
 implementado, verificado e documentado, com **43 comandos** no CAD. Fora desse recorte, a
@@ -152,6 +152,10 @@ tratada como "modelo de página fora do desenho" quando o `BuscaOrdemEquipamento
 dicionário **`CENG_LAYOUT` do próprio desenho**, que o recoder já lia (§7.2); o
 **`Sinais`** não tem fluxo no reverso (só DDL) e por isso **não** é portável — ver §7.2.
 
+
+> **Leitura única do estado:** `docs/RELATORIO.md` — o que existe, o que foi medido no desenho
+> real (com os números e as corroborações cruzadas), os quirks, o que ficou fora do recorte com
+> motivo e as pendências (nenhuma de implementação).
 
 ## 3. Etapas
 

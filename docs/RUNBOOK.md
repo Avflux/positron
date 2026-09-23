@@ -762,6 +762,13 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+## Relatório consolidado
+
+O `docs/RELATORIO.md` é a **leitura única** do estado: entregas por frente, as medições no
+desenho real com os números, as corroborações cruzadas, os quirks medidos, o que ficou fora do
+recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
+primeiro).
+
 **Rodada 108 — o `STATBORN` em lote (o candidato da frente 3).**
 A estatística de bornes do `frmEstatisticaDeBornes` é só exibição; a conta está no
 `clsReguasDeBornes.SomaOsBornes`, que:
