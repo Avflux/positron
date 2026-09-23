@@ -89,6 +89,70 @@ namespace Positron.Data.Modelos
             return modelos;
         }
 
+        /// <summary>
+        /// Um contato auxiliar **cru**: os oito valores como estão no XRecord, para o
+        /// caminho de escrita não perder nada (o leitor tipado recalcula a orientação).
+        /// </summary>
+        public sealed class ContatoBruto
+        {
+            public IReadOnlyList<TypedXData> Valores { get; set; }
+        }
+
+        /// <summary>Os contatos auxiliares crus (o valor 0 do XRecord é o cabeçalho).</summary>
+        public static List<ContatoBruto> LerAuxiliaresBrutos(IReadOnlyList<TypedXData> valores)
+        {
+            List<ContatoBruto> contatos = new List<ContatoBruto>();
+            if (valores == null)
+            {
+                return contatos;
+            }
+
+            for (int i = 1; i + 7 < valores.Count; i += ValoresPorAuxiliar)
+            {
+                List<TypedXData> registro = new List<TypedXData>();
+                for (int k = 0; k < ValoresPorAuxiliar; k++)
+                {
+                    registro.Add(valores[i + k]);
+                }
+
+                contatos.Add(new ContatoBruto { Valores = registro });
+            }
+
+            return contatos;
+        }
+
+        /// <summary>
+        /// Monta os valores do XRecord dos contatos: o cabeçalho <paramref name="maxIndice"/> em
+        /// 90 e os registros crus na sequência (o <c>GravaOsContatosAuxiliarDoModeloDoDicionario</c>).
+        /// </summary>
+        public static IReadOnlyList<TypedXData> ParaValoresBrutos(int maxIndice, IReadOnlyList<ContatoBruto> contatos)
+        {
+            List<TypedXData> valores = new List<TypedXData>
+            {
+                new TypedXData(90, maxIndice),
+            };
+
+            if (contatos == null)
+            {
+                return valores;
+            }
+
+            foreach (ContatoBruto contato in contatos)
+            {
+                if (contato == null || contato.Valores == null)
+                {
+                    continue;
+                }
+
+                foreach (TypedXData valor in contato.Valores)
+                {
+                    valores.Add(valor);
+                }
+            }
+
+            return valores;
+        }
+
         public static List<ContatoAuxiliar> LerAuxiliares(IReadOnlyList<TypedXData> valores)
         {
             List<ContatoAuxiliar> auxiliares = new List<ContatoAuxiliar>();

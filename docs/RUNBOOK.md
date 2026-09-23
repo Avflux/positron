@@ -762,6 +762,32 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 99 — a renumeração do dicionário do `CorrigeModelosDeContatos` (pendência da rodada 86).**
+A pendência estava registrada com o motivo: o **leitor tipado recalcula a orientação** ao ler
+(`OrientacaoContato.Verificar`) e gravar de volta o que se leu persistiria o valor recalculado. A
+solução foi o **registro cru**:
+
+- `ModelosContato` ganhou `ContatoBruto` + `LerAuxiliaresBrutos`/`ParaValoresBrutos` (os **oito**
+  valores como estão no XRecord);
+- a regra pura `CorrecaoModeloDeContato.Renumerar` troca **só o índice** — o mesmo código DXF,
+  todo o resto intacto;
+- o `ContatosDoDesenho` ganhou `LerAuxiliaresBrutos`/`GravarAuxiliares` (que regrava o `Data` do
+  XRecord da chave do modelo);
+- o adapter passou a renumerar **o dicionário** antes da varredura do desenho, como o original.
+
+**Medido no ZWCAD 2026** na fixture sintética (o `CONTATOS` com o modelo 53 e os contatos de
+índice **7** e **9**):
+
+```text
+CorrigeModelosDeContatos: 2 contato(s) renumerado(s); 1 bloco(s) com o XData Dispositivo e 0 com o XData Modelo regravado(s) (1 auxiliar(es) lido(s); 1 dicionário(s) renumerado(s)).
+BLOCO;A;53;1          <- o indexContato do bloco (era 7)
+CONTATO;1             <- o dicionário: era 7
+CONTATO;2             <- o dicionário: era 9
+TOTAL;contatos;2
+```
+
+A renumeração fica provada ponta a ponta: o dicionário **e** o desenho.
+
 **Rodada 98 — `CorrigeHandleSuperior` (frente 2 do §7.6, parte 25: o resolvedor por ponto).**
 Fecha o comando. A **primeira metade** é o `limpaHandleSuperior` (o `Limpahandle` da rodada 92,
 reusado) e a **segunda** é o `verificaConexao` — o resolvedor que faltava:
@@ -3447,7 +3473,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 492 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 495 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

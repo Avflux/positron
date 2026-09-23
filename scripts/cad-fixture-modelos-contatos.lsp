@@ -87,5 +87,38 @@
 (setq pz-mc:bloco (entlast))
 (entmod (append (entget pz-mc:bloco) (list (pz-mc:disp "A" 53 7))))
 
-(princ "fixture de modelos de contatos montada: rode (pz-mc:conta)")
+
+; ── O dump do dicionario CONTATOS (os indices dos contatos do modelo 53) ───
+(defun pz-mc:dic ( / caminho f dic sub vals i n)
+  (setq caminho (getenv "POSITRON_DIC"))
+  (if (or (null caminho) (= caminho ""))
+    (setq caminho (strcat (getenv "TEMP") "/positron-contatos-dic.txt")))
+  (setq f (open caminho "w"))
+  (if (null f)
+    (princ "cad-fixture-modelos-contatos: falha ao abrir a saida do dicionario")
+    (progn
+      (pz-mc:escreve f "CONTATO;indice\n")
+      (setq dic (dictsearch (namedobjdict) "CONTATOS"))
+      (if dic
+        (progn
+          (setq sub (dictsearch (cdr (assoc -1 dic)) "53"))
+          (if sub
+            (progn
+              (setq vals (pz-mc:vals (entget (cdr (assoc -1 sub)))))
+; o valor 0 e a contagem e depois vem 8 por contato
+              (setq i 1 n 0)
+              (while (< i (length vals))
+                (pz-mc:escreve f (strcat "CONTATO;" (pz-mc:texto (nth i vals)) "\n"))
+                (setq n (1+ n))
+                (setq i (+ i 8))
+              )
+              (pz-mc:escreve f (strcat "TOTAL;contatos;" (itoa n) "\n"))))))
+      (close f)
+      (princ (strcat "cad-fixture-modelos-contatos: dicionario em " caminho)))))
+
+; Os valores de um XRECORD saem no `entget` DEPOIS do grupo 280.
+(defun pz-mc:vals (d)
+  (mapcar (quote cdr) (cdr (member (assoc 280 d) d))))
+
+(princ "fixture de modelos de contatos montada: rode (pz-mc:conta) e (pz-mc:dic)")
 (princ)

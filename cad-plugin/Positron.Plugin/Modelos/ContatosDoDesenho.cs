@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Positron.Data.Fiacao;
 using Positron.Data.Modelos;
 #if AUTOCAD
 using Autodesk.AutoCAD.ApplicationServices;
@@ -70,6 +71,81 @@ namespace Positron.Plugin.Modelos
                     : ModelosContato.LerAuxiliares(XDataNeutro.Para(registro));
                 transacao.Commit();
                 return auxiliares;
+            }
+        }
+
+        /// <summary>Os contatos auxiliares **crus** de um modelo (para o caminho de escrita).</summary>
+        public static List<ModelosContato.ContatoBruto> LerAuxiliaresBrutos(int indiceModelo)
+        {
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            if (documento == null)
+            {
+                return new List<ModelosContato.ContatoBruto>();
+            }
+
+            Database banco = documento.Database;
+            using (Transaction transacao = banco.TransactionManager.StartTransaction())
+            {
+                DBDictionary contatos = AbrirContatos(transacao, banco);
+                string chave = indiceModelo.ToString();
+                if (contatos == null || !contatos.Contains(chave))
+                {
+                    transacao.Commit();
+                    return new List<ModelosContato.ContatoBruto>();
+                }
+
+                Xrecord registro = transacao.GetObject(contatos.GetAt(chave), OpenMode.ForRead) as Xrecord;
+                List<ModelosContato.ContatoBruto> brutos = registro == null
+                    ? new List<ModelosContato.ContatoBruto>()
+                    : ModelosContato.LerAuxiliaresBrutos(XDataNeutro.Para(registro));
+                transacao.Commit();
+                return brutos;
+            }
+        }
+
+        /// <summary>
+        /// Regrava os contatos auxiliares de um modelo (o
+        /// <c>GravaOsContatosAuxiliarDoModeloDoDicionario</c>): o XRecord da chave do modelo
+        /// recebe o cabeçalho e os registros crus. Devolve <c>false</c> quando a chave ou o
+        /// dicionário não existem.
+        /// </summary>
+        public static bool GravarAuxiliares(int indiceModelo, int maxIndice, IReadOnlyList<ModelosContato.ContatoBruto> contatos)
+        {
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            if (documento == null)
+            {
+                return false;
+            }
+
+            Database banco = documento.Database;
+            using (Transaction transacao = banco.TransactionManager.StartTransaction())
+            {
+                DBDictionary contatosDoDesenho = AbrirContatos(transacao, banco);
+                string chave = indiceModelo.ToString();
+                if (contatosDoDesenho == null || !contatosDoDesenho.Contains(chave))
+                {
+                    transacao.Commit();
+                    return false;
+                }
+
+                Xrecord registro = transacao.GetObject(contatosDoDesenho.GetAt(chave), OpenMode.ForRead) as Xrecord;
+                if (registro == null)
+                {
+                    transacao.Commit();
+                    return false;
+                }
+
+                IReadOnlyList<TypedXData> valores = ModelosContato.ParaValoresBrutos(maxIndice, contatos);
+                TypedValue[] array = new TypedValue[valores.Count];
+                for (int i = 0; i < valores.Count; i++)
+                {
+                    array[i] = new TypedValue(valores[i].Codigo, valores[i].Valor);
+                }
+
+                registro.UpgradeOpen();
+                registro.Data = new ResultBuffer(array);
+                transacao.Commit();
+                return true;
             }
         }
 

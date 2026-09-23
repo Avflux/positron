@@ -51,6 +51,9 @@ namespace Positron.Plugin.Correcoes
 
             /// <summary>XData <c>Modelo</c> regravado com o índice novo.</summary>
             internal int ModelosAlterados { get; set; }
+
+            /// <summary>Modelos cujos contatos foram renumerados no dicionário.</summary>
+            internal int DicionariosAlterados { get; set; }
         }
 
         internal static Resultado Executar()
@@ -66,6 +69,24 @@ namespace Positron.Plugin.Correcoes
                 List<ContatoAuxiliar> contatos = ContatosDoDesenho.LerAuxiliares(modelo.Indice);
                 resultado.Contatos += contatos.Count;
                 ajustes.AddRange(CorrecaoModeloDeContato.Planejar(modelo.Indice, contatos));
+            }
+
+            // A outra metade do original: renumerar os contatos **no dicionario** (1, 2, 3...),
+            // pelos registros crus (o leitor tipado recalcularia a orientacao).
+            foreach (ModeloContato modelo in modelos)
+            {
+                bool mudou;
+                IReadOnlyList<ModelosContato.ContatoBruto> brutos = CorrecaoModeloDeContato.Renumerar(
+                    ContatosDoDesenho.LerAuxiliaresBrutos(modelo.Indice), out mudou);
+                if (!mudou)
+                {
+                    continue;
+                }
+
+                if (ContatosDoDesenho.GravarAuxiliares(modelo.Indice, brutos.Count, brutos))
+                {
+                    resultado.DicionariosAlterados++;
+                }
             }
 
             resultado.Ajustes = ajustes.Count;

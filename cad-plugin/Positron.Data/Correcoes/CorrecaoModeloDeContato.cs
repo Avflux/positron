@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Positron.Data.Fiacao;
 using Positron.Data.Modelos;
 
 namespace Positron.Data.Correcoes
@@ -71,6 +72,56 @@ namespace Positron.Data.Correcoes
             }
 
             return ajustes;
+        }
+
+        /// <summary>
+        /// Renumera os contatos **crus** pela posição (1, 2, 3...) — é a gravação do
+        /// <c>GravaOsContatosAuxiliarDoModeloDoDicionario</c> — preservando todo o resto do
+        /// registro (inclusive a orientação, que o leitor tipado recalcularia).
+        /// </summary>
+        public static IReadOnlyList<ModelosContato.ContatoBruto> Renumerar(
+            IReadOnlyList<ModelosContato.ContatoBruto> contatos,
+            out bool mudou)
+        {
+            mudou = false;
+            List<ModelosContato.ContatoBruto> saida = new List<ModelosContato.ContatoBruto>();
+            if (contatos == null)
+            {
+                return saida;
+            }
+
+            for (int i = 0; i < contatos.Count; i++)
+            {
+                ModelosContato.ContatoBruto contato = contatos[i];
+                int novo = i + 1;
+                if (contato == null || contato.Valores == null || contato.Valores.Count == 0)
+                {
+                    saida.Add(contato);
+                    continue;
+                }
+
+                IReadOnlyList<TypedXData> valores = contato.Valores;
+                int atual = XDataNumero.Inteiro(valores[0].Valor);
+                if (atual == novo)
+                {
+                    saida.Add(contato);
+                    continue;
+                }
+
+                List<TypedXData> renumerado = new List<TypedXData>
+                {
+                    new TypedXData(valores[0].Codigo, novo),
+                };
+                for (int k = 1; k < valores.Count; k++)
+                {
+                    renumerado.Add(valores[k]);
+                }
+
+                mudou = true;
+                saida.Add(new ModelosContato.ContatoBruto { Valores = renumerado });
+            }
+
+            return saida;
         }
 
         /// <summary>

@@ -1199,7 +1199,8 @@ namespace Positron.Plugin
                 return "CorrigeModelosDeContatos: " + resultado.Ajustes + " contato(s) renumerado(s); "
                     + resultado.DispositivosAlterados + " bloco(s) com o XData Dispositivo e "
                     + resultado.ModelosAlterados + " com o XData Modelo regravado(s) ("
-                    + resultado.AuxiliaresLidos + " auxiliar(es) lido(s)).";
+                    + resultado.AuxiliaresLidos + " auxiliar(es) lido(s); " + resultado.DicionariosAlterados
+                    + " dicionário(s) renumerado(s)).";
             }
             catch (System.Exception erro)
             {
