@@ -101,6 +101,10 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 | `ELETCFG` | **implementado** — abre a tela de configuração (WinForms) e grava `%APPDATA%\Positron\positron.ini`. **Modal**: não rode dentro de script |
 | `ELETREL` | **implementado** — grava o **relatório da verificação** em arquivo (a grid de erros das telas do original, sem tela). Roda por script |
 | `ELETCMP` | **implementado** — abre a **tela de compilação** (grid de erros) sobre o mesmo relatório do `ELETREL`, com botão Salvar. **Modal**: não rode dentro de script |
+| `ApagarTextosEmBranco` | **implementado** — frente 2 do §7.6, limpeza: apaga do ModelSpace os `DBText` cujo texto é só espaços **e** que **não** têm XData (`LimpezaDoDesenho.TextoEmBranco`). Roda por script |
+| `apagaXDataTerceiros` | **implementado** — limpeza: nas entidades com o app name de terceiro `AEC_XDATA_BOUND_SPACE`, troca o XData pelo registro único de marca (o conteúdo de terceiro some, como no original). Roda por script |
+| `ApagaLayouts` | **implementado** — limpeza: apaga o dicionário `CENG_LAYOUT` do desenho (o `PosicaoNum` do `FIA` e a `OrdemLay` do `COMPLM`). Roda por script |
+| `ApagaPlaquetas` | **implementado** — limpeza: apaga o dicionário `CENG_PLAQUETA` do desenho (o insumo do `EPLQ`). Roda por script |
 
 ### Fluxo de fiação (`FIA`)
 

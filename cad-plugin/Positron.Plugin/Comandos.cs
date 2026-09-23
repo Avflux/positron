@@ -37,6 +37,12 @@ namespace Positron.Plugin
     /// e as tabelas fora do recorte que ganharam fluxo próprio (<c>EPLQ</c> e
     /// <c>COMPLM</c>).
     ///
+    /// Depois do recorte veio a **frente 2** do §7.6 do plano (o <c>Correcao.cs</c>
+    /// do reverso): as quatro **ações de limpeza** do CAD
+    /// (<c>ApagarTextosEmBranco</c>, <c>apagaXDataTerceiros</c>, <c>ApagaLayouts</c>
+    /// e <c>ApagaPlaquetas</c>). As <c>Corrige*</c> — as que consertam um defeito que
+    /// o <c>VERIF</c> aponta — são o próximo passo da mesma frente.
+    ///
     /// **Sem licença:** o produto é open source e nenhum comando verifica licença. O
     /// gate que existia aqui (o <c>ServicoDeLicenca</c>/<c>ILicenca</c> da rodada 29,
     /// espelho dos três provedores do original) foi removido na rodada 63 — junto com
@@ -512,6 +518,111 @@ namespace Positron.Plugin
             catch (System.Exception erro)
             {
                 return "COMPLM: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>ApagarTextosEmBranco</c> — apaga do ModelSpace os <c>DBText</c> sem
+        /// texto (só espaços) e sem XData (frente 2 do §7.6, o <c>Correcao.cs</c>).
+        /// Limpeza pura de desenho: não lê banco nem cadastro.
+        /// </summary>
+        [CommandMethod("ApagarTextosEmBranco")]
+        public void ApagarTextosVazios()
+        {
+            Plugin.Escrever(ExecutarApagarTextosEmBranco());
+        }
+
+        /// <summary>Apaga os textos em branco do desenho e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarApagarTextosEmBranco()
+        {
+            try
+            {
+                Limpeza.LimpezaDoCad.Resultado resultado = Limpeza.LimpezaDoCad.ApagarTextosEmBranco();
+                return "ApagarTextosEmBranco: " + resultado.Alterados + " texto(s) apagado(s) ("
+                    + resultado.Lidos + " DBText lido(s) no ModelSpace).";
+            }
+            catch (System.Exception erro)
+            {
+                return "ApagarTextosEmBranco: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>apagaXDataTerceiros</c> — tira do ModelSpace o XData do app name de
+        /// terceiros (<c>AEC_XDATA_BOUND_SPACE</c>), regravando o buffer com a marca
+        /// única do original.
+        /// </summary>
+        [CommandMethod("apagaXDataTerceiros")]
+        public void ApagarXDataTerceiros()
+        {
+            Plugin.Escrever(ExecutarApagarXDataTerceiros());
+        }
+
+        /// <summary>Apaga o XData de terceiros e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarApagarXDataTerceiros()
+        {
+            try
+            {
+                Limpeza.LimpezaDoCad.Resultado resultado = Limpeza.LimpezaDoCad.ApagarXDataTerceiros();
+                return "apagaXDataTerceiros: " + resultado.Alterados + " entidade(s) com XData de terceiros limpo(s) ("
+                    + resultado.Lidos + " entidade(s) no ModelSpace).";
+            }
+            catch (System.Exception erro)
+            {
+                return "apagaXDataTerceiros: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>ApagaLayouts</c> — apaga o dicionário <c>CENG_LAYOUT</c> do desenho (a
+        /// posição dos equipamentos no layout dos painéis). Depois dele o <c>FIA</c>
+        /// projeta sem <c>PosicaoNum</c> e o <c>COMPLM</c> sai "sem layout".
+        /// </summary>
+        [CommandMethod("ApagaLayouts")]
+        public void RemoverLayouts()
+        {
+            Plugin.Escrever(ExecutarApagarLayouts());
+        }
+
+        /// <summary>Apaga o dicionário de layout e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarApagarLayouts()
+        {
+            try
+            {
+                Limpeza.LimpezaDoCad.Resultado resultado = Limpeza.LimpezaDoCad.ApagarDicionarioLayout();
+                return "ApagaLayouts: " + (resultado.Alterados > 0
+                    ? "dicionário CENG_LAYOUT apagado do desenho."
+                    : "o desenho não tem dicionário CENG_LAYOUT.");
+            }
+            catch (System.Exception erro)
+            {
+                return "ApagaLayouts: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>ApagaPlaquetas</c> — apaga o dicionário <c>CENG_PLAQUETA</c> do desenho
+        /// (as plaquetas de identificação dos painéis, o insumo do <c>EPLQ</c>).
+        /// </summary>
+        [CommandMethod("ApagaPlaquetas")]
+        public void RemoverPlaquetas()
+        {
+            Plugin.Escrever(ExecutarApagarPlaquetas());
+        }
+
+        /// <summary>Apaga o dicionário de plaquetas e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarApagarPlaquetas()
+        {
+            try
+            {
+                Limpeza.LimpezaDoCad.Resultado resultado = Limpeza.LimpezaDoCad.ApagarDicionarioPlaquetas();
+                return "ApagaPlaquetas: " + (resultado.Alterados > 0
+                    ? "dicionário CENG_PLAQUETA apagado do desenho."
+                    : "o desenho não tem dicionário CENG_PLAQUETA.");
+            }
+            catch (System.Exception erro)
+            {
+                return "ApagaPlaquetas: falhou — " + DescreverErro(erro);
             }
         }
 

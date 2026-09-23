@@ -762,6 +762,60 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 70 — limpeza do CAD no plugin (frente 2 do §7.6, parte 1).** As quatro ações de
+limpeza do `Correcao.cs` que **só olham o desenho** (nenhuma lê banco nem cadastro) — é a
+abertura da frente que fecha o laço *detecta → corrige* do `VERIF`:
+
+| Comando | O que faz (do original) | Puro (testado) |
+|---|---|---|
+| `ApagarTextosEmBranco` | apaga do ModelSpace os `DBText` cujo texto é só espaços **e** que **não** têm XData | `LimpezaDoDesenho.TextoEmBranco(texto, temXData)` |
+| `apagaXDataTerceiros` | nas entidades com o app name de terceiro `AEC_XDATA_BOUND_SPACE`, troca o XData pelo registro único de marca (o original faz isso: o conteúdo de terceiro some) | `LimpezaDoDesenho.XDataDeTerceirosSubstituido()` + `LimpezaDoDesenho.XDataTerceiros` |
+| `ApagaLayouts` | apaga o dicionário **`CENG_LAYOUT`** (posição do equipamento no layout — o `PosicaoNum` do `FIA` e a `OrdemLay` do `COMPLM`) | `LimpezaDoDesenho.DicionarioLayout` |
+| `ApagaPlaquetas` | apaga o dicionário **`CENG_PLAQUETA`** (o insumo do `EPLQ`) | `LimpezaDoDesenho.DicionarioPlaquetas` |
+
+Receita (a mesma do ciclo, com o banco já projetado e o cadastro importado):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 `
+  -Comandos "ApagarTextosEmBranco,apagaXDataTerceiros" `
+  -Desenho ..\Elet\Teste_projeto_real\Funcional.dwg -Banco "$env:TEMP\positron-limpeza.db"
+```
+
+Medido em 2026-09-23 (ZWCAD 2026, `Funcional.dwg`, DWG 63):
+
+```text
+ApagarTextosEmBranco: 14 texto(s) apagado(s) (616 DBText lido(s) no ModelSpace).
+apagaXDataTerceiros: 0 entidade(s) com XData de terceiros limpo(s) (3276 entidade(s) no ModelSpace).
+ApagarTextosEmBranco: 0 texto(s) apagado(s) (602 DBText lido(s) no ModelSpace).   <- 2a passada
+```
+
+A **segunda passada** é a prova interna: o total lido cai de 616 para 602, exatamente os 14
+apagados. `ApagaLayouts`/`ApagaPlaquetas` se conferem **pelo efeito** — rode `COMPLM`/`EPLQ`
+antes, apague e rode de novo: o `COMPLM` passa a dizer `sem layout CENG_LAYOUT` (antes: **83**
+posição(ões)) e o `EPLQ` passa a `nenhum painel com plaquetas no dicionário CENG_PLAQUETA`
+(antes: **87** plaquetas, 8 painéis).
+
+**Conferência independente** (o cru manda — o mesmo método dos outros dumps):
+
+```powershell
+$env:POSITRON_TEXTOS = "$env:TEMP\positron-textos.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 -Comandos ELET `
+  -Fixture scripts/cad-conta-textos.lsp `
+  -Desenho ..\Elet\Teste_projeto_real\Funcional.dwg -Banco "$env:TEMP\positron-limpeza.db"
+```
+
+O `-Fixture` carrega antes do `NETLOAD`, então o desenho está intacto. A reconstrução em
+Python do arquivo dá: **616** lidos (= **612** `TEXT` + **4** `ATTDEF` — o
+`AttributeDefinition` deriva de `DBText`, e é o cast que o original faz), **45** em branco e
+**14 apagáveis** (em branco **e sem XData**), com os handles. Os **31** que sobram **não** são
+no-op: têm XData de outro app name (`AUXCONEXAO` 23, `DiagLog` 4, `Construtor` 4). O
+`TERCEIROS;0` fecha o zero do `apagaXDataTerceiros`.
+
+> **Lição de ferramenta:** a lista de app names do `entget` **tem de vir do desenho** (`tblnext
+> "APPID"`), não de uma lista fixa. Com lista fixa o dump acusou **41** apagáveis contra os
+> **14** do plugin — os outros 27 tinham XData de um app name fora da lista e apareciam como
+> "sem XData", que é justamente a condição de apagar.
+
 **Rodada 68 — relatório de Fiação no app (modo *Dispositivos*).** É o quarto tabular, e o
 único que **não** é árvore: a tela `frmRelatorio_Fiacao` monta um **grafo**
 `terminal → potencial → outras pontas` com o `CarregaLigacoesTerminal` (~760 linhas no

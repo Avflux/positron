@@ -157,6 +157,20 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         public virtual void UpgradeOpen()
         {
         }
+
+        /// <summary>
+        /// Existe nos dois CADs (<c>DBObject.Erase()</c>) e é o que as ações de
+        /// limpeza do §7.6 usam: apagar texto em branco e apagar os dicionários
+        /// <c>CENG_LAYOUT</c>/<c>CENG_PLAQUETA</c>.
+        /// </summary>
+        public virtual void Erase()
+        {
+        }
+
+        /// <summary>Volta a entidade aberta para leitura depois da escrita (<c>DBObject.DowngradeOpen()</c>).</summary>
+        public void DowngradeOpen()
+        {
+        }
     }
 
     public class Entity : Drawable
