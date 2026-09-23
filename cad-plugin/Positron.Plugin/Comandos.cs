@@ -1406,6 +1406,49 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>CorrigeCabos</c> — o <c>CorrigeNothing("Funcao")</c> do original: a <c>Funcao</c>
+        /// vazia vira um espaço em <c>Cabos</c> e <c>Cabos4</c>, e o <c>Alarme</c> do cadastro é
+        /// zerado sem filtro. É correção **só de banco** (não olha o desenho).
+        /// </summary>
+        [CommandMethod("CorrigeCabos")]
+        public void CorrigirCabos()
+        {
+            Plugin.Escrever(ExecutarCorrigirCabos());
+        }
+
+        /// <summary>Corrige a Funcao vazia e o Alarme no banco. Nunca lança.</summary>
+        internal static string ExecutarCorrigirCabos()
+        {
+            try
+            {
+                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+                if (string.IsNullOrEmpty(config.Banco))
+                {
+                    return "CorrigeCabos: defina POSITRON_DB_PATH — esta correção é no banco do projeto.";
+                }
+
+                ProjectStore store = new ProjectStore(config.Banco);
+                System.Collections.Generic.IReadOnlyList<int> linhas = store.CorrigirCabosNothing(
+                    Positron.Data.Correcoes.CorrecaoDeCabosNothing.ColunaFuncao);
+
+                if (linhas.Count < 3)
+                {
+                    return "CorrigeCabos: a coluna não está na lista branca — nada foi feito.";
+                }
+
+                // O `UPDATE ... SET Alarme = 0` do original **não tem filtro**: o número que o
+                // SQLite devolve é de linhas tocadas, não de linhas que mudaram.
+                return "CorrigeCabos: " + linhas[0] + " Funcao vazia(s) virou(aram) espaço em Cabos, "
+                    + linhas[1] + " em Cabos4 e o Alarme foi tocado em " + linhas[2]
+                    + " linha(s) (o UPDATE do Alarme não tem filtro, como no original).";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigeCabos: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

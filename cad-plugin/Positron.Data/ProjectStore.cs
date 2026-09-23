@@ -8,6 +8,8 @@ using Positron.Data.Materiais;
 using Positron.Data.Modelos;
 using Positron.Data.Plaquetas;
 
+using Positron.Data.Correcoes;
+
 namespace Positron.Data
 {
     /// <summary>
@@ -1082,6 +1084,41 @@ namespace Positron.Data
             }
 
             return alteradas;
+        }
+
+        /// <summary>
+        /// O <c>CorrigeNothing</c> do <c>cDadosAccessInterligacao2</c> — o que o comando
+        /// <c>CorrigeCabos</c> chama: as três atualizações do plano puro
+        /// (<see cref="CorrecaoDeCabosNothing"/>). Devolve quantas linhas cada uma afetou,
+        /// na ordem do plano.
+        /// </summary>
+        public IReadOnlyList<int> CorrigirCabosNothing(string coluna)
+        {
+            List<int> linhas = new List<int>();
+            IReadOnlyList<AtualizacaoDeCabo> plano = CorrecaoDeCabosNothing.Plano(coluna);
+            if (plano.Count == 0)
+            {
+                return linhas;
+            }
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            {
+                foreach (AtualizacaoDeCabo atualizacao in plano)
+                {
+                    using (SQLiteCommand comando = conexao.CreateCommand())
+                    {
+                        comando.CommandText = "UPDATE " + atualizacao.Tabela + " SET " + atualizacao.Coluna + " = @valor"
+                            + (atualizacao.SemFiltro ? string.Empty : " WHERE " + atualizacao.Coluna + " = ''");
+                        comando.Parameters.AddWithValue("@valor", atualizacao.Valor);
+                        linhas.Add(comando.ExecuteNonQuery());
+                    }
+                }
+
+                transacao.Commit();
+            }
+
+            return linhas;
         }
 
         /// <summary>Lê o catálogo de veias (<c>Veias</c>) — fonte do snapshot <c>Veias4</c>.</summary>

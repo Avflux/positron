@@ -762,6 +762,39 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 97 — `CorrigeCabos` (frente 2 do §7.6, parte 24: o `CorrigeNothing` do banco).**
+O `CorrigeCabos` do `Correcao.cs` é **só banco** (não olha o desenho): o
+`CorrigeNothing("Funcao")` do `cDadosAccessInterligacao2` roda **três** atualizações:
+
+```sql
+UPDATE Cabos  SET Funcao = ' ' WHERE Funcao = ''
+UPDATE Cabos4 SET Funcao = ' ' WHERE Funcao = ''
+UPDATE Cabos  SET Alarme = 0            -- sem filtro, como no original
+```
+
+Entraram a regra pura `CorrecaoDeCabosNothing` (o plano das três, na ordem, com **lista branca**
+da coluna — o original concatena o nome no SQL), o `ProjectStore.CorrigirCabosNothing` (que
+devolve as linhas afetadas de cada uma) e o comando.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63, com uma **cópia** do
+banco do projeto para não sujar o de trabalho):
+
+```text
+CorrigeCabos: 0 Funcao vazia(s) virou(aram) espaço em Cabos, 0 em Cabos4 e o Alarme foi tocado em 697 linha(s) (o UPDATE do Alarme não tem filtro, como no original).
+```
+
+E a **sonda independente** `scripts/cad-sonda-cabos.py` (as mesmas três atualizações numa cópia do
+`.db`, fora do plugin) confirma: **0** `Funcao` vazias nas duas tabelas e **697** linhas em
+`Cabos`.
+
+> **Nota de honestidade:** o SQLite devolve as linhas **tocadas** por um `UPDATE` sem filtro, não
+> as que mudaram. A primeira redação da mensagem dizia "697 Alarme(s) zerado(s)" e foi corrigida
+> para "o Alarme foi tocado em 697 linha(s)".
+
+**Classificações registradas:** o `APAGARXDATA` é só de UI (`new frmPesquisaXdatas()`) e o
+`RENPAGA` é **interativo + sistema de páginas** (`InputBox` + `Pagina.renumerarPaginasLote` + a
+cascata de sincronizações) — os dois saem do recorte.
+
 **Rodada 96 — `CorrigePainelET1DosBornes` (frente 2 do §7.6, parte 23: os atributos do borne).**
 O `clsUtilitarios.cs` que reescreve os atributos do bloco do **borne** (Dispositivo tipo
 `B`): resolve a **régua** pelo `IndiceRegua` no dicionário `REGUAS` (o
@@ -3387,7 +3420,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 486 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 488 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real
