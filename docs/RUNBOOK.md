@@ -762,6 +762,35 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 94 — o caminho de apagar do `ApagaBlocosMirror`, provado (frente 2, ferramenta/evidência).**
+Fecha a pendência de fixture da rodada 93. A `scripts/cad-fixture-mirror.lsp` monta **três**
+inserções do mesmo bloco vazio:
+
+| # | como está | o que o comando faz |
+|---|---|---|
+| 1 | espelhada (escala X = **−1**) com um XData qualquer | **apaga** |
+| 2 | espelhada (escala X = −1) **com o app `DINTERLIG`** (cabo de aranha) | fica |
+| 3 | normal (escala X = 1) com XData | fica |
+
+**Medido no ZWCAD 2026** (desenho sintético):
+
+```text
+1ª chamada: ApagaBlocosMirror: 1 bloco(s) espelhado(s) apagado(s) (2 espelhado(s) entre 3 com XData; 1 são cabo de aranha e ficam; 3 bloco(s) lido(s)).
+2ª chamada: ApagaBlocosMirror: 0 bloco(s) espelhado(s) apagado(s) (1 espelhado(s) entre 2 com XData; 1 são cabo de aranha e ficam; 2 bloco(s) lido(s)).
+dump:       BLOCO;245;BTMIRROR;-1;NAO;SIM      <- o espelhado com DINTERLIG ficou
+            BLOCO;246;BTMIRROR;1;SIM;NAO       <- o normal ficou
+            TOTAL;blocos;2;espelhados;1
+```
+
+Ou seja: **só** o espelhado sem o cabo de aranha foi apagado, os outros dois ficaram, e a segunda
+chamada da mesma passada não acha mais nada (idempotência).
+
+> **A outra pendência de ferramenta — o contador da cor:** a tentativa de consertar o
+> aninhamento do `cad-conta-cores.lsp` mostrou um **desequilíbrio de parênteses** na cauda do
+> arquivo e foi **revertida**; o contador volta ao estado anterior (saldo 0) e segue como
+> pendência pequena. A evidência que ele daria já está coberta pelo dump da fixture (rodada 91)
+> e pelos números do próprio comando (rodada 93).
+
 **Rodada 93 — `ApagaBlocosMirror` (frente 2 do §7.6, parte 21: os blocos espelhados).**
 O `clsUtilitarios.cs`: apaga os blocos de referência que
 
