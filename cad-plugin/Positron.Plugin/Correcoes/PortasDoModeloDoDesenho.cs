@@ -47,8 +47,11 @@ namespace Positron.Plugin.Correcoes
             /// <summary>Blocos casados com uma porta do dicionário.</summary>
             internal int Casados { get; set; }
 
-            /// <summary>Portas que não estão no dicionário (o <c>IndefineUmaPorta</c> fica fora).</summary>
+            /// <summary>Portas que não estão no dicionário (e que o comando indefine).</summary>
             internal int SemPorta { get; set; }
+
+            /// <summary>Portas indefinidas (XData zerado e atributos limpos).</summary>
+            internal int Indefinidas { get; set; }
 
             internal int AtributosAlterados { get; set; }
 
@@ -105,7 +108,14 @@ namespace Positron.Plugin.Correcoes
                     ModeloPorta porta = Buscar(portas, indiceModelo, indiceDaPorta);
                     if (porta == null)
                     {
+                        // O `IndefineUmaPorta` do fim do laço do original: a porta que não está
+                        // no dicionário tem o XData zerado e os atributos limpos.
                         resultado.SemPorta++;
+                        if (IndefinirPorta(transacao, bloco))
+                        {
+                            resultado.Indefinidas++;
+                        }
+
                         continue;
                     }
 
@@ -298,6 +308,102 @@ namespace Positron.Plugin.Correcoes
             }
 
             return transacao.GetObject(id, OpenMode.ForRead) as Entity;
+        }
+
+        /// <summary>
+        /// O <c>IndefineUmaPorta(handle, bLimpaTudo: true)</c>: zera o <c>indiceDaPorta</c>, o
+        /// <c>handleDaDefinicao</c> e a <c>chavePrimaria</c> no XData da porta e roda a
+        /// <c>LimpaPorta</c> nos atributos.
+        /// </summary>
+        private static bool IndefinirPorta(Transaction transacao, BlockReference bloco)
+        {
+            bloco.UpgradeOpen();
+            bloco.XData = ParaResultBuffer(TrocandoOsCamposDaPorta(bloco.XData));
+
+            foreach (ObjectId id in bloco.AttributeCollection)
+            {
+                AttributeReference atributo = transacao.GetObject(id, OpenMode.ForRead) as AttributeReference;
+                if (atributo == null)
+                {
+                    continue;
+                }
+
+                string valor = LimpezaDaPorta.ValorDoAtributoLimpo(
+                    atributo.Tag, true, VerificadorTerminalIndefinido);
+                if (valor == null)
+                {
+                    continue;
+                }
+
+                if (string.Equals(atributo.TextString ?? string.Empty, valor, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                atributo.UpgradeOpen();
+                atributo.TextString = valor;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Zera os três campos do <c>IndefineUmaPorta</c> no registro <c>Dispositivo</c>: o
+        /// <c>indiceDaPorta</c> (o <c>array[6]</c>), o <c>handleDaDefinicao</c> (o <c>array[9]</c>)
+        /// e a <c>chavePrimaria</c> (o <c>array[10]</c>), trocando só o registro do app.
+        /// </summary>
+        private static IReadOnlyList<TypedXData> TrocandoOsCamposDaPorta(ResultBuffer todos)
+        {
+            List<TypedXData> saida = new List<TypedXData>();
+            IReadOnlyList<TypedXData> valores = todos == null ? null : XDataNeutro.Para(todos);
+            if (valores == null)
+            {
+                return saida;
+            }
+
+            int i = 0;
+            while (i < valores.Count)
+            {
+                bool ehDispositivo = valores[i].Codigo == 1001 &&
+                    string.Equals(valores[i].Valor as string, DispositivoXData.AppName, StringComparison.Ordinal);
+                if (!ehDispositivo)
+                {
+                    saida.Add(valores[i]);
+                    i++;
+                    continue;
+                }
+
+                saida.Add(valores[i]);
+                i++;
+                int k = 0;
+                while (i < valores.Count && valores[i].Codigo != 1001)
+                {
+                    if (k == 5 || k == 8 || k == 9)
+                    {
+                        saida.Add(new TypedXData(valores[i].Codigo, k == 5 ? (object)0 : string.Empty));
+                    }
+                    else
+                    {
+                        saida.Add(valores[i]);
+                    }
+
+                    k++;
+                    i++;
+                }
+            }
+
+            return saida;
+        }
+
+        private static ResultBuffer ParaResultBuffer(IReadOnlyList<TypedXData> valores)
+        {
+            TypedValue[] array = new TypedValue[valores.Count];
+            for (int i = 0; i < valores.Count; i++)
+            {
+                array[i] = new TypedValue(valores[i].Codigo, valores[i].Valor);
+            }
+
+            return new ResultBuffer(array);
         }
 
         private static void Aplicar(

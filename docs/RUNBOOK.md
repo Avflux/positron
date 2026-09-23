@@ -762,6 +762,35 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 101 — o `IndefineUmaPorta`/`LimpaPorta` do `corrigePortas` (cauda da pendência da rodada 87).**
+A porta cujo par `(indiceDoModelo, indiceDaPorta)` **não** está no dicionário passa a ser
+**indefinida**:
+
+- o `IndefineUmaPorta(handle, bLimpaTudo: true)` zera os **três** campos do XData
+  `Dispositivo` — o `indiceDaPorta` (o `array[6]`), o `handleDaDefinicao` (o `array[9]`) e a
+  `chavePrimaria` (o `array[10]`) — trocando só o registro do app;
+- a `LimpaPorta` roda nos atributos, com a regra pura nova `LimpezaDaPorta`:
+
+| tag | valor |
+|---|---|
+| `NOME1` `NOME2` `ALTERNATIVO` `PAINEL` `MODELO` `FABRICANTE` | vazias (esvaziadas no primeiro passo e não tocadas depois) |
+| `T<n>` / `B<n>` | o caracter de terminal indefinido |
+| o resto | vazio |
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+corrigePortas: 9 atributo(s) e 0 visibilidade(s) regravado(s) em 45 de 45 bloco(s) de porta (240 porta(s) no dicionário; 0 fora dele, 0 indefinida(s)).
+```
+
+Nesta cópia **não há** porta fora do dicionário, então o caminho de indefinir **não é exercitado**.
+
+> **Pendência de ferramenta (registrada):** a fixture sintética
+> `scripts/cad-fixture-indefine-porta.lsp` foi escrita (bloco `BTEPORT` com os ATTDEFs
+> `NOME1`/`T1`/`PAINEL`/`EFC`, o XData tipo `E` apontando o modelo 9/porta 5 e um `MASCARAS` com só a
+> porta 3), mas **não produziu saída**: o rastro para em `0 load` — o mesmo sintoma das rodadas
+> 90/91 (saldo de parênteses em 0, mas o load não chega ao fim).
+
 **Rodada 100 — o `NOME1`/`ORIGEM` do `corrigePortas` (pendência da rodada 87).**
 Fecha a **metade de atributos** da pendência, implementando os dois `Busca*` que faltavam:
 
@@ -3503,7 +3532,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 498 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 502 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real
