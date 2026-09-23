@@ -1169,6 +1169,44 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>CorrigeModelosDeContatos</c> — acerta o **índice do contato** dos blocos
+        /// auxiliares e do XData <c>Modelo</c> quando o <c>CONTATOS</c> tem contato fora
+        /// da posição; no fim chama o <c>CorrigeContatosAux</c>, como o original.
+        /// </summary>
+        [CommandMethod("CorrigeModelosDeContatos")]
+        public void CorrigirModelosDeContatos()
+        {
+            Plugin.Escrever(ExecutarCorrigirModelosDeContatos());
+            Plugin.Escrever(ExecutarCorrigirContatosAuxiliares());
+        }
+
+        /// <summary>Corrige os índices de contato e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirModelosDeContatos()
+        {
+            try
+            {
+                Correcoes.ModelosDeContatosDoDesenho.Resultado resultado =
+                    Correcoes.ModelosDeContatosDoDesenho.Executar();
+
+                if (resultado.Ajustes == 0)
+                {
+                    return "CorrigeModelosDeContatos: nenhum contato fora da posição ("
+                        + resultado.Modelos + " modelo(s) e " + resultado.Contatos
+                        + " contato(s) no CONTATOS) — nada a corrigir.";
+                }
+
+                return "CorrigeModelosDeContatos: " + resultado.Ajustes + " contato(s) renumerado(s); "
+                    + resultado.DispositivosAlterados + " bloco(s) com o XData Dispositivo e "
+                    + resultado.ModelosAlterados + " com o XData Modelo regravado(s) ("
+                    + resultado.AuxiliaresLidos + " auxiliar(es) lido(s)).";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigeModelosDeContatos: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

@@ -762,6 +762,43 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 86 — `CorrigeModelosDeContatos` (frente 2 do §7.6, parte 17: o índice do contato).**
+O par do `CorrigeBlocosContatosAux` da rodada 85: aquele reescreve os **terminais**; este acerta o
+**índice do contato**. Quando o `Indice` de um contato do `CONTATOS` **não é o da sua posição**
+na lista do modelo, o original renumera o dicionário (1, 2, 3...) e grava o índice novo no
+desenho — no XData **`Dispositivo`** (blocos auxiliares tipo `A`, valor 6) e no XData
+**`Modelo`** (valor 3). A regra pura é `CorrecaoModeloDeContato.Planejar`/`ContatoNovo`.
+
+A gravação troca **só o registro do app** dentro do buffer do bloco (o precedente da rodada 77);
+o original troca o buffer inteiro. No fim o comando chama o `CorrigeContatosAux` (rodada 77),
+como o original.
+
+> **Escopo registrado (fora):** a renumeração do **dicionário**
+> (`GravaOsContatosAuxiliarDoModeloDoDicionario`) e o `SincronizaContatos` do fim. O motivo
+> do dicionário ficar de fora é concreto: o leitor do recoder **recalcula a orientação** ao
+> ler (`OrientacaoContato`, desvio documentado de rodada anterior), então gravar de volta o
+> que se leu persistiria a orientação recalculada em vez da original — o escritor precisa do
+> registro cru antes.
+
+**Medido na fixture sintética** (`scripts/cad-fixture-modelos-contatos.lsp`: um `CONTATOS` com o
+modelo 53 e os contatos de índice **7** e **9**, e um bloco `A` apontando o contato 7):
+
+```text
+CorrigeModelosDeContatos: 2 contato(s) renumerado(s); 1 bloco(s) com o XData Dispositivo e 0 com o XData Modelo regravado(s) (1 auxiliar(es) lido(s)).
+BLOCO;A;53;1        <- o IndexContato do bloco passou de 7 para 1 (o da posição)
+```
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+CorrigeModelosDeContatos: nenhum contato fora da posição (8 modelo(s) e 26 contato(s) no CONTATOS) — nada a corrigir.
+CorrigeContatosAux: 0 de 129 modelo(s) com o HandleContatoAux acertado (63 bloco(s) auxiliar(es) lido(s); 66 modelo(s) sem contato casado).
+```
+
+Ou seja: o dicionário desta cópia **já está consistente** e o comando é no-op aqui (é o mesmo
+caminho de saída antecipada do original, `if (array2.Count() <= 1) return`); o caminho de escrita
+fica provado pela fixture.
+
 **Rodada 85 — `CorrigeBlocosContatosAux` (frente 2 do §7.6, parte 16: os terminais dos blocos auxiliares).**
 O par de escrita do `bt4Auxiliar`: para cada bloco de **Dispositivo tipo `A`**, casa o par
 `IndexModelo`/`IndexContato` com um contato do dicionário `CONTATOS` e reescreve os atributos
@@ -2998,7 +3035,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 463 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 467 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real
