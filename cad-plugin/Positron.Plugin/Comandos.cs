@@ -1207,6 +1207,42 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>corrigePortas</c> — reescreve os atributos dos blocos de porta (Dispositivo
+        /// tipo E) com o que diz o dicionário MASCARAS (o <c>EditaTodasPortas</c> do
+        /// <c>clsPortas.cs</c>).
+        /// </summary>
+        [CommandMethod("corrigePortas")]
+        public void CorrigirPortas()
+        {
+            Plugin.Escrever(ExecutarCorrigirPortas());
+        }
+
+        /// <summary>Corrige os atributos das portas e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirPortas()
+        {
+            try
+            {
+                Correcoes.PortasDoModeloDoDesenho.Resultado resultado =
+                    Correcoes.PortasDoModeloDoDesenho.Executar();
+
+                if (resultado.Portas == 0)
+                {
+                    return "corrigePortas: o dicionário MASCARAS não tem porta nenhuma.";
+                }
+
+                return "corrigePortas: " + resultado.AtributosAlterados + " atributo(s) e "
+                    + resultado.VisibilidadesAlteradas + " visibilidade(s) regravado(s) em "
+                    + resultado.Casados + " de " + resultado.BlocosLidos + " bloco(s) de porta ("
+                    + resultado.Portas + " porta(s) no dicionário; " + resultado.SemPorta
+                    + " fora dele — o IndefineUmaPorta fica fora deste recorte).";
+            }
+            catch (System.Exception erro)
+            {
+                return "corrigePortas: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

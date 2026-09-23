@@ -282,6 +282,9 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         /// <summary>Escala do estilo de linha (o <c>Entity.LinetypeScale</c> da API real).</summary>
         public double LinetypeScale { get; set; }
 
+        /// <summary>Visibilidade do objeto (o <c>Entity.Visible</c> da API real).</summary>
+        public bool Visible { get; set; } = true;
+
         /// <summary>Herda os padrões do banco (o <c>SetDatabaseDefaults</c> da API real).</summary>
         public void SetDatabaseDefaults()
         {

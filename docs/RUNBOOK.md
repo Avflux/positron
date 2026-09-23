@@ -762,6 +762,44 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 87 — `corrigePortas` (frente 2 do §7.6, parte 18: os atributos das portas).**
+O `EditaTodasPortas` do `clsPortas.cs`: junta as portas de todos os modelos do dicionário
+`MASCARAS` (o `MODELOS2` + a chave `<indice>` de cada modelo — **240 portas** nesta cópia) e
+reescreve os atributos dos blocos de **porta** (Dispositivo tipo `E`), casados pelo par
+`indiceDoModelo`/`indiceDaPorta` do XData `Dispositivo` (valores 5 e 6, como o `StructurePortas`
+do reverso).
+
+| tag | regra |
+|---|---|
+| `EFC` | o `sEFC` da porta |
+| `T<n>` | o terminal `n` — ou o caracter de terminal indefinido quando o campo está vazio |
+| `B<n>` | o borne `n` **sem** o `*` da frente (um espaço quando não há) |
+| `R<n>` | a régua, e o atributo fica **visível só** quando aquele borne tinha o `*` |
+
+O `SepararBornes` guarda a marca do asterisco e tira ele do valor (o laço de `Mid(borne, 2)` do
+original).
+
+> **Fora deste recorte, documentado:** as tags `NOME1` (o nome da máscara pelo `HandleDaMascara`)
+> e `ORIGEM` (a página do texto da definição) — faltam os dois `Busca*` do original no recoder
+> (`clsMascara.BuscaNomeDaMascara` e `clsTextos.EncontraPaginaDoTexto`) — e o
+> `IndefineUmaPorta` que o original roda na porta que **não** está no dicionário (aqui a porta
+> fica como está e é contada à parte).
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63) com o contador
+independente `scripts/cad-conta-portas.lsp`:
+
+```text
+antes:  PORTA;13CE5;V_E_CONTATO_NA1;5;7;;13;14;;;;      <- modelo 5, porta 7, T1 13, T2 14
+        PORTA;39A0;V_E_BTERRA;1;1;;1;;;;;
+        TOTAL;blocos;45;comDispositivo;45
+depois: corrigePortas: 0 atributo(s) e 0 visibilidade(s) regravado(s) em 45 de 45 bloco(s) de porta
+        (240 porta(s) no dicionário; 0 fora dele — o IndefineUmaPorta fica fora deste recorte).
+```
+
+Ou seja: **45 de 45** blocos de porta casaram com uma porta do dicionário (o pareamento está
+certo) e **nenhum** atributo precisou mudar — o cadastro e o desenho já concordam nesta cópia.
+As regras (incluindo a visibilidade da régua e o `*` dos bornes) ficam provadas pelos 7 testes.
+
 **Rodada 86 — `CorrigeModelosDeContatos` (frente 2 do §7.6, parte 17: o índice do contato).**
 O par do `CorrigeBlocosContatosAux` da rodada 85: aquele reescreve os **terminais**; este acerta o
 **índice do contato**. Quando o `Indice` de um contato do `CONTATOS` **não é o da sua posição**
@@ -3035,7 +3073,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 467 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 474 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real
