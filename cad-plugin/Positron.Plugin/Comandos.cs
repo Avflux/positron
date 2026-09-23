@@ -1236,7 +1236,7 @@ namespace Positron.Plugin
                     + resultado.VisibilidadesAlteradas + " visibilidade(s) regravado(s) em "
                     + resultado.Casados + " de " + resultado.BlocosLidos + " bloco(s) de porta ("
                     + resultado.Portas + " porta(s) no dicionário; " + resultado.SemPorta
-                    + " fora dele — o IndefineUmaPorta fica fora deste recorte).";
+                    + " fora dele, " + resultado.Indefinidas + " indefinida(s)).";
             }
             catch (System.Exception erro)
             {
