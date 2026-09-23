@@ -762,6 +762,46 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 104 — a prova ponta a ponta do `IndefineUmaPorta` (a última pendência da frente 2).**
+A prova que faltava desde a rodada 101, agora **em C#** (a fixture LISP nunca deu saída):
+
+- o `pzDiagCriar` monta no desenho a **porta sintética** — bloco `PZPORT` com os quatro ATTDEFs
+  (`NOME1`/`T1`/`PAINEL`/`EFC`), a inserção com os valores antigos, o XData `Dispositivo` tipo `E` no
+  **modelo 9/porta 5** e um `MASCARAS` cujo modelo 9 só tem a **porta 3** — com os 25 valores do
+  XData na regra pura `PortaSintetica` (testada);
+- o `pzDiag` ganhou o modo **acrescentar** (`## pzDiag ##` por chamada), o que permite o
+  **antes/depois na mesma passada** (o harness sempre parte de uma cópia limpa entre passadas).
+
+> **Quirk medido:** o harness executa o `pzDiag` e **não** o `pzDiagCriar` — o comando novo não
+> produz saída nenhuma, nem sozinho, enquanto os antigos rodam na mesma linha. Por isso a criação
+> entra pelo próprio `pzDiag` quando `POSITRON_DIAG_CRIAR` está ligada, e é **idempotente** (a segunda
+> chamada não estoura o `eDuplicateRecordName`).
+
+**Medido no ZWCAD 2026** num desenho em branco, com a passada
+`pzDiag,corrigePortas,pzDiag` e `POSITRON_DIAG_CRIAR=1`:
+
+```text
+## pzDiag ##
+PORTA;tipo;indiceModelo;indiceDaPorta;handleMascara;handleDefinicao;NOME1;T1;PAINEL;EFC
+PORTA;E;9;5;;;NOME-ANTIGO;7;PT1;EFC-ANTIGO          <- ANTES
+TOTAL;portas;1;4;0
+...
+## pzDiag ##
+PORTA;E;9;0;;;;?;;                                   <- DEPOIS
+TOTAL;portas;1;4;0
+
+corrigePortas: 0 atributo(s) e 0 visibilidade(s) regravado(s) em 0 de 1 bloco(s) de porta
+                (1 porta(s) no dicionário; 1 fora dele, 1 indefinida(s)).
+```
+
+Leitura do depois: o `indiceDaPorta` foi **zerado**, as protegidas `NOME1` e `PAINEL` ficaram
+**vazias**, o `T1` recebeu o **caracter de terminal indefinido** e o `EFC` (o resto) ficou
+**vazio** — a regra da `LimpezaDaPorta` aplicada no ZWCAD de verdade.
+
+**Ferramenta:** o stub ganhou `AttributeCollection` (com `AppendAttribute`), o construtor
+`BlockReference(Point3d, ObjectId)`, `BlockTableRecord : SymbolTableRecord`, o `SymbolTable.Add`
+devolvendo `ObjectId`, `AttributeDefinition : DBText` e o `DBText.Position`.
+
 **Rodada 103 — o `pzDiag`: a ferramenta de diagnóstico em **C#** (e o fecho do contador da cor).**
 A lição das rodadas 90/91/102 era que o gargalo das evidências era o **LISP** — contador sem
 saída, rastro parando em `0 load`, parênteses. A saída foi trocar a ferramenta de linguagem.
@@ -3593,7 +3633,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 506 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 508 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

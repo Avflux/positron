@@ -1497,10 +1497,19 @@ namespace Positron.Plugin
         {
             try
             {
+                // A criação da porta sintética entra aqui, e não num comando próprio: o
+                // harness executa o `pzDiag` e **não** o `pzDiagCriar` (medido na rodada 104).
+                string criar = System.Environment.GetEnvironmentVariable("POSITRON_DIAG_CRIAR");
+                string prefixo = string.Empty;
+                if (!string.IsNullOrEmpty(criar) && criar != "0")
+                {
+                    prefixo = Diagnostico.PortaSinteticaDoDesenho.Criar() + " ";
+                }
+
                 Diagnostico.DiagnosticoDoDesenho.Resultado resultado =
                     Diagnostico.DiagnosticoDoDesenho.Escrever();
 
-                return "pzDiag: " + resultado.Portas + " porta(s), " + resultado.Referencias
+                return prefixo + "pzDiag: " + resultado.Portas + " porta(s), " + resultado.Referencias
                     + " referência(s) de cor e " + resultado.Diferencas + " diferença(s) — escrito em "
                     + resultado.Caminho + ".";
             }

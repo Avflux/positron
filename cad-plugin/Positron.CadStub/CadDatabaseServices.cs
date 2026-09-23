@@ -403,21 +403,66 @@ namespace ZwSoft.ZwCAD.DatabaseServices
 
     public class BlockReference : Entity
     {
+        public BlockReference()
+        {
+        }
+
+        /// <summary>O construtor da API real (o ponto e a definição do bloco).</summary>
+        public BlockReference(Point3d posicao, ObjectId definicao)
+        {
+            Position = posicao;
+            BlockTableRecord = definicao;
+        }
+
         public Point3d Position { get; set; }
 
         public string Name { get; set; }
 
+        /// <summary>A definição do bloco (o <c>BlockReference.BlockTableRecord</c> da API real).</summary>
+        public ObjectId BlockTableRecord { get; set; }
+
         /// <summary>Escalas do bloco (o <c>BlockReference.ScaleFactors</c> da API real).</summary>
         public Scale3d ScaleFactors { get; set; }
 
-        public IEnumerable<ObjectId> AttributeCollection
+        public AttributeCollection Attributes { get; } = new AttributeCollection();
+
+        public AttributeCollection AttributeCollection
         {
-            get { return new List<ObjectId>(); }
+            get { return Attributes; }
         }
     }
 
-    /// <summary>Definição de atributo (o <c>AttributeDefinition</c> da API real).</summary>
-    public class AttributeDefinition : Entity
+    /// <summary>A coleção de atributos da referência (o <c>AttributeCollection</c> da API real).</summary>
+    public class AttributeCollection : System.Collections.Generic.IEnumerable<ObjectId>
+    {
+        private readonly List<ObjectId> _ids = new List<ObjectId>();
+
+        public int Count
+        {
+            get { return _ids.Count; }
+        }
+
+        /// <summary>Acrescenta um atributo (o <c>AppendAttribute</c> da API real).</summary>
+        public ObjectId AppendAttribute(AttributeReference atributo)
+        {
+            ObjectId id = default(ObjectId);
+            _ids.Add(id);
+            return id;
+        }
+
+        public System.Collections.Generic.IEnumerator<ObjectId> GetEnumerator()
+        {
+            return _ids.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return _ids.GetEnumerator();
+        }
+    }
+
+    /// <summary>Definição de atributo (o <c>AttributeDefinition</c> da API real, que é um texto).</summary>
+    public class AttributeDefinition : DBText
     {
         public string Tag { get; set; }
     }
@@ -459,6 +504,9 @@ namespace ZwSoft.ZwCAD.DatabaseServices
 
         /// <summary>Rotação em radianos (o `criarTextoNomeCabo` a calcula pelo segmento).</summary>
         public double Rotation { get; set; }
+
+        /// <summary>Ponto de inserção do texto (o `DBText.Position` da API real).</summary>
+        public Point3d Position { get; set; }
 
         /// <summary>Ponto de alinhamento (o texto do cabo é bottom-center nele).</summary>
         public Point3d AlignmentPoint { get; set; }
@@ -544,8 +592,9 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         /// RegAppTable) e é acessível pela base <c>SymbolTable</c> — é o que o
         /// código reverso usa para registrar o app name do XData.
         /// </summary>
-        public void Add(SymbolTableRecord registro)
+        public ObjectId Add(SymbolTableRecord registro)
         {
+            return default(ObjectId);
         }
 
         public IEnumerator GetEnumerator()
@@ -569,11 +618,9 @@ namespace ZwSoft.ZwCAD.DatabaseServices
     {
     }
 
-    public class BlockTableRecord : DBObject, IEnumerable
+    public class BlockTableRecord : SymbolTableRecord, IEnumerable
     {
         public const string ModelSpace = "*ModelSpace";
-
-        public string Name { get; set; }
 
         /// <summary>Anexa uma entidade nova ao espaço (o `AppendEntity` da API real).</summary>
         public void AppendEntity(Entity entidade)

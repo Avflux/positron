@@ -165,7 +165,12 @@ namespace Positron.Plugin.Diagnostico
                 transacao.Commit();
             }
 
-            File.WriteAllLines(resultado.Caminho, linhas);
+            // ACRESCENTA: numa mesma passada o comando roda antes e depois da correção (o
+            // harness sempre parte de uma cópia limpa entre passadas).
+            List<string> saida = new List<string>();
+            saida.Add("## pzDiag ##");
+            saida.AddRange(linhas);
+            File.AppendAllLines(resultado.Caminho, saida);
             return resultado;
         }
 
