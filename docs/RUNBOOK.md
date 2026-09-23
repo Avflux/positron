@@ -769,6 +769,40 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 110 — a triagem das frentes 5, 6 e 7.**
+Li o corpo dos **49** comandos das três frentes. O veredito repete o das frentes 3 e 4 — são
+editores de UI, interação e ambiente —, mas desta vez **sobrou um candidato grande**.
+
+**Frente 5 (17):** 8 só UI (`GERDWG`, `DUPCAD`, `CIRC`, `EDTNCIRC`, `INSM`, `APL`, `EDCONP`,
+`REVAUT`), 8 interativos/ambiente (`CONAUT`/`DERAUT` com o `Editor`, `CON` = `CriarConexao` a cada
+clique, `RESTAURA` = `Pagina.restauraCampos()`, `CAD` = `CriarCaderno` com formato, `EDCON`,
+`CriaJigCloud` = um *jig*, `AJUDA` = abre a URL) e **1 candidato**: `SYNCC` =
+`clsConexao.sincronizaCircuitos()`, cuja substância já está na projeção `FIA` (`Circuitos4F`) —
+entra como **verificação**, não como comando novo.
+
+**Frente 6 (4):** `LR`, `SEQ`, `LNK` = só UI; `DELFIPROJ` = `MsgBox` de confirmação e depois apaga
+o projeto de fiação (destrutivo, não vale portar).
+
+**Frente 7 (28):** 14 só UI, 3 toggles de exibição (`OCCAB`, `LNOME`, `DNOME`), 4 interativos
+(`INDV`, `VEIA1`, `VEIA2`, `VEAUT`, `BLI`) e 3 com a **substância já portada**:
+
+- `LAYELN` = `clsEletron.RecriaTextosCabo()` → **rodada 78**;
+- `LAYELS` = `clsEletrosul.RecriaTextosCaboEletrosul()` → **rodada 79**;
+- `RECRIACABOS` = o `MsgBox` + o `switch` sobre o `Conf.InterligacaoLayout` que escolhe entre os dois.
+
+**O candidato grande — `SYNCV`, o gêmeo do `SYNCD`:**
+
+```text
+[pb 1..9] CorrigeOsTextosDosCabos -> InsereTextosDeCabos -> SincronizaVeiasDoCaderno
+-> AtualizaNomesDosCabos -> SincronizaCruzamentoInterlig
+-> RecriaOCruzamentoInterligTipo2Apagados -> AtualizaTodosOpcionaisDoCabo
+-> ModeloDoDispositivoPrincipalTipo3 (conforme Conf.ModeloBobina)
+```
+
+Os passos que o recoder **já tem em comandos separados**: os textos dos cabos (rodadas 78/79), os
+opcionais (82) e a sincronização das veias (a projeção `INT`). Ou seja, o `SYNCV` pode virar um
+**pipeline** como o `SYNCD` virou na rodada 107 — é o próximo candidato de código, e o último que
+esta triagem revelou.
 **Rodada 108 — o `STATBORN` em lote (o candidato da frente 3).**
 A estatística de bornes do `frmEstatisticaDeBornes` é só exibição; a conta está no
 `clsReguasDeBornes.SomaOsBornes`, que:
