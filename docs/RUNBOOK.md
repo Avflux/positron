@@ -762,6 +762,45 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 85 — `CorrigeBlocosContatosAux` (frente 2 do §7.6, parte 16: os terminais dos blocos auxiliares).**
+O par de escrita do `bt4Auxiliar`: para cada bloco de **Dispositivo tipo `A`**, casa o par
+`IndexModelo`/`IndexContato` com um contato do dicionário `CONTATOS` e reescreve os atributos
+`T1`, `T2` e `T3` com o que diz o contato (o `AtualizaOsTerminaisAuxiliares`).
+
+| tag | regra |
+|---|---|
+| `T1` | sempre `sT1` |
+| `T2` | `sT2`, **exceto** com o tipo do contato `RV`: aí o **tipo do bloco** decide — `NA` recebe `sT3`, `NF`/`RV` recebem `sT2`, qualquer outro **não mexe** |
+| `T3` | `sT3`; com o tipo `NA` e o `sT3` vazio, cai no `sT2` |
+| outra | não mexe (a sentinela `##VAZIO##` do original) |
+
+O **tipo do bloco** sai do próprio nome: `Mid(nome, 5, 2)` — os **dois** caracteres da quinta
+posição. (O deslocamento importa: `BT4NAXX` é `AX`, não `NA`; o teste guarda isso.)
+
+> **Achado medido:** os blocos auxiliares desta cópia **não têm o XData `Modelo`**. O par
+> `IndexModelo`/`IndexContato` vem do XData **`Dispositivo`**: tipo `A` no valor 1, `IndexModelo`
+> no **5** e `IndexContato` no **6** — exatamente os `array[5]`/`array[6]` que o
+> `LeXDataQualquerDispositivo` do reverso lê para o `StructureAuxiliar`. O primeiro corte do
+> adapter lia o `Modelo` e casava **0 de 63**; corrigido, casa 63 de 63.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63) com o contador
+independente `scripts/cad-conta-contatos-aux.lsp`:
+
+```text
+CorrigeBlocosContatosAux: 0 atributo(s) regravado(s) em 63 de 63 bloco(s) auxiliar(es) (8 modelo(s) e 26 contato(s) no CONTATOS).
+BLOCO;7367;V_A_NA1_ST;53;2;21;24;        <- modelo 53, contato 2, T1 21, T2 24, T3 vazio
+BLOCO;11D34;V_A_RV1I5_MOD_ST;53;1;11;12;14
+BLOCO;1C7D7;V_A_NA13_ST;9;1;11;;14
+TOTAL;blocos;63;comModelo;63
+```
+
+Ou seja: **o cadastro e o desenho já concordam** — o comando não tem o que corrigir nesta cópia
+(o valor calculado é igual ao que está no atributo). As ramificações, incluindo o `RV`/`NA` e
+o deslocamento do `Mid`, ficam provadas pelos 11 testes.
+
+> **Fora do recorte, documentados:** o `iContatoNovo` que o original calcula e **não usa**, a
+> barra de progresso e o `atualizaXdata` (este comando não mexe no XData do bloco).
+
 **Rodada 84 — `REMLAYDUP` (frente 2 do §7.6, parte 15: o dedup do CENG_LAYOUT).**
 O `RemoveDuplicadoLayoutRapido` do `Correcao.cs`: para cada painel **do cadastro**
 (`Paineis`), lê as chaves `P<painel>` e `C<painel>` do dicionário nomeado `CENG_LAYOUT` —
@@ -2959,7 +2998,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 454 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 463 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

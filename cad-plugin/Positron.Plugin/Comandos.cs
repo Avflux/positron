@@ -1134,6 +1134,41 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>CorrigeBlocosContatosAux</c> — reescreve os terminais (T1/T2/T3) dos blocos
+        /// auxiliares (Dispositivo tipo "A") com o contato do dicionário CONTATOS
+        /// (o <c>Correcao.cs</c>). O bloco casa por IndexModelo/IndexContato.
+        /// </summary>
+        [CommandMethod("CorrigeBlocosContatosAux")]
+        public void CorrigirBlocosContatosAux()
+        {
+            Plugin.Escrever(ExecutarCorrigirBlocosContatosAux());
+        }
+
+        /// <summary>Corrige os terminais dos blocos auxiliares e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirBlocosContatosAux()
+        {
+            try
+            {
+                Correcoes.BlocosContatosAuxDoDesenho.Resultado resultado =
+                    Correcoes.BlocosContatosAuxDoDesenho.Executar();
+
+                if (resultado.Contatos == 0)
+                {
+                    return "CorrigeBlocosContatosAux: o dicionário CONTATOS não tem contato nenhum ("
+                        + resultado.Modelos + " modelo(s)).";
+                }
+
+                return "CorrigeBlocosContatosAux: " + resultado.AtributosAlterados + " atributo(s) regravado(s) em "
+                    + resultado.BlocosCasados + " de " + resultado.BlocosLidos + " bloco(s) auxiliar(es) ("
+                    + resultado.Modelos + " modelo(s) e " + resultado.Contatos + " contato(s) no CONTATOS).";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigeBlocosContatosAux: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();
