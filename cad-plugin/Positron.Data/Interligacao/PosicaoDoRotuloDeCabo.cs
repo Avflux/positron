@@ -22,6 +22,35 @@ namespace Positron.Data.Interligacao
     }
 
     /// <summary>
+    /// O que o <c>AdicionaCaboEletrosul</c> desenha para um trecho: o centro da
+    /// **elipse** (o meio do segmento), a direção (<see cref="Vertical"/> = o
+    /// <c>sRotaHV</c> "H" do original), os três vértices do "leader" e o ponto onde o
+    /// **texto** fica (o fim do "leader", não o centro).
+    /// </summary>
+    public sealed class RotuloEletrosul
+    {
+        /// <summary>Raio do eixo maior da elipse (<c>0.6</c> no original).</summary>
+        public const double RaioElipse = 0.6;
+
+        /// <summary>Centro da elipse — o meio do segmento (o <c>mCenterPt</c> de entrada).</summary>
+        public PontoDoRotulo Centro { get; set; }
+
+        /// <summary><c>true</c> quando o segmento é vertical (o <c>sRotaHV == "H"</c>).</summary>
+        public bool Vertical { get; set; }
+
+        public PontoDoRotulo Ponto7 { get; set; }
+
+        public PontoDoRotulo Ponto8 { get; set; }
+
+        public PontoDoRotulo Ponto9 { get; set; }
+
+        /// <summary>O ponto de alinhamento do texto (o <c>mCenterPt</c> **depois** do leader).</summary>
+        public double AlignX { get; set; }
+
+        public double AlignY { get; set; }
+    }
+
+    /// <summary>
     /// A geometria do `clsInterligacao.criarTextoNomeCabo` (o texto do rótulo de
     /// cabo): de qual **segmento** da polilinha o rótulo sai, o ponto de alinhamento
     /// e a rotação.
@@ -91,17 +120,29 @@ namespace Positron.Data.Interligacao
 
         /// <summary>
         /// A geometria do <c>criarTextoNomeCaboEletrosul</c> (o rótulo da variante
-        /// Eletrosul): o **mesmo segmento** do rótulo padrão, mas com o afastamento
-        /// perpendicular **zero** (`num5 = 0.0`) e a rotação **sempre 0** — o texto
-        /// sai horizontal, alinhado à esquerda (`TextHorizontalMode.TextLeft`) no
-        /// **meio do segmento**, e não bottom-center 1 unidade acima como no padrão.
+        /// Eletrosul), com os pontos que o <c>AdicionaCaboEletrosul</c> desenha: a
+        /// **elipse** no meio do segmento, o "leader" de três vértices e o **ponto
+        /// final do texto**.
+        ///
+        /// Duas particularidades do original, as duas reproduzidas:
+        ///
+        /// 1. o <c>sRotaHV</c> é **"H" quando o segmento é vertical** (o teste é o X
+        ///    arredondado igual nas pontas) — e é ele que decide a direção do "leader"
+        ///    e do eixo maior da elipse;
+        /// 2. o texto **não** fica no meio do segmento: o <c>AdicionaCaboEletrosul</c>
+        ///    reescreve o <c>mCenterPt</c> por referência e o
+        ///    <c>criarTextoNomeCaboEletrosul</c> usa o ponto **já mexido** — o fim do
+        ///    "leader", com o Y deslocado por <c>FonteCabos * 0.85</c>.
+        ///
+        /// (A rodada 79 parou no meio do segmento; a correção está registrada no
+        /// <c>RUNBOOK</c>.)
         /// </summary>
-        public static PosicaoDoRotulo CalcularEletrosul(IReadOnlyList<PontoDoRotulo> vertices)
+        public static RotuloEletrosul CalcularEletrosul(IReadOnlyList<PontoDoRotulo> vertices, double fonteCabos)
         {
-            PosicaoDoRotulo posicao = new PosicaoDoRotulo();
+            RotuloEletrosul rotulo = new RotuloEletrosul();
             if (vertices == null || vertices.Count < 2)
             {
-                return posicao;
+                return rotulo;
             }
 
             PontoDoRotulo inicio;
@@ -111,10 +152,32 @@ namespace Positron.Data.Interligacao
             double meio = Distancia(inicio, fim) / 2.0;
             double angulo = Math.Round(Math.Atan2(fim.Y - inicio.Y, fim.X - inicio.X), 2);
 
-            posicao.AlignX = inicio.X + meio * Math.Cos(angulo);
-            posicao.AlignY = inicio.Y + meio * Math.Sin(angulo);
-            posicao.Rotation = 0.0;
-            return posicao;
+            rotulo.Centro = new PontoDoRotulo
+            {
+                X = inicio.X + meio * Math.Cos(angulo),
+                Y = inicio.Y + meio * Math.Sin(angulo),
+            };
+            rotulo.Vertical = Math.Round(inicio.X, 2) == Math.Round(fim.X, 2);
+
+            double x = rotulo.Centro.X;
+            double y = rotulo.Centro.Y;
+            if (rotulo.Vertical)
+            {
+                rotulo.Ponto7 = new PontoDoRotulo { X = x, Y = y + 1.0 };
+                rotulo.Ponto8 = new PontoDoRotulo { X = x, Y = y + 2.0 };
+                rotulo.Ponto9 = new PontoDoRotulo { X = x + 1.0, Y = y + 2.0 };
+                rotulo.AlignX = rotulo.Ponto8.X + 1.0;
+            }
+            else
+            {
+                rotulo.Ponto7 = new PontoDoRotulo { X = x + 1.0, Y = y };
+                rotulo.Ponto8 = new PontoDoRotulo { X = x + 2.0, Y = y };
+                rotulo.Ponto9 = new PontoDoRotulo { X = x + 2.0, Y = y };
+                rotulo.AlignX = rotulo.Ponto8.X + 2.0;
+            }
+
+            rotulo.AlignY = rotulo.Ponto8.Y - fonteCabos * 0.85;
+            return rotulo;
         }
 
         /// <summary>

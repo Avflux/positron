@@ -762,6 +762,44 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 80 — `AdicionaCaboEletrosul` (frente 2 do §7.6, parte 11) e a correção da geometria da Eletrosul.**
+Fecha o que a rodada 79 deixou de fora (as duas entidades) e **corrige** o que ela mediu errado:
+o `criarTextoNomeCaboEletrosul` chama o `AdicionaCaboEletrosul`, que **reescreve o
+`mCenterPt` por referência** — e o texto usa o ponto **já mexido**.
+
+| Peça | O que é |
+|---|---|
+| elipse | no **meio do segmento**, eixo maior conforme a direção (`Vertical` → (1,0,0), senão (0,1,0)), raio 0.6, cor `CorInterligacao`, no layer do trecho |
+| "leader" | polilinha de **três vértices** — (x+1,y),(x+2,y),(x+2,y) na horizontal e (x,y+1),(x,y+2),(x+1,y+2) na vertical — com o `EstiloLinha` e a escala |
+| XData | os dois levam `ELETROSUL` tipo **0** com o handle do trecho (é esse XData que a limpeza da passada seguinte apaga) |
+| texto | no **fim do leader**: `p8.X + 1` (vertical) ou `+ 2` (horizontal), com o Y em `p8.Y - FonteCabos * 0.85` |
+
+**A correção (registrada):** a rodada 79 portou o rótulo no **meio do segmento** e mediu
+`(5.0 0.0)`; o original põe o texto no fim do leader — para o mesmo trecho da fixture, o
+ponto é `(9.0 -1.275)`. A fixture é a mesma; só o ponto mudou:
+
+```text
+RecriaTextosCaboEletrosul: 1 texto(s) e 2 ornamento(s) apagado(s); 1 rótulo(s) e 2 ornamento(s) reinserido(s) de 1 trecho(s).
+AUXILIAR;ELETROSUL;;;(5.0 0.0 0.0);(0.0 1.0 0.0);      <- a elipse no centro (5,0), eixo (0,1,0)
+AUXILIAR;ELETROSUL;;;(6.0 0.0);;                        <- o leader, primeiro vértice (6,0)
+AUXILIAR;AUXINTERLIG;1;CABO-1/2;(9.0 -0.830935 0.0);(9.0 -1.275 0.0);0.0   <- o texto no fim do leader
+```
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+RecriaTextosCaboEletrosul: 24 texto(s) e 0 ornamento(s) apagado(s); 20 rótulo(s) e 40 ornamento(s) reinserido(s) de 20 trecho(s) (305 cabo(s) singelo(s) no catálogo).
+RecriaTextosCaboEletrosul: 20 texto(s) e 40 ornamento(s) apagado(s); 20 rótulo(s) e 40 ornamento(s) reinserido(s) de 20 trecho(s).
+TOTAL;60;AUXINTERLIG;20;ELETROSUL;40
+INT: 20 linha(s) gravada(s) em Interligacao4 (199 borne(s)).   VERIF: 249 problema(s).   <- sem regressão
+```
+
+> **Lição de ferramenta:** o contador de auxiliares passou a **reler a lista do APPID na hora do
+> dump**, e não no load. O plugin registra o app name `ELETROSUL` no meio da execução, e o
+> `entget` só devolve os app names que recebe — com a lista de antes das ações, os 40
+> ornamentos recém-criados apareciam como "sem XData" e o `TOTAL` dizia 20 em vez de 60. É a
+> mesma família da lição da rodada 70, com o **tempo da leitura** a mais.
+
 **Rodada 79 — `RecriaTextosCaboEletrosul` (frente 2 do §7.6, parte 10: o irmão da Eletrosul).**
 O segundo comando da dupla: **a mesma limpeza** da rodada 78 e um rótulo por trecho, com a
 geometria própria da Eletrosul.
@@ -2751,7 +2789,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 426 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 427 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

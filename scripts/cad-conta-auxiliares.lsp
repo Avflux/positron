@@ -52,6 +52,10 @@
             (pz-aux:texto (cdr (assoc 1 d))) ";" aux ";" elet "\n")))
 
 (defun pz-aux:dump ( / caminho f sel i e linha n a el)
+  ;; A lista de app names e relida AQUI, e nao so no load: o plugin registra o
+  ;; `ELETROSUL` na primeira passada, e a lista de antes das acoes nao enxerga os
+  ;; ornamentos que ele cria (o `entget` so devolve os app names que recebe).
+  (setq pz-aux:apps (pz-aux:appids))
   (setq caminho (getenv "POSITRON_XDATA"))
   (if (or (null caminho) (= caminho ""))
     (setq caminho (strcat (getenv "TEMP") "/positron-auxiliares.txt")))

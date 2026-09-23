@@ -32,6 +32,12 @@ namespace ZwSoft.ZwCAD.Geometry
     {
         public double X;
         public double Y;
+
+        public Point2d(double x, double y)
+        {
+            X = x;
+            Y = y;
+        }
     }
 
     public struct Point3d
@@ -45,6 +51,26 @@ namespace ZwSoft.ZwCAD.Geometry
             X = x;
             Y = y;
             Z = z;
+        }
+    }
+
+    /// <summary>Vetor 3D — o que a elipse do rótulo da Eletrosul usa (normal e eixo maior).</summary>
+    public struct Vector3d
+    {
+        public double X;
+        public double Y;
+        public double Z;
+
+        public Vector3d(double x, double y, double z)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+        }
+
+        public static Vector3d ZAxis
+        {
+            get { return new Vector3d(0.0, 0.0, 1.0); }
         }
     }
 
@@ -249,6 +275,47 @@ namespace ZwSoft.ZwCAD.DatabaseServices
 
         /// <summary>Espessura de linha (o <c>Entity.LineWeight</c> da API real).</summary>
         public LineWeight LineWeight { get; set; }
+
+        /// <summary>Estilo de linha por nome (o <c>Entity.Linetype</c> da API real).</summary>
+        public string Linetype { get; set; }
+
+        /// <summary>Escala do estilo de linha (o <c>Entity.LinetypeScale</c> da API real).</summary>
+        public double LinetypeScale { get; set; }
+
+        /// <summary>Herda os padrões do banco (o <c>SetDatabaseDefaults</c> da API real).</summary>
+        public void SetDatabaseDefaults()
+        {
+        }
+    }
+
+    /// <summary>Elipse: a marca do rótulo da Eletrosul (centro, normal, eixo maior e o raio).</summary>
+    public class Ellipse : Entity
+    {
+        public Point3d Center { get; set; }
+
+        public Vector3d Normal { get; set; }
+
+        public Vector3d MajorAxis { get; set; }
+
+        public double RadiusRatio { get; set; }
+
+        public double StartAngle { get; set; }
+
+        public double EndAngle { get; set; }
+
+        public Ellipse()
+        {
+        }
+
+        public Ellipse(Point3d centro, Vector3d normal, Vector3d eixoMaior, double raio, double inicio, double fim)
+        {
+            Center = centro;
+            Normal = normal;
+            MajorAxis = eixoMaior;
+            RadiusRatio = raio;
+            StartAngle = inicio;
+            EndAngle = fim;
+        }
     }
 
     public class DBPoint : Entity
@@ -265,14 +332,22 @@ namespace ZwSoft.ZwCAD.DatabaseServices
 
     public class Polyline : Entity
     {
+        private readonly List<Point2d> _vertices = new List<Point2d>();
+
         public int NumberOfVertices
         {
-            get { return 0; }
+            get { return _vertices.Count; }
         }
 
         public Point2d GetPoint2dAt(int indice)
         {
-            return default(Point2d);
+            return _vertices[indice];
+        }
+
+        /// <summary>Acrescenta um vértice (o <c>AddVertexAt</c> da API real).</summary>
+        public void AddVertexAt(int indice, Point2d ponto, double bulge, double larguraInicial, double larguraFinal)
+        {
+            _vertices.Add(ponto);
         }
     }
 

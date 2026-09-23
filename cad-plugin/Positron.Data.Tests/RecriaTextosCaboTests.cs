@@ -126,25 +126,45 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
-        public void Eletrosul_poe_o_rotulo_no_meio_do_segmento()
+        public void Eletrosul_desenha_o_leader_e_poe_o_texto_no_fim_dele()
         {
-            // `num5 = 0.0` no `criarTextoNomeCaboEletrosul`: sem o afastamento de 1
-            // unidade do rótulo padrão, e a rotação é sempre 0.
-            PosicaoDoRotulo posicao = PosicaoDoRotuloDeCabo.CalcularEletrosul(Vertices(0, 0, 10, 0));
+            // A rodada 79 parou no meio do segmento; o original reescreve o `mCenterPt`
+            // dentro do `AdicionaCaboEletrosul` e o texto usa o ponto **já mexido**: fim
+            // do leader, com o Y deslocado por `FonteCabos * 0.85`.
+            RotuloEletrosul rotulo = PosicaoDoRotuloDeCabo.CalcularEletrosul(Vertices(0, 0, 10, 0), 1.5);
 
-            Assert.Equal(5.0, posicao.AlignX, 6);
-            Assert.Equal(0.0, posicao.AlignY, 6);
-            Assert.Equal(0.0, posicao.Rotation, 6);
+            Assert.False(rotulo.Vertical);
+            Assert.Equal(5.0, rotulo.Centro.X, 6);
+            Assert.Equal(0.0, rotulo.Centro.Y, 6);
+            Assert.Equal(6.0, rotulo.Ponto7.X, 6);
+            Assert.Equal(7.0, rotulo.Ponto8.X, 6);
+            Assert.Equal(7.0, rotulo.Ponto9.X, 6);
+            Assert.Equal(9.0, rotulo.AlignX, 6);
+            Assert.Equal(-1.275, rotulo.AlignY, 6);
         }
 
         [Fact]
-        public void Eletrosul_no_segmento_vertical_nao_gira()
+        public void Eletrosul_no_segmento_vertical_sobe_o_leader()
         {
-            PosicaoDoRotulo posicao = PosicaoDoRotuloDeCabo.CalcularEletrosul(Vertices(0, 0, 0, 10));
+            RotuloEletrosul rotulo = PosicaoDoRotuloDeCabo.CalcularEletrosul(Vertices(0, 0, 0, 10), 1.5);
 
-            Assert.InRange(posicao.AlignX, -0.01, 0.01);
-            Assert.Equal(5.0, posicao.AlignY, 3);
-            Assert.Equal(0.0, posicao.Rotation, 6);
+            Assert.True(rotulo.Vertical);
+            // O `cos`/`sin` de 1.57 põem o centro a 0,004 do eixo, não em 0 exato.
+            Assert.InRange(rotulo.Centro.X, -0.01, 0.01);
+            Assert.Equal(5.0, rotulo.Centro.Y, 3);
+            Assert.InRange(rotulo.Ponto7.X, -0.01, 0.01);
+            Assert.Equal(6.0, rotulo.Ponto7.Y, 3);
+            Assert.Equal(7.0, rotulo.Ponto8.Y, 3);
+            Assert.Equal(1.0, rotulo.Ponto9.X, 2);
+            Assert.Equal(1.0, rotulo.AlignX, 2);
+            Assert.Equal(5.725, rotulo.AlignY, 3);
+        }
+
+        [Fact]
+        public void Eletrosul_a_altura_da_fonte_move_o_rotulo()
+        {
+            RotuloEletrosul rotulo = PosicaoDoRotuloDeCabo.CalcularEletrosul(Vertices(0, 0, 10, 0), 2.0);
+            Assert.Equal(-1.7, rotulo.AlignY, 6);
         }
 
         [Fact]
@@ -161,9 +181,9 @@ namespace Positron.Data.Tests
         [Fact]
         public void Eletrosul_sem_vertices_zera()
         {
-            PosicaoDoRotulo posicao = PosicaoDoRotuloDeCabo.CalcularEletrosul(null);
-            Assert.Equal(0.0, posicao.AlignX, 6);
-            Assert.Equal(0.0, posicao.AlignY, 6);
+            RotuloEletrosul rotulo = PosicaoDoRotuloDeCabo.CalcularEletrosul(null, 1.5);
+            Assert.Equal(0.0, rotulo.AlignX, 6);
+            Assert.Equal(0.0, rotulo.AlignY, 6);
             Assert.False(PosicaoDoRotuloDeCabo.SegmentoVertical(null));
         }
 

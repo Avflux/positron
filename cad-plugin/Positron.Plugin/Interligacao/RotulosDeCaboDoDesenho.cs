@@ -48,6 +48,15 @@ namespace Positron.Plugin.Interligacao
 
             internal int RotulosInseridos { get; set; }
 
+            /// <summary>Ornamentos da Eletrosul criados (a elipse e o "leader" de cada trecho).</summary>
+            internal int OrnamentosInseridos { get; set; }
+
+            /// <summary>Textos apagados na limpeza (os rótulos auxiliares).</summary>
+            internal int TextosApagados { get; set; }
+
+            /// <summary>Não-textos apagados na limpeza (os ornamentos da Eletrosul da passada anterior).</summary>
+            internal int OrnamentosApagados { get; set; }
+
             internal int CabosSingelos { get; set; }
 
             /// <summary>Sem banco (ou sem catálogo) o "singelo" não é resolvido — o texto sai com o separador.</summary>
@@ -99,6 +108,8 @@ namespace Positron.Plugin.Interligacao
             ApagarRotulosDeCabo.Resultado limpeza = ApagarRotulosDeCabo.Executar(config);
             resultado.EntidadesLidas = limpeza.EntidadesLidas;
             resultado.RotulosApagados = limpeza.Apagados;
+            resultado.TextosApagados = limpeza.TextosApagados;
+            resultado.OrnamentosApagados = limpeza.OrnamentosApagados;
 
             // Fase 2 — reinserir o que ficou sem rótulo (o `InsereTextosDeCabos`).
             using (Transaction transacao = banco.TransactionManager.StartTransaction())
@@ -189,9 +200,28 @@ namespace Positron.Plugin.Interligacao
                         config.SeparadorCaboVeia,
                         VerificadorTerminalIndefinido,
                         singelos.Contains(trecho.Ligacao.Tag_Cabo));
-                    PosicaoDoRotulo posicao = eletrosul
-                        ? PosicaoDoRotuloDeCabo.CalcularEletrosul(trecho.Vertices)
-                        : PosicaoDoRotuloDeCabo.Calcular(trecho.Vertices);
+                    PosicaoDoRotulo posicao;
+                    if (eletrosul)
+                    {
+                        // A Eletrosul desenha a elipse e o "leader" e o texto vai no **fim do
+                        // leader** (o `mCenterPt` reescrito por referência), não no centro.
+                        RotuloEletrosul rotulo = PosicaoDoRotuloDeCabo.CalcularEletrosul(
+                            trecho.Vertices, config.FonteCabos);
+                        posicao = new PosicaoDoRotulo
+                        {
+                            AlignX = rotulo.AlignX,
+                            AlignY = rotulo.AlignY,
+                            Rotation = 0.0,
+                        };
+
+                        CriarOrnamentosEletrosul(
+                            transacao, espaco, banco, trecho, rotulo, config, usuario, data);
+                        resultado.OrnamentosInseridos += 2;
+                    }
+                    else
+                    {
+                        posicao = PosicaoDoRotuloDeCabo.Calcular(trecho.Vertices);
+                    }
 
                     DBText novo = new DBText();
                     novo.TextStyleId = estiloId;
@@ -245,6 +275,63 @@ namespace Positron.Plugin.Interligacao
             internal InterligacaoXData Ligacao { get; set; }
 
             internal IReadOnlyList<PontoDoRotulo> Vertices { get; set; }
+        }
+
+        /// <summary>
+        /// O <c>AdicionaCaboEletrosul</c>: a **elipse** no centro (eixo maior conforme a
+        /// direção) e o **"leader"** de três vértices, os dois com o XData
+        /// <c>ELETROSUL</c> tipo 0 apontando o trecho — e é esse XData que a limpeza da
+        /// próxima passada apaga.
+        /// </summary>
+        private static void CriarOrnamentosEletrosul(
+            Transaction transacao,
+            BlockTableRecord espaco,
+            Database banco,
+            Trecho trecho,
+            RotuloEletrosul rotulo,
+            ConfiguracaoPositron config,
+            string usuario,
+            string data)
+        {
+            Ellipse elipse = new Ellipse(
+                new Point3d(rotulo.Centro.X, rotulo.Centro.Y, 0.0),
+                Vector3d.ZAxis,
+                rotulo.Vertical ? new Vector3d(1.0, 0.0, 0.0) : new Vector3d(0.0, 1.0, 0.0),
+                RotuloEletrosul.RaioElipse,
+                0.0,
+                Math.PI * 2.0);
+            elipse.SetDatabaseDefaults();
+            elipse.ColorIndex = (short)config.CorInterligacao;
+            elipse.Layer = trecho.Layer;
+            espaco.AppendEntity(elipse);
+            transacao.AddNewlyCreatedDBObject(elipse, true);
+            GravarEletrosul(transacao, banco, elipse, trecho.Handle, usuario, data);
+
+            Polyline leader = new Polyline();
+            leader.SetDatabaseDefaults();
+            leader.ColorIndex = (short)config.CorInterligacao;
+            leader.Linetype = config.EstiloLinha;
+            leader.LinetypeScale = config.EstiloLinhaEscala;
+            leader.AddVertexAt(0, new Point2d(rotulo.Ponto7.X, rotulo.Ponto7.Y), 0.0, 0.0, 0.0);
+            leader.AddVertexAt(1, new Point2d(rotulo.Ponto8.X, rotulo.Ponto8.Y), 0.0, 0.0, 0.0);
+            leader.AddVertexAt(2, new Point2d(rotulo.Ponto9.X, rotulo.Ponto9.Y), 0.0, 0.0, 0.0);
+            leader.Layer = trecho.Layer;
+            espaco.AppendEntity(leader);
+            transacao.AddNewlyCreatedDBObject(leader, true);
+            GravarEletrosul(transacao, banco, leader, trecho.Handle, usuario, data);
+        }
+
+        private static void GravarEletrosul(
+            Transaction transacao,
+            Database banco,
+            Entity entidade,
+            string handle,
+            string usuario,
+            string data)
+        {
+            BornesDaCorrecao.GarantirAppName(transacao, banco, AuxInterligacaoEletrosulXData.AppName);
+            entidade.XData = ParaResultBuffer(
+                AuxInterligacaoEletrosulXData.ParaValores(handle, 0, usuario, data));
         }
 
         /// <summary>Os cabos <c>singelos</c> do catálogo: <c>SELECT Tag FROM Cabos WHERE Formacao like 1x</c>.</summary>

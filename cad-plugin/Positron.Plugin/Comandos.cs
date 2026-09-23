@@ -978,8 +978,10 @@ namespace Positron.Plugin
                     return "RecriaTextosCaboEletrosul: o desenho não tem trechos de interligação nem rótulos auxiliares.";
                 }
 
-                return "RecriaTextosCaboEletrosul: " + resultado.RotulosApagados + " rótulo(s) apagado(s) e "
-                    + resultado.RotulosInseridos + " reinserido(s) de " + resultado.TrechosLidos
+                return "RecriaTextosCaboEletrosul: " + resultado.TextosApagados + " texto(s) e "
+                    + resultado.OrnamentosApagados + " ornamento(s) apagado(s); "
+                    + resultado.RotulosInseridos + " rótulo(s) e " + resultado.OrnamentosInseridos
+                    + " ornamento(s) reinserido(s) de " + resultado.TrechosLidos
                     + " trecho(s) (" + resultado.CabosSingelos + " cabo(s) singelo(s) no catálogo"
                     + (resultado.SemCatalogo ? "; sem catálogo" : "") + ").";
             }

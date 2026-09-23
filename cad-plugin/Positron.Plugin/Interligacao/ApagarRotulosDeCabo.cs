@@ -27,6 +27,12 @@ namespace Positron.Plugin.Interligacao
             internal int EntidadesLidas { get; set; }
 
             internal int Apagados { get; set; }
+
+            /// <summary>Textos apagados (os rótulos auxiliares).</summary>
+            internal int TextosApagados { get; set; }
+
+            /// <summary>Não-textos apagados (os ornamentos da Eletrosul).</summary>
+            internal int OrnamentosApagados { get; set; }
         }
 
         internal static Resultado Executar(ConfiguracaoPositron config)
@@ -82,6 +88,14 @@ namespace Positron.Plugin.Interligacao
                     entidade.Erase();
                     entidade.DowngradeOpen();
                     resultado.Apagados++;
+                    if (entidade is DBText)
+                    {
+                        resultado.TextosApagados++;
+                    }
+                    else
+                    {
+                        resultado.OrnamentosApagados++;
+                    }
                 }
 
                 transacao.Commit();

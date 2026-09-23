@@ -36,6 +36,23 @@ namespace Positron.Data.Interligacao
         /// <c>ELETROSUL</c> válido — registro truncado é dado de terceiro, não erro
         /// fatal (o original estoura no <c>array[3]</c>).
         /// </summary>
+        /// <summary>
+        /// Monta o XData dos ornamentos da Eletrosul (a elipse e o "leader") no layout do
+        /// <c>GravarXDataAuxInterligacaoEletrosul</c>: app name, usuário, data, **handle**
+        /// do trecho e o tipo (0 para os ornamentos).
+        /// </summary>
+        public static IReadOnlyList<TypedXData> ParaValores(string handle, short tipo, string usuario, string data)
+        {
+            return new List<TypedXData>
+            {
+                new TypedXData(1001, AppName),
+                new TypedXData(1000, usuario ?? string.Empty),
+                new TypedXData(1000, data ?? string.Empty),
+                new TypedXData(1000, handle ?? string.Empty),
+                new TypedXData(1071, tipo),
+            };
+        }
+
         public static bool Ler(IReadOnlyList<TypedXData> valores, out string handle)
         {
             handle = null;
