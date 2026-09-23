@@ -1,9 +1,10 @@
 # Relatório consolidado — o recoder do Eletron4Z sobre o positron
 
-**Data:** 2026-09-23 · **Sequência:** rodadas 74–113 (40 rodadas de entrega, uma por commit duplo)
-**Estado:** frente 2 fechada (27 de 38, sem pendência de implementação ou de prova), **frentes 1–9
-todas portadas ou triadas** e os **três pipelines** do original entregues (`SYNCD`, `SYNCV` e
-`RESTPROJ`) · **47 comandos**, **513 testes**, duas builds com 0 avisos.
+**Data:** 2026-09-23 · **Sequência:** rodadas 74–115 (42 rodadas de entrega, uma por commit duplo)
+**Estado:** **recorte em lote fechado** — frente 2 entregue (27 de 38, sem pendência de
+implementação ou de prova), **frentes 1–9 todas portadas ou triadas sem candidato em aberto** e os
+**três pipelines** do original entregues (`SYNCD`, `SYNCV` e `RESTPROJ`) · **48 comandos**, **514
+testes**, duas builds com 0 avisos.
 
 Este relatório é a leitura única do que existe, do que foi **medido no desenho real** e do que
 ficou **fora do recorte com motivo**. O detalhe rodada a rodada está no `docs/RUNBOOK.md` (mais
@@ -34,7 +35,7 @@ triadas** (105, 106, 110 e 112).
 | 4 | Dispositivos, máscaras, portas e contatos | triada: **20 UI + 8 interativos/por arquivo**, nenhum em lote |
 | 5 | Caderno/circuitos/páginas | triada: 16 UI/interativos + `SYNCC` (já coberto pela projeção `FIA`) |
 | 6 | Fiação | triada: 3 UI + `DELFIPROJ` (destrutivo com confirmação) |
-| 7 | Interligação, cabos e veias | triada: 33 UI/interativos/portados + **`SYNCV`** (rodada 111) |
+| 7 | Interligação, cabos e veias | triada: 33 UI/interativos/portados + **`SYNCV`** (111) e **`RECRIACABOS`** (115) |
 | 8 | Materiais | triada: 2 UI + `DELLM` (destrutivo) |
 | 9 | Exportar/importar e manipulação de projeto | triada: 15 UI/ambiente/destrutivo + **`CBD`** (112) e **`RESTPROJ`** + `ApagaERROS` (113) |
 
@@ -58,6 +59,7 @@ triadas** (105, 106, 110 e 112).
 | 111 | SYNCV (pipeline das veias) | 24 rótulos apagados e 20 reinseridos; a projeção repete os números do `SYNCD`; 0 de 0 opcionais |
 | 112 | CBD (compactar o banco) | **584 KB → 572 KB** (12 KB liberados) — o `VACUUM` sobre uma cópia do banco |
 | 113 | RESTPROJ (pipeline-mãe) | seis passos no desenho real; `ApagaERROS` varreu **3286 entidades** e apagou 0 (a cópia é limpa); os números repetem as rodadas 107/111 — **terceira testemunha** |
+| 115 | RECRIACABOS (pelo layout) | `layout 0 (Eletron)`: 24 rótulos apagados e 20 reinseridos de 20 trechos (305 cabos singelos no catálogo) — o branch do Eletrosul fica coberto pelo teste da regra e pela medição da rodada 79 |
 
 **Corroborações cruzadas** (o mesmo número por caminhos independentes): os **199 bornes** aparecem no
 FIA/SYNCD e no STATBORN; os **216** aparecem no Bornes4I e no total do STATBORN; as **50 diferenças
@@ -122,8 +124,13 @@ powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Re
   candidatos de lote que as triagens revelaram — `STATBORN` (108), `SYNCV` (111), `CBD` (112) e
   `RESTPROJ`/`ApagaERROS` (113) — foram **todos entregues**. Fica em aberto só o `RECRIACABOS`
   (o `MsgBox` + o `switch` do `InterligacaoLayout`, com a substância já portada em 78/79).
-- **O que resta no mapa:** nada em lote; o que sobra são editores de tela, integração de
-  ambiente/licença e as rotinas destrutivas com confirmação.
+- **O que resta no mapa:** nada em lote — o recorte está **fechado** (a última ponta, o
+  `RECRIACABOS`, caiu na 115). O que sobra são editores de tela, integração de ambiente/licença e
+  as rotinas destrutivas com confirmação (`DELFIPROJ`, `DELLM`, `DELPLA`), que dependem de resposta
+  humana no `MsgBox` — o harness roda os comandos sem ninguém para responder.
+- **Limites de evidência registrados:** o branch do **Eletrosul** do `RECRIACABOS` (o harness não
+  repassa `POSITRON_INTERLIGACAO_LAYOUT` ao plugin, que o recebe pelo `.scr`) e o caminho do
+  **`IndefineUmaPorta`** em desenho real, provado em C# na 104.
 
 ## 8. A sequência, em blocos
 
@@ -139,3 +146,5 @@ powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Re
 | 109 | o relatório consolidado (este arquivo) |
 | 110–112 | triagem das frentes 5–9, o `SYNCV` como pipeline e o `CBD` (compactar o banco) |
 | 113 | o `RESTPROJ` (pipeline-mãe) e o `ApagaERROS` |
+| 114 | este relatório, atualizado até a rodada 113 |
+| 115 | o `RECRIACABOS` pelo layout — a última ponta do mapa |
