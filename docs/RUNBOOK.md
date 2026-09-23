@@ -769,6 +769,37 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 111 — o `SYNCV`, o pipeline das veias (o gêmeo do `SYNCD`).**
+O `SYNCV` do reverso tem **nove** passos (barra de progresso com `Quantidade = 9`):
+
+```text
+CorrigeOsTextosDosCabos -> InsereTextosDeCabos -> SincronizaVeiasDoCaderno -> AtualizaNomesDosCabos
+  -> SincronizaCruzamentoInterlig -> RecriaOCruzamentoInterligTipo2Apagados
+  -> AtualizaTodosOpcionaisDoCabo -> ModeloDoDispositivoPrincipalTipo3 (conforme Conf.ModeloBobina)
+```
+
+O comando passou a compor, na ordem do original, os passos que o recoder tem:
+
+| passo | o que é |
+|---|---|
+| `[1/3]` os textos dos cabos | pelo `Conf.InterligacaoLayout` — é o `RECRIACABOS` do original (0/2/3 = Eletron, 1 = Eletrosul) |
+| `[2/3] INT` | a projeção das veias para o banco, que é o `SincronizaVeiasDoCaderno` |
+| `[3/3]` os opcionais | o `AtualizaTodosOpcionaisDoCabo` |
+
+> **Fora do recorte, documentado:** o `InsereTextosDeCabos`, o `AtualizaNomesDosCabos`, a
+> família do **cruzamento** da interligação (`SincronizaCruzamentoInterlig` e
+> `RecriaOCruzamentoInterligTipo2Apagados`) e o `ModeloDoDispositivoPrincipalTipo3`.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63, com cópia do banco):
+
+```text
+[1/3] RecriaTextosCabo: 24 rótulo(s) apagado(s) e 20 reinserido(s) de 20 trecho(s) (0 já tinham rótulo; 305 cabo(s) singelo(s) no catálogo).
+[2/3] INT: 20 linha(s) gravada(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I; 216 borne(s) em Bornes4I; 697 cabo(s) em Cabos4; 2388 veia(s) em Veias4.
+[3/3] AtualizaOpcionaisDoCabo: 0 de 0 rótulo(s) com os opcionais atualizados (20 rótulo(s) auxiliares lido(s); 0 sem trecho resolvido).
+```
+
+Os três passos rodam no desenho real, e a projeção repete exatamente os números do `SYNCD` da
+rodada 107 — a segunda testemunha do mesmo cálculo.
 **Rodada 110 — a triagem das frentes 5, 6 e 7.**
 Li o corpo dos **49** comandos das três frentes. O veredito repete o das frentes 3 e 4 — são
 editores de UI, interação e ambiente —, mas desta vez **sobrou um candidato grande**.

@@ -2525,5 +2525,44 @@ namespace Positron.Plugin
                 return "STATBORN: falhou — " + DescreverErro(erro);
             }
         }
+
+        /// <summary>
+        /// <c>SYNCV</c> — o **pipeline das veias**, gêmeo do <c>SYNCD</c>. No reverso ele tem
+        /// **nove** passos (barra de progresso com <c>Quantidade = 9</c>):
+        /// <c>CorrigeOsTextosDosCabos</c> → <c>InsereTextosDeCabos</c> →
+        /// <c>SincronizaVeiasDoCaderno</c> → <c>AtualizaNomesDosCabos</c> →
+        /// <c>SincronizaCruzamentoInterlig</c> → <c>RecriaOCruzamentoInterligTipo2Apagados</c> →
+        /// <c>AtualizaTodosOpcionaisDoCabo</c> → <c>ModeloDoDispositivoPrincipalTipo3</c>
+        /// (conforme o <c>Conf.ModeloBobina</c>) → fim.
+        ///
+        /// Aqui entram, na ordem do original, os passos que o recoder **tem**:
+        ///
+        /// 1. os **textos dos cabos**, pelo <c>Conf.InterligacaoLayout</c> — é o <c>RECRIACABOS</c>
+        ///    do original (0/2/3 = Eletron, 1 = Eletrosul);
+        /// 2. a **projeção das veias** para o banco (<c>INT</c>), que é o
+        ///    <c>SincronizaVeiasDoCaderno</c>;
+        /// 3. os **opcionais do cabo** (<c>AtualizaTodosOpcionaisDoCabo</c>).
+        ///
+        /// **Fora do recorte, documentado:** o <c>InsereTextosDeCabos</c>, o
+        /// <c>AtualizaNomesDosCabos</c>, a família do **cruzamento** da interligação e o
+        /// <c>ModeloDoDispositivoPrincipalTipo3</c> (o modelo de bobina).
+        /// </summary>
+        [CommandMethod("SYNCV")]
+        public void SincV()
+        {
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+
+            if (config.InterligacaoLayout == 1)
+            {
+                Plugin.Escrever("[1/3] " + ExecutarRecriarTextosDeCaboEletrosul());
+            }
+            else
+            {
+                Plugin.Escrever("[1/3] " + ExecutarRecriarTextosDeCabo());
+            }
+
+            Plugin.Escrever("[2/3] " + ExecutarInterligacao());
+            Plugin.Escrever("[3/3] " + ExecutarAtualizarOpcionaisDoCabo());
+        }
     }
 }
