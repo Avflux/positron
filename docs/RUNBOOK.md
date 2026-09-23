@@ -762,6 +762,79 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 77 — `CorrigeContatosAux` (frente 2 do §7.6, parte 8: o `HandleContatoAux`).** A
+sexta `Corrige*` e o **par de escrita do `bt4Auxiliar`** (rodada 54): casa o bloco auxiliar
+(tipo `A`) ao bloco de modelo pela chave `(HandleBob, indexModelo, indexContato)` e grava o
+handle do auxiliar no `HandleContatoAux` do XData `Modelo`.
+
+| Peça | Do original | No recoder |
+|---|---|---|
+| chave | `HandleBob` (sem caixa) + `indexModelo` + `indexContato` | igual (`CorrecaoContatoAuxiliar.Casa`) |
+| desempate | o **primeiro** `A` da ordem do ModelSpace vence | igual (a lista vem nessa ordem) |
+| quem não casa | grava `HandleContatoAux = ""` | igual |
+| gravação | regrava **todo** bloco de modelo, sempre, trocando o buffer inteiro | só o que muda, e preservando os outros app names |
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63) — o desenho do
+produto **já está consistente**, e a correção reproduz o invariante:
+
+```text
+CorrigeContatosAux: 0 de 129 modelo(s) com o HandleContatoAux acertado (63 bloco(s) auxiliar(es) lido(s); 66 modelo(s) sem contato casado).
+TOTAL;modelos;129;preenchido;63;vazio;66;auxiliares;63;comOutrosApps;0
+```
+
+Os **63** preenchidos são exatamente os 63 que casam com um auxiliar e os **66** vazios são os
+que não têm auxiliar — o `bt4Auxiliar` não tem o que apontar nesta cópia, e a correção não
+muda nada (o contador confirma antes e depois).
+
+A conferência independente é o `scripts/cad-conta-contatos.lsp` (app names da tabela `APPID`,
+uma linha por modelo e por auxiliar, mais o total):
+
+```powershell
+$env:POSITRON_XDATA = "$env:TEMP\positron-contatos.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 `
+  -Fixture scripts/cad-conta-contatos.lsp `
+  -Comandos "CorrigeContatosAux,CorrigeContatosAux,FIA,VERIF,(pz-cc:conta)" `
+  -Desenho ..\Elet\Teste_projeto_real\Funcional.dwg -Banco "$env:TEMP\positron-limpeza.db"
+```
+
+```text
+FIA: 494 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 83 posicao(oes)); 265 porta(s) em Portas4F; 168 borne(s) em Bornes4F; 70 contato(s) em Contatos4F; 83 dispositivo(s) em Dispositivos4F; 11 circuito(s) em Circuitos4F; 15 tipo(s) em Aplicacao4F.
+VERIF: 249 problema(s) — fiação: 0; interligação: 0; modelos: 0; desenho: 249.
+```
+
+Como o desenho real não exercita a **escrita**, entra a fixture
+`scripts/cad-fixture-contatos.lsp` — dois auxiliares (`1A/5/2` e `1A/5/9`) e quatro modelos
+(um casando e vazio, um casando com o outro, um sem casamento e um com o handle errado):
+
+```powershell
+$env:POSITRON_XDATA = "$env:TEMP\positron-ca-fixture.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 1 -Revisao R0 `
+  -Fixture scripts/cad-fixture-contatos.lsp `
+  -Comandos "CorrigeContatosAux,CorrigeContatosAux,(pz-ca:dump)" `
+  -Banco "$env:TEMP\positron-ca.db"
+```
+
+```text
+CorrigeContatosAux: 3 de 4 modelo(s) com o HandleContatoAux acertado (2 bloco(s) auxiliar(es) lido(s); 1 modelo(s) sem contato casado).
+CorrigeContatosAux: 0 de 4 modelo(s) com o HandleContatoAux acertado (2 bloco(s) auxiliar(es) lido(s); 1 modelo(s) sem contato casado).
+MODELO;247;1A;5;2;245      <- o vazio ganhou o handle do primeiro auxiliar
+MODELO;248;1A;5;9;246      <- ganhou o do segundo
+MODELO;249;2B;1;1;         <- sem casamento: continua vazio
+MODELO;24A;1A;5;2;245      <- estava com ZZZ: corrigido
+```
+
+> **Duas lições de ferramenta desta rodada** (cada uma custou uma corrida de CAD):
+>
+> - **Fixture com `defun` desbalanceado:** faltava um `)` no fim do `pz-ca:dump` e o
+>   `load` parou ali — como os `INSERT` já tinham sido executados, os comandos rodaram e só o
+>   `(pz-ca:dump)` "não existia" (arquivo de saída ausente, **sem** erro no `POSITRON_LOG`).
+>   Conferir o **saldo de parênteses** do script antes de rodar é mais barato que descobrir pelo
+>   arquivo que não foi escrito.
+> - **Split de linha em LISP:** o `pz-cc:sub` montava os pedaços com o `;` junto (o campo vazio
+>   virava `";0"`), então o `TOTAL` contava **129 preenchidos** num arquivo cujas linhas diziam
+>   63 — o dado por linha estava certo, o resumo mentia. O `substr` tem de **pular o separador**
+>   (`(substr linha 1 pos)` e `(substr linha (+ pos 2))`).
+
 **Rodada 76 — `corrigeDicMascaras` (frente 2 do §7.6, parte 7: o dicionário de máscaras).**
 A quinta `Corrige*` e o **par de escrita do `bt13ReguaMascara`** (a checagem da régua da
 máscara, rodada 52): normaliza a lista de portas de cada modelo do dicionário `MASCARAS`. O
@@ -2572,7 +2645,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 393 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 407 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

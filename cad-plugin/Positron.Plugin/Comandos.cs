@@ -47,7 +47,8 @@ namespace Positron.Plugin
     /// (rodada 72) e a dos estilos de texto <c>CorrigeStyle</c> (rodada 73), mais o
     /// <c>SobeLm</c> (rodada 74) — **comando próprio**, sem par no original: sobe o
     /// <c>lm</c> dos bornes a partir do dicionário de réguas, fechando a pendência
-    /// do §7.2, e o <c>corrigeDicMascaras</c> (rodada 76) — o dicionário de máscaras.
+    /// do §7.2, o <c>corrigeDicMascaras</c> (rodada 76) — o dicionário de máscaras — e o
+    /// <c>CorrigeContatosAux</c> (rodada 77) — o <c>HandleContatoAux</c> dos modelos.
     /// As outras <c>Corrige*</c> são o próximo passo da mesma frente.
     ///
     /// **Sem licença:** o produto é open source e nenhum comando verifica licença. O
@@ -877,6 +878,42 @@ namespace Positron.Plugin
             catch (System.Exception erro)
             {
                 return "corrigeDicMascaras: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>CorrigeContatosAux</c> — preenche o <c>HandleContatoAux</c> do XData
+        /// <c>Modelo</c> de cada bloco de modelo com o handle do **bloco auxiliar**
+        /// (tipo <c>A</c>) que casa pela chave (HandleBob, indexModelo, indexContato) —
+        /// o par de escrita do <c>bt4Auxiliar</c> (frente 2 do §7.6, o <c>Correcao.cs</c>).
+        /// </summary>
+        [CommandMethod("CorrigeContatosAux")]
+        public void CorrigirContatosAuxiliares()
+        {
+            Plugin.Escrever(ExecutarCorrigirContatosAuxiliares());
+        }
+
+        /// <summary>Acerta o HandleContatoAux dos modelos e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirContatosAuxiliares()
+        {
+            try
+            {
+                Correcoes.ContatosAuxiliaresDoDesenho.Resultado resultado =
+                    Correcoes.ContatosAuxiliaresDoDesenho.Executar();
+
+                if (resultado.ModelosLidos == 0)
+                {
+                    return "CorrigeContatosAux: o desenho não tem blocos de modelo (XData Modelo).";
+                }
+
+                return "CorrigeContatosAux: " + resultado.ModelosAlterados + " de "
+                    + resultado.ModelosLidos + " modelo(s) com o HandleContatoAux acertado ("
+                    + resultado.AuxiliaresLidos + " bloco(s) auxiliar(es) lido(s); "
+                    + resultado.SemContato + " modelo(s) sem contato casado).";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigeContatosAux: falhou — " + DescreverErro(erro);
             }
         }
 
