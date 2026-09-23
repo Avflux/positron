@@ -762,6 +762,35 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 105 — a triagem da frente 3 (réguas e bornes).**
+A frente 3 tem 13 comandos. Li o corpo de cada um no reverso; **nenhum é correção em lote** e a
+classificação fecha assim:
+
+| comando | corpo do reverso | classificação |
+|---|---|---|
+| `DEF` | `new frmDefinicao()` | só UI |
+| `GERRB` | `new frmCriarReguas()` | só UI |
+| `BORN` | `new frmBornes()` | só UI |
+| `EDBORN` | `new frmGerenciadorReguasBornes()` | só UI |
+| `STATBORN` | `new frmEstatisticaDeBornes()` | só UI (mas a **conta** vive no `clsReguasDeBornes`) |
+| `SELBORN` | `new frmEditaBornesSelecao()` | só UI |
+| `MBOR` | `new frmMigraBornes()` | só UI |
+| `CLOBORN` | `new frmClonarEstruturaRegua()` | só UI |
+| `REGH` | `clsRegua.insereReguaH()` → `CapturaDadosDaRegua` | interativo (formulário de captura) |
+| `REGV` | `clsRegua.insereReguaV()` → `CapturaDadosDaRegua` | interativo |
+| `HBASE` | `clsRegua.redefineAlturaBase()` → `editor.GetPoint` | interativo (a nova altura vem de um clique) |
+| `LDNR` | `clsBornes.OcultaAtributoNome()` → `clsAtributos.selecionaUmBloco` | interativo (escolhe **um** bloco) |
+| `OCPN` | `clsBornes.OcultaAtributoPainel()` → `clsAtributos.selecionaUmBloco` | interativo |
+
+Ou seja: **8 de UI + 5 de interação** — nenhum comando da frente 3 é uma passada pelo desenho como
+as correções da frente 2. O que sobra como **candidato de código em lote** é a **estatística de
+bornes** do `STATBORN`: o formulário só exibe, e a conta está no `clsReguasDeBornes`
+(`mQuantBornes`: `US`/`RS`/`TS` + `UD`/`RD`/`TD` + total, por régua) — a
+classe irmã do `ReguasDoDesenho`/`BornesDoDesenho` que o recoder já tem.
+
+**Próxima frente com trabalho real:** a **4** (dispositivos, máscaras, portas e contatos), cuja lista
+tem comandos de sincronização que valem uma triagem igual a esta.
+
 **Rodada 104 — a prova ponta a ponta do `IndefineUmaPorta` (a última pendência da frente 2).**
 A prova que faltava desde a rodada 101, agora **em C#** (a fixture LISP nunca deu saída):
 
