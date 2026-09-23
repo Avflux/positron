@@ -762,6 +762,37 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 92 — `Limpahandle` (frente 2 do §7.6, parte 20: os handles das derivações).**
+O `limpaHandleSuperior` do `Correcao.cs`, que é `[CommandMethod("Limpahandle")]` — e a
+**primeira metade** do `CorrigeHandleSuperior`: zera o `Handle` do XData `CONEXAO` de cada
+polilinha de **derivação** (tipo **3**).
+
+A gravação troca **um valor** do registro do app dentro do buffer da polilinha (o `Handle` é o
+`valores[3]` do leitor), preservando os outros app names — a mesma técnica da rodada 86.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63). O contador
+independente `scripts/cad-conta-derivacoes.lsp` roda **no load** (lição das rodadas 90/91: a
+linha de comando LISP depois do `NETLOAD` não executa no desenho real):
+
+```text
+antes:  TOTAL;conexoes;365;derivacoes;167;comHandle;167
+comando: Limpahandle: 167 handle(s) de derivação zerado(s) (167 derivação(ões) em 365 conexão(ões) lida(s)).
+```
+
+**A idempotência foi medida na MESMA passada** (`-Comandos "Limpahandle,Limpahandle"`): `167` e
+depois **`0`** — a segunda chamada não acha nada. (Passadas separadas acham 167 de novo porque o
+harness **sempre parte de uma cópia limpa** do desenho — o que invalidaria a comparação e virou
+nota de método.)
+
+> **Desvios registrados:** o gate de hardlock (`companyHardlock == "CADGRAPH"`) não existe no
+> recoder; e o original regrava **toda** derivação a cada passada, enquanto aqui só as que têm
+> handle (mesmo efeito, convergência medível).
+
+**`PesquisaBlocos`, investigado e classificado:** é um comando **só de UI** (`new frmNavegador()`,
+também sob o hardlock) — sai do recorte. E o `CorrigeHandleSuperior` fica como fatia pendente do
+**resolvedor por ponto** (`verificaConexao`: o bloco sob o ponto inicial da polilinha), que o
+recoder ainda não tem; a metade que ele chama já está entregue nesta rodada.
+
 **Rodada 91 — o quirk do nome, medido no desenho real (frente 2, ferramenta/evidência).**
 Fecha a segunda pendência da rodada 88 **por outra via** e mede a consequência do quirk.
 
@@ -3236,7 +3267,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 476 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 478 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

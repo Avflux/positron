@@ -1278,6 +1278,35 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>Limpahandle</c> — zera o <c>Handle</c> do XData <c>CONEXAO</c> das
+        /// polilinhas de derivação (tipo 3), como o <c>limpaHandleSuperior</c> do
+        /// <c>Correcao.cs</c> (a primeira metade do <c>CorrigeHandleSuperior</c>).
+        /// </summary>
+        [CommandMethod("Limpahandle")]
+        public void LimparHandleDasDerivacoes()
+        {
+            Plugin.Escrever(ExecutarLimparHandleDasDerivacoes());
+        }
+
+        /// <summary>Limpa os handles das derivações e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarLimparHandleDasDerivacoes()
+        {
+            try
+            {
+                Limpeza.HandlesDasDerivacoesDoDesenho.Resultado resultado =
+                    Limpeza.HandlesDasDerivacoesDoDesenho.Executar();
+
+                return "Limpahandle: " + resultado.HandlesLimpos + " handle(s) de derivação zerado(s) ("
+                    + resultado.Derivacoes + " derivação(ões) em " + resultado.ConexoesLidas
+                    + " conexão(ões) lida(s)).";
+            }
+            catch (System.Exception erro)
+            {
+                return "Limpahandle: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();
