@@ -1,9 +1,9 @@
 # Relatório consolidado — o recoder do Eletron4Z sobre o positron
 
-**Data:** 2026-09-23 · **Sequência:** rodadas 74–108 (35 rodadas de entrega, uma por commit duplo)
-**Estado:** frente 2 fechada (27 de 38, sem pendência de implementação ou de prova), frente 3 com o
-candidato em lote entregue, frentes 3 e 4 triadas · **43 comandos**, **511 testes**, duas builds
-com 0 avisos.
+**Data:** 2026-09-23 · **Sequência:** rodadas 74–113 (40 rodadas de entrega, uma por commit duplo)
+**Estado:** frente 2 fechada (27 de 38, sem pendência de implementação ou de prova), **frentes 1–9
+todas portadas ou triadas** e os **três pipelines** do original entregues (`SYNCD`, `SYNCV` e
+`RESTPROJ`) · **47 comandos**, **513 testes**, duas builds com 0 avisos.
 
 Este relatório é a leitura única do que existe, do que foi **medido no desenho real** e do que
 ficou **fora do recorte com motivo**. O detalhe rodada a rodada está no `docs/RUNBOOK.md` (mais
@@ -21,7 +21,8 @@ novo primeiro) e o registro completo no `docs/PLANO.md` (§2.2 e a tabela de rod
 - **Desenho de referência:** ..\Elet\Teste_projeto_real\Funcional.dwg (DWG 63) — sempre usado a
   partir de **cópia limpa** (o harness nunca muta o original).
 - **Recorte do plano:** frente 1 (base/contexto e comandos portados) e frente 2 (correções e
-  limpeza), mais o SobeLm próprio; as frentes 3–7 são o checklist exaustivo do §7.6.
+  limpeza), mais o SobeLm próprio; as frentes 3–9 são o checklist exaustivo do §7.6, **todas
+triadas** (105, 106, 110 e 112).
 
 ## 2. Entregas por frente
 
@@ -31,7 +32,11 @@ novo primeiro) e o registro completo no `docs/PLANO.md` (§2.2 e a tabela de rod
 | 2 | Correções e limpeza do CAD | ✅ **27 de 38** entregues, **sem pendência**; os 11 restantes são UI/página/interação |
 | 3 | Réguas e bornes | 8 UI + 5 interativos + **STATBORN em lote** (rodada 108) |
 | 4 | Dispositivos, máscaras, portas e contatos | triada: **20 UI + 8 interativos/por arquivo**, nenhum em lote |
-| 5–7 | Caderno/circuitos/páginas, fiação, interligação | não triadas (predominantemente editores de UI) |
+| 5 | Caderno/circuitos/páginas | triada: 16 UI/interativos + `SYNCC` (já coberto pela projeção `FIA`) |
+| 6 | Fiação | triada: 3 UI + `DELFIPROJ` (destrutivo com confirmação) |
+| 7 | Interligação, cabos e veias | triada: 33 UI/interativos/portados + **`SYNCV`** (rodada 111) |
+| 8 | Materiais | triada: 2 UI + `DELLM` (destrutivo) |
+| 9 | Exportar/importar e manipulação de projeto | triada: 15 UI/ambiente/destrutivo + **`CBD`** (112) e **`RESTPROJ`** + `ApagaERROS` (113) |
 
 ## 3. Evidências medidas no desenho real (amostra das registradas)
 
@@ -50,6 +55,9 @@ novo primeiro) e o registro completo no `docs/PLANO.md` (§2.2 e a tabela de rod
 | 103 | pzDiag (ferramenta C#) | 45 portas, **1834** referências de cor e **50** diferenças — as mesmas 50 da rodada 88 |
 | 107 | SYNCD (pipeline) | FIA: 494 linhas (199 bornes, 191 dispositivos, 83 posições); INT: 20 linhas, **697 cabos**, **2388 veias** |
 | 108 | STATBORN | **31 réguas**, 199 usados, 17 de reserva, **216 no total** |
+| 111 | SYNCV (pipeline das veias) | 24 rótulos apagados e 20 reinseridos; a projeção repete os números do `SYNCD`; 0 de 0 opcionais |
+| 112 | CBD (compactar o banco) | **584 KB → 572 KB** (12 KB liberados) — o `VACUUM` sobre uma cópia do banco |
+| 113 | RESTPROJ (pipeline-mãe) | seis passos no desenho real; `ApagaERROS` varreu **3286 entidades** e apagou 0 (a cópia é limpa); os números repetem as rodadas 107/111 — **terceira testemunha** |
 
 **Corroborações cruzadas** (o mesmo número por caminhos independentes): os **199 bornes** aparecem no
 FIA/SYNCD e no STATBORN; os **216** aparecem no Bornes4I e no total do STATBORN; as **50 diferenças
@@ -87,6 +95,7 @@ aparecem no dicionário medido na rodada 96 e na estatística da 108.
 | Páginas / interativo | RENPAGA, CorrigeInterligacao, REGH, REGV, HBASE, LDNR, OCPN, EncontraHandle | dependem da matriz de páginas, de formulário de captura, de GetPoint ou da seleção de **um** bloco |
 | Arquivo/ambiente | CHVAUT, SYNCLP, LXLS, PortasChesf | exigem a "lista de pontos" num arquivo externo ou abrem processo de terceiro |
 | Atributos por grade | LeAtributos, CorrigeAtributos*, PreencheNovosAtributos | o buffer estático é preenchido por uma grade WinForms |
+| Materiais e projeto (frentes 8 e 9) | GERLM, ATINDEP, DELLM, EXPCOMP, CLONAR, EXPPDF, COPIAINT, EXPDWG, EXPIT, IMPR, TROCTT, COPYCAD, TROCBL, TROCAPN, MUDAUSER, IMPCAD, IMPBD, DELPLA | 15 são formulários; os demais são destrutivos com `MsgBox` de confirmação (`DELLM`, `DELPLA`) ou de ambiente/arquivo (`IMPBD`) |
 
 ## 6. Como verificar
 
@@ -109,9 +118,12 @@ powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Re
   fechadas (99, 100, 101/104) e o contador da cor caiu na rodada 103.
 - **De ferramenta: nenhuma aberta.** O contador LISP foi substituído pelo pzDiag; a prova do
   IndefineUmaPorta saiu em C# (104) e o pzDiagCriar foi registrado de novo (108).
-- **Do plano (o que resta):** as frentes 3–7 são editoras de UI/interação/arquivo; a única
-  candidata de lote que restava (a estatística de bornes) foi entregue na 108. A triagem das
-  frentes 5–7 fica como próximo passo de **mapa**, não de código.
+- **Do plano (o que resta):** as frentes 3–9 são editoras de UI/interação/arquivo/materiais; os
+  candidatos de lote que as triagens revelaram — `STATBORN` (108), `SYNCV` (111), `CBD` (112) e
+  `RESTPROJ`/`ApagaERROS` (113) — foram **todos entregues**. Fica em aberto só o `RECRIACABOS`
+  (o `MsgBox` + o `switch` do `InterligacaoLayout`, com a substância já portada em 78/79).
+- **O que resta no mapa:** nada em lote; o que sobra são editores de tela, integração de
+  ambiente/licença e as rotinas destrutivas com confirmação.
 
 ## 8. A sequência, em blocos
 
@@ -124,3 +136,6 @@ powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Re
 | 99–104 | fecho das pendências: dicionário de contatos, NOME1/ORIGEM, prefixo/sufixo, a ferramenta C# e a prova do IndefineUmaPorta |
 | 105–106 | triagem das frentes 3 e 4 |
 | 107–108 | o SYNCD como pipeline e o STATBORN em lote |
+| 109 | o relatório consolidado (este arquivo) |
+| 110–112 | triagem das frentes 5–9, o `SYNCV` como pipeline e o `CBD` (compactar o banco) |
+| 113 | o `RESTPROJ` (pipeline-mãe) e o `ApagaERROS` |
