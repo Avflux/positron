@@ -1099,6 +1099,41 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>REMLAYDUP</c> — o <c>RemoveDuplicadoLayoutRapido</c> do <c>Correcao.cs</c>:
+        /// tira os tags repetidos dos XRecords <c>CENG_LAYOUT</c> (<c>P</c>/<c>C</c>) de
+        /// cada painel do cadastro. O <c>FIA</c> (<c>PosicaoNum</c>) e o <c>COMPLM</c>
+        /// (<c>OrdemLay</c>) leem esse dicionário.
+        /// </summary>
+        [CommandMethod("REMLAYDUP")]
+        public void RemoverDuplicadosDeLayout()
+        {
+            Plugin.Escrever(ExecutarRemoverDuplicadosDeLayout());
+        }
+
+        /// <summary>Remove os duplicados do layout e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarRemoverDuplicadosDeLayout()
+        {
+            try
+            {
+                Correcoes.LayoutDuplicadoDoDesenho.Resultado resultado =
+                    Correcoes.LayoutDuplicadoDoDesenho.Executar();
+
+                if (resultado.SemBanco)
+                {
+                    return "REMLAYDUP: defina POSITRON_DB_PATH — os painéis vêm do cadastro (Paineis).";
+                }
+
+                return "REMLAYDUP: " + resultado.ChavesAlteradas + " de " + resultado.ChavesLidas
+                    + " chave(s) de layout regravada(s) (" + resultado.RegistrosAntes + " registro(s) -> "
+                    + resultado.RegistrosDepois + "; " + resultado.Paineis + " painel(is) do cadastro).";
+            }
+            catch (System.Exception erro)
+            {
+                return "REMLAYDUP: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

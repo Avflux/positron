@@ -762,6 +762,47 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 84 — `REMLAYDUP` (frente 2 do §7.6, parte 15: o dedup do CENG_LAYOUT).**
+O `RemoveDuplicadoLayoutRapido` do `Correcao.cs`: para cada painel **do cadastro**
+(`Paineis`), lê as chaves `P<painel>` e `C<painel>` do dicionário nomeado `CENG_LAYOUT` —
+o mesmo que o `FIA` lê para o `PosicaoNum` e o `COMPLM` para o `OrdemLay` —, tira os **tags
+repetidos conservando o primeiro** e regrava a chave.
+
+O registro cru tem **5 valores por posição** (`gravaDicLayout`): tag e alternativo em 1, X e Y em
+40 e um campo vazio em 1. Entraram `LayoutPosicoes.PosicaoBruta` + `LerBruto`/`ParaValores`.
+
+> **Quirk reproduzido (e medido):** o laço do original vai de `0` a `UBound - 1` — o
+> **último registro de cada chave é descartado**, mesmo quando não há duplicado. O comando é
+> **destrutivo se repetido** (é o "Rapido" do nome): rodar duas vezes come outro registro por
+> chave. Como no original, o uso é uma passada.
+
+**Medido na fixture** (`scripts/cad-fixture-layout.lsp`: `P3` = A|B|A|C, `C3` = X|Y e `P999` =
+M|N, com o 999 **fora** do cadastro):
+
+```text
+-- antes ---------------------------------------------------------------
+CHAVE;C3;2;X|Y          CHAVE;P3;4;A|B|A|C          CHAVE;P999;2;M|N
+-- depois (1a passada) ------------------------------------------------
+REMLAYDUP: 2 de 2 chave(s) de layout regravada(s) (6 registro(s) -> 3; 480 painel(is) do cadastro).
+CHAVE;C3;1;X            CHAVE;P3;2;A|B              CHAVE;P999;2;M|N   <- intacta
+-- depois (2a passada, o quirk) ---------------------------------------
+REMLAYDUP: 2 de 2 chave(s) de layout regravada(s) (3 registro(s) -> 1; 480 painel(is) do cadastro).
+CHAVE;C3;0;             CHAVE;P3;1;A
+```
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63) com o contador
+independente `scripts/cad-conta-layout.lsp`:
+
+```text
+antes:  TOTAL;chaves;14;registros;340
+REMLAYDUP: 14 de 14 chave(s) de layout regravada(s) (340 registro(s) -> 326; 480 painel(is) do cadastro).
+depois: TOTAL;chaves;14;registros;326
+```
+
+As 14 chaves perdem exatamente **um** registro cada — ou seja, **não havia duplicado nenhum**
+nesta cópia (as tags do `C503`, por exemplo, são todas distintas; o `P503` idem). O efeito
+medido no desenho real é só o do quirk; os casos com duplicado ficam provados pela fixture.
+
 **Rodada 83 — `LimpaTextosLPCopiados` (frente 2 do §7.6, parte 14: a sexta limpeza).**
 Tira o XData `TextoLP` (o rótulo **copiado de outra página**) do ModelSpace. A regra:
 
@@ -2918,7 +2959,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 448 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 454 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

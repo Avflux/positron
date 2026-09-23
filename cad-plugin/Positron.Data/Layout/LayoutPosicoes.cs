@@ -217,6 +217,89 @@ namespace Positron.Data.Layout
             return painel + "\u0000" + tag;
         }
 
+        /// <summary>
+        /// O registro **cru** de um <c>CENG_LAYOUT</c>: os cinco valores por posição
+        /// que o <c>gravaDicLayout</c>/<c>LeDicLayout</c> do original gravam — tag,
+        /// alternativo, X, Y e um campo vazio constante. O <see cref="PosicaoLayout"/>
+        /// é a projeção que o FIA usa; esta é a forma do dicionário, que o REMLAYDUP
+        /// reescreve.
+        /// </summary>
+        public sealed class PosicaoBruta
+        {
+            public string Tag { get; set; }
+
+            public string Alternativo { get; set; }
+
+            public double X { get; set; }
+
+            public double Y { get; set; }
+        }
+
+        /// <summary>Lê os registros crus de um <c>Xrecord</c> de layout (5 valores cada).</summary>
+        public static IReadOnlyList<PosicaoBruta> LerBruto(IReadOnlyList<TypedXData> valores)
+        {
+            List<PosicaoBruta> registros = new List<PosicaoBruta>();
+            if (valores == null)
+            {
+                return registros;
+            }
+
+            for (int i = 0; i + ValoresPorPosicao <= valores.Count; i += ValoresPorPosicao)
+            {
+                registros.Add(new PosicaoBruta
+                {
+                    Tag = Texto(valores[i].Valor),
+                    Alternativo = Texto(valores[i + 1].Valor),
+                    X = Real(valores[i + 2].Valor),
+                    Y = Real(valores[i + 3].Valor),
+                });
+            }
+
+            return registros;
+        }
+
+        /// <summary>
+        /// Monta os valores do <c>gravaDicLayout</c>: tag e alternativo em 1, X e Y em 40
+        /// e o campo vazio em 1, cinco por posição.
+        /// </summary>
+        public static IReadOnlyList<TypedXData> ParaValores(IReadOnlyList<PosicaoBruta> registros)
+        {
+            List<TypedXData> valores = new List<TypedXData>();
+            if (registros == null)
+            {
+                return valores;
+            }
+
+            foreach (PosicaoBruta registro in registros)
+            {
+                PosicaoBruta posicao = registro ?? new PosicaoBruta();
+                valores.Add(new TypedXData(1, posicao.Tag ?? string.Empty));
+                valores.Add(new TypedXData(1, posicao.Alternativo ?? string.Empty));
+                valores.Add(new TypedXData(40, posicao.X));
+                valores.Add(new TypedXData(40, posicao.Y));
+                valores.Add(new TypedXData(1, string.Empty));
+            }
+
+            return valores;
+        }
+
+        private static double Real(object valor)
+        {
+            if (valor == null || valor is DBNull)
+            {
+                return 0.0;
+            }
+
+            try
+            {
+                return Convert.ToDouble(valor);
+            }
+            catch (Exception)
+            {
+                return 0.0;
+            }
+        }
+
         private static string Texto(object valor)
         {
             if (valor == null || valor is DBNull)
