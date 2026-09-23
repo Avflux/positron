@@ -39,6 +39,13 @@ namespace ZwSoft.ZwCAD.Geometry
         public double X;
         public double Y;
         public double Z;
+
+        public Point3d(double x, double y, double z)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+        }
     }
 
     public struct Extents3d
@@ -192,9 +199,56 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         }
     }
 
+    /// <summary>Modo vertical do texto (o <c>TextVerticalMode</c> da API real).</summary>
+    public enum TextVerticalMode
+    {
+        TextBase = 0,
+        TextBottom = 1,
+        TextMiddle = 2,
+        TextTop = 3,
+    }
+
+    /// <summary>Modo horizontal do texto (o <c>TextHorizontalMode</c> da API real).</summary>
+    public enum TextHorizontalMode
+    {
+        TextLeft = 0,
+        TextCenter = 1,
+        TextRight = 2,
+        TextAligned = 3,
+        TextMiddle = 4,
+        TextFit = 5,
+    }
+
+    /// <summary>Espessura de linha (o <c>LineWeight</c> da API real — o rótulo de cabo sai com 9).</summary>
+    public struct LineWeight
+    {
+        private readonly int _valor;
+
+        private LineWeight(int valor)
+        {
+            _valor = valor;
+        }
+
+        public int Value
+        {
+            get { return _valor; }
+        }
+
+        public static LineWeight LineWeight009
+        {
+            get { return new LineWeight(9); }
+        }
+    }
+
     public class Entity : Drawable
     {
         public string Layer { get; set; }
+
+        /// <summary>Cor ACI da entidade (o <c>Entity.ColorIndex</c> da API real).</summary>
+        public short ColorIndex { get; set; }
+
+        /// <summary>Espessura de linha (o <c>Entity.LineWeight</c> da API real).</summary>
+        public LineWeight LineWeight { get; set; }
     }
 
     public class DBPoint : Entity
@@ -274,6 +328,22 @@ namespace ZwSoft.ZwCAD.DatabaseServices
     {
         /// <summary>O texto do rótulo (o `IndefineCabosNaoExistentes` regrava o do cabo).</summary>
         public string TextString { get; set; }
+
+        /// <summary>Estilo de texto (o rótulo de cabo sai em `Romans`, ou `Standard`).</summary>
+        public ObjectId TextStyleId { get; set; }
+
+        /// <summary>Altura do texto (o `Conf.FonteCabos` do original).</summary>
+        public double Height { get; set; }
+
+        /// <summary>Rotação em radianos (o `criarTextoNomeCabo` a calcula pelo segmento).</summary>
+        public double Rotation { get; set; }
+
+        /// <summary>Ponto de alinhamento (o texto do cabo é bottom-center nele).</summary>
+        public Point3d AlignmentPoint { get; set; }
+
+        public TextVerticalMode VerticalMode { get; set; }
+
+        public TextHorizontalMode HorizontalMode { get; set; }
     }
 
     public class Xrecord : DBObject
@@ -370,6 +440,11 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         public const string ModelSpace = "*ModelSpace";
 
         public string Name { get; set; }
+
+        /// <summary>Anexa uma entidade nova ao espaço (o `AppendEntity` da API real).</summary>
+        public void AppendEntity(Entity entidade)
+        {
+        }
 
         public IEnumerator GetEnumerator()
         {

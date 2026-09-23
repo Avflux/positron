@@ -36,9 +36,42 @@ namespace Positron.Data.Interligacao
         /// Lê o tipo do rótulo. Devolve <c>false</c> (sem exceção) quando não é um
         /// <c>AUXINTERLIG</c> válido.
         /// </summary>
+        /// <summary>
+        /// Monta o XData do rótulo no layout de 8 valores do
+        /// <c>GravarXDataAuxInterligacao</c> — o caminho de escrita do
+        /// <c>RecriaTextosCabo</c>: app name, tipo, handle do trecho, THandle, o
+        /// <c>1071 1</c>, usuário, data e os opcionais.
+        /// </summary>
+        public static IReadOnlyList<TypedXData> ParaValores(string handle, short tipo, string tHandle, string usuario, string data, string opcionais)
+        {
+            return new List<TypedXData>
+            {
+                new TypedXData(1001, AppName),
+                new TypedXData(1070, tipo),
+                new TypedXData(1000, handle ?? string.Empty),
+                new TypedXData(1000, tHandle ?? string.Empty),
+                new TypedXData(1071, 1),
+                new TypedXData(1000, usuario ?? string.Empty),
+                new TypedXData(1000, data ?? string.Empty),
+                new TypedXData(1000, opcionais ?? string.Empty),
+            };
+        }
+
         public static bool Ler(IReadOnlyList<TypedXData> valores, out short tipo)
         {
+            string handle;
+            return Ler(valores, out tipo, out handle);
+        }
+
+        /// <summary>
+        /// Lê o tipo e o **handle do trecho** (o campo +2 do layout) — o
+        /// <c>RecriaTextosCabo</c> precisa dos dois: o tipo diz se o rótulo é de cabo
+        /// (1) ou de ponta (3), e o handle diz **qual trecho já está rotulado**.
+        /// </summary>
+        public static bool Ler(IReadOnlyList<TypedXData> valores, out short tipo, out string handle)
+        {
             tipo = 0;
+            handle = null;
 
             if (valores == null || valores.Count < QuantidadeMinima)
             {
@@ -51,6 +84,7 @@ namespace Positron.Data.Interligacao
             }
 
             tipo = XDataNumero.Curto(valores[1].Valor);
+            handle = valores.Count > 2 ? valores[2].Valor as string : null;
             return true;
         }
     }

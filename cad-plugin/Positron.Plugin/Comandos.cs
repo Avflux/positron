@@ -917,6 +917,43 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>RecriaTextosCabo</c> — apaga os rótulos auxiliares das veias (a regra do
+        /// <c>clsEletron.ApagarTodosOsTextosDasVeias</c>) e **reinsere um por trecho de
+        /// interligação** que ficou sem rótulo, no modelo padrão — o
+        /// <c>clsEditarInterligacao.InsereTextosDeCabos(bPadraoEL: true)</c>. Lê o
+        /// catálogo (<c>Cabos.Formacao like 1x</c>) para o caso do cabo singelo.
+        /// </summary>
+        [CommandMethod("RecriaTextosCabo")]
+        public void RecriarTextosDeCabo()
+        {
+            Plugin.Escrever(ExecutarRecriarTextosDeCabo());
+        }
+
+        /// <summary>Recria os rótulos de cabo e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarRecriarTextosDeCabo()
+        {
+            try
+            {
+                RotulosDeCaboDoDesenho.Resultado resultado = RotulosDeCaboDoDesenho.Executar();
+
+                if (resultado.TrechosLidos == 0 && resultado.RotulosApagados == 0)
+                {
+                    return "RecriaTextosCabo: o desenho não tem trechos de interligação nem rótulos auxiliares.";
+                }
+
+                return "RecriaTextosCabo: " + resultado.RotulosApagados + " rótulo(s) apagado(s) e "
+                    + resultado.RotulosInseridos + " reinserido(s) de " + resultado.TrechosLidos
+                    + " trecho(s) (" + resultado.TrechosComRotulo + " já tinham rótulo; "
+                    + resultado.CabosSingelos + " cabo(s) singelo(s) no catálogo"
+                    + (resultado.SemCatalogo ? "; sem catálogo" : "") + ").";
+            }
+            catch (System.Exception erro)
+            {
+                return "RecriaTextosCabo: falhou — " + DescreverErro(erro);
+            }
+        }
+
         private static Dictionary<int, ModeloMascara> IndexarPorIndice(List<ModeloMascara> modelos)
         {
             Dictionary<int, ModeloMascara> indice = new Dictionary<int, ModeloMascara>();

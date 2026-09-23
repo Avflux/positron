@@ -762,6 +762,71 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 78 — `RecriaTextosCabo` (frente 2 do §7.6, parte 9: o par de escrita dos rótulos).**
+Fecha o par da limpeza da rodada 75: o `clsEletron.RecriaTextosCabo` apaga os rótulos
+auxiliares e **reinsere um por trecho de interligação** que ficou sem rótulo, no **modelo
+padrão** (`bPadraoEL = true`, `iModeloVeiaFuncao = 0`).
+
+| Peça | Do original | No recoder |
+|---|---|---|
+| limpeza | `clsEletron.ApagarTodosOsTextosDasVeias` | igual — e **diferente** da rodada 75: o não-texto sai pelo `ELETROSUL` **ou** pelo `AUXINTERLIG` (ENEL), e o `DBText` pelos tipos **1, 4, 5 ou 6** |
+| texto | `InsereTextosDeCabos` (layout ≠ 3) | `TextoDoRotuloDeCabo` |
+| posição | `criarTextoNomeCabo` | `PosicaoDoRotuloDeCabo` (mesmo π arredondado) |
+| catálogo | `SELECT Tag FROM Cabos WHERE Formacao like '%1x%'` | `ProjectStore.LerCabos()` + `IndexOf(1x)` |
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63) — a prova mais
+forte é a comparação com os rótulos do **próprio produto** (o dump da rodada 75):
+
+```text
+RecriaTextosCabo: 24 rótulo(s) apagado(s) e 20 reinserido(s) de 20 trecho(s) (0 já tinham rótulo; 305 cabo(s) singelo(s) no catálogo).
+RecriaTextosCabo: 20 rótulo(s) apagado(s) e 20 reinserido(s) de 20 trecho(s) (...)   <- 2a passada: apaga e recria (não é idempotente de propósito)
+INT: 20 linha(s) gravada(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I; 216/697/2388.
+VERIF: 249 problema(s) — fiação: 0; interligação: 0; modelos: 0; desenho: 249.
+```
+
+```text
+ANTES (24 rótulos do produto)              DEPOIS (20 recriados)
+8-CCE-001 … 8-CCE-002 (16)                 8-CCE-001 … 8-CCE-002 (16)
+8-GGE-017/1, 8-GGE-017/2 (2 de cada)       8-GGE-017/1, 8-GGE-017/2 (1 de cada)
+8-GGE-018/1, 8-GGE-018/2 (2 de cada)       8-GGE-018/1, 8-GGE-018/2 (1 de cada)
+```
+
+Os **20 textos são idênticos aos 20 distintos dos 24** do produto (os quatro pares repetidos são
+dois trechos com o mesmo cabo): a recriação reproduz os rótulos do produto **texto a texto**,
+inclusive os `NomeVeia` com `/N`, que saem do ramo `(NomeVeia)` com a tag na frente. E os
+**305 cabos singelos** (`Formacao like 1x`) do catálogo são o que faz o `8-CCE-001` (uma veia)
+sair **sem** o número.
+
+Como o desenho real já tem rótulos, a **escrita do zero** é provada na fixture
+`scripts/cad-fixture-rotulos.lsp` (um trecho sem rótulo válido, um rótulo velho, um texto comum
+e duas linhas com os app names das variantes):
+
+```powershell
+$env:POSITRON_XDATA = "$env:TEMP\positron-rotulos.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 1 -Revisao R0 `
+  -Fixture scripts/cad-fixture-rotulos.lsp `
+  -Comandos "RecriaTextosCabo,RecriaTextosCabo,(pz-rot:dump)" `
+  -Banco "$env:TEMP\positron-rot.db"
+```
+
+```text
+RecriaTextosCabo: 3 rótulo(s) apagado(s) e 1 reinserido(s) de 1 trecho(s) (0 já tinham rótulo; 0 cabo(s) singelo(s) no catálogo).
+RecriaTextosCabo: 1 rótulo(s) apagado(s) e 1 reinserido(s) de 1 trecho(s) (0 já tinham rótulo; ...)
+TRECHO;240;CABO-1;2;0
+AUXILIAR;AUXINTERLIG;1;CABO-1/2;(0.225273 1.44407 0.0);(5.0 1.0 0.0);0.0
+```
+
+O `(5.0 1.0 0.0)` é o **ponto de alinhamento** que a geometria pura calcula para o segmento
+(0,0)–(10,0) — o meio do segmento mais 1 unidade na perpendicular — e a rotação 0 confere; o
+`TRECHO;…;0` é o `iModeloVeiaFuncao` regravado.
+
+> **Configuração nova:** o rótulo lê `CorTextoInterligacao` (7), `FonteCabos` (1.5),
+> `SeparadorCaboVeia` (`/`) e `InterligacaoLayout` (0) — os padrões do `XDataGeral.cs` do
+> reverso — por arquivo (`positron.ini`) ou ambiente (`POSITRON_*`).
+>
+> **Fora do recorte, documentado:** o `RecriaTextosCaboEletrosul`, o `InterligacaoLayout == 3`
+> (ENEL), o `bApaga` e o `AtualizaTodosOpcionaisDoCabo`.
+
 **Rodada 77 — `CorrigeContatosAux` (frente 2 do §7.6, parte 8: o `HandleContatoAux`).** A
 sexta `Corrige*` e o **par de escrita do `bt4Auxiliar`** (rodada 54): casa o bloco auxiliar
 (tipo `A`) ao bloco de modelo pela chave `(HandleBob, indexModelo, indexContato)` e grava o
@@ -2645,7 +2710,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 407 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 422 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

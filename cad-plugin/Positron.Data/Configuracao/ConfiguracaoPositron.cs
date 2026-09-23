@@ -32,6 +32,10 @@ namespace Positron.Data.Configuracao
         public const string ChaveSeparador = "separadorCruzamento";
         public const string ChaveRelatorio = "relatorio";
         public const string ChaveOrdemListaBanco = "ordemListaBanco";
+        public const string ChaveCorTextoInterligacao = "corTextoInterligacao";
+        public const string ChaveFonteCabos = "fonteCabos";
+        public const string ChaveSeparadorCaboVeia = "separadorCaboVeia";
+        public const string ChaveInterligacaoLayout = "interligacaoLayout";
 
         public const string VariavelBanco = "POSITRON_DB_PATH";
         public const string VariavelDwg = "POSITRON_DWG";
@@ -42,6 +46,10 @@ namespace Positron.Data.Configuracao
         public const string VariavelSeparador = "POSITRON_SEPARADOR_CRUZAMENTO";
         public const string VariavelRelatorio = "POSITRON_RELATORIO";
         public const string VariavelOrdemListaBanco = "POSITRON_LM_ORDEM_BANCO";
+        public const string VariavelCorTextoInterligacao = "POSITRON_COR_TEXTO_INTERLIGACAO";
+        public const string VariavelFonteCabos = "POSITRON_FONTE_CABOS";
+        public const string VariavelSeparadorCaboVeia = "POSITRON_SEPARADOR_CABO_VEIA";
+        public const string VariavelInterligacaoLayout = "POSITRON_INTERLIGACAO_LAYOUT";
 
         private static ConfiguracaoPositron _cache;
 
@@ -68,6 +76,18 @@ namespace Positron.Data.Configuracao
         /// configuração. <c>false</c> (padrão) = ordem do **desenho**, o <c>Não</c>.
         /// </summary>
         public bool OrdemListaNoBanco { get; set; }
+
+        /// <summary>Cor ACI do texto de interligação (o <c>Conf.CorTextoInterligacao</c>, padrão 7).</summary>
+        public int CorTextoInterligacao { get; set; }
+
+        /// <summary>Altura do texto de cabo (o <c>Conf.FonteCabos</c>, padrão 1.5).</summary>
+        public double FonteCabos { get; set; }
+
+        /// <summary>Separador entre a tag do cabo e o número da veia (o <c>Conf.SeparadorCaboVeia</c>, padrão <c>/</c>).</summary>
+        public string SeparadorCaboVeia { get; set; }
+
+        /// <summary>Layout da interligação (o <c>Conf.InterligacaoLayout</c>, padrão 0 — o recoder só porta o caminho do layout padrão).</summary>
+        public int InterligacaoLayout { get; set; }
 
         /// <summary>Arquivo padrão: <c>%APPDATA%\Positron\positron.ini</c> (ou o TEMP).</summary>
         public static string ArquivoPadrao
@@ -97,6 +117,10 @@ namespace Positron.Data.Configuracao
                 SeparadorCruzamento = null,
                 Relatorio = null,
                 OrdemListaNoBanco = false,
+                CorTextoInterligacao = 7,
+                FonteCabos = 1.5,
+                SeparadorCaboVeia = "/",
+                InterligacaoLayout = 0,
             };
         }
 
@@ -173,6 +197,10 @@ namespace Positron.Data.Configuracao
             texto.AppendLine(ChaveSeparador + "=" + (SeparadorCruzamento ?? string.Empty));
             texto.AppendLine(ChaveRelatorio + "=" + (Relatorio ?? string.Empty));
             texto.AppendLine(ChaveOrdemListaBanco + "=" + (OrdemListaNoBanco ? "1" : "0"));
+            texto.AppendLine(ChaveCorTextoInterligacao + "=" + CorTextoInterligacao.ToString(CultureInfo.InvariantCulture));
+            texto.AppendLine(ChaveFonteCabos + "=" + FonteCabos.ToString(CultureInfo.InvariantCulture));
+            texto.AppendLine(ChaveSeparadorCaboVeia + "=" + (SeparadorCaboVeia ?? string.Empty));
+            texto.AppendLine(ChaveInterligacaoLayout + "=" + InterligacaoLayout.ToString(CultureInfo.InvariantCulture));
             return texto.ToString();
         }
 
@@ -221,7 +249,11 @@ namespace Positron.Data.Configuracao
             if (Mesma(chave, ChaveIncluirColuna, VariavelIncluirColuna)) { configuracao.IncluirColuna = Inteiro(valor, configuracao.IncluirColuna); return; }
             if (Mesma(chave, ChaveSeparador, VariavelSeparador)) { configuracao.SeparadorCruzamento = Vazio(valor); return; }
             if (Mesma(chave, ChaveRelatorio, VariavelRelatorio)) { configuracao.Relatorio = Vazio(valor); return; }
-            if (Mesma(chave, ChaveOrdemListaBanco, VariavelOrdemListaBanco)) { configuracao.OrdemListaNoBanco = Logico(valor, configuracao.OrdemListaNoBanco); }
+            if (Mesma(chave, ChaveOrdemListaBanco, VariavelOrdemListaBanco)) { configuracao.OrdemListaNoBanco = Logico(valor, configuracao.OrdemListaNoBanco); return; }
+            if (Mesma(chave, ChaveCorTextoInterligacao, VariavelCorTextoInterligacao)) { configuracao.CorTextoInterligacao = Inteiro(valor, configuracao.CorTextoInterligacao); return; }
+            if (Mesma(chave, ChaveFonteCabos, VariavelFonteCabos)) { configuracao.FonteCabos = Real(valor, configuracao.FonteCabos); return; }
+            if (Mesma(chave, ChaveSeparadorCaboVeia, VariavelSeparadorCaboVeia)) { configuracao.SeparadorCaboVeia = Vazio(valor); return; }
+            if (Mesma(chave, ChaveInterligacaoLayout, VariavelInterligacaoLayout)) { configuracao.InterligacaoLayout = Inteiro(valor, configuracao.InterligacaoLayout); }
         }
 
         private static void AplicarAmbiente(ConfiguracaoPositron configuracao, IDictionary<string, string> ambiente)
@@ -245,7 +277,7 @@ namespace Positron.Data.Configuracao
         private static IDictionary<string, string> Ambiente()
         {
             Dictionary<string, string> ambiente = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio, VariavelOrdemListaBanco })
+            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio, VariavelOrdemListaBanco, VariavelCorTextoInterligacao, VariavelFonteCabos, VariavelSeparadorCaboVeia, VariavelInterligacaoLayout })
             {
                 string valor = Environment.GetEnvironmentVariable(nome);
                 if (!string.IsNullOrEmpty(valor))
@@ -277,6 +309,17 @@ namespace Positron.Data.Configuracao
 
             int numero;
             return int.TryParse(valor.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out numero) ? numero : padrao;
+        }
+
+        private static double Real(string valor, double padrao)
+        {
+            if (string.IsNullOrEmpty(valor))
+            {
+                return padrao;
+            }
+
+            double numero;
+            return double.TryParse(valor.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out numero) ? numero : padrao;
         }
 
         /// <summary>
