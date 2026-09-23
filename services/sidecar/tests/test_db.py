@@ -129,9 +129,98 @@ def make_project_db(target: Path) -> Path:
     return target
 
 
+def make_fiacao_db(target: Path) -> Path:
+    """Um banco só com o grafo da `Fiacao` que o relatório de Fiação percorre.
+
+    O painel 1 tem três dispositivos (`D1`/`D2`/`D3`) no **mesmo potencial** (5), nas
+    ordens 1..3, cada um com a `Seção`/`Cor` da sua própria linha, e um `D9` com
+    **modelo de contato** (`IndexModelo = 7`) cujo terminal do modelo não tem linha na
+    `Fiacao` — é o caso das ligações vazias.
+    """
+    connection = sqlite3.connect(target)
+    connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+    connection.executescript(
+        """
+        INSERT INTO Paineis(Indice, Nome) VALUES (1, 'PT1');
+
+        INSERT INTO Fiacao(
+            Indice, Revisao, DWG, Painel, Potencial, Ordem, Pagina, Tag, Terminal, Tipo,
+            Secao, Cor, BJumper, BLink, NRegua, IndexModelo, TerminalNum
+        )
+            VALUES (1, 'R0', 1, 1, 5, 1, '10', 'D1', '1', 'P', '2,5', 'P', 0, 0, '', 0, 1),
+                   (2, 'R0', 1, 1, 5, 2, '10', 'D2', '1', 'P', '4',   'B', 0, 0, '', 0, 1),
+                   (3, 'R0', 1, 1, 5, 3, '10', 'D3', '1', 'P', '6',   'R', 0, 0, '', 0, 1),
+                   (4, 'R0', 1, 1, 9, 1, '11', 'D9', 'Z', 'P', '1,5', 'B', 0, 0, '', 7, 1);
+
+        INSERT INTO Contatos4F(Indice, Revisao, DWG, IndexModelo, NomeModelo, Terminal)
+            VALUES (200, 'R0', 1, 7, 'FUSIVEL', '1');
+        """
+    )
+    connection.commit()
+    connection.close()
+    return target
+
+
 @pytest.fixture
 def project_db(tmp_path: Path) -> Path:
     return make_project_db(tmp_path / "projeto.db")
+
+
+def make_fiacao_ramos_db(target: Path) -> Path:
+    """Um banco que exercita os ramos de **3, 4 e mais de 4** ligações.
+
+    Cada dispositivo (`D4`/`D5`/`D6`) aparece em vários potenciais — é a soma dos vizinhos
+    de cada linha que decide o formato. Os vizinhos entram como linhas de **tipo `B`**,
+    que o modo `rbDispositivos` **não** lista como dispositivo: são ligação, não seção.
+    """
+    connection = sqlite3.connect(target)
+    connection.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+    connection.executescript(
+        """
+        INSERT INTO Paineis(Indice, Nome) VALUES (1, 'PT1');
+
+        INSERT INTO Fiacao(
+            Indice, Revisao, DWG, Painel, Potencial, Ordem, Pagina, Tag, Terminal, Tipo,
+            Secao, Cor, BJumper, BLink, NRegua, IndexModelo, TerminalNum
+        )
+            VALUES
+            -- D4: pot. 6 (Ordem 2) + pot. 7 (Ordem 1) = 3 ligacoes.
+            (1,  'R0', 1, 1, 6,  2, '20', 'D4',  '1', 'P', '2,5', 'P', 0, 0, '', 0, 1),
+            (2,  'R0', 1, 1, 7,  1, '20', 'D4',  '1', 'P', '4',   'B', 0, 0, '', 0, 1),
+            (3,  'R0', 1, 1, 6,  1, '20', 'RA1', '1', 'B', '2,5', 'P', 0, 0, '', 0, 1),
+            (4,  'R0', 1, 1, 6,  3, '20', 'RA2', '1', 'B', '2,5', 'P', 0, 0, '', 0, 1),
+            (5,  'R0', 1, 1, 7,  2, '20', 'RA3', '1', 'B', '4',   'B', 0, 0, '', 0, 1),
+            -- D5: pot. 8 + pot. 10 (os dois na Ordem 2) = 4 ligacoes.
+            (6,  'R0', 1, 1, 8,  2, '30', 'D5',  '1', 'P', '1,5', 'P', 0, 0, '', 0, 1),
+            (7,  'R0', 1, 1, 10, 2, '30', 'D5',  '1', 'P', '2,5', 'P', 0, 0, '', 0, 1),
+            (8,  'R0', 1, 1, 8,  1, '30', 'RB1', '1', 'B', '1,5', 'P', 0, 0, '', 0, 1),
+            (9,  'R0', 1, 1, 8,  3, '30', 'RB2', '1', 'B', '1,5', 'P', 0, 0, '', 0, 1),
+            (10, 'R0', 1, 1, 10, 1, '30', 'RB3', '1', 'B', '2,5', 'P', 0, 0, '', 0, 1),
+            (11, 'R0', 1, 1, 10, 3, '30', 'RB4', '1', 'B', '2,5', 'P', 0, 0, '', 0, 1),
+            -- D6: pot. 11 + pot. 12 (Ordem 2) + pot. 13 (Ordem 1) = 5 ligacoes.
+            (12, 'R0', 1, 1, 11, 2, '40', 'D6',  '1', 'P', '1,5', 'P', 0, 0, '', 0, 1),
+            (13, 'R0', 1, 1, 12, 2, '40', 'D6',  '1', 'P', '2,5', 'P', 0, 0, '', 0, 1),
+            (14, 'R0', 1, 1, 13, 1, '40', 'D6',  '1', 'P', '3,5', 'P', 0, 0, '', 0, 1),
+            (15, 'R0', 1, 1, 11, 1, '40', 'RC1', '1', 'B', '1,5', 'P', 0, 0, '', 0, 1),
+            (16, 'R0', 1, 1, 11, 3, '40', 'RC2', '1', 'B', '1,5', 'P', 0, 0, '', 0, 1),
+            (17, 'R0', 1, 1, 12, 1, '40', 'RC3', '1', 'B', '2,5', 'P', 0, 0, '', 0, 1),
+            (18, 'R0', 1, 1, 12, 3, '40', 'RC4', '1', 'B', '2,5', 'P', 0, 0, '', 0, 1),
+            (19, 'R0', 1, 1, 13, 2, '40', 'RC5', '1', 'B', '3,5', 'P', 0, 0, '', 0, 1);
+        """
+    )
+    connection.commit()
+    connection.close()
+    return target
+
+
+@pytest.fixture
+def fiacao_db(tmp_path: Path) -> Path:
+    return make_fiacao_db(tmp_path / "fiacao.db")
+
+
+@pytest.fixture
+def fiacao_ramos_db(tmp_path: Path) -> Path:
+    return make_fiacao_ramos_db(tmp_path / "fiacao-ramos.db")
 
 
 async def test_projeto_abrir_e_listar_paineis(project_db: Path):
@@ -337,8 +426,13 @@ async def test_relatorio_listar_traz_os_relatorios(project_db: Path):
     handlers = Handlers(str(project_db))
     catalogo = await handlers.dispatch("relatorio_listar")
 
-    assert [r["id"] for r in catalogo["relatorios"]] == ["veias", "materiais", "interligacao"]
-    veias, materiais, interligacao = catalogo["relatorios"]
+    assert [r["id"] for r in catalogo["relatorios"]] == [
+        "veias",
+        "materiais",
+        "interligacao",
+        "fiacao",
+    ]
+    veias, materiais, interligacao, fiacao = catalogo["relatorios"]
     assert veias["titulo"] == "Lista de Veias"
     assert veias["colunas"][:4] == ["Tag", "Formação", "Função", "Veias"]
     assert veias["parametros"] == ["painel", "revisao"]
@@ -348,6 +442,20 @@ async def test_relatorio_listar_traz_os_relatorios(project_db: Path):
     assert interligacao["titulo"] == "Relatório de Interligação"
     assert interligacao["parametros"] == ["painel", "revisao"]
     assert interligacao["colunas"][0] == "Régua"
+    # O de fiação é o modo *Dispositivos* do original: a coluna 7 é a `Cor` (não o `TIPO`).
+    assert fiacao["titulo"] == "Relatórios de Fiação"
+    assert fiacao["parametros"] == ["painel", "revisao"]
+    assert fiacao["colunas"] == [
+        "Terminal",
+        "",
+        "Dispositivo 1",
+        "Terminal 1",
+        "Dispositivo 2",
+        "Terminal 2",
+        "Seção",
+        "Cor",
+        "Página",
+    ]
 
 
 async def test_relatorio_materiais_junta_o_catalogo(project_db: Path):
@@ -425,7 +533,7 @@ async def test_relatorio_veias_exige_revisao_e_id_conhecido(project_db: Path):
     with pytest.raises(BadParams):
         await handlers.dispatch("relatorio_gerar", {"relatorio": "veias", "painel": 1})
     with pytest.raises(BadParams):
-        await handlers.dispatch("relatorio_gerar", {"relatorio": "fiacao", "painel": 1})
+        await handlers.dispatch("relatorio_gerar", {"relatorio": "inexistente", "painel": 1})
 
 
 async def test_relatorio_interligacao_monta_a_arvore_regua_borne_cabo(project_db: Path):
@@ -459,6 +567,61 @@ async def test_relatorio_interligacao_exige_revisao(project_db: Path):
     handlers = Handlers(str(project_db))
     with pytest.raises(BadParams):
         await handlers.dispatch("relatorio_gerar", {"relatorio": "interligacao", "painel": 1})
+
+
+async def test_relatorio_fiacao_percorre_o_potencial(fiacao_db: Path):
+    handlers = Handlers(str(fiacao_db))
+    gerado = await handlers.dispatch(
+        "relatorio_gerar", {"relatorio": "fiacao", "painel": 1, "revisao": "R0"}
+    )
+
+    assert gerado["titulo"] == "Relatórios de Fiação"
+    assert gerado["total"] == 12
+    # D1: o vizinho de Ordem 2 (`D2`) é a única ligação. A `Seção`/`Cor` são as da linha
+    # do próprio D1 (é o que o original grava) e a `Página` é a da linha.
+    assert gerado["linhas"][0] == ["D1"] + [""] * 8
+    assert gerado["linhas"][1] == ["1", "", "D2", "1", "", "", "2,5", "P", "10"]
+    assert gerado["linhas"][2] == [""] * 9
+    # D2: as duas pontas do potencial caem numa **única** linha (o ramo `UBound(lig)==2`).
+    assert gerado["linhas"][3] == ["D2"] + [""] * 8
+    assert gerado["linhas"][4] == ["1", "", "D1", "1", "D3", "1", "4", "B", "10"]
+    # D3: só o vizinho anterior.
+    assert gerado["linhas"][6] == ["D3"] + [""] * 8
+    assert gerado["linhas"][7] == ["1", "", "D2", "1", "", "", "6", "R", "10"]
+    # D9: o terminal vem do **modelo de contato** (`Contatos4F`) e não tem linha nenhuma
+    # na `Fiacao` — sai sem ligação e sem página.
+    assert gerado["linhas"][9] == ["D9"] + [""] * 8
+    assert gerado["linhas"][10] == ["1", "", "", "", "", "", "", "", ""]
+
+
+async def test_relatorio_fiacao_exige_revisao(fiacao_db: Path):
+    handlers = Handlers(str(fiacao_db))
+    with pytest.raises(BadParams):
+        await handlers.dispatch("relatorio_gerar", {"relatorio": "fiacao", "painel": 1})
+
+
+async def test_relatorio_fiacao_ramos_de_3_4_e_5_ligacoes(fiacao_ramos_db: Path):
+    """O formato da linha muda com o numero de ligacoes, como no `Ubound(lig)` do original."""
+    handlers = Handlers(str(fiacao_ramos_db))
+    gerado = await handlers.dispatch(
+        "relatorio_gerar", {"relatorio": "fiacao", "painel": 1, "revisao": "R0"}
+    )
+    linhas = gerado["linhas"]
+
+    # Os vizinhos de tipo `B` nao aparecem como dispositivo: so `D4`/`D5`/`D6` tem secao.
+    assert [linha[0] for linha in linhas if linha[1:] == [""] * 8 and linha[0]] == [
+        "D4",
+        "D5",
+        "D6",
+    ]
+    # 3 ligacoes: duas linhas (2 + 1).
+    assert linhas[1] == ["1", "", "RA1", "1", "RA2", "1", "2,5", "P", "20"]
+    assert linhas[2] == ["1", "", "RA3", "1", "", "", "4", "B", "20"]
+    # 4 ligacoes: duas linhas (2 + 2).
+    assert linhas[5] == ["1", "", "RB1", "1", "RB2", "1", "1,5", "P", "30"]
+    assert linhas[6] == ["1", "", "RB3", "1", "RB4", "1", "2,5", "P", "30"]
+    # Mais de 4: a linha de erro (o texto 784 do original).
+    assert linhas[9] == ["1", "", "Erro: Conexões>4", "", "", "", "", "", "40"]
 
 
 async def test_catalogo_materiais_com_e_sem_filtro(project_db: Path):

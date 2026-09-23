@@ -762,6 +762,48 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 68 — relatório de Fiação no app (modo *Dispositivos*).** É o quarto tabular, e o
+único que **não** é árvore: a tela `frmRelatorio_Fiacao` monta um **grafo**
+`terminal → potencial → outras pontas` com o `CarregaLigacoesTerminal` (~760 linhas no
+reverso). O módulo é `sidecar/relatorios/fiacao.py` e porta o **modo padrão** da tela
+(`rbDispositivos` + `rbTodos`, com `cbAlternativo`/`cbLayout` desligados):
+
+| Peça | Do original | No recoder |
+|---|---|---|
+| dispositivos | `CarregaDispTipoIndexModelo`: `Fiacao` por painel com `BJumper=0`, dedup pela chave `Tag`+`-A`/`-E`/`-B`; o tipo do relatório colapsa `P` e `A` em `"A"` | igual (o `rbDispositivos` exclui os de tipo `B`) |
+| terminais | `CarregaTerminaisDispositivo` (sem modelo, da `Fiacao`, dedup) / `CarregaTerminaisContato` (`Contatos4F`, sem dedup) / `CarregaTerminaisMascara` (`Portas4F`, `Terminal` = `Borne` quando há `Regua`) | igual |
+| ligações | `CarregaLigacoesTerminal`: por linha da `Fiacao` do terminal, os vizinhos `Ordem∓1` do mesmo `Potencial`; a `Seção`/`Cor` é a da linha do terminal e a `Página` é a da **última** | igual (no tipo `A`/`E` o `bLink` do original é sempre falso, então o `mLink` não entra) |
+| linhas | laço `R9dpbbD9Jbg`, por nº de ligações: 1 linha (1), **uma só** (2), duas (3 = 2+1 e 4 = 2+2) e `>4` = `Erro: Conexões>4` | igual (colunas de `formataDGFiacao`, ids 776/777/778/779/780/781/782/783 no `Mensagens`) |
+
+Receita (a mesma dos outros relatórios — o banco do passo 5b do `cad-projeto-e2e.ps1`):
+
+```powershell
+& services\sidecar\.venv\Scripts\python.exe scripts\app-relatorios.py "$env:TEMP\positron-projeto.db" `
+  --painel 503 --revisao R0
+```
+
+Medido em 2026-09-23 (DWG 63, painel 503, revisão `R0`):
+
+```text
+== fiacao == Relatórios de Fiação (918 linha(s))
+   Terminal |  | Dispositivo 1 | Terminal 1 | Dispositivo 2 | Terminal 2 | Seção | Cor | Página
+   27TTX1 | - | - | - | - | - | - | - | -
+   11 | - | 27TX1 | 14 | d27X1T | 14 | 1,5 | PT | 15
+   12 | - | d27X1T | A1 | - | - | 1,5 | PT | 15
+   ... mais 916 linha(s)
+```
+
+**A conta foi refeita por SQL independente** (sem passar pelo módulo): **82**
+dispositivos + **754** terminais + **82** linhas em branco = **918**, com **0 divergência**
+linha a linha. O **histograma** de ligações por terminal no painel real é **209** sem
+ligação, **393** com uma e **152** com duas — nenhum com 3 ou mais, então os ramos de
+**3/4/>4** ficam travados por um **banco de teste** próprio (`test_db.py`), não pelo desenho.
+
+O que **não** entrou (registrado no §7.3): os modos `Réguas de Bornes` (`rbReguas`) e
+`Terminais usados` (`rbUsados`), o alternativo (`cbAlternativo`), a ordem de layout
+(`cbLayout`), os caracteres de ligação `║╗╝` (o `mLink`, só calculado no modo de régua) e as
+exportações DWG/Excel.
+
 **Rodada 67 — relatório de Interligação no app (o modo texto).** É o terceiro tabular, e o
 único dos dois "intricados" que dava para fechar: o de Fiação é um **grafo** (terminal →
 potencial → outras pontas) e ficou para a próxima. O de Interligação é uma **árvore**

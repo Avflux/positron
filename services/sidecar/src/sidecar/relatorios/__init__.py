@@ -10,9 +10,9 @@ Cada relatório é um módulo que declara as **colunas** (com o texto do resourc
 leitor. Não há render de PDF/Excel aqui: o app desenha a grade.
 
 Relatórios portados: `Lista de Materiais` (`materiais.py`), `Lista de Veias`
-(`veias.py`) e `Relatório de Interligação` (`interligacao.py`, o modo texto). O de
-`Fiação` fica para a sequência: ele é um **grafo** (terminal → potencial → outras pontas,
-o `CarregaLigacoesTerminal` do original, ~760 linhas) e merece uma rodada própria.
+(`veias.py`), `Relatório de Interligação` (`interligacao.py`, o modo texto) e
+`Fiação` (`fiacao.py`, o modo *Dispositivos*, o padrão da tela do original — o grafo
+`terminal → potencial → outras pontas` do `CarregaLigacoesTerminal`).
 """
 
 from __future__ import annotations
@@ -20,12 +20,13 @@ from __future__ import annotations
 from typing import Any
 
 from .base import Relatorio
+from .fiacao import RELATORIO as _FIACAO
 from .interligacao import RELATORIO as _INTERLIGACAO
 from .materiais import RELATORIO as _MATERIAIS
 from .veias import RELATORIO as _VEIAS
 
 #: Os relatórios disponíveis, por id. A ordem é a da tela.
-RELATORIOS: tuple[Relatorio, ...] = (_VEIAS, _MATERIAIS, _INTERLIGACAO)
+RELATORIOS: tuple[Relatorio, ...] = (_VEIAS, _MATERIAIS, _INTERLIGACAO, _FIACAO)
 
 _POR_ID = {relatorio.id: relatorio for relatorio in RELATORIOS}
 
