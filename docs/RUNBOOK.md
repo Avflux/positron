@@ -762,6 +762,42 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 108 — o `STATBORN` em lote (o candidato da frente 3).**
+A estatística de bornes do `frmEstatisticaDeBornes` é só exibição; a conta está no
+`clsReguasDeBornes.SomaOsBornes`, que:
+
+1. percorre os blocos de **Dispositivo tipo `B`** do desenho, casa pelo `IndiceRegua` e conta
+   `tipo != 0` como **duplo** e o resto como **simples**;
+2. soma a **reserva** da régua (o `CENG_BORNES`), partida por tipo;
+3. fecha com `quantBornesRegua = S + SRes + D + DRes`.
+
+Entraram a regra pura `EstatisticaDeBornes` (a contagem por régua, a linha e o total — o
+`calculaSelecionado` do original), o adapter `EstatisticaDeBornesDoDesenho` — reusando
+`ReguasDoDesenho`, `BornesDoDesenho` e `BornesReservaDoDesenho`, que já existiam — e o comando, que
+**acrescenta** a tabela ao arquivo do `pzDiag` (`## STATBORN ##`).
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+STATBORN: 31 régua(s), 199 usados simples, 17 de reserva simples, 0 usados duplos e 0 de reserva duplos
+          (216 no total; 199 borne(s) no desenho e 17 reserva(s)).
+--- arquivo ---
+REGUA;indice;painel;regua;UsoS;ResS;UsoD;ResD;Total
+REGUA;1;503;ENTR 1;8;0;0;0;8
+REGUA;2;503;ENTR 2;8;0;0;0;8
+REGUA;489;510;SAÍDA;8;0;0;0;8
+...
+REGUA;0;;TOTAL;199;17;0;0;216
+```
+
+**Os números batem com duas medições anteriores:** os **199 bornes** do `FIA`/`SYNCD` e os **216 de
+`Bornes4I`** (199 usados + 17 de reserva). O `STATBORN` passa a ser uma **terceira testemunha
+independente** da leitura de bornes.
+
+> **De quebra:** o comando `pzDiagCriar` — cuja gravação não persistiu na rodada 104 e por isso
+> **não** era executado pelo harness — foi **registrado de novo** no `Comandos.cs`, agora com a nota
+> do quirk.
+
 **Rodada 107 — o `SYNCD` virou o pipeline do original.**
 O `SYNCD` do reverso **não** é uma projeção simples: é um **pipeline** de seis passos com barra de
 progresso (`Quantidade = 6`).
@@ -3727,7 +3763,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos **contra a API real do ZWCAD 2026**
   (`ZWCadDir` auto-detectada). `npm run plugin:build:autocad` cai no **stub**, porque
   não há AutoCAD aqui, e é o gate de compilação daquela plataforma.
-- `npm run plugin:test` — 508 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 511 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke` / `cad:e2e` — smoke e fixture **dentro do ZWCAD 2026**, o host
   CAD desta máquina.
 - `npm run cad:projeto -- -Idempotencia` — o ciclo completo no projeto real

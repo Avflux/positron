@@ -2447,5 +2447,83 @@ namespace Positron.Plugin
 
             return texto.ToString();
         }
+
+        /// <summary>
+        /// <c>pzDiagCriar</c> — monta no desenho a **porta sintética** (bloco com os quatro
+        /// ATTDEFs, a inserção com os valores antigos, o XData tipo E no modelo 9/porta 5 e o
+        /// MASCARAS só com a porta 3) para o <c>IndefineUmaPorta</c> ter o que indefinir.
+        ///
+        /// **Medido na rodada 104:** o harness executa o <c>pzDiag</c> mas **não** este comando —
+        /// por isso a criação também entra pelo <c>pzDiag</c> quando <c>POSITRON_DIAG_CRIAR</c> está
+        /// ligada (e é idempotente). Aqui ele fica registrado para uso interativo.
+        /// </summary>
+        [CommandMethod("pzDiagCriar")]
+        public void CriarPortaSintetica()
+        {
+            Plugin.Escrever(ExecutarCriarPortaSintetica());
+        }
+
+        /// <summary>Cria a porta sintética e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCriarPortaSintetica()
+        {
+            try
+            {
+                return Diagnostico.PortaSinteticaDoDesenho.Criar();
+            }
+            catch (System.Exception erro)
+            {
+                return "pzDiagCriar: falhou — " + DescreverErro(erro);
+            }
+        }
+
+        /// <summary>
+        /// <c>STATBORN</c> — a estatística de bornes em **lote** (o que no original é a grade do
+        /// <c>frmEstatisticaDeBornes</c>): conta os bornes de cada régua e as reservas, com o tipo
+        /// (simples/duplo) e o uso (desenho/reserva), e escreve o relatório no arquivo do
+        /// diagnóstico (acrescentando, para caber antes/depois numa passada).
+        /// </summary>
+        [CommandMethod("STATBORN")]
+        public void EstatisticaDeBornes()
+        {
+            Plugin.Escrever(ExecutarEstatisticaDeBornes());
+        }
+
+        /// <summary>Conta os bornes e escreve o relatório. Nunca lança.</summary>
+        internal static string ExecutarEstatisticaDeBornes()
+        {
+            try
+            {
+                Modelos.EstatisticaDeBornesDoDesenho.Resultado resultado =
+                    Modelos.EstatisticaDeBornesDoDesenho.Calcular();
+
+                string caminho = System.Environment.GetEnvironmentVariable("POSITRON_DIAG");
+                if (string.IsNullOrEmpty(caminho))
+                {
+                    caminho = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "positron-diag.txt");
+                }
+
+                System.Collections.Generic.List<string> linhas = new System.Collections.Generic.List<string>();
+                linhas.Add("## STATBORN ##");
+                linhas.Add(Positron.Data.Modelos.EstatisticaDeBornes.Cabecalho);
+                foreach (Positron.Data.Modelos.LinhaDeEstatistica linha in resultado.Linhas)
+                {
+                    linhas.Add(Positron.Data.Modelos.EstatisticaDeBornes.Linha(linha));
+                }
+
+                linhas.Add(Positron.Data.Modelos.EstatisticaDeBornes.Linha(resultado.Total));
+                System.IO.File.AppendAllLines(caminho, linhas);
+
+                Positron.Data.Modelos.LinhaDeEstatistica total = resultado.Total;
+                return "STATBORN: " + resultado.Linhas.Count + " régua(s), " + total.UsoS
+                    + " usados simples, " + total.ResS + " de reserva simples, " + total.UsoD
+                    + " usados duplos e " + total.ResD + " de reserva duplos (" + total.Total
+                    + " no total; " + resultado.Bornes + " borne(s) no desenho e "
+                    + resultado.Reservas + " reserva(s)) — escrito em " + caminho + ".";
+            }
+            catch (System.Exception erro)
+            {
+                return "STATBORN: falhou — " + DescreverErro(erro);
+            }
+        }
     }
 }
