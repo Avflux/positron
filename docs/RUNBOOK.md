@@ -762,6 +762,69 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 73 — `CorrigeStyle` (frente 2 do §7.6, parte 4: os estilos de texto).** O
+`corrigeStyles` do `Correcao.cs` mexe na **`TextStyleTable`** do desenho (não lê banco nem
+cadastro). O que é puro está em `Positron.Data/Correcoes/CorrecaoEstiloTexto.cs`:
+
+| Peça | Do original | No recoder |
+|---|---|---|
+| problema | `FileName == ""` **ou** `XScale == 0` | `CorrecaoEstiloTexto.PrecisaCorrigir` |
+| referência | primeiro estilo com `FileName == "arial.ttf"`; sem ele, o **último** da tabela | `IndiceDaReferencia` (o quirk fica no `TemReferenciaArial`) |
+| correção | estilo **sem fonte**: copia `Font`, `XScale` (`ref` ou `1`) e `TextSize`; **independente**, se a **referência** tem escala 0, põe `1` na escala de todo estilo que não esteja em `1` | `Planejar` |
+| referência viva | o laço corrige a referência **ao passar por ela**, e os estilos seguintes já leem a escala nova | `Planejar` percorre na ordem e atualiza a escala da referência |
+
+**Achado (com medição):** o original só copia o **descritor** `Font`
+(`val4.Font = val5.Font`) e **não** regrava o `FileName`. No ZWCAD isso não persiste o
+arquivo da fonte: o estilo continua lido como "sem fonte" e o comando nunca converge.
+Medido numa fixture (o `Font` é copiado, mas o grupo 3 do DXF — o `FileName` — fica
+vazio): o recoder grava o `FileName` da referência **junto** com a fonte, que é o que faz
+o defeito sair. Sem isso a segunda passada reportaria o mesmo problema para sempre.
+
+**Medido no desenho real** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63): os **5**
+estilos de texto estão todos com fonte e escala 1, então não há nada a corrigir (o zero é o
+dado, não um no-op) — duas passadas iguais:
+
+```text
+CorrigeStyle: os 5 estilo(s) de texto do desenho estão sem problema de fonte.
+CorrigeStyle: os 5 estilo(s) de texto do desenho estão sem problema de fonte.
+```
+
+A conferência **independente** é a seção `ESTILO` nova do `cad-dump-xdata.lsp` (uma linha
+por estilo: nome, `FileName`, `XScale` do grupo 41 e `TextSize` do grupo 40), que sempre sai:
+
+```text
+ESTILO;Standard;arial.ttf;1.0;0.0
+ESTILO;Romans;romans.shx;1.0;0.0
+ESTILO;TÍTULO;bgothm.ttf;1.0;0.0
+ESTILO;swis721ltexbt;swissel.ttf;1.0;0.0
+ESTILO;Annotative;txt.shx;1.0;0.0
+```
+
+Como o desenho real não exercita a **escrita**, entra a fixture sintética
+`scripts/cad-fixture-estilos.lsp` (um estilo `PZSEMFONTE` com o `FileName` vazio, escala
+2.0 e altura 1.5 — o `CorrigeStyle` copia fonte/escala/altura da `Standard` e regrava o
+arquivo):
+
+```powershell
+$env:POSITRON_XDATA = "$env:TEMP\positron-estilos.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 1 -Revisao R0 `
+  -Fixture scripts/cad-fixture-estilos.lsp -Comandos "CorrigeStyle,CorrigeStyle,(pz-estilos:dump)" `
+  -Banco "$env:TEMP\positron-estilos.db"
+```
+
+```text
+CorrigeStyle: 1 de 3 estilo(s) de texto corrigido(s) (referência: Standard; problemas: PZSEMFONTE).
+CorrigeStyle: os 3 estilo(s) de texto do desenho estão sem problema de fonte.   <- 2a passada: converge
+ESTILO;PZSEMFONTE;arial.ttf;1.0;0.0                                            <- o FileName foi regravado
+```
+
+> **O caso `XScale == 0` não dá para montar por `entmake`:** o ZWCAD normaliza o fator de
+> largura 0 para 1 (a fixture chega a criar o estilo e o dump mostra `1.0`), então esse
+> ramo fica coberto só pela regra pura (`CorrecaoEstiloTextoTests`).
+>
+> A referência é escolhida pela **ordem da tabela** (o primeiro `arial.ttf`, ou o último
+> estilo): a fixture se apoia na `Standard` do desenho novo, que já é `arial.ttf`.
+
 **Rodada 72 — `CorrigeBornes` e `CorrigeDisp` (frente 2 do §7.6, parte 3).** As duas
 correções de **um campo** do `Correcao.cs` — as duas só olham o desenho:
 

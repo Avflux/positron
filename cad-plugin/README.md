@@ -108,6 +108,7 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 | `corrigeOrdemBornes` | **implementado** — correção: renumera a `Ordem` dos bornes por régua (1..N), **pulando as ordens dos bornes de reserva** (`CENG_BORNES`), e regrava o XData dos que mudam (resolvendo o `lm` no dicionário de réguas, como o `GravarXDataDispBorne` do original). Roda por script |
 | `CorrigeBornes` | **implementado** — correção: o borne com `Visivel == -1` volta para `0` (o `CorrecaoBornesVisiveis` do original), com o XData regravado pelo mesmo caminho. Roda por script |
 | `CorrigeDisp` | **implementado** — correção: renomeia o app name legado `DISPOSITIVO` para `Dispositivo` na tabela `APPID` (o `CorrecaoDisp` do original). Atenção: a busca de app name do CAD não diferencia caixa, então o legado é procurado pela **caixa gravada**. Roda por script |
+| `CorrigeStyle` | **implementado** — correção: os **estilos de texto** do desenho sem fonte (`FileName == ""`) ou com escala horizontal zero recebem a fonte, a escala e a altura da referência `arial.ttf` (ou, sem ela, do último estilo da tabela, como o original). O original copia só o descritor `Font`; aqui o `FileName` também é regravado (no ZWCAD só o `Font` não persiste o arquivo — medido na rodada 73). Roda por script |
 
 ### Fluxo de fiação (`FIA`)
 

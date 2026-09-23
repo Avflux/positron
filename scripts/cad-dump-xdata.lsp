@@ -257,6 +257,23 @@
     ""
     (if (= (type v) 'STR) v (vl-princ-to-string v))))
 
+;; Os ESTILOS DE TEXTO da `TextStyleTable`, um por linha — o insumo do
+;; `CorrigeStyle`. O `FileName` sai do grupo 3 (a fonte primaria), a escala do 41
+;; (width factor) e a altura do 40, que sao os campos que o `EstiloTexto` do
+;; recoder le (`TextStyleTableRecord.FileName`/`XScale`/`TextSize`). E o que
+;; permite reconstruir a regra **fora do plugin** e separar "bug" de "dado":
+;;
+;;   ESTILO;<nome>;<FileName>;<XScale>;<TextSize>
+(defun pz-dump:estilos (f / t1)
+  (pz-dump:escreve f "\nESTILOS (TextStyleTable):\n")
+  (setq t1 (tblnext "STYLE" T))
+  (while t1
+    (pz-dump:escreve f (strcat "ESTILO;" (pz-dump:texto (cdr (assoc 2 t1)))
+                               ";" (pz-dump:texto (cdr (assoc 3 t1)))
+                               ";" (pz-dump:texto (cdr (assoc 41 t1)))
+                               ";" (pz-dump:texto (cdr (assoc 40 t1))) "\n"))
+    (setq t1 (tblnext "STYLE"))))
+
 (defun pz-dump:identidade-ref (h / e d x vals achou)
   (setq e (if (null h) nil (handent h)))
   (if (null e)
@@ -403,6 +420,7 @@
       (pz-dump:dicionario "REGUAS" "MODELOS2" f)
       (pz-dump:reservas f)
       (pz-dump:appids f)
+      (pz-dump:estilos f)
       (pz-dump:plaquetas f)
       (if (= (getenv "POSITRON_XDATA_BORNES") "1")
         (pz-dump:bornes f)

@@ -42,8 +42,8 @@ namespace Positron.Plugin
     /// (<c>ApagarTextosEmBranco</c>, <c>apagaXDataTerceiros</c>, <c>ApagaLayouts</c>
     /// e <c>ApagaPlaquetas</c>, rodada 70) e as **correções** —
     /// <c>corrigeOrdemBornes</c> (a que conserta um defeito que o <c>VERIF</c> aponta,
-    /// rodada 71) e as de um campo <c>CorrigeBornes</c>/<c>CorrigeDisp</c>
-    /// (rodada 72). As outras <c>Corrige*</c> são o próximo passo da mesma frente.
+    /// rodada 71), as de um campo <c>CorrigeBornes</c>/<c>CorrigeDisp</c>
+    /// (rodada 72) e a dos estilos de texto <c>CorrigeStyle</c> (rodada 73). As outras <c>Corrige*</c> são o próximo passo da mesma frente.
     ///
     /// **Sem licença:** o produto é open source e nenhum comando verifica licença. O
     /// gate que existia aqui (o <c>ServicoDeLicenca</c>/<c>ILicenca</c> da rodada 29,
@@ -723,6 +723,46 @@ namespace Positron.Plugin
             catch (System.Exception excecao)
             {
                 return "CorrigeDisp: falhou — " + DescreverErro(excecao);
+            }
+        }
+
+        /// <summary>
+        /// <c>CorrigeStyle</c> — corrige os **estilos de texto** do desenho (o
+        /// <c>corrigeStyles</c> do <c>Correcao.cs</c>): o estilo sem fonte
+        /// (<c>FileName == ""</c>) ou com escala horizontal zero (<c>XScale == 0</c>)
+        /// recebe a fonte/escala/altura da referência (<c>arial.ttf</c> ou, sem ela,
+        /// o último estilo da tabela). Só olha o desenho.
+        /// </summary>
+        [CommandMethod("CorrigeStyle")]
+        public void CorrigirEstilosDeTexto()
+        {
+            Plugin.Escrever(ExecutarCorrigirEstilosDeTexto());
+        }
+
+        /// <summary>Corrige os estilos de texto e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrigirEstilosDeTexto()
+        {
+            try
+            {
+                Correcoes.EstilosDoDesenho.Resultado resultado =
+                    Correcoes.EstilosDoDesenho.Executar();
+
+                if (resultado.EstilosComProblema == 0)
+                {
+                    return "CorrigeStyle: os " + resultado.EstilosLidos
+                        + " estilo(s) de texto do desenho estão sem problema de fonte.";
+                }
+
+                string lista = string.Join(", ", resultado.Problemas);
+                return "CorrigeStyle: " + resultado.EstilosCorrigidos + " de "
+                    + resultado.EstilosLidos + " estilo(s) de texto corrigido(s) "
+                    + "(referência: " + resultado.EstiloReferencia
+                    + (resultado.TemReferenciaArial ? "" : ", sem arial.ttf no desenho")
+                    + "; problemas: " + lista + ").";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigeStyle: falhou — " + DescreverErro(erro);
             }
         }
 

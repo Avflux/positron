@@ -64,6 +64,25 @@ namespace ZwSoft.ZwCAD.GraphicsInterface
             get { return null; }
         }
     }
+
+    /// <summary>
+    /// Descritor da fonte do estilo de texto. O stub só precisa que o tipo exista e
+    /// seja atribuível: o <c>CorrigeStyle</c> **copia** a fonte da referência
+    /// (<c>alvo.Font = fonteReferencia</c>) e nunca nomeia um membro dela. Os campos
+    /// espelham a forma da API real para quem for ler o stub não se enganar.
+    /// </summary>
+    public struct FontDescriptor
+    {
+        public string TypeFace;
+
+        public bool Bold;
+
+        public bool Italic;
+
+        public int CharacterSet;
+
+        public byte PitchAndFamily;
+    }
 }
 
 #if AUTOCAD
@@ -367,6 +386,27 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         public string Name { get; set; }
     }
 
+    /// <summary>Tabela de estilos de texto (o `TextStyleTable` da API real), lida pelo `CorrigeStyle`.</summary>
+    public class TextStyleTable : SymbolTable
+    {
+    }
+
+    /// <summary>
+    /// Registro de estilo de texto. Só a fatia que o `CorrigeStyle` usa: o arquivo da
+    /// fonte (`FileName`), a escala horizontal (`XScale`, o width factor do DXF 41), a
+    /// altura fixa (`TextSize`, o DXF 40) e a fonte (`Font`).
+    /// </summary>
+    public class TextStyleTableRecord : SymbolTableRecord
+    {
+        public string FileName { get; set; }
+
+        public double XScale { get; set; }
+
+        public double TextSize { get; set; }
+
+        public FontDescriptor Font { get; set; }
+    }
+
     public class Transaction : IDisposable
     {
         public DBObject GetObject(ObjectId id, OpenMode modo)
@@ -422,6 +462,11 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         }
 
         public ObjectId LayerTableId
+        {
+            get { return default(ObjectId); }
+        }
+
+        public ObjectId TextStyleTableId
         {
             get { return default(ObjectId); }
         }
