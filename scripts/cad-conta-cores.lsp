@@ -7,22 +7,38 @@
 ;;;
 ;;;   COR;handle;nome;tag;corRef;corDef   (so quando difere)
 ;;;   TOTAL;nomes;<n>;definicoes;<d>;diferencas;<x>
+(defun pz-mk (s / tf)
+  (setq tf (open (strcat (getenv "TEMP") "/positron-cores-load.txt") "a"))
+  (if tf (progn (princ (strcat s "\n") tf) (close tf))))
+
+(pz-mk "0 inicio do load")
+
 (defun pz-cor:escreve (f s) (princ s f))
 
+(pz-mk "1 escreve")
+
+(pz-mk "2 texto")
 (defun pz-cor:texto (v)
   (if (null v) "" (if (= (type v) (quote STR)) v (vl-princ-to-string v))))
 
-; A lista FIXA dos app names que o desenho usa (a `tblnext` sobre o APPID estourava no
-; ZWCAD; a licao da rodada 75 e que a lista precisa ser conhecida).
-(defun pz-cor:apps ()
-  (list "Dispositivo" "Modelo" "MODELO" "CONEXAO" "INTERLIGACAO" "AUXINTERLIG"
-        "BORNE" "BORNES" "Fiacao" "MASCARAS" "CONTATOS" "CENG_LAYOUT"
-        "Plaqueta" "TextoLP" "ELETROSUL" "DiagLog" "AUXCONEXAO" "Construtor"))
+; Os app names que o desenho REALMENTE tem: o `entget` com um nome nao registrado ESTOURA
+; (a causa de o contador nao sair no desenho real — rodadas 89/90), e o `tblnext` sobre o
+; APPID mostrou-se fragil; aqui cada nome e conferido com `tblsearch`.
+(pz-mk "3 apps")
+(defun pz-cor:apps ( / l n)
+  (setq l nil)
+  (foreach n (list "Dispositivo" "Modelo" "MODELO" "CONEXAO" "INTERLIGACAO" "AUXINTERLIG"
+                   "BORNE" "BORNES" "Fiacao" "MASCARAS" "CONTATOS" "CENG_LAYOUT"
+                   "Plaqueta" "TextoLP" "ELETROSUL" "DiagLog" "AUXCONEXAO" "Construtor")
+    (if (tblsearch "APPID" n) (setq l (cons n l))))
+  l)
 
+(pz-mk "4 cor")
 (defun pz-cor:cor (d)
   (if (assoc 62 d) (cdr (assoc 62 d)) 256))
 
 ; A cor de um ATTDEF da definicao, pelo tag.
+(pz-mk "5 def")
 (defun pz-cor:def (nome tag / b e d achou)
   (setq achou nil b (tblobjname "BLOCK" nome))
   (if b
@@ -36,11 +52,15 @@
         (setq e (entnext e)))))
   achou)
 
+(pz-mk "6 conta")
 (defun pz-cor:conta ( / caminho f apps sel i e d nome nomes difs defs m corDef corRef)
+  (pz-mk "C0 entrou no conta")
   (setq caminho (getenv "POSITRON_XDATA"))
+  (pz-mk (strcat "C1 caminho=" (if caminho caminho "<nil>")))
   (if (or (null caminho) (= caminho ""))
     (setq caminho (strcat (getenv "TEMP") "/positron-cores.txt")))
   (setq f (open caminho "w"))
+  (pz-mk (strcat "C2 open=" (if f "ok" "FALHOU")))
   (if (null f)
     (princ "cad-conta-cores: falha ao abrir a saida")
     (progn

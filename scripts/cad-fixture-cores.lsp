@@ -1,12 +1,22 @@
-; Fixture do CorrigeCoresDosBlocos (ver docs/RUNBOOK.md, rodada 89): monta um bloco
-; cujo ATTDEF tem cor 3 e uma insercao com XData cujo ATTRIB esta em BYLAYER (256) —
-; o comando deve levar a cor do ATTRIB para 3.
+; Fixture do CorrigeCoresDosBlocos (ver docs/RUNBOOK.md, rodadas 89/90): monta um bloco
+; cujo ATTDEF tem cor 3 e uma insercao cujo ATTRIB foi forcado para a cor 1 — o comando
+; deve levar a cor do ATTRIB de volta para 3.
 ;
-; O dump (definido ANTES do desenho) imprime a cor da referencia e a da definicao.
+; A via do `entmake` do ATTDEF **dentro** do BLOCK nao funciona no ZWCAD (rodada 89):
+; aqui o ATTDEF nasce solto no espaco do modelo e o bloco e criado com `_.-BLOCK`
+; selecionando ele — a via que funcionou.
+;
+; O dump (definido ANTES do desenho) imprime a cor da referencia e a da definicao e
+; grava um rastro por passo.
 (setvar "CMDECHO" 0)
 (regapp "ZZTeste")
 
 (defun pz-cf:escreve (f s) (princ s f))
+
+(defun pz-cf:marca (s / tf)
+  (setq tf (open (strcat (getenv "TEMP") "/positron-cf-trace.txt") "a"))
+  (princ (strcat s "\n") tf)
+  (close tf))
 
 (defun pz-cf:texto (v)
   (if (null v) "" (if (= (type v) (quote STR)) v (vl-princ-to-string v))))
@@ -63,22 +73,29 @@
       (princ (strcat "cad-fixture-cores: " (itoa refs) " referencia(s), " (itoa difs) " diferenca(s)")))))
 
 ; ── O desenho ──────────────────────────────────────────────────────────────
-(entmake (quote ((0 . "BLOCK") (100 . "AcDbEntity") (8 . "0") (100 . "AcDbBlockBegin")
-                  (2 . "BTZX") (70 . 0) (10 0.0 0.0 0.0) (3 . "BTZX") (1 . ""))))
-(entmake (quote ((0 . "ATTDEF") (100 . "AcDbEntity") (8 . "0") (62 . 3)
-                  (100 . "AcDbText") (10 0.0 0.0 0.0) (40 2.5) (1 "T1") (50 . 0.0)
-                  (100 . "AcDbAttributeDefinition") (3 . "") (2 . "T1") (70 . 0))))
-(entmake (quote ((0 . "ENDBLK") (100 . "AcDbEntity") (8 . "0") (100 . "AcDbBlockEnd"))))
-; O INSERT com um ATTRIB e o SEQEND, tudo por entmake (deterministico): o `66 . 1`
-; marca a insercao como tendo atributos.
-(entmake (list (quote (0 . "INSERT")) (quote (8 . "0")) (cons 2 "BTZX") (list 10 0.0 0.0 0.0) (cons 66 1)))
-(setq pz-cf:ins (entlast))
-(entmake (list (quote (0 . "ATTRIB")) (quote (100 . "AcDbEntity")) (quote (8 . "0"))
-               (quote (100 . "AcDbText")) (list 10 0.0 0.0 0.0) (cons 40 2.5) (cons 1 "T1x")
-               (quote (100 . "AcDbAttribute")) (cons 2 "T1") (cons 70 0)))
-(entmake (quote ((0 . "SEQEND") (8 . "0"))))
-; O INSERT precisa de ALGUM XData (a passada 1 do original).
-(entmod (append (entget pz-cf:ins) (list (list -3 (list "ZZTeste" (cons 1000 "x"))))))
+(pz-cf:marca "1 ATTDEF solto")
+(setq pz-cf:atd (entmakex (list (quote (0 . "ATTDEF")) (cons 8 "0") (list 10 0.0 0.0 0.0)
+                                (cons 40 2.5) (cons 1 "T1") (cons 2 "T1") (cons 3 "")
+                                (cons 62 3) (cons 70 0))))
+(pz-cf:marca (strcat "2 ATTDEF feito: " (pz-cf:texto pz-cf:atd)))
+; O bloco sai do ATTDEF solto (a via que funciona no ZWCAD).
+(command "_.-BLOCK" "BTZX" (list 0.0 0.0) pz-cf:atd "")
+(pz-cf:marca "3 bloco BTZX criado")
+(command "_.INSERT" "BTZX" (list 10.0 0.0) 1.0 1.0 0.0 "T1x")
+(pz-cf:marca "4 insert feito")
+(setq pz-cf:sel (ssget "_X" (list (cons 0 "INSERT"))))
+(if pz-cf:sel
+  (progn
+    (setq pz-cf:ins (ssname pz-cf:sel 0))
+; Forca a cor do ATTRIB para 1 (o defeito que o comando conserta) e poe XData no INSERT.
+    (setq pz-cf:a (entnext pz-cf:ins))
+    (if (and pz-cf:a (= (cdr (assoc 0 (entget pz-cf:a))) "ATTRIB"))
+      (progn
+        (entmod (append (entget pz-cf:a) (list (cons 62 1))))
+        (pz-cf:marca "5 ATTRIB forcado para 1")))
+    (entmod (append (entget pz-cf:ins) (list (list -3 (list "ZZTeste" (cons 1000 "x"))))))
+    (pz-cf:marca "6 XData no INSERT")))
+(pz-cf:marca "7 fim da fixture")
 
 (princ "fixture de cores montada: rode (pz-cf:conta)")
 (princ)

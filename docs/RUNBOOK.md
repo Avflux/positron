@@ -762,6 +762,48 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
+**Rodada 90 — o caminho de escrita do `CorrigeCoresDosBlocos`, provado (frente 2, ferramenta/evidência).**
+Fecha o **achado 1** da rodada 89 e a pendência de evidência da 88.
+
+**O achado 1, resolvido:** o `entmake` do `ATTDEF` **dentro** do `BLOCK` criado por
+`entmake` não funciona no ZWCAD — mas o **ATTDEF solto** (`entmakex`) e o bloco pela
+**`_.-BLOCK`** (selecionando o ATTDEF) funcionam. A fixture foi reescrita nessa via e o rastro
+confirma os 7 passos:
+
+```text
+1 ATTDEF solto
+2 ATTDEF feito: <ENTITY NAME: d19d35d0>
+3 bloco BTZX criado
+4 insert feito
+5 ATTRIB forcado para 1
+6 XData no INSERT
+7 fim da fixture
+```
+
+**O caminho de escrita, provado** — o `ATTRIB` da inserção foi forçado para a cor **1** e o
+`ATTDEF` tem a cor **3**; depois do comando o dump mostra a referência já em **3** e nenhuma
+diferença:
+
+```text
+CorrigeCoresDosBlocos: 1 atributo(s) com a cor corrigida (1 bloco(s); 1 atributo(s) de definição em 1 nome(s) de bloco).
+COR;242;BTZX;T1;3;3
+TOTAL;referencias;1;diferencas;0
+```
+
+**O contador (a outra pendência), avançado e ainda aberto.** O diagnóstico isolou duas coisas:
+
+- a lista de app names agora é **filtrada por `tblsearch`** — o `entget` com um app name **não
+  registrado** estoura, e era isso que derrubava o contador no desenho real (o `tblnext` sobre o
+  `APPID` também se mostrou frágil);
+- os marcadores de carga provam que o **load completa** e define tudo (marcas `0..6`) no desenho
+  real, mas a **linha de comando LISP não executa** naquela passada: nenhum `C0 entrou no conta`
+  aparece, **enquanto o comando do plugin roda** na mesma passada.
+
+A causa **não foi isolada** e a pendência segue aberta com essa evidência exata (a suspeita é a
+execução da própria linha do script depois do `NETLOAD`; o próximo passo é rodar o contador
+sozinho no desenho real, sem o comando do plugin, e comparar com o irmão `cad-conta-portas.lsp`,
+que funciona).
+
 **Rodada 89 — diagnóstico da evidência da cor dos blocos (frente 2, sem comando novo).**
 A pendência da rodada 88 era de **evidência**, não de código: o caminho de escrita do
 `CorrigeCoresDosBlocos` não era exercitado (o desenho já está consistente) e o contador
