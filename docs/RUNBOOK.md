@@ -762,7 +762,50 @@ jumper duplicado e trecho indefinido, o `carregaTree`) e o **cabo indefinido**
 uma **ação** (regrava o XData do desenho), não uma checagem read-only; receita e medição
 abaixo.
 
-**Rodada 62 — lista de materiais (`COMPLM`, o `CompilaListaDeMateriais`).** É o fluxo da
+**Rodada 64 — as duas tabelas sem revisão no app (`plaquetas_por_painel` e
+`lista_materiais_por_painel`).** O `Plaquetas4` (rodada 61) e o `ListaMateriais` (rodada
+62) eram gravados pelo plugin e conferidos **direto no banco**, sem leitura no app. Aqui
+elas entram no contrato no molde da Etapa 10 — e são as **únicas** tabelas do projeto
+sem coluna `Revisao`: a chave é o `DWG`, então o recorte da consulta é o `Painel`.
+
+```powershell
+# 1) projeta o desenho no banco do projeto (o EPLQ precisa do dicionario do desenho)
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao 3 `
+  -Desenho "..\Elet\Teste_projeto_real\Funcional.dwg" -Banco "$TEMP\positron-projeto.db" `
+  -Comandos ELET,FIA,INT,EPLQ,COMPLM
+
+# 2) roda as MESMAS consultas que a UI chama (handlers do sidecar, sem ZMQ e sem CAD)
+& services\sidecar\.venv\Scripts\python.exe scripts\app-consultas.py "$TEMP\positron-projeto.db" --painel 503
+```
+
+Medido em 2026-09-22 (o banco do ciclo completo, com o catálogo e o cadastro importados):
+
+```text
+EPLQ: 87 plaqueta(s) em Plaquetas4 (8 painel(is) com dicionário; 2 painel(is) com fiação no desenho).
+COMPLM: 104 linha(s) em ListaMateriais (8 painel(is); 0 avulso(s); 199 borne(s) do desenho, 0 sem régua no dicionário; ordem do desenho; 83 posição(ões) de layout).
+...
+  lista_materiais_por_painel       91 linha(s)
+  plaquetas_por_painel             87 linha(s)
+  total                          5075 linha(s)
+```
+
+As duas contagens são as do **painel 503** e batem com o que o plugin gravou: o `COMPLM`
+numera a lista por painel e o painel 503 tem **91** das **104** linhas (as outras 13 se
+distribuem por 7 painéis: `1`=1, `9`=2, `149`=1, `154`=1, `155`=4, `509`=2, `510`=2); o
+`EPLQ` gravou **87** plaquetas, **todas** no painel 503 (os outros painéis com dicionário
+no desenho não têm plaqueta que passe nas guardas de nome **e** descrição). O smoke do app
+ia a **4.897** antes das consultas novas: com elas o ciclo padrão fecha em **4.988**
+(+91, a lista do painel 503) e, com o `EPLQ` rodado, em **5.075** (+178, a lista e as
+plaquetas).
+
+> Conferido direto no banco (o que o plugin gravou, sem passar pelo app):
+> `Plaquetas4` 87 e `ListaMateriais` 104, com os painéis acima.
+
+> O `EPLQ` **não** está no ciclo padrão do `cad-projeto-e2e.ps1` (ele é independente da
+> projeção); o `COMPLM` está, no passo 4. Para exercitar as consultas novas pelo ciclo,
+> acrescente `EPLQ` à lista de `-Comandos` do passo 4.
+
+
 tabela **`ListaMateriais`**: uma passada pelo ModelSpace vira uma lista de material por
 painel — uma linha por LM da **máscara** (`M`) e do **dispositivo** (`P`), uma linha
 **agregada** por `(painel, régua, tipo, lm)` para cada **borne** (`B`) e as **reservas**
@@ -1223,9 +1266,9 @@ npm run cad:projeto -- -Idempotencia      # + 3a passada e comparacao de conteud
 ```
 
 Passos: banco novo → `ELET,FIA,INT` no `Funcional.dwg` → catálogo e cadastro de painéis
-do `RCD.mdb` → **`INT` de novo** → consultas do app → linha de base do `VERIF` →
-idempotência. Tudo com os caminhos do projeto por padrão (`-Desenho`, `-Mdb`, `-Dwg 63`,
-`-Revisao R0`).
+do `RCD.mdb` → **`INT,COMPLM,VERIF,ELETREL` de novo** → consultas do app → linha de base
+do `VERIF` → idempotência. Tudo com os caminhos do projeto por padrão (`-Desenho`, `-Mdb`,
+`-Dwg 63`, `-Revisao R0`).
 
 **A segunda passada de `INT` não é redundância — é a ordem certa.** O `INT` carimba
 `Cabos4`/`Veias4` a partir do **catálogo carregado** (é o `RUIU5Sbjhj` do original, que
@@ -1244,9 +1287,17 @@ INT: 20 linha(s) em Interligacao4; 265 porta(s) em Portas4I; 216 borne(s) em Bor
      697 cabo(s) em Cabos4; 2388 veia(s) em Veias4
 projeto_listar_paineis   480 | fiacao_por_painel 490 | circuitos_por_painel 11
 cabos4_por_revisao       697 | veias4_por_revisao 2388 | materiais 210
+lista_materiais_por_painel 91 | plaquetas_por_painel 0     (painel 503; 4.988 no total)
 linha de base confere (249 = 107 + 119 + 11 + 10 + 2)
 IDEMPOTENTE: mesmo conteudo (ignorando Data)
 ```
+
+> As duas últimas linhas são da rodada 64 e são **por painel** (essas tabelas não têm
+> revisão). No **ciclo padrão** o `COMPLM` roda no passo 4, então a lista sai com **91**
+> linhas no painel 503 e as plaquetas ficam em **0** (o `EPLQ` não está na lista de
+> comandos do ciclo): o total do smoke vai a **4.988**. Acrescentando `EPLQ` aos
+> `-Comandos` do passo 4 — ele depende do dicionário `CENG_PLAQUETA`, que o
+> `Funcional.dwg` tem — as plaquetas saem **87** e o total vai a **5.075**.
 
 ### A/B de conteúdo das tabelas (`scripts/cad-ab-tabelas.ps1` + `.py`)
 

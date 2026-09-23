@@ -90,6 +90,18 @@ def make_project_db(target: Path) -> Path:
 
         INSERT INTO Veias4(Indice, Revisao, Tag, Num_Veia, Uso)
             VALUES (95, 'R0', 'C-100', 1, 0);
+
+        INSERT INTO Plaquetas4(Indice, DWG, Painel, Tag, Modelo, Desc1, Desc2)
+            VALUES (130, 1, 1, 'PLACA-B', 'MB', 'Placa B', NULL),
+                   (131, 1, 1, 'PLACA-A', 'MA', 'Placa A', 'linha 2'),
+                   (132, 1, 2, 'PLACA-C', 'MC', 'Placa C', NULL);
+
+        INSERT INTO ListaMateriais(
+            Indice, DWG, Painel, Tag, IndiceMaterial, Quantidade, Ordem, Avulso, Handle, OrdemLay
+        )
+            VALUES (140, 1, 1, 'D2', 459, 1, 2, 0, '4B', 12),
+                   (141, 1, 1, 'R6', 476, 63, 1, 0, 'BORNE', 10000),
+                   (142, 1, 2, 'MF', 518, 1, 1, 1, NULL, 0);
         """
     )
     connection.commit()
@@ -251,6 +263,48 @@ async def test_portas4f_e_bornes4f_por_revisao(project_db: Path):
 
     contatos = await handlers.dispatch("contatos4f_por_revisao", {})
     assert [c["Terminal"] for c in contatos["contatos"]] == ["1"]
+
+
+async def test_plaquetas_por_painel_ordenadas_por_tag(project_db: Path):
+    handlers = Handlers(str(project_db))
+
+    painel1 = await handlers.dispatch("plaquetas_por_painel", {"painel": 1})
+    assert [p["Tag"] for p in painel1["plaquetas"]] == ["PLACA-A", "PLACA-B"]
+    # A linha chega com as colunas do schema, não como tupla posicional.
+    assert painel1["plaquetas"][0]["Desc2"] == "linha 2"
+    assert painel1["plaquetas"][1]["Desc2"] is None
+
+    painel2 = await handlers.dispatch("plaquetas_por_painel", {"painel": 2})
+    assert [p["Tag"] for p in painel2["plaquetas"]] == ["PLACA-C"]
+
+    vazio = await handlers.dispatch("plaquetas_por_painel", {"painel": 9})
+    assert vazio["plaquetas"] == []
+
+
+async def test_lista_materiais_por_painel_ordenada_pela_ordem_do_diagrama(project_db: Path):
+    handlers = Handlers(str(project_db))
+
+    painel1 = await handlers.dispatch("lista_materiais_por_painel", {"painel": 1})
+    # A `Ordem` é a do diagrama (renumerada pelo `COMPLM`), não a alfabética.
+    assert [m["Tag"] for m in painel1["materiais"]] == ["R6", "D2"]
+    assert painel1["materiais"][0]["Quantidade"] == 63
+    assert painel1["materiais"][0]["OrdemLay"] == 10000
+    # `Avulso` é BOOL no schema: chega como `bool`, não como 0/1.
+    assert painel1["materiais"][0]["Avulso"] is False
+
+    # O item avulso (lançado à mão no app) aparece com a marca dele e sem handle.
+    painel2 = await handlers.dispatch("lista_materiais_por_painel", {"painel": 2})
+    assert [m["Tag"] for m in painel2["materiais"]] == ["MF"]
+    assert painel2["materiais"][0]["Avulso"] is True
+    assert painel2["materiais"][0]["Handle"] is None
+
+
+async def test_plaquetas_e_lista_de_material_exigem_painel(project_db: Path):
+    handlers = Handlers(str(project_db))
+    with pytest.raises(BadParams):
+        await handlers.dispatch("plaquetas_por_painel", {})
+    with pytest.raises(BadParams):
+        await handlers.dispatch("lista_materiais_por_painel", {})
 
 
 async def test_catalogo_materiais_com_e_sem_filtro(project_db: Path):

@@ -170,6 +170,14 @@ class Contatos4FPorRevisaoParams(BaseModel):
     revisao: str | None = None
 
 
+class PlaquetasPorPainelParams(BaseModel):
+    painel: int
+
+
+class ListaMateriaisPorPainelParams(BaseModel):
+    painel: int
+
+
 #: Erros do domínio do sidecar. `code` é o que a UI usa para decidir o que mostrar.
 class SidecarError(Exception):
     def __init__(self, code: str, message: str, detail: Any | None = None) -> None:

@@ -19,11 +19,13 @@ import type {
   Fiacao,
   Interligacao4,
   Jumper4,
+  ListaMateriais,
   Materiais,
   ModelosCabos,
   Paineis,
   Bornes4F,
   Contatos4F,
+  Plaquetas4,
   Portas4F,
   Portas4I,
   Veias4,
@@ -161,6 +163,15 @@ export interface Contatos4FPorRevisaoParams {
   revisao?: string | null;
 }
 
+/** `Plaquetas4` e `ListaMateriais` não têm revisão: a chave delas é o `DWG`. */
+export interface PlaquetasPorPainelParams {
+  painel: number;
+}
+
+export interface ListaMateriaisPorPainelParams {
+  painel: number;
+}
+
 /** Mapa método -> assinatura. É a única fonte de tipos para `request()`. */
 export interface MethodMap {
   ping: { params: Record<string, never>; result: PingResult };
@@ -227,6 +238,14 @@ export interface MethodMap {
   contatos4f_por_revisao: {
     params: Contatos4FPorRevisaoParams;
     result: { contatos: Contatos4F[] };
+  };
+  plaquetas_por_painel: {
+    params: PlaquetasPorPainelParams;
+    result: { plaquetas: Plaquetas4[] };
+  };
+  lista_materiais_por_painel: {
+    params: ListaMateriaisPorPainelParams;
+    result: { materiais: ListaMateriais[] };
   };
 }
 

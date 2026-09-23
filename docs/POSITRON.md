@@ -198,6 +198,11 @@ ferramenta.
 | `portas4f_por_revisao` | `{ revisao? }` | `{ portas: Portas4F[] }` |
 | `bornes4f_por_revisao` | `{ revisao? }` | `{ bornes: Bornes4F[] }` |
 | `contatos4f_por_revisao` | `{ revisao? }` | `{ contatos: Contatos4F[] }` |
+| `plaquetas_por_painel` | `{ painel }` | `{ plaquetas: Plaquetas4[] }` |
+| `lista_materiais_por_painel` | `{ painel }` | `{ materiais: ListaMateriais[] }` |
+
+As duas últimas são as tabelas **sem revisão** (a chave é o `DWG`): o recorte da consulta
+é o `Painel`.
 
 O tipo de cada linha (`Paineis`, `Fiacao`, …) vem de `schema.generated.ts`, não de
 modelos escritos à mão. `relatorio_gerar` fica para a fase de relatórios.
@@ -521,7 +526,7 @@ reler o repositório inteiro.
 **Estado (rodada 62):** as etapas 0–12 do `PLANO.md` estão **concluídas**, exceto a
 **9** (licenciamento, relatórios e multi-usuário), que é decisão do dono e já tem os
 encaixes prontos. Números de hoje: **323** testes xunit + **27** no sidecar, contrato
-com **20 métodos** e **31 tabelas** em sincronia, **57** módulos no app, **12** comandos
+com **22 métodos** e **31 tabelas** em sincronia, **57** módulos no app, **12** comandos
 no CAD e **15** tabelas escritas pelo plugin (as 13 do diagrama + `Plaquetas4` e
 `ListaMateriais`). O recorte roda no ZWCAD 2026 sobre o **desenho real** (`Funcional.dwg`):
 `FIA` grava 494 linhas em `Fiacao`, 265 em `Portas4F`, 168 em `Bornes4F`, 70 em

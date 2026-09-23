@@ -33,7 +33,9 @@ from .protocol import (
     InterligacaoPorCaboParams,
     InterligacaoPorPainelParams,
     JumperPorPainelParams,
+    ListaMateriaisPorPainelParams,
     PingResult,
+    PlaquetasPorPainelParams,
     Portas4FPorRevisaoParams,
     Portas4IPorModeloParams,
     ProjetoAbrirParams,
@@ -73,6 +75,8 @@ class Handlers:
             "portas4f_por_revisao": self._portas4f_por_revisao,
             "bornes4f_por_revisao": self._bornes4f_por_revisao,
             "contatos4f_por_revisao": self._contatos4f_por_revisao,
+            "plaquetas_por_painel": self._plaquetas_por_painel,
+            "lista_materiais_por_painel": self._lista_materiais_por_painel,
         }
 
     @property
@@ -175,6 +179,17 @@ class Handlers:
     async def _contatos4f_por_revisao(self, params: dict[str, Any]) -> dict[str, Any]:
         parsed = _validate("contatos4f_por_revisao", Contatos4FPorRevisaoParams, params)
         return {"contatos": await self._require_db().contatos4f_por_revisao(parsed.revisao)}
+
+    # Plaquetas e lista de material são **por painel** e sem revisão: as duas tabelas
+    # têm o `DWG` como chave (o plugin as grava por desenho).
+
+    async def _plaquetas_por_painel(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("plaquetas_por_painel", PlaquetasPorPainelParams, params)
+        return {"plaquetas": await self._require_db().plaquetas_por_painel(parsed.painel)}
+
+    async def _lista_materiais_por_painel(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("lista_materiais_por_painel", ListaMateriaisPorPainelParams, params)
+        return {"materiais": await self._require_db().lista_materiais_por_painel(parsed.painel)}
 
     def _require_db(self) -> ProjectDatabase:
         if self._db is None:

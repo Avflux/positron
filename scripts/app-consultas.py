@@ -9,7 +9,8 @@ o que cada painel do app mostraria. Serve para conferir um `.db` recem-projetado
 passo 3 do `scripts/cad-projeto-e2e.ps1`.
 
 A lista de consultas e a ordem seguem os paineis de `apps/web` (fiacao, interligacao,
-circuitos, dispositivos, jumpers, aplicacoes, catalogo, portas/bornes/contatos)."""
+circuitos, dispositivos, jumpers, aplicacoes, lista de material, plaquetas, catalogo,
+portas/bornes/contatos)."""
 
 import argparse
 import asyncio
@@ -38,6 +39,8 @@ def consultas(painel: int):
         ('portas4f_por_revisao', {}),
         ('bornes4f_por_revisao', {}),
         ('contatos4f_por_revisao', {}),
+        ('lista_materiais_por_painel', {'painel': painel}),
+        ('plaquetas_por_painel', {'painel': painel}),
     ]
 
 

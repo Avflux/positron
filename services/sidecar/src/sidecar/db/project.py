@@ -257,3 +257,21 @@ class ProjectDatabase:
                 (revisao,),
             )
         return await self.query("SELECT * FROM Contatos4F ORDER BY IndexModelo, Indice")
+
+    # As duas tabelas abaixo **não têm `Revisao`**: a chave é o `DWG` (o desenho do
+    # projeto), e por isso o recorte da consulta é o `Painel`. Uma é a plaqueta de
+    # identificação do painel (`Plaquetas4`, o comando `EPLQ` do plugin) e a outra a
+    # lista de material do diagrama (`ListaMateriais`, o `COMPLM`) — ver
+    # `docs/RUNBOOK.md`, rodadas 61 e 62.
+
+    async def plaquetas_por_painel(self, painel: int) -> list[dict[str, Any]]:
+        return await self.query(
+            "SELECT * FROM Plaquetas4 WHERE Painel = ? ORDER BY Tag, Indice", (painel,)
+        )
+
+    async def lista_materiais_por_painel(self, painel: int) -> list[dict[str, Any]]:
+        # `Ordem` é a ordem **do diagrama** (1..N por painel, renumerada pelo
+        # `COMPLM`); `Indice` desempata as linhas que a projeção numerou igual.
+        return await self.query(
+            "SELECT * FROM ListaMateriais WHERE Painel = ? ORDER BY Ordem, Indice", (painel,)
+        )
