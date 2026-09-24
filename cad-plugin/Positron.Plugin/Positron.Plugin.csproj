@@ -27,6 +27,14 @@
     <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2020')">$(ProgramFiles)\Autodesk\AutoCAD 2020</AutoCadDir>
   </PropertyGroup>
 
+  <!-- Os icones do produto original (extraidos pelo scripts/extrair-icones-do-reverso.ps1)
+       entram como recursos embutidos: a barra os le pelo nome (Positron.Icons.<nome>.png). -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\lib\Icons\*.png">
+      <LogicalName>Positron.Icons.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
   <!-- A interface (a paleta de folhas e a barra de ferramentas) usa WinForms e, no ZWCAD, o
        ZdWindows (ZwSoft.Windows = ribbon, ZwSoft.ZwCAD.Windows = paleta). -->
   <ItemGroup>

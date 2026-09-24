@@ -769,6 +769,43 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 124 — os icones do produto, extraidos e na barra.**
+O de4dot limpou o codigo e o `ResourceManager` devolveu os `Bitmap`: sairam **348 icones**
+(1,95 MB) para `cad-plugin/lib/Icons/` pelo script novo
+`scripts/extrair-icones-do-reverso.ps1` (ele le os nomes dos acessores do proprio produto,
+resolve as dependencias do assembly limpo e salva cada um em PNG).
+
+**O mapa da barra ganhou o icone:** o `Ribbon.cs` atribui `image = Resources.X` antes de cada
+botao, entao o script passou a extrair **(comando, rotulo, icone)** — 42 pares, agora em
+`docs/reverso-barra-do-original.txt`:
+
+```text
+CAD    = CADERNO    | Caderno_32
+GERDWG = GER DWG    | Database_Preto_32
+REGH   = REGUAH     | ReguaH_32
+PORT   = PORTA      | Portas_32
+CBD    = CBD        | Comprimir_32
+RESTPROJ = RESTPROJ | Sincroniza_32
+```
+
+**No plugin:** os 348 PNGs entram como **recursos embutidos** (`Positron.Icons.<nome>.png`) e o
+`IconsDoReverso` os converte como o `Ribbon.getBitmap` do reverso (Bitmap → PNG em memória →
+`BitmapImage`, com cache). Os botoes que temos usam o **icone do original** quando o comando
+existe na barra dele (`CBD` = `Comprimir_32`, `RESTPROJ` = `Sincroniza_32`) e o **generico
+`Item`** nos demais — que e exatamente o que o proprio reverso faz nos botoes sem icone proprio.
+
+**Medido no ZWCAD 2026** (a DLL foi de 1,7 MB para **2,13 MB** com os icones embutidos):
+
+```text
+Barra: aba "Positron" com 12 botão(ões).
+Positron — paleta de folhas com 16 página(s) (ancorada no CAD).
+```
+
+> **Sobre a ideia dos icones internos do CAD:** ela fica como **reserva** — como desta vez os
+> originais sairam, nao foi preciso; se algum icone faltar (ou para os 30 comandos ainda nao
+> portados), a biblioteca de imagens do proprio CAD e o caminho, e o `IconsDoReverso` ja cai no
+> generico quando o nome nao existe.
+
 **Rodada 123 — o de4dot no DLL original: os textos do produto, extraídos.**
 O dono do produto apontou a ferramenta (`tools\de4dotEx`) e a pergunta certa: dá para pegar a
 formatação do reverso em vez de inventar? **Dá** — e a receita ficou:

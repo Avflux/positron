@@ -2,6 +2,7 @@ using System;
 
 #if !AUTOCAD
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using ZwSoft.Windows;
 using ZwSoft.ZwCAD.ApplicationServices;
 #endif
@@ -66,11 +67,11 @@ namespace Positron.Plugin.Interface
                 });
                 botoes += Painel(aba, Positron.Data.Interface.MensagensDoReverso.PainelCabosEVeias, new[]
                 {
-                    new[] { "INT", "INT" },
-                    new[] { "SYNCV", "SYNCV" },
-                    new[] { "RECRIACABOS", "RECRIACABOS" },
-                    new[] { "RESTPROJ", Positron.Data.Interface.MensagensDoReverso.BotaoRestProj },
-                    new[] { "CBD", Positron.Data.Interface.MensagensDoReverso.BotaoCbd },
+                    new[] { "INT", "INT", "Item" },
+                    new[] { "SYNCV", "SYNCV", "Item" },
+                    new[] { "RECRIACABOS", "RECRIACABOS", "Item" },
+                    new[] { "RESTPROJ", Positron.Data.Interface.MensagensDoReverso.BotaoRestProj, "Sincroniza_32" },
+                    new[] { "CBD", Positron.Data.Interface.MensagensDoReverso.BotaoCbd, "Comprimir_32" },
                 });
                 botoes += Painel(aba, Positron.Data.Interface.MensagensDoReverso.PainelBornes, new[]
                 {
@@ -92,7 +93,11 @@ namespace Positron.Plugin.Interface
         }
 
 #if !AUTOCAD
-        /// <summary>Um painel com os botões (rótulo, comando) e o seu handler.</summary>
+        /// <summary>
+        /// Um painel com os botões — cada botão é (comando, rótulo, ícone). O ícone sai dos
+        /// **recursos do produto original** (extraídos do DLL); sem ícone próprio, o genérico
+        /// `Item`, como o reverso faz.
+        /// </summary>
         private static int Painel(RibbonTab aba, string titulo, string[][] botoes)
         {
             RibbonPanelSource fonte = new RibbonPanelSource { Title = titulo };
@@ -101,13 +106,20 @@ namespace Positron.Plugin.Interface
 
             foreach (string[] botao in botoes)
             {
+                string comando = botao[0];
+                string rotulo = botao.Length > 1 ? botao[1] : comando;
+                string icone = botao.Length > 2 ? botao[2] : IconsDoReverso.Generico;
+                BitmapImage imagem = IconsDoReverso.Imagem(icone);
+
                 RibbonButton item = new RibbonButton
                 {
-                    Text = botao[1],
-                    Name = "POSITRON_" + botao[0],
+                    Text = rotulo,
+                    Name = "POSITRON_" + comando,
                     ShowText = true,
-                    ShowImage = false,
-                    CommandParameter = botao[0] + " ",
+                    ShowImage = imagem != null,
+                    Image = imagem,
+                    LargeImage = imagem,
+                    CommandParameter = comando + " ",
                     CommandHandler = new ComandoDoBotao(),
                 };
                 fonte.Items.Add(item);
