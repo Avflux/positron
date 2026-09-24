@@ -833,11 +833,10 @@ do menu, o botao do rodape e um teste dizem o que a operacao faz.
 **Medido no ZWCAD 2026** (banco novo, `scripts/cad-zwcad-smoke.ps1`):
 
 ```
-Positron carregado. Digite ELET para comecar - ELET abre a paleta de folhas (FOLHAS tambem).
-Barra: aba "Positron" com 10 painel(is) - 121 botao(oes) do original (83 ligado(s), 38 desativado(s);
-       76 abrem uma janela) e 8 do recoder.
-Positron - paleta de folhas com 0 pagina(s) (ancorada no CAD).
-DUPCAD: "Duplicar Caderno" (frmDuplicarCaderno) aberta no CAD - 5 controle(s).
+Positron carregado. Digite ELET para começar — ELET abre a paleta de folhas (FOLHAS também).
+Barra: aba "Positron" com 10 painel(is) — 121 botão(ões) do original (83 ligado(s), 38 desativado(s); 76 abrem uma janela) e 8 do recoder.
+Positron — paleta de folhas com 0 página(s) (ancorada no CAD).
+DUPCAD: "Duplicar Caderno" (frmDuplicarCaderno) aberta no CAD — 5 controle(s).
 ```
 
 Os **10** paineis sao os 9 do original + o nosso (os comandos do recoder que nao existem na barra de la:
