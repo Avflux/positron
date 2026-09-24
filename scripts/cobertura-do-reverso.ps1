@@ -7,6 +7,11 @@
 #                                         tela, sem regra);
 #   3. os frm*.cs do decompilado          as 127 telas e o tamanho de cada uma (proxy do custo).
 #
+# O reverso e lido da copia que vive **no repo** (`cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned`,
+# a que o dono do produto adicionou na rodada 134) - o painel imprime de onde leu, para nao haver
+# duvida sobre qual copia respondeu. `-Decomp` continua aceitando outra pasta (a de fora do repo,
+# por exemplo).
+#
 # Uso:
 #   powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1
 #   powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Listas        (as listas nominais)
@@ -18,7 +23,7 @@
 param(
   [string] $Mapa   = "docs\reverso-comandos.txt",
   [string] $Plugin = "cad-plugin\Positron.Plugin",
-  [string] $Decomp = "C:\Users\Administrator\Downloads\Elet\Eletron4_ZWcad\decompiled-cleaned\Eletron4",
+  [string] $Decomp = "cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned\Eletron4",
   # Imprime tambem as listas nominais (telas e comandos), que sao o que decide a proxima rodada.
   [switch] $Listas,
   # Imprime, por comando, o que o CORPO dele carrega do ambiente do original (runtime VB, Access,
@@ -55,11 +60,16 @@ foreach ($arquivo in Get-ChildItem -Path $Plugin -Recurse -Filter *.cs) {
 }
 
 # ---------------------------------------------------------------- 3. as telas e o tamanho delas
+# `-Filter` do PowerShell casa sem diferenciar maiuscula de minuscula, e **3 das 127** telas comecam
+# com `Frm*` (`FrmBuscaNuvem`, `FrmImportarCabosExcel`, `FrmTrocaUsuario`): contar `frm*.cs` com glob
+# de shell (que diferencia) da **124**, nao 127.
 $telas = @{}
 if (Test-Path $Decomp) {
   foreach ($arquivo in Get-ChildItem -Path $Decomp -Filter 'frm*.cs') {
     $telas[$arquivo.BaseName] = ([System.IO.File]::ReadAllLines($arquivo.FullName)).Count
   }
+} else {
+  Write-Warning ("reverso nao encontrado em '{0}': o painel segue SEM as telas. Passe -Decomp <pasta do decompilado>." -f $Decomp)
 }
 $porTela = @{}
 foreach ($c in $comandos.Values) {
@@ -105,6 +115,7 @@ Write-Output ("  gerados (so abrem a tela)      : {0}" -f $gerados.Count)
 Write-Output ("  do reverso SEM NADA no plugin  : {0}  (abrem janela: {1}; regra pura: {2})" -f $semNada.Count, $semNadaJan.Count, $semNadaReg.Count)
 Write-Output ''
 Write-Output 'TELAS'
+Write-Output ("  reverso lido de                : {0}" -f $Decomp)
 Write-Output ("  telas frm* no decompilado      : {0}" -f $telas.Count)
 Write-Output ("  alcancadas por algum comando   : {0}  (COM regra ja escrita: {1}; so casca: {2})" -f ($telaComRegra.Count + $telaSoCasca.Count), $telaComRegra.Count, $telaSoCasca.Count)
 Write-Output ("  nenhum comando abre (sub-janela): {0}" -f $telaSemComando.Count)

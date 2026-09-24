@@ -2,7 +2,8 @@
 
 Este documento decide **como reconstruir o Eletron4Z** sobre o esqueleto do
 `positron`, a partir da engenharia reversa em
-`..\Elet\Eletron4_ZWcad` (veja `ARQUITETURA.md` daquela pasta).
+`cad-plugin/reverso/Eletron4_ZWcad` — **dentro deste repo** desde a rodada 134 (veja o
+`ARQUITETURA.md` daquela pasta; o dono do produto o adicionou, e os extratores leem de lá).
 
 Leia `ARCHITECTURE.md` e `PROTOCOL.md` antes: eles descrevem o esqueleto
 (Tauri + React/TS + sidecar Python por ZMQ) que este documento **estende**.
@@ -508,6 +509,20 @@ o subconjunto de colunas das tabelas I.
   `Positron.Data.Licenca.ServicoDeLicenca` (com `ILicenca`) e o gate
   `BloqueioDeLicenca` que existiam desde a rodada 29 foram **apagados** — não
   desligados: nenhum comando verifica licença e não há caminho morto no código.
+  A **documentação do original fica** (é referência, não código): o `ARQUITETURA.md` §8 do
+  reverso descreve os 4 modos, o anti-tamper do relógio e as credenciais, e os binários do
+  hardlock (`KeyLib.dll`, `Ekc*.dll`, `NkMan.exe`, `Nkag20.exe`, `NetKey.ini`) estão em
+  `reverso/Eletron4_ZWcad/DLL/` — nenhum deles é carregado pelo recoder (rodada 134).
+- **Os 5 comandos de núcleo do original são lançadores de produto, não regra de desenho**
+  (informação do dono do produto, rodada 134): `ELET` carrega o Eletron4Z com o **caminho da DLL
+  memorizado** (o equivalente ao `NETLOAD`, sem escolher o arquivo da segunda vez em diante),
+  `DLOG` carrega o plugin do **DiagLog** (outra DLL) e `ETPG`/`ANET`/`EARQ` são os **subprodutos**
+  (topográfico / ArqNet / arquitetura). O corpo deles é **vazio** no `Eletron4Z.dll` porque quem
+  trabalha é o `IExtensionApplication` do produto carregado — o mesmo motivo de o arranque do
+  recoder viver no `Plugin.Initialize`. O **carregador** equivalente no recoder já existe:
+  `install/Positron.bundle/Positron.lsp` (o `c:ELET` acha a DLL pelo nome com `findfile`, dá o
+  `NETLOAD` e abre a paleta) + o autoload do `PackageContents.xml` — o mesmo efeito, pelo nome em vez
+  do caminho memorizado.
 - **Relatórios:** PDF via iTextSharp no original. O `Relatorios*` no app Python
   pode cobrir, mas a decisão não foi tomada.
 - **Multi-usuário:** SQLite hoje; SQL Server quando/se necessário (o caminho já
@@ -521,8 +536,9 @@ reler o repositório inteiro.
 **Onde as coisas estão**
 
 - Repo: `C:\Users\rno\Desktop\APPs\positron`.
-- Reverso (referência): `C:\Users\rno\Desktop\APPs\Elet\Eletron4_ZWcad` — o código
-  descompilado em `decompiled-cleaned/Eletron4/` (435 `.cs`) e `COMANDOS.txt`.
+- Reverso (referência): `cad-plugin/reverso/Eletron4_ZWcad` — o código descompilado em
+  `decompiled-cleaned/` (**435** `.cs`, dos quais **358** em `Eletron4/`), o limpo em `cleaned/`,
+  os binários em `DLL/` e o `COMANDOS.txt` (216 comandos).
 - Projeto real do dono (desenhos + banco do produto): `..\Elet\Teste_prjeto_real\`
   (`Funcional.dwg`, `Interligação.dwg`, `Fiação.dwg`, `RCD.mdb`).
 - Dono do contrato de dados: `services/sidecar/src/sidecar/db/schema.sql`

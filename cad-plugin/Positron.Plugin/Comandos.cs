@@ -10,6 +10,7 @@ using Positron.Data.Interligacao;
 using Positron.Data.Layout;
 using Positron.Data.Materiais;
 using Positron.Data.Modelos;
+using Positron.Data.Paginas;
 using Positron.Data.Plaquetas;
 using Positron.Data.Relatorios;
 using Positron.Plugin.Bornes;
@@ -55,6 +56,9 @@ namespace Positron.Plugin
     /// gate que existia aqui (o <c>ServicoDeLicenca</c>/<c>ILicenca</c> da rodada 29,
     /// espelho dos três provedores do original) foi removido na rodada 63 — junto com
     /// o encaixe, para não deixar no código um caminho que ninguém vai usar.
+    ///
+    /// **A frente 2 segue:** o <c>RENPAGA</c> entrou na rodada 134 — é o **nome do comando** do
+    /// original para a renumeração das páginas que a paleta já fazia (a regra é a mesma).
     /// </summary>
     public sealed class Comandos
     {
@@ -86,6 +90,69 @@ namespace Positron.Plugin
             catch (System.Exception erro)
             {
                 return "ELET: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+        /// <summary>
+        /// <c>RENPAGA</c> — a **renumeração em lote** das páginas do caderno (o <c>Correcao.cs:3273</c>
+        /// do original): cada página vira <c>página + sufixo</c> e os **layers** são renomeados — o
+        /// mesmo que o botão **Renumerar Páginas** da paleta faz, pela mesma regra
+        /// (<see cref="PaginasDoCaderno"/>).
+        ///
+        /// **Uma** diferença do corpo do original, deliberada (a evidência está no XML doc da regra):
+        /// o sufixo vem da variável <c>POSITRON_SUFIXO</c> (padrão `A`, o mesmo do campo da paleta) em
+        /// vez do `InputBox` do original — um diálogo trava um script. A **guarda** do original
+        /// (recusar o lote inteiro quando alguma página tem letra), essa é **reproduzida**
+        /// (<see cref="PaginasDoCaderno.TodasNumericas"/>): sem ela, a segunda passada geraria `1AA`,
+        /// que o `LayerValido` já não aceita como página.
+        /// </summary>
+        [CommandMethod("RENPAGA")]
+        public void RenPaga()
+        {
+            Plugin.Escrever(ExecutarRenumeracaoDePaginas());
+        }
+
+        /// <summary>A renumeração em lote das páginas e a linha de resumo. Nunca lança.</summary>
+        /// <remarks>
+        /// O adapter é qualificado (`Positron.Plugin.Paginas.PaginasDoDesenho`) porque o `using` de
+        /// `Positron.Plugin.Paginas` colidiria com o `Positron.Plugin.Layout.PaginasDoDesenho`, que já
+        /// é usado neste arquivo — os dois nomes existem e são coisas diferentes.
+        /// </remarks>
+        internal static string ExecutarRenumeracaoDePaginas()
+        {
+            try
+            {
+                string sufixo = Environment.GetEnvironmentVariable("POSITRON_SUFIXO");
+                if (string.IsNullOrEmpty(sufixo))
+                {
+                    sufixo = "A";
+                }
+
+                if (!PaginasDoCaderno.SufixoValido(sufixo))
+                {
+                    return "RENPAGA: o sufixo tem de ser um caractere (número ou A-Z) — POSITRON_SUFIXO=\"" + sufixo + "\".";
+                }
+
+                List<string> antigos = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
+                if (antigos.Count == 0)
+                {
+                    return "RENPAGA: nenhuma página do caderno no desenho (os layers que o LayerValido aceita).";
+                }
+
+                // A guarda do original: com qualquer página alfabética o lote inteiro é recusado.
+                if (!PaginasDoCaderno.TodasNumericas(antigos))
+                {
+                    return "RENPAGA: as páginas não podem conter caracter alfabético para usar esta função (o lote inteiro é recusado, como no original).";
+                }
+
+                IReadOnlyList<string> novos = PaginasDoCaderno.Renomear(antigos, sufixo);
+                int renomeados = Positron.Plugin.Paginas.PaginasDoDesenho.Renomear(antigos, novos);
+
+                return "RENPAGA: " + renomeados + " de " + antigos.Count + " página(s) renomeada(s) com o sufixo \"" + sufixo + "\".";
+            }
+            catch (System.Exception erro)
+            {
+                return "RENPAGA: falhou — " + DescreverErro(erro) + ".";
             }
         }
 

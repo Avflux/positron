@@ -764,10 +764,91 @@ abaixo.
 
 ## Relatório consolidado
 
-O `docs/RELATORIO.md` é a **leitura única** do estado: entregas por frente, as medições no
-desenho real com os números, as corroborações cruzadas, os quirks medidos, o que ficou fora do
-recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
-primeiro).
+O `docs/RELATORIO.md` é o **retrato datado** (rodada 115) das entregas por frente, das medições no
+desenho real, das corroborações cruzadas, dos quirks medidos e do que ficou fora do recorte com
+motivo — ele **não** é reescrito a cada rodada. A **contagem viva** de cobertura (comandos × telas ×
+regra) é a **§0 do `AUDITORIA.md`**, que se reproduz com `scripts/cobertura-do-reverso.ps1`; o estado
+do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o detalhe rodada a rodada
+(mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
+rodada mediu**, e não a contagem de hoje.
+
+**Rodada 134 — o reverso dentro do repo, o `RENPAGA` medido e a semantica dos 5 comandos de nucleo.**
+O dono do produto **adicionou o reverso ao repo** (`cad-plugin/reverso/Eletron4_ZWcad`, com o
+`decompiled/`, o `decompiled-cleaned/`, o `cleaned/` e o `DLL/`) e pediu tres coisas de uma vez:
+seguir o plano **um item por vez**, **varios metodos por arquivo** ("desnecessario criar um arquivo
+com 10 linhas") e manter a **licenca documentada** mesmo sem usa-la. A rodada fez as tres.
+
+**Os instrumentos passaram a ler a copia do repo.** O `cobertura-do-reverso.ps1` e os cinco
+extratores (`extrair-{comandos,formularios,barra,icones,imagens}-do-reverso.ps1`) tinham o caminho
+**absoluto** da maquina de analise; agora o default e o caminho do repo e o `-Decomp`/`-Dll` continua
+trocando. O painel **imprime de onde leu** — e por isso que a conferencia e objetiva:
+
+```
+powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1
+#   TELAS
+#     reverso lido de                : cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned\Eletron4
+#     telas frm* no decompilado      : 127
+```
+
+A regeracao saiu **byte a byte igual** (so a linha de proveniencia dos mapas mudou):
+
+```
+for s in extrair-comandos-do-reverso extrair-formularios-do-reverso extrair-barra-do-reverso; do \
+  powershell -ExecutionPolicy Bypass -File scripts/$s.ps1; done
+git status --porcelain   # so docs/reverso-*.txt (a linha de proveniencia) + os scripts
+```
+
+Os icones e as imagens tambem: `extrair-icones-do-reverso.ps1` (que agora usa a
+`reverso/.../cleaned/Eletron4Z-cleaned.dll` do repo, sem depender do de4dot de novo) extraiu os
+**348** icones e o `extrair-imagens-dos-formularios.ps1` as **34** imagens, os dois sem mudar um byte
+do que ja estava em `cad-plugin/lib/Icons/`.**
+
+**Pegadinha de contagem (registrada):** das 127 telas, **3** comecam com `Frm*` maiusculo
+(`FrmBuscaNuvem`, `FrmImportarCabosExcel`, `FrmTrocaUsuario`). O `-Filter` do PowerShell casa sem
+diferenciar caixa e acha **127**; um glob de shell (que diferencia) acha **124** — o comentario esta
+no script.
+
+**O comando `RENPAGA`** (o ultimo item trivial da fila do `AUDITORIA.md` §0) entrou no lugar de
+"falta so registrar o nome": o sufixo vem de **`POSITRON_SUFIXO`** (padrao `A`, o mesmo do campo da
+paleta) em vez do `InputBox` do original, e a regra e a mesma do botao **Renumerar Paginas**.
+Lendo o corpo do original (`Correcao.cs:3273`) apareceram **dois defeitos latentes** na regra que ja
+estava portada — e so um deles virou comportamento:
+
+| achado no corpo do original | o que o recoder faz |
+|---|---|
+| `!Versioned.IsNumeric` + `MsgBox`: com **qualquer** pagina alfabetica o lote inteiro e recusado | **reproduzido** (`PaginasDoCaderno.TodasNumericas`, usado pelo comando **e** pela paleta): sem a guarda, a segunda passada geraria `1A` + `A` = `1AA`, que o `LayerValido` ja nao aceita — a pagina sairia do caderno |
+| `For j = 2 To UBound(mPaginas, 2)` sobre um `mPaginas` que comeca no indice 1 (`Pagina.cs`, `CarregaPaginas`): a **primeira** pagina da tabela de layers **nunca** e renomeada | **nao reproduzido** (off-by-one do original): o recoder renomeia todas, e a decisao esta no XML doc + num teste |
+
+**Medido no ZWCAD 2026** (copia do `Funcional.dwg`, 16 paginas):
+
+```
+npm run cad:smoke -- -Desenho "..\Elet\Teste_projeto_real\Funcional.dwg" -Comandos RENPAGA,RENPAGA -Revisao R0 -Banco "$TEMP/positron-renpaga.db"
+#   RENPAGA: 16 de 16 pagina(s) renomeada(s) com o sufixo "A".
+#   RENPAGA: as paginas nao podem conter caracter alfabetico para usar esta funcao (o lote inteiro e recusado, como no original).
+```
+
+A **segunda** passada e a prova da guarda pelo proprio desenho: depois da primeira, as 16 paginas
+tem o sufixo `A`, entao o lote seguinte e recusado — exatamente o que o original faz.
+
+**A semantica dos 5 comandos de nucleo** (o dono do produto a informou; o `ARQUITETURA.md` §11 dizia
+que o fluxo deles nao tinha sido lido): `ELET` = o `NETLOAD` com o **caminho da DLL memorizado** (na
+primeira execucao o caminho e gravado e as seguintes carregam direto), `DLOG` = o plugin do
+**DiagLog** (outra DLL) e `ETPG`/`ANET`/`EARQ` = os **subprodutos** (topografico / ArqNet /
+arquitetura). Nada disso e regra de desenho — e a razao de o corpo dos cinco ser **vazio** no
+`Eletron4Z.dll` (quem trabalha e o `IExtensionApplication` do produto carregado). Ficou escrito no
+`ARQUITETURA.md` §4/§11 do reverso, no §7.6 (frente 11) do `PLANO.md` e no `AUDITORIA.md` §0/§3.
+
+**A licenca fica documentada e nao usada:** nota nova no `ARQUITETURA.md` §8 (o subsistema nao e
+portado; os binarios do hardlock estao em `DLL/` como parte do reverso) e o mesmo em `POSITRON.md` §8.
+
+**Gate desta rodada:** `plugin:test` **593** (+2: a guarda do `RENPAGA` e o off-by-one), as duas
+builds **0 avisos / 0 erros** e o painel com exit 0 nos dois modos (base e `-Acoplamento`). O painel
+mede **54** comandos escritos a mao (41 do reverso + 13 nossos) e **76** sem nada no plugin (17 abrem
+janela + **59** de regra pura).
+
+**Observacao de peso:** o reverso entrou no repo **com os binarios** (`DLL/` com o `Eletron4Z.dll` de
+12 MB, os `.exe` do hardlock, os `.rar` de blocos e os `.accdb`) — ~411 MB. Nada foi movido nesta
+rodada; se o peso incomodar, o caminho e `git lfs` (decisao do dono).
 
 **Rodada 133 — por que a regra nao vem pronta do decompilado: `-Acoplamento` no painel.**
 O dono do produto perguntou por que os 53 comandos escritos a mao nao foram **pegados do reverso**, ja
@@ -1058,7 +1139,7 @@ abrem **uma variante** (`new frmRelatorio_DICemig(3)`) e os que **fazem mais** a
 **O que o de4dot diz do assembly original** (a pergunta "existe mais algo codificado?"):
 
 ```
-tools/de4dotEx/de4dot.exe Eletron4_ZWcad/DLL/Eletron4Z.dll -o <fora do projeto>
+tools/de4dotEx/de4dot.exe cad-plugin/reverso/Eletron4_ZWcad/DLL/Eletron4Z.dll -o <fora do projeto>
 # Detected .NET Reactor
 # DNR decrypterType: V2 / V3 / V4  (o V4 devolve System.String - a tabela de strings cifradas)
 ```

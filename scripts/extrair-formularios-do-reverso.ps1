@@ -10,7 +10,8 @@
 # Uso: powershell -File scripts/extrair-formularios-do-reverso.ps1
 [CmdletBinding()]
 param(
-  [string] $Reverso   = "C:\Users\Administrator\Downloads\Elet\Eletron4_ZWcad\decompiled-cleaned\Eletron4",
+  # o reverso vive dentro do repo desde a rodada 134 (cad-plugin/reverso)
+  [string] $Reverso   = "cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned\Eletron4",
   [string] $Mensagens = "cad-plugin\Positron.Data\Interface\Mapas\mensagens-pt.txt",
   [string] $Mapa      = "docs\reverso-formularios.txt",
   [string] $Dados     = "cad-plugin\Positron.Data\Interface\Mapas\FormulariosDoReverso.Dados.cs"
@@ -366,7 +367,7 @@ $doc = New-Object System.Collections.Generic.List[string]
 $doc.Add('# O mapa das janelas do reverso (os frm*)')
 $doc.Add('')
 $doc.Add('Gerado por `scripts/extrair-formularios-do-reverso.ps1` a partir do decompilado')
-$doc.Add('(`..\Elet\Eletron4_ZWcad\decompiled-cleaned`). O `.cs` guarda o metodo do designer')
+$doc.Add('(`cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned`). O `.cs` guarda o metodo do designer')
 $doc.Add('inteiro e o de4dot nao ofuscou os nomes de controle nem os valores das propriedades:')
 $doc.Add('a formatacao das janelas esta no arquivo, nao foi perdida.')
 $doc.Add('')

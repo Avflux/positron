@@ -86,7 +86,7 @@ ZWCAD (Ribbon "CENG.ID_Elet" + linha de comando)
 
 | Grupo | Exemplos | O que faz |
 |---|---|---|
-| Núcleo | `ELET`, `DLOG`, `ETPG`, `ANET`, `EARQ` | entrada principal (ainda ofuscados) |
+| Núcleo | `ELET`, `DLOG`, `ETPG`, `ANET`, `EARQ` | **lançadores de produto** (informação do dono do produto, 2026-09-24): `ELET` carrega o Eletron4Z (equivalente ao `NETLOAD`, com o **caminho da DLL memorizado** — na primeira execução o caminho é gravado e as seguintes carregam direto, sem escolher arquivo; `DLOG` carrega o plugin do **DiagLog**, outra DLL) e `ETPG`/`ANET`/`EARQ` são os **subprodutos** (topográfico / ArqNet / arquitetura). O corpo vazio aqui é o próprio desenho: quem trabalha é o `IExtensionApplication` do produto carregado. Casa com o tipo do desenho da seção 7 (`E` Eletron, `A` ArqNet, `D` DiagLog) |
 | Configuração | `CFG`, `RESETLIC`, `LOADAUT`, `UNLOADAUT` | config geral, reset de licença, automação |
 | Import/Export | `IMPBD`, `EXPDWG`, `EXPPDF`, `EXPCOMP`, `GERDWG` | projetos, DWG, PDF, Excel |
 | Diagramas | `DI*` (`DICEMIG`, `DICHESF`, `DIFURNAS`, `DIENER*`) | diagramas por concessionária |
@@ -186,6 +186,13 @@ Classes: `XDataAranha`, `XDataConexao`, `XDataCorrecao`, `XDataDIEnergisa`, `XDa
 `My.Settings.LicMode` (espelhado em `DeclaracoesGeral.LicModeSel`), trocável pelo comando `RESETLIC`
 (que apenas zera `LicMode` e salva).
 
+> **Nota do recoder (rodadas 63 e 134):** este subsistema **não é portado**. O positron é open source e
+> nenhum comando dele verifica licença — os três provedores do original foram **removidos**, não
+> desligados (o porquê está no `PLANO.md` §9a/§7.5). Esta seção fica como **documentação do original**:
+> é a referência de onde a licença vivia e de como ela se comportava, sem nada disso no código do
+> recoder. Os binários citados (`KeyLib.dll`, `Ekc*.dll`, `NkMan.exe`, `Nkag20.exe`, `NetKey.ini`)
+> estão em `DLL/` como parte do reverso.
+
 | Modo | Classe | Mecanismo |
 |---|---|---|
 | **1 — Rockey** | `cCheckLicRockey`, `Rockey` | Dongle Feitian. P/Invoke para `Rockey432`, `Rockey4ND32`, `Rockey464`, `NetRockey432/464` |
@@ -244,8 +251,13 @@ Base: `decompiled-cleaned\Eletron4\`
 
 ## 11. Limitações deste mapa
 
-- Os **5 comandos principais** (`elet`, `dlog`, `etpg`, `Anet`, `earq`) ainda têm corpo vazio
-  no desobfuscado — o fluxo real deles não foi lido. Candidatos: NETReactorSlayer ou análise dinâmica (dnSpyEx).
+- Os **5 comandos principais** (`elet`, `dlog`, `etpg`, `Anet`, `earq`) têm corpo vazio
+  no desobfuscado — o fluxo real deles **não** está no `Eletron4Z.dll`. **Resolvido em parte**
+  (2026-09-24, informação do dono do produto): os cinco são **lançadores de produto** (ver §4) — o
+  `ELET` carrega o Eletron4Z com o caminho da DLL memorizado, o `DLOG` carrega o DiagLog e
+  `ETPG`/`ANET`/`EARQ` são os subprodutos. O que **continua não lido** é o código do **lançador** em si
+  (o binário que grava o caminho e chama o carregamento) e o `Construtor4Z.dll`, que nunca foi
+  descompilado. Candidatos: NETReactorSlayer ou análise dinâmica (dnSpyEx).
 - `Initialize()` e alguns métodos retornam com avisos de IL do ILSpy (`Unknown result type`),
   deixando trechos parcialmente ilegíveis e nomes de campos locais ofuscados.
 - As **consultas SQL exatas** (SELECT/INSERT por tabela) não foram inventariadas uma a uma;

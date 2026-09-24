@@ -209,6 +209,12 @@ namespace Positron.Plugin.Interface.Folhas
             }
 
             List<string> antigos = PaginasDoDesenho.Ler();
+            if (!PaginasDoCaderno.TodasNumericas(antigos))
+            {
+                UltimaMensagem = "RENPAGA: as páginas não podem conter caracter alfabético para usar esta função.";
+                return 0;
+            }
+
             IReadOnlyList<string> novos = PaginasDoCaderno.Renomear(antigos, sufixo);
             int renomeados = PaginasDoDesenho.Renomear(antigos, novos);
             Carregar();

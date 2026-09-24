@@ -6,11 +6,13 @@
 # Uso: powershell -File scripts/extrair-icones-do-reverso.ps1 [-Dll <cleaned>] [-Saida <pasta>]
 [CmdletBinding()]
 param(
-  [string] $Dll   = "$env:TEMP\de4dot\in\Eletron4Z-cleaned.dll",
+  # a DLL ja desobfuscada e o resto do reverso vivem dentro do repo desde a rodada 134
+  # (cad-plugin/reverso), entao a extracao nao depende mais do de4dot rodar de novo.
+  [string] $Dll   = "cad-plugin\reverso\Eletron4_ZWcad\cleaned\Eletron4Z-cleaned.dll",
   [string] $Saida = "cad-plugin\lib\Icons",
-  [string] $Acessores = "C:\Users\Administrator\Downloads\Elet\Eletron4_ZWcad\decompiled-cleaned\Eletron4.My.Resources\Resources.cs",
+  [string] $Acessores = "cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned\Eletron4.My.Resources\Resources.cs",
   [string] $ZWCAD = "C:\Program Files\ZWSOFT\ZWCAD 2026",
-  [string] $Origem = "C:\Users\Administrator\Downloads\Elet\Eletron4_ZWcad\DLL"
+  [string] $Origem = "cad-plugin\reverso\Eletron4_ZWcad\DLL"
 )
 
 if (-not (Test-Path $Dll)) { throw "DLL limpa nao encontrada: $Dll (rode o de4dot primeiro)" }

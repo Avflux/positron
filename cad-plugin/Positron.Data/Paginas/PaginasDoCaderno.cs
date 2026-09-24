@@ -100,13 +100,54 @@ namespace Positron.Data.Paginas
         }
 
         /// <summary>
-        /// A **renumeração em lote** do <c>RENPAGA</c> (o <c>renumerarPaginasLote</c>): cada página
-        /// vira <c>página + sufixo</c>. Devolve vazio quando o sufixo é inválido.
+        /// A guarda do <c>RENPAGA</c> do original (<c>Correcao.cs:3283</c>): com **qualquer** página
+        /// não numérica o lote é recusado inteiro (<c>Versioned.IsNumeric</c> + o <c>MsgBox</c>
+        /// "As páginas não podem conter caracter alfabético para usar esta função!").
+        ///
+        /// Ela não é preciosismo: a segunda passada produziria <c>1A</c> + <c>A</c> = <c>1AA</c>, que
+        /// o <see cref="LayerValido"/> **já não aceita** — a página sairia do caderno. O que o
+        /// original impede é justamente renumerar duas vezes.
         /// </summary>
+        public static bool TodasNumericas(IReadOnlyList<string> paginas)
+        {
+            if (paginas == null)
+            {
+                return false;
+            }
+
+            foreach (string pagina in paginas)
+            {
+                if (!PaginaNumerada.EhNumerico(pagina))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// A **renumeração em lote** do <c>RENPAGA</c> (o <c>renumerarPaginasLote</c>): cada página
+        /// vira <c>página + sufixo</c>. Devolve vazio quando o sufixo é inválido **ou** quando alguma
+        /// página não é numérica (a guarda do original, <see cref="TodasNumericas"/>).
+        /// </summary>
+        /// <remarks>
+        /// Uma diferença medida em relação ao **corpo do comando** do original
+        /// (<c>Correcao.cs:3273</c>), deliberada e fixada em teste: o original monta o lote com
+        /// <c>For j = 2 To UBound(mPaginas, 2)</c> sobre um <c>mPaginas</c> preenchido **a partir do
+        /// índice 1** (<c>Pagina.cs</c>, <c>CarregaPaginas</c>: <c>mPaginas[0, num]</c> com
+        /// <c>num = 1</c>), de modo que a **primeira** página da tabela de layers **nunca** é
+        /// renomeada. É um off-by-one do original; o recoder renomeia todas — a primeira página não
+        /// tem nada que a distinga das outras, e deixá-la de fora faria o caderno ficar com um nome
+        /// sem o sufixo das demais.
+        ///
+        /// A **guarda** do original, essa sim, **é reproduzida** — ver
+        /// <see cref="TodasNumericas"/>.
+        /// </remarks>
         public static IReadOnlyList<string> Renomear(IReadOnlyList<string> paginas, string sufixo)
         {
             List<string> novas = new List<string>();
-            if (paginas == null || !SufixoValido(sufixo))
+            if (paginas == null || !SufixoValido(sufixo) || !TodasNumericas(paginas))
             {
                 return novas;
             }

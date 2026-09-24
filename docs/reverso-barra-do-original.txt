@@ -1,7 +1,7 @@
 # A barra de ferramentas do reverso (o `Ribbon.cs`)
 
 Gerado por `scripts/extrair-barra-do-reverso.ps1` a partir do descompilado
-(`..\Elet\Eletron4_ZWcad\decompiled-cleaned\Eletron4\Ribbon.cs`).
+(`cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned\Eletron4\Ribbon.cs`).
 
 A aba do original e `CENG.ID_Elet` (**Elétron**); os paineis saem na ordem em que o
 `CreateRibbon()` (dois) e o `CreateRibbon2()` (sete) os criam, e os botoes na ordem do corpo de

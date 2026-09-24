@@ -12,7 +12,8 @@
 # Uso: powershell -File scripts/extrair-imagens-dos-formularios.ps1
 [CmdletBinding()]
 param(
-  [string] $Reverso = "C:\Users\Administrator\Downloads\Elet\Eletron4_ZWcad\decompiled-cleaned",
+  # o reverso vive dentro do repo desde a rodada 134 (cad-plugin/reverso)
+  [string] $Reverso = "cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned",
   [string] $Saida   = "cad-plugin\lib\Icons"
 )
 

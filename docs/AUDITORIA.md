@@ -26,22 +26,30 @@ powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acopl
 | comandos do reverso | **216** |
 | deles, abrem alguma janela / são regra de desenho pura | **121** / **95** |
 | telas `frm*` | **127** |
-| comandos que o plugin responde | **152** = **53 escritos à mão** (40 do reverso + 13 nossos) + **99 gerados** (só abrem a tela) |
-| comandos do reverso **sem nada no plugin** | **77** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **60** de regra pura |
+| comandos que o plugin responde | **153** = **54 escritos à mão** (41 do reverso + 13 nossos) + **99 gerados** (só abrem a tela) |
+| comandos do reverso **sem nada no plugin** | **76** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **59** de regra pura |
 | telas alcançadas por algum comando | **103** (5 com regra escrita à mão, 98 só casca) |
 | telas que **nenhum** comando abre (sub-janela: relatórios DWG/Excel, editores) | **19** |
 | telas sem comando e sem casca pelo nome (variante/splash) | **5** |
 
-**Os "60 sem tela e sem nada no plugin" não são 60 regras faltando:** a triagem do §7.6 já dividiu
+**O reverso mora no repo desde a rodada 134** (`cad-plugin/reverso/Eletron4_ZWcad`, com o
+`decompiled/`, o `decompiled-cleaned/`, o `cleaned/` e o `DLL/`), e o painel agora **imprime de onde
+leu** — `-Decomp` aponta para outra cópia (a de fora do repo, por exemplo). Os cinco extratores
+(`extrair-{comandos,formularios,barra,icones,imagens}-do-reverso.ps1`) apontam para o mesmo lugar, e a
+regeração da rodada 134 saiu **byte a byte igual** ao que já estava no repo: só a linha de
+proveniência mudou.
+
+**Os "59 sem tela e sem nada no plugin" não são 59 regras faltando:** a triagem do §7.6 já dividiu
 cada um (só UI, interativo, destrutivo, ambiente ou substância coberta sob outro nome). O que sobra de
 **regra em lote de verdade** está na **frente 2**, e é pouca coisa: dos **38** comandos dela, **30**
-estão entregues (contra os 27 do estado anterior, entraram `RENPAGA`, `APAGARXDATA` e `PesquisaBlocos`)
-e dos **8** que sobram **7 são regra de desenho** — o outro, `CorrigeJanelas`, é **ambiente** (mexe nas
-janelas do CAD, não no desenho):
+estão entregues (contra os 27 do estado anterior, entraram `RENPAGA`, `APAGARXDATA` e `PesquisaBlocos`;
+e o `RENPAGA` deixou de ser "falta só registrar o nome do comando" na **rodada 134**, quando o comando
+entrou medido no `Funcional.dwg`) e dos **8** que sobram **7 são regra de desenho** — o outro,
+`CorrigeJanelas`, é **ambiente** (mexe nas janelas do CAD, não no desenho):
 
 | comando | no reverso | corpo | veredito (medido na rodada 132) |
 |---|---|---|---|
-| `RENPAGA` | `Correcao.cs:3273` | 52 linhas | **regra já portada** (`PaginasDoCaderno`, rodadas 125/129) — falta só **registrar o nome do comando** |
+| `RENPAGA` | `Correcao.cs:3273` | 52 linhas | **entregue** (rodada 134): o comando existe e roda a mesma regra da paleta (`PaginasDoCaderno`), agora com a **guarda** do original (`TodasNumericas`) — medido no `Funcional.dwg` (16 de 16 páginas, e a segunda passada recusa, como lá) |
 | `APAGARXDATA` | `Comandos.cs:1372` | 5 linhas | **entregue** (rodada 127, medido no `Funcional.dwg`) |
 | `PesquisaBlocos` | `Correcao.cs:2050` | 8 linhas | **entregue**: é só UI, e o gerado da rodada 128 abre o `frmNavegador` pelo nome |
 | `CorrigeJanelas` | `Correcao.cs:1083` | 5 linhas | **ambiente**: `Geral.moveFormOrigem()` mexe nas janelas do CAD, não no desenho |
@@ -63,7 +71,13 @@ janelas do CAD, não no desenho):
    `btAnalisar` (rodar), `dgERROS` (os erros que o `VERIF` já calcula) e `dgRevisao`; o `btApagar`
    (apagar a compilação da revisão) é **destrutivo** e entra desabilitado com o motivo, como o menu das
    folhas.
-4. **Trivial, e some da lista:** registrar o **nome `RENPAGA`** para a regra que já existe.
+
+> O item trivial da fila (registrar o **nome `RENPAGA`**) saiu dela na rodada 134 — e a leitura do
+> corpo do original achou **dois defeitos latentes** na regra que já estava portada: a guarda que o
+> original usa para **recusar o lote inteiro** quando alguma página tem letra (sem ela, uma segunda
+> passada produz `1AA`, que o `LayerValido` já não aceita — a página sairia do caderno) e o off-by-one
+> do `For j = 2` que **deixa a primeira página sem o sufixo** (esse o recoder **não** reproduz, por
+> decisão registrada e fixada em teste).
 
 ### Por que a regra não vem pronta do decompilado (e o que vem)
 
@@ -97,6 +111,18 @@ quase 1:1 (entre os pendentes que ele lista, o `LeAtributos`, de 122 linhas, é 
 construção), a **frente 11** (ambiente/licença — `RESETLIC`/`TCHAVE`/`TUSING`), os **3 destrutivos com
 `MsgBox`** (`DELFIPROJ`, `DELLM`, `DELPLA`) e as **19 sub-janelas** de relatórios DWG/Excel — a pilha de
 exportação (≈5.800 linhas), que sai pelo app (§7.3).
+
+**Os 5 comandos de núcleo não são regra de desenho — são lançadores de produto** (informação do dono do
+produto, rodada 134): o `ELET` é o equivalente ao `NETLOAD` com o **caminho da DLL memorizado** (na
+primeira execução o caminho é gravado e as seguintes carregam direto, sem escolher o arquivo), o `DLOG`
+carrega o plugin do **DiagLog** (outra DLL) e `ETPG`/`ANET`/`EARQ` são os **subprodutos**
+(topográfico / ArqNet / arquitetura). Todos têm **corpo vazio** no `Eletron4Z.dll` — quem trabalha é o
+`IExtensionApplication` do produto carregado — o mesmo desenho do recoder, em que o `ELET` é um `[CommandMethod]` que abre a paleta e o
+**arranque** vive no `Plugin.Initialize`. O **carregador** equivalente do recoder é o
+`install/Positron.bundle/Positron.lsp` (o `c:ELET` acha a DLL pelo nome com `findfile`, dá o
+`NETLOAD` e abre a paleta) + o autoload do `.bundle` — o mesmo efeito pelo **nome**, em vez do
+caminho memorizado. O mapa desses cinco está no
+`ARQUITETURA.md` §4/§11 do reverso e no §7.6 (frente 11) do `PLANO.md`.
 
 ## 1. O inventário de comandos: completo
 
@@ -148,7 +174,8 @@ Ou seja: o recoder é **≈23,5 mil linhas** contra **408 mil** do reverso. Mesm
 2. **Pilha de exportação/importação e manipulação de projeto** (frente 9): o §7.6 estima **≈5.800 linhas** em `clsExportImport` + `cDadosAccessExpImp` + `clsImportarProjetos` + `cDadosAccessImportarProj` — nenhuma linha portada.
 3. **Rotinas destrutivas com confirmação** (`DELFIPROJ`, `DELLM`, `DELPLA`): não portadas de propósito (dependem de resposta humana no `MsgBox`; o harness roda comandos sem ninguém para responder).
 4. **Interação pura** (`EncontraHandle`, `REGH`/`REGV`, `HBASE`, `LDNR`/`OCPN`, `INDV`, `VEIA1/2`, `VEAUT`, `BLI`, `DEPARA`, `LDAT`/`PINC`, `CON`/`CONAUT`/`DERAUT`, `CriaJigCloud`, `AJUDA`, …): o valor é o clique; as regras que dão para isolar já entraram quando fizeram parte do recorte.
-5. **Ambiente/licença e arquivo externo** (`IMPBD`, `LXLS`, `PortasChesf`, `CHVAUT`, `SYNCLP`).
+5. **Ambiente/licença e arquivo externo** (`IMPBD`, `LXLS`, `PortasChesf`, `CHVAUT`, `SYNCLP`) e os
+   **cinco lançadores de produto** (`ELET`, `DLOG`, `ETPG`, `ANET`, `EARQ` — ver §0).
 6. **Integrações que só existem com a UI**: a barra de progresso (`_uscPagina`), o `PointMonitorToolTips`, o *ribbon*, a troca de usuário.
 
 ## 4. O que está coberto, e com que evidência

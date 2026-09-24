@@ -1,7 +1,7 @@
 # O mapa das janelas do reverso (os frm*)
 
 Gerado por `scripts/extrair-formularios-do-reverso.ps1` a partir do decompilado
-(`..\Elet\Eletron4_ZWcad\decompiled-cleaned`). O `.cs` guarda o metodo do designer
+(`cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned`). O `.cs` guarda o metodo do designer
 inteiro e o de4dot nao ofuscou os nomes de controle nem os valores das propriedades:
 a formatacao das janelas esta no arquivo, nao foi perdida.
 

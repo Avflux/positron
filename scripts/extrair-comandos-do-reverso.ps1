@@ -16,7 +16,8 @@
 # Uso: powershell -File scripts/extrair-comandos-do-reverso.ps1 [-Amostra]
 [CmdletBinding()]
 param(
-  [string] $Reverso = "C:\Users\Administrator\Downloads\Elet\Eletron4_ZWcad\decompiled-cleaned",
+  # o reverso vive dentro do repo desde a rodada 134 (cad-plugin/reverso)
+  [string] $Reverso = "cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned",
   [string] $Plugins = "cad-plugin\Positron.Plugin",
   [string] $Mapa    = "docs\reverso-comandos.txt",
   [string] $Dados   = "cad-plugin\Positron.Data\Interface\Mapas\ComandosDoReverso.Dados.cs",
@@ -229,7 +230,7 @@ $doc = New-Object System.Collections.ArrayList
 [void]$doc.Add('# O mapa dos comandos do reverso (comando -> janela)')
 [void]$doc.Add('')
 [void]$doc.Add('Gerado por `scripts/extrair-comandos-do-reverso.ps1` a partir do descompilado')
-[void]$doc.Add('(`..\Elet\Eletron4_ZWcad\decompiled-cleaned`). Cada `[CommandMethod]` do original e a janela')
+[void]$doc.Add('(`cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned`). Cada `[CommandMethod]` do original e a janela')
 [void]$doc.Add('que o corpo dele abre: no original o comando e fino, quem trabalha e a janela - e ela abre')
 [void]$doc.Add('**dentro do CAD** (`Application.ShowModelessDialog(this)` no construtor do `frm*`).')
 [void]$doc.Add('')

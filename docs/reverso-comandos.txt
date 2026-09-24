@@ -1,7 +1,7 @@
 # O mapa dos comandos do reverso (comando -> janela)
 
 Gerado por `scripts/extrair-comandos-do-reverso.ps1` a partir do descompilado
-(`..\Elet\Eletron4_ZWcad\decompiled-cleaned`). Cada `[CommandMethod]` do original e a janela
+(`cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned`). Cada `[CommandMethod]` do original e a janela
 que o corpo dele abre: no original o comando e fino, quem trabalha e a janela - e ela abre
 **dentro do CAD** (`Application.ShowModelessDialog(this)` no construtor do `frm*`).
 
@@ -194,7 +194,7 @@ passa argumento (`new frmRelatorio_DICemig(3)`), entao aquele comando e uma vari
 | `RELREV` | `frmRelatorio_Rev` | `new frmRelatorio_Rev()` | sim | nao | nao |  | `Comandos.cs:175` |
 | `RELREVF` | `frmRelatorio_Furnas` | `new frmRelatorio_Furnas()` | sim | nao | nao |  | `Comandos.cs:181` |
 | `REMLAYDUP` |  | - | nao | nao | sim | `DicionarioLayout.LeDicLayout("" + key, ref mTags)` `!list.Contains(mTags[i].Tag)` `!DicionarioLayout.LeDicLayout("" + key, ref mTags3)` `!list2.Contains(mTags3[j].Tag)` | `Correcao.cs:3326` |
-| `RENPAGA` |  | - | nao | nao | nao | `!Versioned.IsNumeric(text)` `!Versioned.IsNumeric(text2)` `Strings.Len(text2) == 1 && ((Strings.Asc(text2) >= 65) & (Strings.Asc(text2) <= 90))` `flag` | `Correcao.cs:3273` |
+| `RENPAGA` |  | - | nao | nao | sim | `!Versioned.IsNumeric(text)` `!Versioned.IsNumeric(text2)` `Strings.Len(text2) == 1 && ((Strings.Asc(text2) >= 65) & (Strings.Asc(text2) <= 90))` `flag` | `Correcao.cs:3273` |
 | `RESETLIC` |  | - | nao | nao | nao |  | `Comandos.cs:88` |
 | `RESTAURA` |  | - | nao | nao | nao |  | `Comandos.cs:101` |
 | `RESTPROJ` |  | - | nao | nao | sim | `interligacaoLayout == 3` `DeclaracoesGeral.Conf.ModeloBobina != 0` `DeclaracoesGeral.Conf.ModeloBobina != 1` `DeclaracoesGeral.Conf.ModeloBobina != 2` `DeclaracoesGeral.Conf.ModeloBobina == 3` | `Comandos.cs:1255` |

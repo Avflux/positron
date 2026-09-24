@@ -195,7 +195,7 @@ namespace Positron.Data.Interface.Mapas
                 new Comando("RELREV", "Comandos.cs", 175, true, false, false, new Janela[] { new Janela("frmRelatorio_Rev", "new frmRelatorio_Rev()") }),
                 new Comando("RELREVF", "Comandos.cs", 181, true, false, false, new Janela[] { new Janela("frmRelatorio_Furnas", "new frmRelatorio_Furnas()") }),
                 new Comando("REMLAYDUP", "Correcao.cs", 3326, false, false, true, new Janela[0]),
-                new Comando("RENPAGA", "Correcao.cs", 3273, false, false, false, new Janela[0]),
+                new Comando("RENPAGA", "Correcao.cs", 3273, false, false, true, new Janela[0]),
                 new Comando("RESETLIC", "Comandos.cs", 88, false, false, false, new Janela[0]),
                 new Comando("RESTAURA", "Comandos.cs", 101, false, false, false, new Janela[0]),
                 new Comando("RESTPROJ", "Comandos.cs", 1255, false, false, true, new Janela[0]),

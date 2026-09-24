@@ -19,7 +19,9 @@
 # Uso: powershell -File scripts/extrair-barra-do-reverso.ps1
 [CmdletBinding()]
 param(
-  [string] $Ribbon    = "C:\Users\Administrator\Downloads\Elet\Eletron4_ZWcad\decompiled-cleaned\Eletron4\Ribbon.cs",
+  # o reverso vive dentro do repo desde a rodada 134 (cad-plugin/reverso); os caminhos sao
+  # relativos a raiz do repo, como os outros parametros destes extratores.
+  [string] $Ribbon    = "cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned\Eletron4\Ribbon.cs",
   [string] $Mensagens = "cad-plugin\Positron.Data\Interface\Mapas\mensagens-pt.txt",
   [string] $Plugins   = "cad-plugin\Positron.Plugin",
   [string] $Mapa      = "docs\reverso-barra-do-original.txt",
@@ -322,7 +324,7 @@ $doc = New-Object System.Collections.ArrayList
 [void]$doc.Add('# A barra de ferramentas do reverso (o `Ribbon.cs`)')
 [void]$doc.Add('')
 [void]$doc.Add('Gerado por `scripts/extrair-barra-do-reverso.ps1` a partir do descompilado')
-[void]$doc.Add('(`..\Elet\Eletron4_ZWcad\decompiled-cleaned\Eletron4\Ribbon.cs`).')
+[void]$doc.Add('(`cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned\Eletron4\Ribbon.cs`).')
 [void]$doc.Add('')
 [void]$doc.Add('A aba do original e `' + $abaId + '` (**' + $abaTitulo + '**); os paineis saem na ordem em que o')
 [void]$doc.Add('`CreateRibbon()` (dois) e o `CreateRibbon2()` (sete) os criam, e os botoes na ordem do corpo de')

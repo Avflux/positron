@@ -27,14 +27,40 @@ namespace Positron.Data.Tests
         [Fact]
         public void A_renomeacao_acrescenta_o_sufixo_a_cada_pagina()
         {
-            List<string> paginas = new List<string> { "1", "2A", "489" };
+            List<string> paginas = new List<string> { "1", "2", "489" };
 
             IReadOnlyList<string> novas = PaginasDoCaderno.Renomear(paginas, "B");
 
             Assert.Equal(3, novas.Count);
             Assert.Equal("1B", novas[0]);
-            Assert.Equal("2AB", novas[1]);
+            Assert.Equal("2B", novas[1]);
             Assert.Equal("489B", novas[2]);
+        }
+
+        [Fact]
+        public void Com_pagina_alfabetica_o_lote_inteiro_e_recusado()
+        {
+            // A guarda do `RENPAGA` (`Correcao.cs:3283`): qualquer página não numérica derruba o lote
+            // inteiro. Sem ela a segunda passada geraria `2A` + `B` = `2AB`, que o `LayerValido` já
+            // não aceita como página — a página sairia do caderno.
+            Assert.True(PaginasDoCaderno.TodasNumericas(new List<string> { "1", "2", "489" }));
+            Assert.False(PaginasDoCaderno.TodasNumericas(new List<string> { "1", "2A" }));
+            Assert.False(PaginasDoCaderno.TodasNumericas(null));
+
+            Assert.Empty(PaginasDoCaderno.Renomear(new List<string> { "1", "2A", "489" }, "B"));
+        }
+
+        [Fact]
+        public void A_primeira_pagina_tambem_e_renomeada_ao_contrario_do_corpo_do_original()
+        {
+            // O corpo do `RENPAGA` (`Correcao.cs:3273`) monta o lote com
+            // `For j = 2 To UBound(mPaginas, 2)` sobre um `mPaginas` que começa no índice 1
+            // (`Pagina.cs`, `CarregaPaginas`): a PRIMEIRA página da tabela de layers não é renomeada.
+            // É um off-by-one do original e o recoder não o reproduz — este teste existe para que a
+            // diferença seja uma decisão, e não um acidente.
+            IReadOnlyList<string> novas = PaginasDoCaderno.Renomear(new List<string> { "1", "2", "3" }, "A");
+
+            Assert.Equal(new[] { "1A", "2A", "3A" }, novas);
         }
 
         [Fact]
