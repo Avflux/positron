@@ -106,5 +106,15 @@ namespace ZwSoft.ZwCAD.ApplicationServices
         {
             get { return new DocumentCollection(); }
         }
+
+        /// <summary>
+        /// A janela modeless presa ao CAD — e o que o original usa nas telas `frm*`
+        /// (`Application.ShowModelessDialog(this)`, 121 chamadas no reverso) e o que o
+        /// <c>JanelaDoReverso</c> usa para abrir as telas decodificadas.
+        /// </summary>
+        public static void ShowModelessDialog(System.Windows.Forms.Form janela)
+        {
+            throw new NotSupportedException("stub de compilacao: nao existe dentro do CAD");
+        }
     }
 }

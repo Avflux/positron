@@ -16,4 +16,11 @@
     <OutputPath>bin\$(Configuration)\$(CadPlatform)\</OutputPath>
   </PropertyGroup>
 
+  <!-- O plugin abre as telas do reverso por `Application.ShowModelessDialog(Form)` (e o mesmo
+       caminho do original): sem WinForms aqui, o build de stub nao compilaria. -->
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+
 </Project>

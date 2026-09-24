@@ -4,26 +4,31 @@
 > [tabela de registro](#registro-de-execução), com o commit e a evidência.
 > Contexto de arquitetura: `POSITRON.md`. Como rodar/verificar: `RUNBOOK.md`.
 
-> ## ⏸ Onde paramos (2026-09-23, rodada 126)
+> ## ⏸ Onde paramos (2026-09-24, rodada 127)
 >
-> **Estado:** **49 comandos**, **532 testes** (`npm run plugin:test`), as duas builds com 0 erros,
+> **Estado:** **53 comandos**, **555 testes** (`npm run plugin:test`), as duas builds com 0 avisos,
 > árvore limpa.
 > **Frentes:** 1 e 2 entregues (a frente 2 em **27 de 38**, sem pendência de implementação ou de
 > prova); as frentes 3–9 estão mapeadas no §7.6; o **§7.7** (interface, uma funcionalidade por vez)
 > tem as fatias **1–4 prontas**; o **§7.8** (o shell: arranque, paleta e barra) tem as fatias
-> **1, 2, 3, 4 e 5 prontas**.
+> **1, 2, 3, 4 e 5 prontas**; o **§7.9** (frente 12 — as **telas do reverso**) entregou o mapa das
+> **127** `frm*` e o renderizador que as abre **dentro do CAD**.
 >
-> **A última rodada (126)** portou a página que cabe **entre duas** (`NovaPaginaEntre`) e deixou o
-> **Inserir** calculando no menu das folhas.
+> **A última rodada (127)** decodificou a **formatação dos 127 formulários** do original
+> (`docs/reverso-formularios.txt`, 3431 campos), reconstruiu cada um no CAD pelo `JanelaDoReverso`
+> (modeless, como o original) e ligou as duas telas cuja regra já estava portada
+> (`APAGARXDATA` e a estatística de bornes).
 >
 > **Por onde continuar, na ordem:**
-> 1. **§7.7 fatia 6 — formatos/títulos** (o "Nova Página" de verdade): extrair o `MascaraM.dwg` do
+> 1. **Ligar as telas do §7.9 às regras que já existem** — cada tela do mapa que tem comando no
+>    recoder ganha a sua ligação no `LigacoesDoReverso` (a lista das que já casam está no §7.9).
+> 2. **§7.7 fatia 6 — formatos/títulos** (o "Nova Página" de verdade): extrair o `MascaraM.dwg` do
 >    DLL (é recurso, como os ícones) e criar a folha com o formato; é o que destrava **criar**
 >    página e faz o **Inserir** criar, não só calcular.
-> 2. **§7.7 fatia 5** — o passo do caderno pela configuração (o `PassoPagina` já existe) e a
+> 3. **§7.7 fatia 5** — o passo do caderno pela configuração (o `PassoPagina` já existe) e a
 >    página ativa.
-> 3. **Excluir Páginas** — destrutivo (`ApagarElementosPagina`): só com ok explícito do dono.
-> 4. **Os 42 rótulos/ícones da barra** entram conforme cada comando for portado
+> 4. **Excluir Páginas** — destrutivo (`ApagarElementosPagina`): só com ok explícito do dono.
+> 5. **Os 42 rótulos/ícones da barra** entram conforme cada comando for portado
 >    (`docs/reverso-barra-do-original.txt`).
 >
 > **Leituras rápidas:** `RELATORIO.md` (o que existe e o que foi medido), `AUDITORIA.md` (o que
@@ -721,6 +726,7 @@ aberto por **cópia no TEMP**).
 | 124 — os **icones do produto original** extraidos e na barra | 2026-09-23 | (este commit) | o `ResourceManager` no assembly limpo devolveu os `Bitmap`: **348 icones** (1,95 MB) salvos em `cad-plugin/lib/Icons/` pelo novo `scripts/extrair-icones-do-reverso.ps1` (lê os nomes dos acessores do próprio produto, resolve as dependências do assembly limpo e salva cada um em PNG), e o mapa da barra passou a extrair **(comando, rótulo, ícone)** — o `Ribbon.cs` atribui `image = Resources.X` antes de cada botão —, com os 42 pares em `docs/reverso-barra-do-original.txt` (ex.: `CAD = CADERNO \| Caderno_32`, `CBD = CBD \| Comprimir_32`, `RESTPROJ = RESTPROJ \| Sincroniza_32`); no plugin os PNGs entram como **recursos embutidos** (`Positron.Icons.<nome>.png`) e o `IconsDoReverso` os converte como o `Ribbon.getBitmap` do reverso (Bitmap → PNG em memória → `BitmapImage`, com cache), com os botões usando o **ícone do original** onde o comando existe na barra dele (`CBD`, `RESTPROJ`) e o **genérico `Item`** nos demais — exatamente o que o próprio reverso faz; a ideia dos ícones internos do CAD fica como **reserva** para os comandos ainda não portados (e o `IconsDoReverso` já cai no genérico quando o nome não existe); **medido no ZWCAD 2026** (a DLL foi de 1,7 MB para **2,13 MB** com os ícones): `Barra: aba "Positron" com 12 botão(ões).` e `Positron — paleta de folhas com 16 página(s) (ancorada no CAD).`; as duas builds 0 erros |
 | 125 — frente 10, fatia 4: o **Renomear Páginas** ligado na regra do RENPAGA | 2026-09-23 | (este commit) | o menu de contexto das folhas tinha sete itens do reverso e agora **um funciona** com a regra do original: a regra pura `PaginasDoCaderno.SufixoValido` + `Renomear` (o sufixo é **um** caractere — número ou letra **maiúscula**, o `Asc` 65..90 do `RENPAGA`, que recusa a minúscula e mais de um caractere — e cada página vira `página + sufixo`, o `renumerarPaginasLote`), o adapter `PaginasDoDesenho.Renomear` (renomeia os **layers** das páginas e devolve quantos renomeou) e, na paleta, um campo para o sufixo (padrão `A`), o botão **Renomear Páginas** no rodapé e o item do menu ligados na mesma operação, com a grade recarregando depois; os outros três itens seguem desabilitados **com o motivo registrado** (Nova Página depende do `capturaTitulos`/blocos de formato, Inserir precisa do `calculaNovaPagina` e do `Conf.PassoPagina`, Excluir é destrutivo — `ApagarElementosPagina` — e entra com confirmação); **medido no ZWCAD 2026** (a paleta continua abrindo com as 16 folhas, agora com o rodapé novo) e **+3 testes** que fixam a recusa da minúscula e do sufixo vazio (`plugin:test` **527**); as duas builds 0 erros |
 | 126 — frente 10, fatia 3: a **página entre duas** (o "Inserir") | 2026-09-23 | (este commit) | o `Pagina.calculaNovaPagina` do reverso (170 linhas) foi portado **ramo a ramo** para `NovaPaginaEntre`, com o **`Conf.PassoPagina`** (novo na configuração, padrão 1): cada lado é partido em número/letra (o `Asc` da última letra e o prefixo; no ramo **numérico** vale o **número inteiro**, no alfanumérico o `Mid(1, len-1)`), as **quatro** combinações seguem a mesma casca ("cabe no passo? então a letra; senão o próximo número; não cabe? então `num4 + Passo`"), o posterior **vazio** vale o sentinela `1000000` (o fim) e a saída é PgNum + PgAlfa (vazia no código 64) + Pagina + PgDec; o item **Inserir** ficou **ligado** — pega a página selecionada e a **próxima**, calcula e **informa** (a criação do layer/formato entra na fatia 6); **+5 testes** (plugin:test **532**) e as duas builds 0 erros, com a paleta abrindo as 16 folhas no ZWCAD |
+| 127 — frente 12: **as 127 telas do reverso decodificadas e abertas no CAD** (os `frm*`) | 2026-09-24 | (este commit) | o dono do produto pediu o recode do máximo de `frm*` — os formulários que abrem **dentro do CAD** — e perguntou se, com o que existe, dá para saber a formatação correta: **dá**, e a resposta foi medida antes de escrever código: os **127** `frm*` guardam o método do designer inteiro (`SuspendLayout`) no descompilado e o de4dot **não** ofuscou os nomes de controle nem os valores das propriedades, então cada janela tem título, `ClientSize` e cada controle na posição/tamanho/texto/ícone do original; entraram o decodificador **`scripts/extrair-formularios-do-reverso.ps1`** (resolve a `mMensagem` por índice — inclusive a **concatenação do VB**, `Operators.ConcatenateObject`, com o que só existe em execução virando o marcador `{expressão}` —, os ícones pelo nome do recurso, as **colunas das grades** que o original cria nas rotinas de carga e os **textos que o designer deixa como placeholder**: 508 campos com o texto igual ao nome do controle caíram para **157**), o mapa humano **`docs/reverso-formularios.txt`** (127 telas, **3431 campos** = 2589 controles + 842 colunas) e a tabela compilada **`FormulariosDoReverso`** no `Positron.Data` (+ `FormulariosDoReverso.Dados.cs`, gerado); no plugin o **`JanelaDoReverso`** reconstrói qualquer tela (aninhamento por `Pai`+`Ordem`, abas, itens de menu, colunas, âncoras, fontes, cores e os ícones da `lib/Icons`) e a abre **modeless no CAD** com o mesmo `Application.ShowModelessDialog` do original (121 chamadas no reverso; o stub do AutoCAD ganhou o método e as referências de WinForms); os comandos novos são **`JANELAS`** (o seletor das 127, com filtro e o botão de montar todas), **`JANELA`** (abre uma pelo `POSITRON_JANELA`, o padrão `POSITRON_*` do plugin) e **`pzTelas`** (monta as 127 e descarta, sem abrir nada — a prova dentro de um script); de quebra, o **`scripts/extrair-imagens-dos-formularios.ps1`** tirou do `.resx` de cada formulário as **34 imagens** que o `Resources` global não tinha (Bitmap serializado pelo BinaryFormatter → PNG, `lib/Icons` foi de 348 para 363 ícones) e as duas telas cuja regra **já estava portada** ficaram ligadas: **`APAGARXDATA`** abre o `frmPesquisaXdatas` com a grade lendo o ModelSpace (a regra pura `XDatasDoDesenho` — a lista fixa dos 32 app names do produto usada como filtro, que o construtor do original ainda **esconde desmarcada** — + o adapter `XDatasDoCad`, que lê o **último `1001`** do XData e grava a marca única, o mesmo quirk do `apagaXDataTerceiros`) e o **`frmEstatisticaDeBornes`** mostra a estatística do `STATBORN` na grade por régua com os **sete totais** do rodapé sobre as linhas selecionadas (o `calculaSelecionado`); **medido no ZWCAD 2026** — `JANELAS: 127 de 127 tela(s) do reverso montada(s), nenhuma falha.`, `JANELA: "Configuração Geral" (frmConfiguracaoGeral) aberta no CAD — 110 controle(s).` e, no **`Funcional.dwg` real**, `APAGARXDATA: 1 app name(s) de XData na grade (só os de terceiros): CONSTRUTOR (4).` e `STATBORN: 31 régua(s), 199 usados simples, 17 de reserva simples…` (os mesmos **31/199/17** já medidos: a tela **confere** o comando); **+23 testes** (`plugin:test` **555**) e as duas builds 0 avisos — **a validação visual das telas é do dono do produto** |
 | 66 — `NRegua1`/`NRegua2` da `Interligacao4`: bug medido, corrigido e a tabela entra no A/B | 2026-09-22 | 3e748f2 | o levantamento dos relatórios de Fiação/Interligação (§7.3) mostrou que o relatório de interligação identifica a ponta de régua por `Tag1 = <régua>` **com `NRegua1 = ''`** — e a nossa projeção preenchia o `NRegua1`/`NRegua2`; **medido no produto**: das **5.042 linhas** de `Interligacao4` (todas as revisões e desenhos) **0** têm `NRegua1`/`NRegua2` preenchido (nem as 55 com `TipoBorne <> 0`), enquanto as nossas 20 linhas do DWG 63 tinham a coluna cheia — é a **mesma regra da rodada 43** (`NRegua` só sai preenchida no caminho da porta `E`), que ficou valendo só na `Fiacao`; a correção é a de `PontoFiacao.AplicarBorne` aplicada a `PontoInterligacao.AplicarBornePonta1/2` (`NRegua1/2 = ""`, com a medição no comentário) e o teste do projetor passa a travar isso; a causa de o bug ter sobrevivido desde a rodada 39 é de ferramenta — **`Interligacao4` não estava no `cad-ab-tabelas`**, que compara as 7 tabelas do `FIA`; a tabela entra agora (22 colunas das duas pontas, chave `Tag_Cabo`+`Num_Veia`) e o A/B fecha **IDÊNTICO** (`b4919622ef820429`, 20 × 20, 0 coluna divergente) contra o produto na revisão dele (`00A-1`); o ciclo completo segue verde (`VERIF` 249, `IDEMPOTENTE` de hash igual) e `plugin:test` **323** com as duas builds 0 avisos |
 | 65 — relatórios tabulares no app (`Lista de Veias` e `Lista de Materiais`) | 2026-09-22 | 4751d50 | abre a frente dos relatórios (decisão 9b) pelo caminho do **app Python**, entregando **2** dos **37** tabulares do original: o motor `sidecar/relatorios/` (cada relatório é um módulo que declara as colunas — com o **id** de cada texto do resource `Mensagens`, extraído do `Eletron4.Resources.resx` descompilado — e monta as linhas com SQL leitor), o contrato `relatorio_listar`/`relatorio_gerar` (**24 métodos**) e a área de relatórios na visão de painel (`RelatoriosPanel`, com seletor de relatório e de revisão — esta última vinda de `cabos4_por_revisao`, já que o app não tem seletor de revisão); as duas consultas do reverso foram reproduzidas: a **Lista de Materiais** é a do `cDadosLM.CarregaDadosDispositivosMultiplosPN` no caso de um painel (`INNER JOIN Materiais ON IndiceMaterial = CodigoInterno`, `IndiceMaterial <> 0`, `ORDER BY IndiceMaterial, Ordem, Tag`, com a **`DescricaoCompleta`** — o `INNER JOIN` descarta 5 das 91 linhas do painel 503) e a **Lista de Veias** é o `CDadosAccessInterligacao.CarregaVeias4` + `CarregaUmaVeias4Copel` + `CarregaDadosInterlig4` (um cabo do catálogo com `Pn1`/`Pn2` no painel, orientado com o painel na ponta 1, uma linha por veia com `Num_Veia > -51`, as pontas casadas **por painel** no `Interligacao4`, o `NRegua` mandando na coluna de dispositivo, o terminal vazio/`"0"` virando `?`, o `Documento Funcional` ordenado e sem repetição, o cabo uma vez só e as veias de reserva caindo no trecho da **seguinte**); **verificado com dados reais** (DWG 63, painel 503, revisão `R0`): **86** linhas na lista de materiais e **22** na de veias, com as duas contas conferidas por **SQL independente** (86 = as 91 do painel menos as 5 sem material no catálogo; 22 = 20 veias com trecho próprio + 2 do fallback das reservas), o passo **5b** novo do `cad-projeto-e2e.ps1` rodando os relatórios no ciclo (verde, com `VERIF` 249 e `IDEMPOTENTE` de hash igual) e +4 testes no sidecar (`test:sidecar` **34**); `protocol:gen` verde (24 métodos), `typecheck` limpo e `build:web` OK; **não entrou**: os relatórios de Fiação e Interligação, a exportação (Excel/DWG/PDF) e o `OrdenaAVeia` (§7.3 registra cada bloco) |
 | 63 — licença **removida** (o produto é open source) | 2026-09-22 | c9f9a69 | o app é **open source** e não exige licença para rodar, então o subsistema saiu **inteiro**, e não desligado — o diretório `Positron.Data/Licenca` (o `ServicoDeLicenca`, a interface `ILicenca`, o `ResultadoLicenca` e o `LicencaDeDesenvolvimento`), os 4 testes (`ServicoDeLicencaTests`) e o gate `BloqueioDeLicenca` dos **8** comandos que o chamavam (`FIA`, `JMP`, `INT`, `VERIF`, `ELETREL`, `INDCABO`, `EPLQ` e `COMPLM`), mais o helper e o `using`; nenhum dos três provedores do original (`cCheckLicRockey`/`cCheckElecKey`/`cCheckNuvem`, este com credenciais Azure em texto claro) é portado e **não sobra encaixe nem caminho morto**; a documentação acompanha a decisão (PLANO §9a/§7.5 e POSITRON §8, que deixou de listar licença como decisão aberta); **verificado**: `plugin:build` (API real do ZWCAD) e `:autocad` (stub) com **0 avisos**, `plugin:test` **323** (eram 327 — saíram os 4 de licença) e o ciclo completo no ZWCAD 2026 (`cad:projeto -- -Idempotencia`) verde com o **mesmo hash** de conteúdo da rodada 62 (`01072292…`), `VERIF` **249**, app **4.897** linhas e `IDEMPOTENTE` — a remoção não mudou um byte da projeção |
@@ -964,7 +970,51 @@ dono do produto):
 | 3 | a **paleta** (`PaletteSet` do `ZdWindows`) com o controle das folhas, ancorável como no original | ✅ rodada 121 (a janela de sistema operacional saiu: a paleta é do CAD e não rouba o foco) |
 | 4 | a **barra de ferramentas** (`Ribbon.CreateRibbon`/`CreateRibbon2`) com os botões dos comandos que existem | ✅ rodada 121 (aba **Positron** com 12 botões em 2 painéis) |
 | 5 | o **autoload** — o `.bundle` + `PackageContents.xml` para a DLL ser carregada sem `NETLOAD` | ✅ rodadas 120 e 122 (o manifesto, o `LEIA-ME.txt` e o **`Positron.lsp`** com o `ELET` que carrega a DLL **pelo nome**) |
-| 6 | o **splash** e os recursos (`frmSplash`, o `MascaraM.dwg` do recurso) | ⏳ (os **textos** e os **348 ícones** já saíram do DLL original pelo de4dot nas rodadas 123 e 124: ver `MensagensDoReverso`, `IconsDoReverso`, `cad-plugin/lib/Icons/` e `docs/reverso-barra-do-original.txt`) |
+| 6 | o **splash** e os recursos (`frmSplash`, o `MascaraM.dwg` do recurso) | ⏳ parcial — a **tela** do splash entrou na rodada 127 pelo mapa do §7.9 (o `frmSplash` monta com o `BackColor` azul, o `BackgroundImage = SplashEL26`, o `TransparencyKey` e a borda nenhuma, exatamente como o designer); falta o `MascaraM.dwg` (recurso) para o formato da página. Os **textos** e os **363 ícones** já saíram do DLL original pelo de4dot (rodadas 123/124/127: ver `MensagensDoReverso`, `IconsDoReverso`, `cad-plugin/lib/Icons/` e `docs/reverso-barra-do-original.txt`) |
+
+### 7.9 Frente 12 — as telas do reverso (os 127 `frm*`) · P1
+
+O recorte está fechado e o shell existe (§7.8), mas o produto tem **127 telas**: cada comando
+"só UI" da triagem do §7.6 abre uma janela `frm*`. Esta frente as traz **em bloco**, pelo caminho
+mais barato e mais fiel — a formatação lida do próprio original, e não redesenhada.
+
+**O achado que a frente usa:** o `.cs` descompilado guarda o método do designer inteiro
+(o `[DebuggerStepThrough]` com o `SuspendLayout()`), e o de4dot **não** ofuscou os nomes de
+controle nem os valores das propriedades (só os campos privados e os nomes de método). A
+formatação das janelas, portanto, **não se perdeu** — dá para lê-la, não adivinhá-la.
+
+| peça | onde está | o que faz |
+|---|---|---|
+| o decodificador | `scripts/extrair-formularios-do-reverso.ps1` | lê o designer dos 127 `frm*` e emite o mapa + a tabela compilada |
+| o mapa | `docs/reverso-formularios.txt` | 127 telas, **3431 campos**, cada um com tipo/nome/pai/caixa/texto/ícone e a linha do designer (a evidência) |
+| os dados | `Positron.Data/Interface/FormulariosDoReverso.cs` + `.Dados.cs` (gerado) | a consulta (`Todas`, `Buscar`, `Tela.Filhos`) e a tabela |
+| o renderizador | `Positron.Plugin/Interface/JanelaDoReverso.cs` | monta a janela fiel e a abre **modeless no CAD** (o `Application.ShowModelessDialog` do original) |
+| o seletor | `Positron.Plugin/Interface/SeletorDeTelas.cs` | as 127 numa lista com filtro (tela do recoder; o original tem um comando por janela) |
+| as ligações | `Positron.Plugin/Interface/LigacoesDoReverso.cs` | para as telas cuja **regra já está portada**, liga os controles à regra do `Positron.Data` |
+| os ícones | `scripts/extrair-imagens-dos-formularios.ps1` | as **34** imagens que só existem no `.resx` de cada formulário (o `Resources` global não as tem) |
+
+**Comandos:** `JANELAS` (o seletor), `JANELA` (uma pelo `POSITRON_JANELA`) e `pzTelas` (monta as
+127 e descarta — a prova, sem abrir nada). As telas com regra pronta também têm o seu comando do
+original: **`APAGARXDATA`**.
+
+**O método, por tela (o mesmo do §7.7):** a tela abre fiel e **sem comportamento** até a regra
+dela existir; quando existir, entra uma ligação no `LigacoesDoReverso` — os controles são achados
+pelo `Name` do designer. Duas diferenças deliberadas: onde o original mostra `MsgBox`, o recoder
+escreve na **linha de comando** (o `MsgBox` trava um script), e onde a tela lia o banco, entra a
+regra do recoder que o comando equivalente já usa e já foi medida.
+
+**Ligadas até aqui (rodada 127):** `frmPesquisaXdatas` (`APAGARXDATA`, com a grade lendo o
+ModelSpace) e `frmEstatisticaDeBornes` (a estatística do `STATBORN` + os sete totais do rodapé).
+
+**Candidatas óbvias para as próximas rodadas** (tela do mapa × comando que o recoder já tem):
+`frmGerenciadorMateriais` (`GERLM`) e `frmGerenciadorMatIndep` (`ATINDEP`) contra a
+`ListaMateriais`; `frmGerenciadorMascaras` (`GERMASC`) e `frmGerenciadorContatos` (`GERCONT`)
+contra o dicionário de máscaras e os modelos de contatos; `frmGerenciadorDWG` (`GERDWG`) e
+`frmDuplicarCaderno` (`DUPCAD`) contra as páginas do caderno (`PaginasDoDesenho`); e as telas de
+relatório (`frmRelatorio_*`) contra os relatórios que o app já gera.
+
+> **Regra de ouro desta frente:** a tela sai do **mapa** (nada de redesenhar à mão o que o
+> original já diz), e o **comportamento** só entra quando a regra está portada e testada.
 
 ### 7.7 Frente 10 — interface, uma funcionalidade por vez · P1
 

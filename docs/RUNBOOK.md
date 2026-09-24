@@ -769,6 +769,98 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 127 — frente 12: as 127 telas do reverso decodificadas e abertas no CAD (os `frm*`).**
+O dono do produto pediu o recode do maximo de `frm*` — os formularios que abrem **dentro do CAD** —
+e perguntou se, com o que existe, da para saber a formatacao correta das janelas. **Da**, e isso foi
+medido antes de escrever codigo:
+
+- os **127** `frm*` do `decompiled-cleaned` guardam o metodo do designer inteiro (o
+  `[DebuggerStepThrough]` com o `SuspendLayout()`);
+- o de4dot **nao** ofuscou os nomes de controle nem os valores das propriedades — so os campos
+  privados e os nomes de metodo. A formatacao nao se perdeu: da para le-la, nao adivinha-la.
+
+**Como rodar a extracao** (nao precisa do de4dot nem da DLL: le o decompilado direto):
+
+```
+powershell -ExecutionPolicy Bypass -File scripts/extrair-formularios-do-reverso.ps1
+# formularios: 127 | campos: 3431
+# mapa:  docs/reverso-formularios.txt
+# dados: cad-plugin/Positron.Data/Interface/FormulariosDoReverso.Dados.cs
+```
+
+E as imagens que so existem no `.resx` de cada formulario (o `Resources` global nao as tem — elas
+sao um `Bitmap` serializado pelo `BinaryFormatter`, decodificado com o mesmo caminho do
+`ResourceReader`):
+
+```
+powershell -ExecutionPolicy Bypass -File scripts/extrair-imagens-dos-formularios.ps1
+# imagens extraidas: 34   (cad-plugin/lib/Icons: 348 -> 363)
+```
+
+**As quatro armadilhas do designer, todas resolvidas e medidas:**
+
+1. **a `mMensagem` por indice** — inclusive a **concatenacao do VB**
+   (`Conversions.ToString(Operators.ConcatenateObject(mMensagem[1, 595], " - "))`, que o
+   `frmTrocaEditaBlocos` usa no titulo); o que **so existe em execucao** (um nome de painel buscado
+   no banco) vira o marcador `{expressao}`, nunca um valor inventado;
+2. **os icones** pelo nome do recurso (`Resources.Delete_32` -> `lib/Icons/Delete_32.png`, extraidos
+   nas rodadas 124 e 127);
+3. **as colunas das grades** — o original **nao** as cria no designer e sim nas rotinas de carga
+   (`dg.Columns.Add("", mMensagem[1, 786])`), deduplicadas por grade+cabecalho: **842 campos**;
+4. **os textos que o designer deixa como placeholder** (o `Label1` com texto `"Label1"`), que o
+   original preenche nas rotinas de carga: **508** campos com o texto igual ao nome cairam para
+   **157** — so os que continuam sem atribuicao resolvivel ficam como o designer deixou.
+
+**Uma quirk de fidelidade que vale registrar:** o designer do original tem controle em **coordenada
+negativa** (`BTCorrigaPortasDiscrepantes` em `Location = (-18, ...)`) — por isso o "o designer nao
+pos" e `Campo.NaoDefinido` (`int.MinValue`) e nao `-1`, e o renderizador **nao** faz clamp.
+
+**No plugin:** o `JanelaDoReverso` monta a tela pelo mapa (aninhamento por `Pai`+`Ordem`, abas,
+itens de menu, colunas, ancoras, fontes, cores e os icones) e a abre **modeless no CAD** com o
+`Application.ShowModelessDialog` do original (121 chamadas no reverso; o stub do AutoCAD ganhou o
+metodo e as referencias de WinForms, para o gate de compilacao seguir valendo). O `SeletorDeTelas`
+(`JANELAS`) lista as 127 com filtro; o `JANELA` abre uma pelo `POSITRON_JANELA`; o `pzTelas` monta as
+127 e descarta (a prova dentro de um script, sem abrir nada). As telas com regra pronta tem o
+**comando do original**: `APAGARXDATA`.
+
+**Medido no ZWCAD 2026** (harness por `/b`; as duas builds com 0 avisos):
+
+| passada | linha do `POSITRON_LOG` |
+|---|---|
+| `pzTelas` (com o fixture) | `JANELAS: 127 de 127 tela(s) do reverso montada(s), nenhuma falha.` |
+| `JANELA` com `POSITRON_JANELA=frmConfiguracaoGeral` | `JANELA: "Configuração Geral" (frmConfiguracaoGeral) aberta no CAD — 110 controle(s).` |
+| `APAGARXDATA` no `Funcional.dwg` real | `APAGARXDATA: 1 app name(s) de XData na grade (só os de terceiros): CONSTRUTOR (4).` |
+| `STATBORN` + a tela ligada, no `Funcional.dwg` | `STATBORN: 31 régua(s), 199 usados simples, 17 de reserva simples…` |
+
+O **`CONSTRUTOR (4)`** e o app name de terceiros que o desenho real carrega — a grade do
+`frmPesquisaXdatas` leu o ModelSpace de verdade. Os **31/199/17** sao os mesmos numeros das rodadas
+51 e 108: a tela ligada **confere** o comando, nao substitui a medicao dele.
+
+**As duas ligacoes desta rodada** (regra pronta -> comportamento, no `LigacoesDoReverso`):
+
+- **`APAGARXDATA`** abre o `frmPesquisaXdatas` com a grade vinda do `XDatasDoDesenho` (a regra: a
+  lista fixa dos **32** app names do produto, usada como **filtro** — e o construtor do original
+  ainda **esconde** o `CkXdataEletron` desmarcado, ou seja o filtro esta sempre ligado) mais o
+  `XDatasDoCad` (le o **ultimo `1001`** do XData da entidade, em maiusculas, como o
+  `LeTodosOsXdatasDoCaderno`, e grava a **marca unica** no apagar, o mesmo quirk do
+  `apagaXDataTerceiros`);
+- o **`frmEstatisticaDeBornes`** mostra a estatistica do `STATBORN` na grade por regua com os
+  **sete totais** do rodape (usados/reserva simples e duplos, o total simples, o total duplo e o
+  geral) sobre as linhas **selecionadas** (ou todas, quando nada esta selecionado: o
+  `calculaSelecionado`), com o `TBPesquisa` filtrando por nome/painel/indice.
+
+**Duas diferencas deliberadas:** onde o original mostra `MsgBox`, o recoder escreve na **linha de
+comando** (um `MsgBox` num script nao tem quem o feche); e as **colunas** da grade da estatistica
+nao estao no designer nem nas rotinas do formulario (o original as cria no `clsReguasDeBornes`,
+que o recoder nao porta), entao entram as do relatorio do proprio recoder.
+
+**Testes:** +23 (`plugin:test` **555**) — o mapa das 127 telas (contagens golden, integridade
+"todo pai existe", as duas telas de fundo sem controle, os titulos resolvidos da `mMensagem`, o
+marcador de execucao e a coordenada negativa preservada) e a regra do `XDatasDoDesenho` (a lista
+do produto, o teste ordinal, a ordem da primeira aparicao, o filtro do `CkXdataEletron`).
+
+**O teste visual das telas e do dono do produto** (o harness abre, mas ninguem olha o desenho).
+
 **Rodada 126 — a fatia 3: a pagina que cabe entre duas (o "Inserir").**
 O `Pagina.calculaNovaPagina` do reverso (170 linhas) foi portado **ramo a ramo** para a classe
 `NovaPaginaEntre`, com o `Conf.PassoPagina` (que entrou na configuracao, padrao 1):

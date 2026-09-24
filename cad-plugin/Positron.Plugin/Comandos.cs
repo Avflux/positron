@@ -90,6 +90,53 @@ namespace Positron.Plugin
         }
 
         /// <summary>
+        /// <c>JANELAS</c> — abre o **seletor das janelas do reverso**: as **127 telas `frm*`**
+        /// decodificadas do original (o mapa é o `docs/reverso-formularios.txt`), com um filtro e
+        /// o botão de abrir montando a janela fiel dentro do CAD pelo <c>JanelaDoReverso</c>.
+        /// </summary>
+        [CommandMethod("JANELAS")]
+        public void Janelas()
+        {
+            Plugin.Escrever(Interface.SeletorDeTelas.Abrir());
+        }
+
+        /// <summary>
+        /// <c>JANELA</c> — abre **uma** tela do reverso pelo nome do `frm`, lido da variável
+        /// <c>POSITRON_JANELA</c> (o mesmo padrão `POSITRON_*` do resto do plugin); sem a variável,
+        /// abre o seletor. A janela sai modeless, como no original
+        /// (<c>Application.ShowModelessDialog(this)</c> no construtor de cada `frm*`).
+        /// </summary>
+        [CommandMethod("JANELA")]
+        public void Janela()
+        {
+            string nome = Interface.JanelaDoReverso.NomeDaVariavel();
+            Plugin.Escrever(nome == null ? Interface.SeletorDeTelas.Abrir() : Interface.JanelaDoReverso.Abrir(nome));
+        }
+
+        /// <summary>
+        /// <c>APAGARXDATA</c> — o comando do original que abre o <c>frmPesquisaXdatas</c> (a tela
+        /// que lista os app names de XData do desenho e deixa apagar os escolhidos). Aqui ela abre
+        /// **ligada**: a grade lê o ModelSpace pelo <c>XDatasDoCad</c>, o `BtPesquisa` recarrega e o
+        /// `BtApaga` limpa os escolhidos — a regra é a <c>XDatasDoDesenho</c>.
+        /// </summary>
+        [CommandMethod("APAGARXDATA")]
+        public void ApagarXData()
+        {
+            Plugin.Escrever(Interface.JanelaDoReverso.Abrir("frmPesquisaXdatas"));
+        }
+
+        /// <summary>
+        /// <c>pzTelas</c> — a prova da casca (o par do `pzDiag`): monta **todas** as telas do mapa
+        /// e descarta cada uma, **sem abrir nada**, para caber num script. É o teste de que o
+        /// renderizador dá conta das 127 definições do original.
+        /// </summary>
+        [CommandMethod("pzTelas")]
+        public void ConferirTelas()
+        {
+            Plugin.Escrever(Interface.JanelaDoReverso.ConferirTodas());
+        }
+
+        /// <summary>
         /// Compila a fiação: lê as <c>CONEXAO</c> do desenho e grava em
         /// <c>Fiacao</c> no banco do projeto. Equivale ao <c>FIA</c> do original
         /// (<c>frmCompilarFiacao</c>), sem a tela ainda.
