@@ -769,6 +769,44 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 122 — o carregador, a formatação do reverso e a descoberta dos recursos ofuscados.**
+Três respostas para as perguntas do dono do produto.
+
+**1. O carregador (o `ELET` não é exigido).** O `ELET` do reverso é um comando **vazio** dentro da
+DLL: quem carrega a DLL é o **autoload** (ou um LISP). Então o pacote em
+`install/Positron.bundle/` ganhou o `LEIA-ME.txt` e o **`Positron.lsp`**:
+
+- **autoload** (recomendado): copiar a pasta para a `Support` do perfil — o
+  `PackageContents.xml` faz o ZWCAD carregar a DLL na abertura e chamar o
+  `IExtensionApplication` (a barra aparece sozinha, **sem digitar nada**);
+- **por comando**: o `Positron.lsp` define `c:ELET`, que faz `(findfile "Positron.Plugin.ZWCAD.dll")`
+  — acha a DLL **pelo nome**, sem procurar o caminho — dá o `NETLOAD` e abre a paleta de folhas.
+
+**2. A formatação do reverso (o que dá e o que não dá).**
+
+- do **código decompilado** dá para copiar a **estrutura e os rótulos literais**: o menu de
+  contexto do `uscPaginas` (**Multiseleção**, **Nova Página**, **Inserir**, **Excluir Páginas**,
+  **Renomear Páginas**, **Editar Unidade**, **Editar Alternativo**) e as colunas técnicas
+  (`Pg`, `PgDecimal`) entraram no `FolhasControle`; a barra segue o `Ribbon.cs` (a aba com
+  painéis e botões, cada botão com o `CommandParameter`);
+- os **textos das mensagens** (os títulos dos painéis da barra e os três primeiros cabeçalhos da
+  grade, que vêm do `mMensagem`) e os **ícones** estão nos **recursos ofuscados** da DLL original:
+  verifiquei o `Eletron4Z.dll` (12 MB) e ele tem **6 recursos com nomes aleatórios** — não são
+  extraíveis como texto. Por isso os rótulos descritivos e a ausência de ícones: é o único ponto em
+  que pegar do reverso não é possível com o que temos (o instalador/imagens do produto resolveriam).
+
+**3. O que a tela já mostra.** O menu traz os itens do reverso; os que dependem de **regra ainda não
+portada** (Nova Página/Inserir = fatia 3 da frente 10; Excluir/Renomear = fatia 4) ficam
+**desabilitados** com o motivo — é o roteiro: portar essas regras **acende** o menu.
+
+**Medido no ZWCAD 2026** (passada `FOLHAS`, com o controle novo):
+
+```text
+Positron carregado. Digite ELET para começar — ELET abre a paleta de folhas (FOLHAS também).
+Barra: aba "Positron" com 12 botão(ões).
+Positron — paleta de folhas com 16 página(s) (ancorada no CAD).
+```
+
 **Rodada 121 — frente 11, fatias 3 e 4: a paleta de folhas e a barra de ferramentas.**
 Duas correções pedidas pelo dono do produto: **a janela de folhas era uma janela de sistema
 operacional** (roubava o foco e não dava para usar o CAD) e **a barra não existia**.

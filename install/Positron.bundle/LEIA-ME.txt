@@ -1,0 +1,19 @@
+Positron — autoload e carregador
+================================
+
+Duas formas de carregar o plugin, sem precisar procurar a DLL a mao:
+
+1) AUTOLOAD (recomendado — nada para digitar)
+   Copie esta pasta (Positron.bundle) com a DLL compilada para:
+     %APPDATA%\ZWSOFT\ZWCAD\2026\pt-PT\Support\
+   O PackageContents.xml faz o ZWCAD carregar a DLL na abertura e chamar o
+   IExtensionApplication (a barra Positron aparece sozinha).
+
+2) CARREGADOR POR COMANDO (ELET)
+   Ponha Positron.lsp e a DLL na pasta de suporte (ou APPLOAD no .lsp).
+   Digitar ELET carrega a DLL pelo nome e abre a paleta de folhas.
+
+Arquivos:
+  Positron.Plugin.ZWCAD.dll  — o plugin compilado (cad-plugin\Positron.Plugin\bin\Debug\ZWCAD\net472)
+  PackageContents.xml        — o manifesto do autoload
+  Positron.lsp               — o carregador opcional (ELET)
