@@ -4,6 +4,34 @@
 > [tabela de registro](#registro-de-execução), com o commit e a evidência.
 > Contexto de arquitetura: `POSITRON.md`. Como rodar/verificar: `RUNBOOK.md`.
 
+> ## ⏸ Onde paramos (2026-09-23, rodada 126)
+>
+> **Estado:** **49 comandos**, **532 testes** (`npm run plugin:test`), as duas builds com 0 erros,
+> árvore limpa.
+> **Frentes:** 1 e 2 entregues (a frente 2 em **27 de 38**, sem pendência de implementação ou de
+> prova); as frentes 3–9 estão mapeadas no §7.6; o **§7.7** (interface, uma funcionalidade por vez)
+> tem as fatias **1–4 prontas**; o **§7.8** (o shell: arranque, paleta e barra) tem as fatias
+> **1, 2, 3, 4 e 5 prontas**.
+>
+> **A última rodada (126)** portou a página que cabe **entre duas** (`NovaPaginaEntre`) e deixou o
+> **Inserir** calculando no menu das folhas.
+>
+> **Por onde continuar, na ordem:**
+> 1. **§7.7 fatia 6 — formatos/títulos** (o "Nova Página" de verdade): extrair o `MascaraM.dwg` do
+>    DLL (é recurso, como os ícones) e criar a folha com o formato; é o que destrava **criar**
+>    página e faz o **Inserir** criar, não só calcular.
+> 2. **§7.7 fatia 5** — o passo do caderno pela configuração (o `PassoPagina` já existe) e a
+>    página ativa.
+> 3. **Excluir Páginas** — destrutivo (`ApagarElementosPagina`): só com ok explícito do dono.
+> 4. **Os 42 rótulos/ícones da barra** entram conforme cada comando for portado
+>    (`docs/reverso-barra-do-original.txt`).
+>
+> **Leituras rápidas:** `RELATORIO.md` (o que existe e o que foi medido), `AUDITORIA.md` (o que
+> falta e por quê), `RUNBOOK.md` (rodada a rodada, mais novo primeiro).
+> **Receitas do reverso:** `scripts/extrair-icones-do-reverso.ps1` e
+> `scripts/extrair-barra-do-reverso.ps1` (com o de4dot); os textos em
+> `cad-plugin/Positron.Data/Interface/mensagens-pt.txt`.
+
 ## 1. Objetivo
 
 Cobrir o máximo do recoder do `Eletron4Z` (reverso em
@@ -50,10 +78,10 @@ segunda execução de `FIA`/`INT` duplica linhas e o `ReordenarOrdemFiacao`
 passa a reescrever a `Ordem` das duas cópias (medido no `RUNBOOK.md`: `Fiacao`
 3→6, `Bornes4F` 2→4). **Corrigido na Etapa 1.**
 
-## 2.2 Estado atual (até a rodada 119)
+## 2.2 Estado atual (até a rodada 126)
 
 O recorte do plano — **13 tabelas derivadas do diagrama e o app lendo todas elas** — está
-implementado, verificado e documentado, com **43 comandos** no CAD. Fora desse recorte, a
+implementado, verificado e documentado, com **49 comandos** no CAD. Fora desse recorte, a
 rodada 61 acrescentou **`Plaquetas4`** (comando **`EPLQ`**) e a rodada 62 a
 **`ListaMateriais`** (comando **`COMPLM`**): as duas são escritas pelo plugin e o app
 passou a lê-las na **rodada 64** (`plaquetas_por_painel` e `lista_materiais_por_painel`) —
@@ -73,7 +101,7 @@ estilos de texto (rodada 73), o dicionário de máscaras (rodada 76) e os contat
 | Gate | Resultado |
 |---|---|
 | `npm run plugin:build` (ZWCAD→API real) / `:autocad` (stub) | exit 0, 0 avisos / 0 erros |
-| `npm run plugin:test` | **511** aprovados |
+| `npm run plugin:test` | **532** aprovados |
 | `npm run protocol:gen` | contrato OK (**24 métodos**; 31 tabelas) |
 | `npm run typecheck` / `build:web` | limpo / OK (`index-*.js` 190 kB) |
 | `npm run test:sidecar` / `ruff check` | **39** testes / limpo |
