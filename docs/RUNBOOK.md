@@ -769,6 +769,34 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 132 — o painel de cobertura: `scripts/cobertura-do-reverso.ps1` (+ `docs/AUDITORIA.md` §0).**
+O dono do produto perguntou varias vezes "o que ja cobrimos e o que falta" e a resposta nunca era
+concreta. A causa foi encontrada: o inventario existe (§7.6, das rodadas 105-117) mas **nao estava
+cruzado com o codigo atual** — ele ainda marcava como pendentes o `RENPAGA` (a regra foi portada nas
+rodadas 125/129), o `APAGARXDATA` (entregue na 127) e o `PesquisaBlocos` (entregue na 128). Agora a
+pergunta tem instrumento, e ele mede de tres fontes que ja existem no repo: o mapa dos 216 comandos, os
+`[CommandMethod]` do plugin (separa os **escritos a mao** dos **gerados** da rodada 128) e os `frm*.cs`
+do decompilado (com o tamanho de cada tela).
+
+```
+powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1           # o painel
+powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Listas   # + as listas nominais
+```
+
+| | medido |
+|---|---|
+| comandos do reverso | **216** (**121** abrem janela, **95** regra de desenho pura) |
+| comandos que o plugin responde | **152** = **53** escritos a mao (40 do reverso + 13 nossos) + **99** gerados (so abrem a tela) |
+| do reverso **sem nada** no plugin | **77** = **17** abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **60** de regra pura — que **nao** sao 60 regras faltando: o §7.6 ja triou cada um |
+| telas | **127** (**103** alcancadas: **5** com regra, 98 so casca; **19** sao sub-janelas que nenhum comando abre) |
+
+**A leitura e a fila recomendada ficam no `docs/AUDITORIA.md` §0**: a **familia dos atributos** (5
+comandos, 277 linhas — o bloqueio "sem a tela nao ha o que aplicar" caiu na rodada 127), o
+**`CorrigeInterligacao`** (216 linhas, fecha o laco do `VERIF` por pagina inteira) e **ligar as 3 telas
+de compilacao** (`FIA`/`INT`/`JMP`, cuja regra ja existe) — mais o trivial que some da lista (registrar
+o nome `RENPAGA`). O que **nao** e pendencia tambem esta la: as 15 variantes, a frente 11
+(ambiente/licenca), os 3 destrutivos com `MsgBox` e as 19 sub-janelas de exportacao DWG/Excel.
+
 **Rodada 131 — os namespaces acompanham as pastas (`Mapas`, `Barra`, `Folhas`, `Telas`).**
 A rodada 130 deixou as pastas separadas com todos os tipos no namespace antigo; o dono do produto pediu
 o casamento (pasta = namespace), que e a convencao do .NET. O que dava trabalho nao foi o `using` — foi

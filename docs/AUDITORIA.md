@@ -6,6 +6,65 @@
 
 **Não.** O que está coberto é o **recorte** — as correções e a limpeza do CAD (frente 2), a base/contexto (frente 1) e os três pipelines —, e o que está **mapeado** são os **216 comandos** do reverso (todos classificados). O que **não** está coberto é a **lógica por trás dos formulários** (49% do código do reverso) nem a pilha de exportação/importação, as rotinas destrutivas e a integração de ambiente/licença.
 
+## 0. Estado medido agora — o que falta, em ordem (rodada 132)
+
+Esta seção responde à pergunta recorrente *"o que já cobrimos e o que falta"* **com número medido no
+próprio repo**, e não com memória: o `scripts/cobertura-do-reverso.ps1` cruza o mapa dos 216 comandos
+(`docs/reverso-comandos.txt`) com os `[CommandMethod]` do plugin (separando os **escritos à mão** dos
+**99 gerados** da rodada 128) e com as **127** telas do decompilado. Os números do §1 são de
+2026-09-23; estes são de hoje.
+
+```
+powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1          # o painel
+powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Listas # + as listas nominais
+```
+
+| | valor medido |
+|---|---|
+| comandos do reverso | **216** |
+| deles, abrem alguma janela / são regra de desenho pura | **121** / **95** |
+| telas `frm*` | **127** |
+| comandos que o plugin responde | **152** = **53 escritos à mão** (40 do reverso + 13 nossos) + **99 gerados** (só abrem a tela) |
+| comandos do reverso **sem nada no plugin** | **77** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **60** de regra pura |
+| telas alcançadas por algum comando | **103** (5 com regra escrita à mão, 98 só casca) |
+| telas que **nenhum** comando abre (sub-janela: relatórios DWG/Excel, editores) | **19** |
+| telas sem comando e sem casca pelo nome (variante/splash) | **5** |
+
+**Os "60 sem tela e sem nada no plugin" não são 60 regras faltando:** a triagem do §7.6 já dividiu
+cada um (só UI, interativo, destrutivo, ambiente ou substância coberta sob outro nome). O que sobra de
+**regra em lote de verdade** está na **frente 2**, e é pouca coisa:
+
+| comando | no reverso | corpo | veredito (medido na rodada 132) |
+|---|---|---|---|
+| `RENPAGA` | `Correcao.cs:3273` | 52 linhas | **regra já portada** (`PaginasDoCaderno`, rodadas 125/129) — falta só **registrar o nome do comando** |
+| `APAGARXDATA` | `Comandos.cs:1372` | 5 linhas | **entregue** (rodada 127, medido no `Funcional.dwg`) |
+| `PesquisaBlocos` | `Correcao.cs:2050` | 8 linhas | **entregue**: é só UI, e o gerado da rodada 128 abre o `frmNavegador` pelo nome |
+| `CorrigeJanelas` | `Correcao.cs:1083` | 5 linhas | **ambiente**: `Geral.moveFormOrigem()` mexe nas janelas do CAD, não no desenho |
+| `EncontraHandle` | `clsUtilitarios.cs:950` | 74 linhas | **candidato**: pede um handle no `Editor` e navega até o objeto |
+| `CorrigeInterligacao` | `clsUtilitarios.cs:611` | 216 linhas | **candidato grande**: varre as polylines de interligação, descobre o painel de **cada ponta** (`verificaDispInterlig`) e regrava `Painel1`/`Painel2` no XData — a leitura/gravação desse XData e a barra de progresso da paleta **já existem** (rodadas 60 e 121) |
+| `LeAtributos` · `LeTodosAtributos` · `CorrigeAtributos` · `CorrigeAtributosSemMsg` · `PreencheNovosAtributos` | `clsTrocaEditaBlocos.cs:18/171/141/267/278` | 122+95+29+10+21 = **277 linhas** | **candidato recomendado**: é um fluxo **grade → buffer → desenho**; o recorte o deixou de fora (nota no `CorrecaoDosBlocosMirror`) **porque não havia tela** — e a tela existe desde a rodada 127; ler/gravar atributo de bloco já é padrão no plugin (10 adaptadores usam `AttributeReference` e 5 já gravam) |
+
+**Os próximos passos, em ordem de valor por custo:**
+
+1. **A família dos atributos (5 comandos, 277 linhas)** — é exatamente o formato que a interface
+   acabou de ficar pronta para receber: a regra pura (o buffer e **quais** atributos trocar) no
+   `Positron.Data`, a tela e **uma ligação** no `LigacoesDasTelas`. O bloqueio registrado no recorte
+   ("sem a tela não há o que aplicar") **caiu**.
+2. **`CorrigeInterligacao` (216 linhas)** — fecha o laço do `VERIF` na interligação por **página
+   inteira** (o `INDCABO` conserta os trechos escolhidos): o `Painel1`/`Painel2` que o comando conserta
+   é o mesmo campo que a projeção do `INT` já lê e grava.
+3. **Ligar as três telas de compilação** — `frmCompilarFiacao`, `frmCompilarInterligacao` e
+   `frmCompilarJumperExt` **já têm a regra** (os pipelines `FIA`/`INT`/`JMP`, medidos): a tela traz
+   `btAnalisar` (rodar), `dgERROS` (os erros que o `VERIF` já calcula) e `dgRevisao`; o `btApagar`
+   (apagar a compilação da revisão) é **destrutivo** e entra desabilitado com o motivo, como o menu das
+   folhas.
+4. **Trivial, e some da lista:** registrar o **nome `RENPAGA`** para a regra que já existe.
+
+**O que continua fora, decidido (não é pendência):** as **15 variantes** de tela (o argumento da
+construção), a **frente 11** (ambiente/licença — `RESETLIC`/`TCHAVE`/`TUSING`), os **3 destrutivos com
+`MsgBox`** (`DELFIPROJ`, `DELLM`, `DELPLA`) e as **19 sub-janelas** de relatórios DWG/Excel — a pilha de
+exportação (≈5.800 linhas), que sai pelo app (§7.3).
+
 ## 1. O inventário de comandos: completo
 
 Varredura do decompilado (2026-09-23):
