@@ -6,7 +6,7 @@
 
 **Não.** O que está coberto é o **recorte** — as correções e a limpeza do CAD (frente 2), a base/contexto (frente 1) e os três pipelines —, e o que está **mapeado** são os **216 comandos** do reverso (todos classificados). O que **não** está coberto é a **lógica por trás dos formulários** (49% do código do reverso) nem a pilha de exportação/importação, as rotinas destrutivas e a integração de ambiente/licença.
 
-## 0. Estado medido agora — o que falta, em ordem (rodada 132)
+## 0. Estado medido agora — o que falta, em ordem (rodadas 132–133)
 
 Esta seção responde à pergunta recorrente *"o que já cobrimos e o que falta"* **com número medido no
 próprio repo**, e não com memória: o `scripts/cobertura-do-reverso.ps1` cruza o mapa dos 216 comandos
@@ -15,8 +15,10 @@ próprio repo**, e não com memória: o `scripts/cobertura-do-reverso.ps1` cruza
 2026-09-23; estes são de hoje.
 
 ```
-powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1          # o painel
-powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Listas # + as listas nominais
+powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1              # o painel
+powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Listas    # + as listas nominais
+powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acoplamento  # + quanto do
+    # ambiente do original cada corpo carrega (o termometro de "traduzir 1:1 ou virar regra")
 ```
 
 | | valor medido |
@@ -62,6 +64,34 @@ janelas do CAD, não no desenho):
    (apagar a compilação da revisão) é **destrutivo** e entra desabilitado com o motivo, como o menu das
    folhas.
 4. **Trivial, e some da lista:** registrar o **nome `RENPAGA`** para a regra que já existe.
+
+### Por que a regra não vem pronta do decompilado (e o que vem)
+
+O que é **declaração** já é pegado do reverso por script: as 127 telas com os 3431 campos, a barra (9
+painéis / 121 botões), os textos (`mMensagem`), os ícones e os **99 comandos** já gerados daí (rodada 128: só abrem a
+tela) — no original, **164 dos 216** comandos têm corpo de **8 linhas ou menos**, ou seja, o comando é, na
+prática, só montar a tela. O que **não** vem é a **regra**: no decompilado ela chega acoplada ao ambiente do original.
+
+| marca (`-Acoplamento`) | ocorrências no decompilado | comandos que carregam |
+|---|---|---|
+| runtime VB (`Conversions.` / `Operators.`) | **22.195** | 31 |
+| estado global (`DeclaracoesGeral.`) | **12.089** | 48 |
+| banco Access/MDB (`cDados*`) | **2.215** | 11 |
+| `Interaction.MsgBox` (trava um script — não há quem clique) | **655** | 13 |
+| hardlock/licença | **274** | 5 |
+| `Editor` do CAD (`.GetPoint` = 16 + a assinatura `Editor editor` = 115): exige o editor e, no `GetPoint`, alguém para responder | **131** | 6 |
+
+O recoder roda em `net472` dentro do CAD, com **SQLite** e sem `MsgBox`: traduzir 1:1 traria o runtime
+VB, o Access, o clique e a licença junto. E o decompilador **não devolve a intenção** — às vezes mente:
+foi assim com o campo `RenomearPáginasToolStripMenuItem` cujo texto é **"Renumerar Páginas"**, com o
+corpo que abre com guarda e "não abria janela", e com os "2 launchers" que são **1**. Os três foram
+pegos por medição, não por leitura automática.
+
+Por isso a divisão é deliberada: **do reverso vem a declaração; a regra é reescrita** (regra pura no
+`Positron.Data` + teste + adapter que fala com o desenho). O `-Acoplamento` do script mostra, **por
+comando**, quanto de ambiente o corpo carrega, com os totais acima — é o termômetro para achar onde a tradução é
+quase 1:1 (entre os pendentes que ele lista, o `LeAtributos`, de 122 linhas, é o único que só toca
+`Conversions`/`DeclaracoesGeral`) e onde tem de virar regra.
 
 **O que continua fora, decidido (não é pendência):** as **15 variantes** de tela (o argumento da
 construção), a **frente 11** (ambiente/licença — `RESETLIC`/`TCHAVE`/`TUSING`), os **3 destrutivos com
@@ -124,7 +154,7 @@ Ou seja: o recoder é **≈23,5 mil linhas** contra **408 mil** do reverso. Mesm
 ## 4. O que está coberto, e com que evidência
 
 - **Frente 1** (base/contexto) portada; **`SYNCD`** virou o pipeline do original (rodada 107).
-- **Frente 2** (correções e limpeza): **27 de 38** entregues, com medição no desenho real; os 11 restantes são UI/página/interação/destrutivo, classificados um a um.
+- **Frente 2** (correções e limpeza): **30 de 38** entregues, com medição no desenho real; dos **8** que sobram, **7 são regra de desenho** (a fila está no §0, com `arquivo:linha` e custo) e o `CorrigeJanelas` é **ambiente** (mexe nas janelas do CAD, não no desenho).
 - **Frente 3**: o candidato em lote (estatística de bornes) entregue como `STATBORN` (108).
 - **Frente 7**: o pipeline das veias `SYNCV` (111) e o `RECRIACABOS` (115).
 - **Frente 9**: `CBD` (112), `RESTPROJ` e `ApagaERROS` (113).

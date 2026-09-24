@@ -769,6 +769,35 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 133 — por que a regra nao vem pronta do decompilado: `-Acoplamento` no painel.**
+O dono do produto perguntou por que os 53 comandos escritos a mao nao foram **pegados do reverso**, ja
+que estao la. A resposta passou a ser medida em vez de argumentada: o `-Acoplamento` do painel le o
+**corpo de cada comando** do decompilado (chaves balanceadas, com as strings fora da conta) e marca o que
+ele carrega do ambiente do original.
+
+```
+powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acoplamento
+```
+
+| marca | ocorrencias no decompilado | comandos que carregam |
+|---|---|---|
+| runtime VB (`Conversions.` / `Operators.`) | **22.195** | 31 |
+| estado global (`DeclaracoesGeral.`) | **12.089** | 48 |
+| banco Access/MDB (`cDados*`) | **2.215** | 11 |
+| `Interaction.MsgBox` (trava um script: nao ha quem clique) | **655** | 13 |
+| hardlock/licenca | **274** | 5 |
+| `Editor` do CAD (`.GetPoint` 16 + a assinatura `Editor editor` 115) | **131** | 6 |
+
+**164 dos 216** comandos tem corpo de **8 linhas ou menos** — no original, o comando e, na pratica, so montar a tela —,
+e **23** passam de 60 linhas (os candidatos de verdade: `CorrigeInterligacao` 216, `AtualizaOpcionaisDoCabo`
+204, `CriaJigCloud` 186). O que vem do reverso e a **declaracao** (as 127 telas com os 3431 campos, a barra
+com os 9 paineis e 121 botoes, os textos da `mMensagem`, os icones, os 99 comandos gerados na rodada 128); a
+**regra** e reescrita, porque traduzir o corpo 1:1 traria o runtime VB, o Access, o clique do `MsgBox` e a
+licenca junto — e porque o decompilador nao devolve a intencao (foi ele que escreveu
+`RenomearPaginasToolStripMenuItem` com o texto **"Renumerar Paginas"**). O `-Acoplamento` e o termometro
+para achar onde a traducao e quase 1:1: entre os pendentes que ele lista, o `LeAtributos` (122 linhas) e o
+unico que so toca `Conversions`/`DeclaracoesGeral`. A leitura completa: `docs/AUDITORIA.md` §0.
+
 **Rodada 132 — o painel de cobertura: `scripts/cobertura-do-reverso.ps1` (+ `docs/AUDITORIA.md` §0).**
 O dono do produto perguntou varias vezes "o que ja cobrimos e o que falta" e a resposta nunca era
 concreta. A causa foi encontrada: o inventario existe (§7.6, das rodadas 105-117) mas **nao estava

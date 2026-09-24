@@ -9,7 +9,9 @@
 #
 # Uso:
 #   powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1
-#   powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Listas   (as listas nominais)
+#   powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Listas        (as listas nominais)
+#   powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acoplamento  (quanto do
+#       ambiente do original cada corpo carrega: o termometro de "traduzir 1:1 ou virar regra")
 #
 # A leitura dos numeros e o que fazer com eles: docs/AUDITORIA.md, secao 0.
 [CmdletBinding()]
@@ -18,7 +20,10 @@ param(
   [string] $Plugin = "cad-plugin\Positron.Plugin",
   [string] $Decomp = "C:\Users\Administrator\Downloads\Elet\Eletron4_ZWcad\decompiled-cleaned\Eletron4",
   # Imprime tambem as listas nominais (telas e comandos), que sao o que decide a proxima rodada.
-  [switch] $Listas
+  [switch] $Listas,
+  # Imprime, por comando, o que o CORPO dele carrega do ambiente do original (runtime VB, Access,
+  # MsgBox, estado global, Editor). E o termometro de "da para traduzir 1:1 ou tem de virar regra?"
+  [switch] $Acoplamento
 )
 
 $ErrorActionPreference = 'Stop'
@@ -107,6 +112,102 @@ Write-Output ('=' * 78)
 Write-Output 'PROXIMAS DA FILA: telas cuja REGRA ja existe no plugin (falta so a ligacao)'
 foreach ($t in ($telaComRegra | Sort-Object Linhas)) {
   Write-Output ("  {0,-30} {1,6} linhas no reverso   comando(s): {2}" -f $t.Tela, $t.Linhas, $t.Comandos)
+}
+
+# O CORPO do metodo que segue a linha do `[CommandMethod]`: acha a chave de abertura e vai ate ela
+# fechar (strings fora da conta). E o recorte que vale para o tamanho E para o acoplamento - contar
+# "tudo ate o proximo comando" pegava os outros metodos da mesma classe e inflava os dois numeros.
+function CorpoDoMetodo([string] $texto, [int] $inicioDoAtributo) {
+  $resto = $texto.Substring($inicioDoAtributo)
+  $abre = $resto.IndexOf('{')
+  if ($abre -lt 0) { return $resto }
+
+  $nivel = 0
+  for ($i = $abre; $i -lt $resto.Length; $i++) {
+    $c = $resto[$i]
+    if ($c -eq '"') {
+      $i++
+      while ($i -lt $resto.Length -and $resto[$i] -ne '"') {
+        if ($resto[$i] -eq '\') { $i++ }
+        $i++
+      }
+      continue
+    }
+    if ($c -eq '{') { $nivel++ }
+    if ($c -eq '}') {
+      $nivel--
+      if ($nivel -eq 0) { return $resto.Substring(0, $i + 1) }
+    }
+  }
+
+  return $resto
+}
+
+# ---------------------------------------------------------------- o acoplamento do corpo de cada comando
+if ($Acoplamento) {
+  Write-Output ''
+  Write-Output 'ACOPLAMENTO DO CORPO DE CADA COMANDO DO REVERSO (quanto do ambiente do original ele carrega)'
+  Write-Output '  legenda: VB = runtime VB (Conversions/Operators) · ACESSO = cDados* (Access/MDB) · MSGBOX · ESTADO = DeclaracoesGeral · EDITOR = interativo · LIC = hardlock/licenca'
+  if (-not (Test-Path $Decomp)) { Write-Output '  (sem o decompilado: passe -Decomp)' }
+  else {
+    $marcas = @(
+      @{ Sigla = 'VB';     Padrao = 'Conversions\.|Operators\.' },
+      @{ Sigla = 'ACESSO'; Padrao = 'cDados[A-Za-z]*' },
+      @{ Sigla = 'MSGBOX'; Padrao = 'Interaction\.MsgBox' },
+      @{ Sigla = 'ESTADO'; Padrao = 'DeclaracoesGeral\.' },
+      @{ Sigla = 'EDITOR'; Padrao = '\.GetPoint\(|Editor editor' },
+      @{ Sigla = 'LIC';    Padrao = 'hardlock|Hardlock|Rockey|ElecKey|CheckLic' }
+    )
+
+    # Os totais no decompilado inteiro (nao so no corpo dos comandos): e o numero que a tabela do
+    # AUDITORIA cita, e por isso tem de sair daqui - medido, nao lembrado.
+    $totais     = @{}
+    $comandosCom = @{}
+    foreach ($m in $marcas) { $totais[$m.Sigla] = 0; $comandosCom[$m.Sigla] = 0 }
+
+    $porComando = New-Object System.Collections.ArrayList
+    foreach ($arquivo in (Get-ChildItem -Path (Join-Path $Decomp '..') -Recurse -Filter *.cs)) {
+      $texto = [System.IO.File]::ReadAllText($arquivo.FullName)
+      foreach ($m in $marcas) { $totais[$m.Sigla] += ([regex]::Matches($texto, $m.Padrao)).Count }
+      $achados = [regex]::Matches($texto, '\[CommandMethod\("([^"]+)"\)\]')
+      for ($i = 0; $i -lt $achados.Count; $i++) {
+        $nome = $achados[$i].Groups[1].Value
+        $inicio = $achados[$i].Index
+        # O corpo do METODO (chaves balanceadas), nao "tudo ate o proximo comando": e o numero que
+        # o AUDITORIA usa (CorrigeInterligacao 216, PreencheNovosAtributos 21).
+        $corpo = CorpoDoMetodo $texto $inicio
+        $linhasCorpo = ($corpo -split "`n").Count
+        $marcados = New-Object System.Collections.ArrayList
+        foreach ($m in $marcas) {
+          $n = ([regex]::Matches($corpo, $m.Padrao)).Count
+          if ($n -gt 0) {
+            [void]$marcados.Add(($(if ($n -gt 9) { '9+' } else { [string]$n }) + $m.Sigla))
+            $comandosCom[$m.Sigla]++
+          }
+        }
+        [void]$porComando.Add([pscustomobject]@{
+          Comando = $nome; Linhas = $linhasCorpo; Marcas = ($marcados -join ' ')
+          Peso = $marcados.Count
+        })
+      }
+    }
+
+    Write-Output ''
+    Write-Output ('  comando do recoder?  comando           corpo  acoplamento')
+    foreach ($c in ($porComando | Sort-Object -Descending Peso, Linhas | Select-Object -First 30)) {
+      $tem = $(if ($escritos.ContainsKey($c.Comando) -or $gerados.ContainsKey($c.Comando)) { 'sim' } else { '-' })
+      Write-Output ('  {0,-20} {1,-18} {2,6}  {3}' -f $tem, $c.Comando, $c.Linhas, $c.Marcas)
+    }
+    Write-Output ''
+    Write-Output ('  resumo: {0} comandos com corpo curto (<=8 linhas: so abrem a tela) e {1} com corpo grande (>60 linhas)' -f
+      @($porComando | Where-Object { $_.Linhas -le 8 }).Count, @($porComando | Where-Object { $_.Linhas -gt 60 }).Count)
+    Write-Output ''
+    Write-Output '  TOTAIS NO DECOMPILADO INTEIRO (o que a tabela do AUDITORIA cita)'
+    Write-Output ('  {0,-8} {1,12}   {2}' -f 'marca', 'ocorrencias', 'comandos que carregam')
+    foreach ($m in $marcas) {
+      Write-Output ('  {0,-8} {1,12}   {2}' -f $m.Sigla, $totais[$m.Sigla], $comandosCom[$m.Sigla])
+    }
+  }
 }
 
 if ($Listas) {

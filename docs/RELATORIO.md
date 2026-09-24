@@ -6,6 +6,10 @@ implementação ou de prova), **frentes 1–9 todas portadas ou triadas sem cand
 **três pipelines** do original entregues (`SYNCD`, `SYNCV` e `RESTPROJ`) · **48 comandos**, **514
 testes**, duas builds com 0 avisos.
 
+> **Este arquivo é um retrato datado** (rodada 115) dos números daquele dia. A contagem **viva** de
+> cobertura — o que o plugin responde hoje, comando a comando — está no **`docs/AUDITORIA.md` §0** e sai
+> de `scripts/cobertura-do-reverso.ps1`: em 2026-09-24 a frente 2 estava em **30 de 38** entregues.
+
 Este relatório é a leitura única do que existe, do que foi **medido no desenho real** e do que
 ficou **fora do recorte com motivo**. O detalhe rodada a rodada está no `docs/RUNBOOK.md` (mais
 novo primeiro) e o registro completo no `docs/PLANO.md` (§2.2 e a tabela de rodadas).
