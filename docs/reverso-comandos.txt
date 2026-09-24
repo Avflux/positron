@@ -1,0 +1,354 @@
+# O mapa dos comandos do reverso (comando -> janela)
+
+Gerado por `scripts/extrair-comandos-do-reverso.ps1` a partir do descompilado
+(`..\Elet\Eletron4_ZWcad\decompiled-cleaned`). Cada `[CommandMethod]` do original e a janela
+que o corpo dele abre: no original o comando e fino, quem trabalha e a janela - e ela abre
+**dentro do CAD** (`Application.ShowModelessDialog(this)` no construtor do `frm*`).
+
+`so abre` = o corpo nao faz outra regra alem de montar a janela. `variante` = a construcao
+passa argumento (`new frmRelatorio_DICemig(3)`), entao aquele comando e uma variante da tela.
+
+| comando | janela(s) | construcao | so abre | variante | ja no recoder | guarda | origem |
+|---|---|---|---|---|---|---|---|
+| `ADDDESC` | `frmTextoLP` | `new frmTextoLP()` | sim | nao | nao |  | `Comandos.cs:318` |
+| `AJUDA` |  | - | nao | nao | nao | `Operators.CompareString(DeclaracoesGeral.ConfElet.Idioma, "", TextCompare: true) != 0` `Operators.CompareString(DeclaracoesGeral.ConfElet.Idioma, "", TextCompare: true) == 0` | `Comandos.cs:1414` |
+| `ANET` |  | - | nao | nao | nao |  | `Comandos.cs:64` |
+| `ApagaBlocosMirror` |  | - | nao | nao | sim | `val6 == null` `!flag && ((DBObject)val6).XData != (ResultBuffer)null` `scaleFactors.X < 0.0` | `clsUtilitarios.cs:1025` |
+| `ApagaLayouts` |  | - | nao | nao | sim | `val2.Contains("")` | `Correcao.cs:566` |
+| `ApagaPlaquetas` |  | - | nao | nao | sim | `val2.Contains("")` | `Correcao.cs:601` |
+| `ApagarTextosEmBranco` |  | - | nao | nao | sim | `val6 != null && Operators.CompareString(val6.TextString.Trim(), "", TextCompare: true) == 0 && ((DBObject)val6).XData == (ResultBuffer)null` | `Correcao.cs:1968` |
+| `apagarTodosOsTextosDasVeias` |  | - | nao | nao | sim | `val6 == null` `XDataInterligacao.lerXDataAuxInterligacaoEletrosul(ref ent, ref sHandle)` `XDataInterligacao.lerXDataAuxInterligacao(ref ent, ref handle, ref tipo, ref THandle, ref sHandle) && tipo == 1` | `Correcao.cs:1736` |
+| `APAGARXDATA` | `frmPesquisaXdatas` | `new frmPesquisaXdatas()` | sim | nao | sim |  | `Comandos.cs:1372` |
+| `apagaXDataTerceiros` |  | - | nao | nao | sim | `XDataGeral.TemXData(ref ent, "")` | `Correcao.cs:1002` |
+| `APL` | `frmAplicacao` | `new frmAplicacao()` | sim | nao | nao |  | `Comandos.cs:623` |
+| `ATCABO` | `frmatribuirVeias` | `new frmatribuirVeias()` | sim | nao | nao |  | `Comandos.cs:809` |
+| `ATINDEP` | `frmGerenciadorMatIndep` | `new frmGerenciadorMatIndep()` | sim | nao | nao |  | `Comandos.cs:1197` |
+| `ATPG` | `frmTopograficoAnilha` | `new frmTopograficoAnilha()` | sim | nao | nao |  | `Comandos.cs:741` |
+| `AtualizaOpcionaisDoCabo` |  | - | nao | nao | sim | `val5 != null` `flag` `(tipo == 3) | (tipo == 4) | (tipo == 5) | (tipo == 6)` `pl != null` `XDataInterligacao.lerXDataInterligacao(ref pl, ref ilig)` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) == 0` `ilig.NumVeia == -1000` `ilig.NumVeia == -1000` `Operators.CompareString(text3, "", TextCompare: true) == 0` `Operators.CompareString(text, "", TextCompare: true) == 0` `num == 100` | `clsUtilitarios.cs:1123` |
+| `BLI` |  | - | nao | nao | nao |  | `Comandos.cs:802` |
+| `BORN` | `frmBornes` | `new frmBornes()` | sim | nao | nao |  | `Comandos.cs:441` |
+| `CAD` |  | - | nao | nao | nao |  | `Comandos.cs:107` |
+| `CBD` |  | - | nao | nao | sim |  | `Comandos.cs:1248` |
+| `CFG` | `frmConfiguracaoGeral` | `new frmConfiguracaoGeral()` | sim | nao | nao |  | `Comandos.cs:95` |
+| `CHVAUT` |  | - | nao | nao | nao |  | `Comandos.cs:312` |
+| `CIRC` | `frmCircuito` | `new frmCircuito()` | sim | nao | nao |  | `Comandos.cs:492` |
+| `CLOBORN` | `frmClonarEstruturaRegua` | `new frmClonarEstruturaRegua()` | sim | nao | nao |  | `Comandos.cs:486` |
+| `CLOCAB` | `frmClonarCabos` | `new frmClonarCabos()` | sim | nao | nao |  | `Comandos.cs:938` |
+| `CLONAR` | `frmClonar` | `new frmClonar()` | sim | nao | nao |  | `Comandos.cs:1230` |
+| `COMPLM` |  | - | nao | nao | sim |  | `Comandos.cs:1203` |
+| `CON` |  | - | nao | nao | nao |  | `Comandos.cs:498` |
+| `CONAUT` |  | - | nao | nao | nao | `Operators.CompareString(keywords.StringResult, "", TextCompare: true) != 0` `Operators.CompareString(keywords.StringResult, "", TextCompare: true) == 0` | `Comandos.cs:511` |
+| `CONFLP` | `frmConfiguracaoLP` | `new frmConfiguracaoLP()` | sim | nao | nao |  | `Comandos.cs:306` |
+| `CONT` | `frmContatosAux` | `new frmContatosAux()` | sim | nao | nao |  | `Comandos.cs:217` |
+| `COPIAINT` | `frmCopia` | `new frmCopia()` | sim | nao | nao |  | `Comandos.cs:1242` |
+| `COPYCAD` | `frmCopiarObjetos` | `new frmCopiarObjetos()` | sim | nao | nao |  | `Comandos.cs:1360` |
+| `CorrigeAtributos` |  | - | nao | nao | nao | `Operators.CompareString(clsTrocaEditaBlocosMat.mAtributos[i].sHandleBlocoo, clsTrocaEditaBlocosMat.mAtributos[i].sHandleBlocooNovo, TextCompare: true) != 0 && !list.Contains(clsTrocaEditaBlocosMat.mAtributos[i].sHandleBlocooNovo)` `clsTrocaEditaBlocosMat.lBlocosExistentesTrocados.Count > 1` `list.Count >= 1` `Operators.CompareString(clsTrocaEditaBlocosMat.sBlocosNaoExistentes, "", TextCompare: true) != 0` | `clsTrocaEditaBlocos.cs:141` |
+| `CorrigeAtributosSemMsg` |  | - | nao | nao | nao |  | `clsTrocaEditaBlocos.cs:267` |
+| `CorrigeBlocosContatosAux` |  | - | nao | nao | sim | `array2.Count() <= 1` `val6 == null` `Operators.CompareString(XDataDispositivo.verificaTipoDispositivo(ref ent, ref tipoImportado), "", TextCompare: true) != 0` `(array2[k].iModelo == structureAuxiliar.IndexModelo) & (array2[k].iContato == structureAuxiliar.IndexContato)` | `Correcao.cs:1834` |
+| `CorrigeBornes` |  | - | nao | nao | sim | `Operators.CompareString(XDataDispositivo.verificaTipoDispositivo(ref ent, ref tipoImportado), "", TextCompare: true) == 0` `structureBorne.Visivel == -1` | `Correcao.cs:317` |
+| `CorrigeCabos` |  | - | nao | nao | sim |  | `Correcao.cs:1556` |
+| `CorrigeCabosSingelos` |  | - | nao | nao | sim | `lVeias.Count > 0` `val6 != null` `XDataInterligacao.lerXDataInterligacao(ref pl, ref ilig) && lVeias.Contains(ilig.Tag_Cabo)` | `Correcao.cs:1255` |
+| `CorrigeContatosAux` |  | - | nao | nao | sim |  | `Correcao.cs:636` |
+| `CorrigeCoresDosBlocos` |  | - | nao | nao | sim |  | `Correcao.cs:2996` |
+| `corrigeDicMascaras` |  | - | nao | nao | sim | `!list.Contains(mPortas[j].IndiceDaPorta)` `array[0].MaxIndice < mPortas[j].IndiceDaPorta` `Information.UBound(array) > 0` `array[l].IndiceDaPorta > array[l + 1].IndiceDaPorta` | `Correcao.cs:1148` |
+| `CorrigeDisp` |  | - | nao | nao | sim | `((SymbolTable)val4).Has("")` | `Correcao.cs:259` |
+| `CorrigeHandleSuperior` |  | - | nao | nao | sim | `Operators.CompareString(DeclaracoesGeral.companyHardlock.ToUpper(), "", TextCompare: true) != 0` `pl == null` `XDataConexao.lerXDataConexao(ref pl, ref conex) && conex.Tipo == 3` `flag && conex.Painel == num2 && ((Operators.CompareString(conex.Handle, sHandle, TextCompare: true) != 0) | (Operators.CompareString(conex.Nome, sNome, TextCompare: true) != 0) | (conex.Potencial != iPotencial))` | `Correcao.cs:2684` |
+| `CorrigeInterligacao` |  | - | nao | nao | nao | `pl != null` `XDataInterligacao.lerXDataInterligacao(ref pl, ref ilig)` `pl2 == null` `!XDataInterligacao.lerXDataInterligacao(ref pl2, ref ilig2)` `ilig2.NumVeia == -1000` `ilig2.Tipo == 1` `!(((ilig2.Painel1 == num3) & (ilig2.Painel2 == num4)) | ((ilig2.Painel1 == num4) & (ilig2.Painel2 == num3)))` `num3 >= num4` `!(((ilig2.Painel1 == num4) & (ilig2.Painel2 == num3)) | ((ilig2.Painel1 == num3) & (ilig2.Painel2 == num4)))` `!(((ilig2.Painel1 == num3) & (ilig2.Painel2 == num4)) | ((ilig2.Painel1 == num4) & (ilig2.Painel2 == num3)))` `(ilig2.Tipo == 2) | (ilig2.Tipo == 3)` `!flag` `ilig2.Painel1 == 0` `ilig2.Painel2 != num5` `ilig2.Painel1 != num5` `num != 0` | `clsUtilitarios.cs:611` |
+| `CorrigeJanelas` |  | - | nao | nao | nao |  | `Correcao.cs:1083` |
+| `CorrigeModelosDeContatos` |  | - | nao | nao | sim |  | `Correcao.cs:1354` |
+| `corrigeOrdemBornes` |  | - | nao | nao | sim | `Operators.CompareString(XDataDispositivo.verificaTipoDispositivo(ref ent, ref tipoImportado), "", TextCompare: true) == 0` `Information.UBound(array) >= 2` `array[j].IndiceRegua > array[j + 1].IndiceRegua` `array[j].IndiceRegua == array[j + 1].IndiceRegua && array[j].Ordem > array[j + 1].Ordem` `num5 != array[l].IndiceRegua` `array[l].IndiceRegua == num5` `val6 == null` `Operators.CompareString(XDataDispositivo.verificaTipoDispositivo(ref ent, ref tipoImportado), "", TextCompare: true) == 0` `structureBorne2.Ordem != array[m].Ordem` | `Correcao.cs:1564` |
+| `CorrigePainelET1DosBornes` |  | - | nao | nao | sim | `Operators.CompareString(XDataDispositivo.verificaTipoDispositivo(ref ent, ref tipoImportado), "", TextCompare: true) != 0` `Operators.CompareString(tag, "", TextCompare: true) == 0` `Operators.CompareString(tag, "", TextCompare: true) != 0` `Operators.CompareString(tag, "", TextCompare: true) != 0` `Operators.CompareString(tag, "", TextCompare: true) == 0` `Operators.CompareString(text, "", TextCompare: true) != 0` | `clsUtilitarios.cs:828` |
+| `corrigePortas` |  | - | nao | nao | sim |  | `Correcao.cs:1215` |
+| `CorrigeStyle` |  | - | nao | nao | sim |  | `Correcao.cs:90` |
+| `CorrigeTextosDasLigacoes` |  | - | nao | nao | sim | `val6 == null` `!flag && ((DBObject)val6).XData != (ResultBuffer)null` `scaleFactors.X < 0.0` | `clsUtilitarios.cs:1480` |
+| `CriaJigCloud` |  | - | nao | nao | nao | `(int)((PromptResult)val5).Status == 5100` `(int)status != 5000 && (int)status == 5100` `num2 != checked(num + 1)` `val6 != null` `gsQpaOYguD` `val6.NumberOfVertices == 1` `!Information.IsNothing(form)` | `clsCloud.cs:39` |
+| `DEF` | `frmDefinicao` | `new frmDefinicao()` | sim | nao | nao | `clsRegua.VerificaRegua()` | `Comandos.cs:223` |
+| `DELFIPROJ` |  | - | nao | nao | nao | `msgBoxResult == MsgBoxResult.Yes` `msgBoxResult == MsgBoxResult.Yes` | `Comandos.cs:671` |
+| `DELINTPROJ` |  | - | nao | nao | nao | `msgBoxResult == MsgBoxResult.Yes` `msgBoxResult == MsgBoxResult.Yes` | `Comandos.cs:1019` |
+| `DELLM` |  | - | nao | nao | nao | `msgBoxResult == MsgBoxResult.Yes` `msgBoxResult == MsgBoxResult.Yes` | `Comandos.cs:391` |
+| `DELPLA` |  | - | nao | nao | nao | `msgBoxResult == MsgBoxResult.Yes` `msgBoxResult == MsgBoxResult.Yes` | `Comandos.cs:407` |
+| `DEPARA` |  | - | nao | nao | nao | `_0024STATIC_0024InsereDePara_00242001_0024tipo == 2` | `Comandos.cs:271` |
+| `DERAUT` |  | - | nao | nao | nao | `Operators.CompareString(keywords.StringResult, "", TextCompare: true) != 0` `Operators.CompareString(keywords.StringResult, "", TextCompare: true) == 0` | `Comandos.cs:539` |
+| `DICEMIGDE` | `frmRelatorio_DICemig` | `new frmRelatorio_DICemig(3)` | sim | sim | nao |  | `Comandos.cs:1089` |
+| `DICEMIGDP` | `frmRelatorio_DICemig` | `new frmRelatorio_DICemig(2)` | sim | sim | nao |  | `Comandos.cs:1083` |
+| `DICEMIGGTE` | `frmRelatorio_DICemig` | `new frmRelatorio_DICemig(1)` | sim | sim | nao |  | `Comandos.cs:1077` |
+| `DICEMIGGTP` | `frmRelatorio_DInterlig` | `new frmRelatorio_DInterlig(9)` | sim | sim | nao |  | `Comandos.cs:1071` |
+| `DICHESF` | `frmRelatorio_DInterlig` | `new frmRelatorio_DInterlig(1)` | sim | sim | nao |  | `Comandos.cs:1095` |
+| `DICPFL` | `frmRelatorio_DInterlig` | `new frmRelatorio_DInterlig(2)` | sim | sim | nao |  | `Comandos.cs:1101` |
+| `DICPFLTR` | `frmRelatorio_DInterlig` | `new frmRelatorio_DInterlig(5)` | sim | sim | nao |  | `Comandos.cs:1107` |
+| `DICTEEP` | `frmRelatorio_DInterlig` | `new frmRelatorio_DInterlig(3)` | sim | sim | nao |  | `Comandos.cs:1155` |
+| `DIEDP` | `frmRelatorio_DInterlig` | `new frmRelatorio_DInterlig(6)` | sim | sim | nao |  | `Comandos.cs:1113` |
+| `DIELN` | `frmRelatorio_Aranha` | `new frmRelatorio_Aranha()` | sim | nao | nao |  | `Comandos.cs:1065` |
+| `DIENELSP` | `frmRelatorio_DInterlig` | `new frmRelatorio_DInterlig(10)` | sim | sim | nao |  | `Comandos.cs:1143` |
+| `DIENER` | `frmRelatorio_DIEnergisaMS` | `new frmRelatorio_DIEnergisaMS()` | sim | nao | nao |  | `Comandos.cs:1125` |
+| `DIENERMT` | `frmRelatorio_DIEnergisaMT` | `new frmRelatorio_DIEnergisaMT()` | sim | nao | nao |  | `Comandos.cs:1131` |
+| `DIENERSSE` | `frmRelatorio_DIEnergisaSSE` | `new frmRelatorio_DIEnergisaSSE()` | sim | nao | nao |  | `Comandos.cs:1137` |
+| `DIEQUAT` | `frmRelatorio_DInterlig` | `new frmRelatorio_DInterlig(4)` | sim | sim | nao |  | `Comandos.cs:1119` |
+| `DIFURNAS` | `frmRelatorio_DInterlig` | `new frmRelatorio_DInterlig(8)` | sim | sim | nao |  | `Comandos.cs:1149` |
+| `DIITAIPU` | `frmRelatorio_DInterlig` | `new frmRelatorio_DInterlig(11)` | sim | sim | nao |  | `Comandos.cs:1161` |
+| `DISP` | `frmDispPrincipal` | `new frmDispPrincipal()` | sim | nao | nao |  | `Comandos.cs:205` |
+| `DITAESA` | `frmRelatorio_DInterlig` | `new frmRelatorio_DInterlig(7)` | sim | sim | nao |  | `Comandos.cs:1167` |
+| `DLOG` |  | - | nao | nao | nao |  | `Comandos.cs:54` |
+| `DNOME` |  | - | nao | nao | nao |  | `Comandos.cs:841` |
+| `DPOT` | `frmRelatorio_DistribuicaoPotencial` | `new frmRelatorio_DistribuicaoPotencial()` | sim | nao | nao |  | `Comandos.cs:723` |
+| `DUPCAD` | `frmDuplicarCaderno` | `new frmDuplicarCaderno()` | sim | nao | nao |  | `Comandos.cs:163` |
+| `EARQ` |  | - | nao | nao | nao |  | `Comandos.cs:69` |
+| `EDBORN` | `frmGerenciadorReguasBornes` | `new frmGerenciadorReguasBornes()` | sim | nao | nao | `clsRegua.VerificaRegua()` | `Comandos.cs:447` |
+| `EDCABO` | `frmEditorCabos` | `new frmEditorCabos()` | sim | nao | nao |  | `Comandos.cs:821` |
+| `EDCON` |  | - | nao | nao | nao | `Operators.CompareString(keywords.StringResult, "", TextCompare: true) != 0` `Operators.CompareString(keywords.StringResult, "", TextCompare: true) != 0` `Operators.CompareString(keywords.StringResult, "", TextCompare: true) == 0` | `Comandos.cs:579` |
+| `EDCONP` | `frmEditaConexao` | `new frmEditaConexao()` | sim | nao | nao |  | `Comandos.cs:635` |
+| `EDNOMEFUNVEIAS` | `frmEditarNomesFuncoesVeias` | `new frmEditarNomesFuncoesVeias()` | sim | nao | nao |  | `Comandos.cs:962` |
+| `EDTDISPS` | `frmEditaVariosDispositivos` | `new frmEditaVariosDispositivos()` | sim | nao | nao |  | `Comandos.cs:360` |
+| `EDTDISPSA` | `frmEditaDispositivosAvulsos` | `new frmEditaDispositivosAvulsos()` | sim | nao | nao |  | `Comandos.cs:354` |
+| `EDTFUNC` | `frmEditaFuncaoBobina` | `new frmEditaFuncaoBobina()` | sim | nao | nao |  | `Comandos.cs:348` |
+| `EDTNCIRC` | `frmEditaNomeCircuitos` | `new frmEditaNomeCircuitos()` | sim | nao | nao |  | `Comandos.cs:567` |
+| `ELET` |  | - | nao | nao | sim |  | `Comandos.cs:49` |
+| `EncontraHandle` |  | - | nao | nao | nao | `Operators.CompareString(text, "", TextCompare: true) != 0` `val6 != null` | `clsUtilitarios.cs:950` |
+| `EPLQ` |  | - | nao | nao | sim | `msgBoxResult == MsgBoxResult.Yes` | `Comandos.cs:378` |
+| `ESTF` | `frmRelatorio_EstatisticaFiacao` | `new frmRelatorio_EstatisticaFiacao()` | sim | nao | nao |  | `Comandos.cs:747` |
+| `ESTVCABOS` | `frmEstatisticaDeCabos` | `new frmEstatisticaDeCabos()` | sim | nao | nao |  | `Comandos.cs:956` |
+| `ESTVL` | `frmEstimativaVeiasLivres` | `new frmEstimativaVeiasLivres()` | sim | nao | nao |  | `Comandos.cs:950` |
+| `ETPG` |  | - | nao | nao | nao |  | `Comandos.cs:59` |
+| `EXPCOMP` | `frmExportarImportar` | `new frmExportarImportar()` | sim | nao | nao |  | `Comandos.cs:1224` |
+| `EXPDWG` | `frmExportarDWGs` | `new frmExportarDWGs()` | sim | nao | nao |  | `Comandos.cs:1336` |
+| `EXPIT` | `frmExportarImportarTextos` | `new frmExportarImportarTextos()` | sim | nao | nao |  | `Comandos.cs:1354` |
+| `EXPLM` | `frmRelatorio_Materiais` | `new frmRelatorio_Materiais()` | sim | nao | nao |  | `Comandos.cs:1212` |
+| `EXPPDF` | `frmPDF` | `new frmPDF()` | sim | nao | nao |  | `Comandos.cs:1236` |
+| `FIA` | `frmCompilarFiacao` | `new frmCompilarFiacao()` | sim | nao | sim |  | `Comandos.cs:653` |
+| `GERCONT` | `frmGerenciadorContatos` | `new frmGerenciadorContatos()` | sim | nao | nao |  | `Comandos.cs:193` |
+| `GERDWG` | `frmGerenciadorDWG` | `new frmGerenciadorDWG()` | sim | nao | nao |  | `Comandos.cs:114` |
+| `GERLM` | `frmGerenciadorMateriais` | `new frmGerenciadorMateriais()` | sim | nao | nao |  | `Comandos.cs:1191` |
+| `GERMASC` | `frmGerenciadorMascaras` | `new frmGerenciadorMascaras()` | sim | nao | nao |  | `Comandos.cs:199` |
+| `GERRB` | `frmCriarReguas` | `new frmCriarReguas()` | sim | nao | nao |  | `Comandos.cs:435` |
+| `HBASE` |  | - | nao | nao | nao |  | `Comandos.cs:1441` |
+| `IIEX` | `frmImportarInterligExcel` | `new frmImportarInterligExcel()` | sim | nao | nao |  | `Comandos.cs:1013` |
+| `IMPBD` | `frmImportarProjetos` | `new frmImportarProjetos()` | nao | nao | nao | `Operators.CompareString(DeclaracoesGeral.Conf.Banco, "", TextCompare: true) != 0` | `Comandos.cs:150` |
+| `IMPCAD` | `frmMisturador` | `new frmMisturador()` | sim | nao | nao |  | `Comandos.cs:1396` |
+| `IMPR` | `frmImprimir` | `new frmImprimir()` | sim | nao | nao |  | `Comandos.cs:1342` |
+| `INDEFCAB` |  | - | nao | nao | nao |  | `Comandos.cs:1007` |
+| `INDPG` | `frmRelatorio_IndicedePaginas` | `new frmRelatorio_IndicedePaginas()` | sim | nao | nao |  | `Comandos.cs:169` |
+| `INDV` |  | - | nao | nao | nao |  | `Comandos.cs:849` |
+| `INFOOFF` |  | - | nao | nao | nao |  | `Comandos.cs:1408` |
+| `INFOON` |  | - | nao | nao | nao |  | `Comandos.cs:1402` |
+| `INSM` | `frmMarcador` | `new frmMarcador()` | sim | nao | nao |  | `Comandos.cs:573` |
+| `INT` | `frmCompilarInterligacao` | `new frmCompilarInterligacao()` | sim | nao | sim |  | `Comandos.cs:926` |
+| `IVEIEX` | `FrmImportarCabosExcel` | `new FrmImportarCabosExcel()` | sim | nao | nao |  | `Comandos.cs:815` |
+| `JMP` | `frmCompilarJumperExt` | `new frmCompilarJumperExt()` | sim | nao | sim |  | `Comandos.cs:920` |
+| `JPEXT` | `frmJumper` | `new frmJumper()` | sim | nao | nao |  | `Comandos.cs:505` |
+| `LANI` | `frmRelatorio_AnilhasCabos` | `new frmRelatorio_AnilhasCabos()` | sim | nao | nao |  | `Comandos.cs:1185` |
+| `LAYELN` |  | - | nao | nao | nao |  | `Comandos.cs:995` |
+| `LAYELS` |  | - | nao | nao | nao |  | `Comandos.cs:1001` |
+| `LAYMEC` | `frmLayoutMec` | `new frmLayoutMec()` | sim | nao | nao |  | `Comandos.cs:366` |
+| `LCAB` | `frmRelatorio_Cabos` | `new frmRelatorio_Cabos()` | sim | nao | nao |  | `Comandos.cs:1035` |
+| `LCABCOP` | `frmRelatorio_VeiasCopel` | `new frmRelatorio_VeiasCopel()` | sim | nao | nao |  | `Comandos.cs:1047` |
+| `LDAT` |  | - | nao | nao | nao |  | `Comandos.cs:253` |
+| `LDNR` |  | - | nao | nao | nao |  | `Comandos.cs:456` |
+| `LeAtributos` |  | - | nao | nao | nao | `blockRef == null || !mNomeBlocos.Contains(blockRef.Name.ToUpper()) || Operators.CompareString(clsBlocos.TipoBlocoDoEletron(ref blockRef, ref sNomeBloco), "", TextCompare: true) == 0` `!clsTrocaEditaBlocosMat.lBlocosAlterados.Contains(((object)((DBObject)blockRef).Handle/*cast due to constrained. prefix*/).ToString())` `!lBlocosNaoExistentes.Contains(blockRef.Name.ToUpper())` `!((Entity)val7).Visible` `!lAtributos.Contains(((object)((DBObject)blockRef).Handle/*cast due to constrained. prefix*/).ToString())` | `clsTrocaEditaBlocos.cs:18` |
+| `LeTodosAtributos` |  | - | nao | nao | nao | `blockRef == null || Operators.CompareString(clsBlocos.TipoBlocoDoEletron(ref blockRef, ref sNomeBloco), "", TextCompare: true) == 0` `!((Entity)val7).Visible` | `clsTrocaEditaBlocos.cs:171` |
+| `LGIGA` | `frmRelatorio_InterligacaoGIGA` | `new frmRelatorio_InterligacaoGIGA()` | sim | nao | nao |  | `Comandos.cs:1179` |
+| `Limpahandle` |  | - | nao | nao | sim | `Operators.CompareString(DeclaracoesGeral.companyHardlock.ToUpper(), "", TextCompare: true) != 0` `pl != null` `XDataConexao.lerXDataConexao(ref pl, ref conex) && conex.Tipo == 3` | `Correcao.cs:2785` |
+| `LimpaTextosLPCopiados` |  | - | nao | nao | sim | `pl == null` `XDataConexao.lerXDataConexao(ref pl, ref conex) && conex.Tipo == 1` `num3 < Math.Round(maxPoint.Y, 2)` `val7 == null` `val8 != null` `flag` `maxPoint.Y < num2` `flag` `num != 0` | `Correcao.cs:777` |
+| `LJUMP` | `frmRelatorio_Jumpers` | `new frmRelatorio_Jumpers()` | sim | nao | nao |  | `Comandos.cs:1173` |
+| `LNK` | `frmLink` | `new frmLink()` | sim | nao | nao |  | `Comandos.cs:665` |
+| `LNOME` |  | - | nao | nao | nao |  | `Comandos.cs:834` |
+| `LOADAUT` |  | - | nao | nao | nao |  | `Comandos.cs:74` |
+| `LR` | `frmLayoutRapido` | `new frmLayoutRapido()` | sim | nao | nao |  | `Comandos.cs:647` |
+| `LVEI` | `frmRelatorio_Veias` | `new frmRelatorio_Veias()` | sim | nao | nao |  | `Comandos.cs:1041` |
+| `LXLS` |  | - | nao | nao | nao | `clsDispositivo.LPDisponivel(ref lp)` | `Comandos.cs:232` |
+| `MASC` | `frmMascara` | `new frmMascara()` | sim | nao | nao |  | `Comandos.cs:247` |
+| `MBOR` | `frmMigraBornes` | `new frmMigraBornes()` | sim | nao | nao |  | `Comandos.cs:480` |
+| `MCONT` | `frmImportarModelosDeContatos` | `new frmImportarModelosDeContatos()` | sim | nao | nao |  | `Comandos.cs:336` |
+| `MIGPOR` | `frmMigraPortas` | `new frmMigraPortas()` | sim | nao | nao |  | `Comandos.cs:330` |
+| `MMASC` | `frmImportarModelosDeMascaras` | `new frmImportarModelosDeMascaras()` | sim | nao | nao |  | `Comandos.cs:342` |
+| `MOV` |  | - | nao | nao | nao |  | `Comandos.cs:1330` |
+| `MOVPN` | `frmMudaPN` | `new frmMudaPN()` | sim | nao | nao |  | `Comandos.cs:265` |
+| `MUDAUSER` | `FrmTrocaUsuario` | `new FrmTrocaUsuario()` | sim | nao | nao |  | `Comandos.cs:1390` |
+| `OCCAB` |  | - | nao | nao | nao |  | `Comandos.cs:827` |
+| `OCPN` |  | - | nao | nao | nao |  | `Comandos.cs:462` |
+| `OFFSPL` |  | - | nao | nao | nao | `Operators.CompareString(DeclaracoesGeral.companyHardlock.ToUpper(), "", TextCompare: true) == 0` | `Comandos.cs:40` |
+| `ONSPL` | `frmSplash` | `new frmSplash()` | nao | nao | nao | `Operators.CompareString(DeclaracoesGeral.companyHardlock.ToUpper(), "", TextCompare: true) == 0` | `Comandos.cs:31` |
+| `OPVEIAS` | `frmDadosOpcionaisVeias` | `new frmDadosOpcionaisVeias()` | sim | nao | nao |  | `Comandos.cs:968` |
+| `PAG` |  | - | nao | nao | nao | `DeclaracoesGeral._pspag == null` `Operators.CompareString(DeclaracoesGeral.ConfElet.Idioma, "", TextCompare: true) != 0` `Operators.CompareString(DeclaracoesGeral.ConfElet.Idioma, "", TextCompare: true) == 0` | `Comandos.cs:1447` |
+| `PAS` |  | - | nao | nao | nao |  | `Comandos.cs:1435` |
+| `PESQC` | `frmPesquisaVeiasIndefinidas` | `new frmPesquisaVeiasIndefinidas()` | sim | nao | nao |  | `Comandos.cs:856` |
+| `PESQCAB` | `frmPesquisaCabos` | `new frmPesquisaCabos()` | sim | nao | nao |  | `Comandos.cs:944` |
+| `PESQUISA` | `frmNavegador` | `new frmNavegador()` | sim | nao | nao |  | `Comandos.cs:1384` |
+| `PesquisaBlocos` | `frmNavegador` | `new frmNavegador()` | sim | nao | nao | `Operators.CompareString(DeclaracoesGeral.companyHardlock.ToUpper(), "", TextCompare: true) == 0` | `Correcao.cs:2050` |
+| `PINC` |  | - | nao | nao | nao |  | `Comandos.cs:259` |
+| `PLAQ` | `frmPlaquetas` | `new frmPlaquetas()` | sim | nao | nao |  | `Comandos.cs:372` |
+| `PN` | `frmCadastroDePaineis` | `new frmCadastroDePaineis()` | sim | nao | nao |  | `Comandos.cs:144` |
+| `PORT` | `frmPortas` | `new frmPortas()` | sim | nao | nao |  | `Comandos.cs:211` |
+| `PortasChesf` |  | - | nao | nao | nao |  | `clsUtilitarios.cs:123` |
+| `PreencheNovosAtributos` |  | - | nao | nao | nao | `clsTrocaEditaBlocosMat.lBlocosExistentesTrocados[i].Contains("")` `clsTrocaEditaBlocosMat.lBlocosExistentesTrocados[i].Contains("")` | `clsTrocaEditaBlocos.cs:278` |
+| `RANI` | `frmRelatorio_Anilhas` | `new frmRelatorio_Anilhas()` | sim | nao | nao |  | `Comandos.cs:729` |
+| `RBORELS` | `frmRelatorio_Fiacao_Compacta` | `new frmRelatorio_Fiacao_Compacta()` | sim | nao | nao |  | `Comandos.cs:699` |
+| `RDIF` | `frmRelatorio_Diferencial` | `new frmRelatorio_Diferencial()` | sim | nao | nao |  | `Comandos.cs:717` |
+| `RECRIACABOS` |  | - | nao | nao | sim | `msgBoxResult == MsgBoxResult.Yes` | `Comandos.cs:974` |
+| `RecriaTextosCabo` |  | - | nao | nao | sim | `DeclaracoesGeral.Conf.InterligacaoLayout == 3` | `clsEletron.cs:12` |
+| `RecriaTextosCaboEletrosul` |  | - | nao | nao | sim | `pl == null` `!XDataInterligacao.lerXDataInterligacao(ref pl, ref ilig)` `Operators.CompareString(ilig.NomeVeia.Trim(), "", TextCompare: true) == 0` `ilig.NumVeia != -1000` `ilig.ocultaTag == 0` `ilig.NumVeia == 1 && sCaboSingelos.Contains(ilig.Tag_Cabo)` `ilig.ocultaTag == 0` `ilig.ocultaTag == 0` | `clsEletrosul.cs:14` |
+| `REGH` |  | - | nao | nao | nao | `clsRegua.insereReguaH()` | `Comandos.cs:120` |
+| `REGV` |  | - | nao | nao | nao |  | `Comandos.cs:138` |
+| `RELEKTRO` | `frmRelatorio_Elektro` | `new frmRelatorio_Elektro()` | sim | nao | nao |  | `Comandos.cs:429` |
+| `RELMATRI` | `frmRelatorio_Rev_Matricial` | `new frmRelatorio_Rev_Matricial()` | sim | nao | nao |  | `Comandos.cs:187` |
+| `RELPL` | `frmRelatorio_Plaquetas` | `new frmRelatorio_Plaquetas()` | sim | nao | nao |  | `Comandos.cs:423` |
+| `RELREV` | `frmRelatorio_Rev` | `new frmRelatorio_Rev()` | sim | nao | nao |  | `Comandos.cs:175` |
+| `RELREVF` | `frmRelatorio_Furnas` | `new frmRelatorio_Furnas()` | sim | nao | nao |  | `Comandos.cs:181` |
+| `REMLAYDUP` |  | - | nao | nao | sim | `DicionarioLayout.LeDicLayout("" + key, ref mTags)` `!list.Contains(mTags[i].Tag)` `!DicionarioLayout.LeDicLayout("" + key, ref mTags3)` `!list2.Contains(mTags3[j].Tag)` | `Correcao.cs:3326` |
+| `RENPAGA` |  | - | nao | nao | nao | `!Versioned.IsNumeric(text)` `!Versioned.IsNumeric(text2)` `Strings.Len(text2) == 1 && ((Strings.Asc(text2) >= 65) & (Strings.Asc(text2) <= 90))` `flag` | `Correcao.cs:3273` |
+| `RESETLIC` |  | - | nao | nao | nao |  | `Comandos.cs:88` |
+| `RESTAURA` |  | - | nao | nao | nao |  | `Comandos.cs:101` |
+| `RESTPROJ` |  | - | nao | nao | sim | `interligacaoLayout == 3` `DeclaracoesGeral.Conf.ModeloBobina != 0` `DeclaracoesGeral.Conf.ModeloBobina != 1` `DeclaracoesGeral.Conf.ModeloBobina != 2` `DeclaracoesGeral.Conf.ModeloBobina == 3` | `Comandos.cs:1255` |
+| `REVAUT` | `frmRevisaoAutomatica` | `new frmRevisaoAutomatica()` | sim | nao | nao |  | `Comandos.cs:1218` |
+| `RFIA` | `frmRelatorio_Fiacao` | `new frmRelatorio_Fiacao()` | sim | nao | nao |  | `Comandos.cs:687` |
+| `RINT` | `frmRelatorio_Interligacao` | `new frmRelatorio_Interligacao()` | sim | nao | nao |  | `Comandos.cs:1053` |
+| `RINTE` | `frmRelatorio_InterligacaoEletrosul` | `new frmRelatorio_InterligacaoEletrosul()` | sim | nao | nao |  | `Comandos.cs:1059` |
+| `RPOT` | `frmRelatorio_Potenciais` | `new frmRelatorio_Potenciais()` | sim | nao | nao |  | `Comandos.cs:705` |
+| `RPOTS` | `frmRelatorio_PotenciaisSiemens` | `new frmRelatorio_PotenciaisSiemens()` | sim | nao | nao |  | `Comandos.cs:711` |
+| `RTAF` | `frmRelatorio_TAF` | `new frmRelatorio_TAF()` | sim | nao | nao |  | `Comandos.cs:693` |
+| `SELBORN` | `frmEditaBornesSelecao` | `new frmEditaBornesSelecao()` | sim | nao | nao |  | `Comandos.cs:474` |
+| `SEQ` | `frmSequenciador` | `new frmSequenciador()` | sim | nao | nao |  | `Comandos.cs:659` |
+| `SEQJ` | `frmSequenciadorJumper` | `new frmSequenciadorJumper()` | sim | nao | nao |  | `Comandos.cs:932` |
+| `STATBORN` | `frmEstatisticaDeBornes` | `new frmEstatisticaDeBornes()` | sim | nao | sim |  | `Comandos.cs:468` |
+| `SYNCC` |  | - | nao | nao | nao |  | `Comandos.cs:629` |
+| `SYNCD` |  | - | nao | nao | sim |  | `Comandos.cs:285` |
+| `SYNCLP` |  | - | nao | nao | nao |  | `Comandos.cs:324` |
+| `SYNCV` |  | - | nao | nao | sim | `DeclaracoesGeral.Conf.ModeloBobina != 0` `DeclaracoesGeral.Conf.ModeloBobina != 1` `DeclaracoesGeral.Conf.ModeloBobina != 2` `DeclaracoesGeral.Conf.ModeloBobina == 3` | `Comandos.cs:862` |
+| `TCHAVE` | `frmTrocarChave` | `new frmTrocarChave()` | sim | nao | nao |  | `Comandos.cs:1479` |
+| `TPG` | `frmTopografico` | `new frmTopografico()` | sim | nao | nao |  | `Comandos.cs:735` |
+| `TROCAPN` | `frmTrocaPaineis` | `new frmTrocaPaineis(bAbre: false)` | sim | sim | nao |  | `Comandos.cs:1378` |
+| `TROCBL` | `frmTrocaEditaBlocos` | `new frmTrocaEditaBlocos()` | sim | nao | nao |  | `Comandos.cs:1366` |
+| `TROCTT` | `frmEditaTitulosTextos` | `new frmEditaTitulosTextos()` | sim | nao | nao |  | `Comandos.cs:1348` |
+| `TUSING` |  | - | nao | nao | nao | `val6 != null` `val7 != null` `val8 != null` | `Comandos.cs:1485` |
+| `UNLOADAUT` |  | - | nao | nao | nao |  | `Comandos.cs:81` |
+| `VEAUT` |  | - | nao | nao | nao | `Operators.CompareString(keywords.StringResult, "", TextCompare: true) != 0` `Operators.CompareString(keywords.StringResult, "", TextCompare: true) == 0` | `Comandos.cs:774` |
+| `VEIA` |  | - | nao | nao | nao |  | `Comandos.cs:760` |
+| `VEIA1` |  | - | nao | nao | nao |  | `Comandos.cs:753` |
+| `VEIA2` |  | - | nao | nao | nao |  | `Comandos.cs:767` |
+| `VFIA` | `frmVerificadorProjetoFiacao` | `new frmVerificadorProjetoFiacao()` | sim | nao | nao |  | `Comandos.cs:641` |
+| `VINT` | `frmVerificadorProjetoInterligacao` | `new frmVerificadorProjetoInterligacao()` | sim | nao | nao |  | `Comandos.cs:914` |
+
+## Por janela
+
+As telas do mapa do layout (`docs/reverso-formularios.txt`) com os comandos do original que as
+abrem. Quando a construcao tem argumento, ela aparece ao lado do comando.
+
+| janela | comando(s) |
+|---|---|
+| `frmAplicacao` | `APL` |
+| `frmatribuirVeias` | `ATCABO` |
+| `frmBornes` | `BORN` |
+| `frmCadastroDePaineis` | `PN` |
+| `frmCircuito` | `CIRC` |
+| `frmClonar` | `CLONAR` |
+| `frmClonarCabos` | `CLOCAB` |
+| `frmClonarEstruturaRegua` | `CLOBORN` |
+| `frmCompilarFiacao` | `FIA` |
+| `frmCompilarInterligacao` | `INT` |
+| `frmCompilarJumperExt` | `JMP` |
+| `frmConfiguracaoGeral` | `CFG` |
+| `frmConfiguracaoLP` | `CONFLP` |
+| `frmContatosAux` | `CONT` |
+| `frmCopia` | `COPIAINT` |
+| `frmCopiarObjetos` | `COPYCAD` |
+| `frmCriarReguas` | `GERRB` |
+| `frmDadosOpcionaisVeias` | `OPVEIAS` |
+| `frmDefinicao` | `DEF` |
+| `frmDispPrincipal` | `DISP` |
+| `frmDuplicarCaderno` | `DUPCAD` |
+| `frmEditaBornesSelecao` | `SELBORN` |
+| `frmEditaConexao` | `EDCONP` |
+| `frmEditaDispositivosAvulsos` | `EDTDISPSA` |
+| `frmEditaFuncaoBobina` | `EDTFUNC` |
+| `frmEditaNomeCircuitos` | `EDTNCIRC` |
+| `frmEditarNomesFuncoesVeias` | `EDNOMEFUNVEIAS` |
+| `frmEditaTitulosTextos` | `TROCTT` |
+| `frmEditaVariosDispositivos` | `EDTDISPS` |
+| `frmEditorCabos` | `EDCABO` |
+| `frmEstatisticaDeBornes` | `STATBORN` |
+| `frmEstatisticaDeCabos` | `ESTVCABOS` |
+| `frmEstimativaVeiasLivres` | `ESTVL` |
+| `frmExportarDWGs` | `EXPDWG` |
+| `frmExportarImportar` | `EXPCOMP` |
+| `frmExportarImportarTextos` | `EXPIT` |
+| `frmGerenciadorContatos` | `GERCONT` |
+| `frmGerenciadorDWG` | `GERDWG` |
+| `frmGerenciadorMascaras` | `GERMASC` |
+| `frmGerenciadorMateriais` | `GERLM` |
+| `frmGerenciadorMatIndep` | `ATINDEP` |
+| `frmGerenciadorReguasBornes` | `EDBORN` |
+| `FrmImportarCabosExcel` | `IVEIEX` |
+| `frmImportarInterligExcel` | `IIEX` |
+| `frmImportarModelosDeContatos` | `MCONT` |
+| `frmImportarModelosDeMascaras` | `MMASC` |
+| `frmImportarProjetos` | `IMPBD` |
+| `frmImprimir` | `IMPR` |
+| `frmJumper` | `JPEXT` |
+| `frmLayoutMec` | `LAYMEC` |
+| `frmLayoutRapido` | `LR` |
+| `frmLink` | `LNK` |
+| `frmMarcador` | `INSM` |
+| `frmMascara` | `MASC` |
+| `frmMigraBornes` | `MBOR` |
+| `frmMigraPortas` | `MIGPOR` |
+| `frmMisturador` | `IMPCAD` |
+| `frmMudaPN` | `MOVPN` |
+| `frmNavegador` | `PESQUISA` `PesquisaBlocos` |
+| `frmPDF` | `EXPPDF` |
+| `frmPesquisaCabos` | `PESQCAB` |
+| `frmPesquisaVeiasIndefinidas` | `PESQC` |
+| `frmPesquisaXdatas` | `APAGARXDATA` |
+| `frmPlaquetas` | `PLAQ` |
+| `frmPortas` | `PORT` |
+| `frmRelatorio_Anilhas` | `RANI` |
+| `frmRelatorio_AnilhasCabos` | `LANI` |
+| `frmRelatorio_Aranha` | `DIELN` |
+| `frmRelatorio_Cabos` | `LCAB` |
+| `frmRelatorio_DICemig` | `DICEMIGDE` (new frmRelatorio_DICemig(3)) `DICEMIGDP` (new frmRelatorio_DICemig(2)) `DICEMIGGTE` (new frmRelatorio_DICemig(1)) |
+| `frmRelatorio_DIEnergisaMS` | `DIENER` |
+| `frmRelatorio_DIEnergisaMT` | `DIENERMT` |
+| `frmRelatorio_DIEnergisaSSE` | `DIENERSSE` |
+| `frmRelatorio_Diferencial` | `RDIF` |
+| `frmRelatorio_DInterlig` | `DICEMIGGTP` (new frmRelatorio_DInterlig(9)) `DICHESF` (new frmRelatorio_DInterlig(1)) `DICPFL` (new frmRelatorio_DInterlig(2)) `DICPFLTR` (new frmRelatorio_DInterlig(5)) `DICTEEP` (new frmRelatorio_DInterlig(3)) `DIEDP` (new frmRelatorio_DInterlig(6)) `DIENELSP` (new frmRelatorio_DInterlig(10)) `DIEQUAT` (new frmRelatorio_DInterlig(4)) `DIFURNAS` (new frmRelatorio_DInterlig(8)) `DIITAIPU` (new frmRelatorio_DInterlig(11)) `DITAESA` (new frmRelatorio_DInterlig(7)) |
+| `frmRelatorio_DistribuicaoPotencial` | `DPOT` |
+| `frmRelatorio_Elektro` | `RELEKTRO` |
+| `frmRelatorio_EstatisticaFiacao` | `ESTF` |
+| `frmRelatorio_Fiacao` | `RFIA` |
+| `frmRelatorio_Fiacao_Compacta` | `RBORELS` |
+| `frmRelatorio_Furnas` | `RELREVF` |
+| `frmRelatorio_IndicedePaginas` | `INDPG` |
+| `frmRelatorio_Interligacao` | `RINT` |
+| `frmRelatorio_InterligacaoEletrosul` | `RINTE` |
+| `frmRelatorio_InterligacaoGIGA` | `LGIGA` |
+| `frmRelatorio_Jumpers` | `LJUMP` |
+| `frmRelatorio_Materiais` | `EXPLM` |
+| `frmRelatorio_Plaquetas` | `RELPL` |
+| `frmRelatorio_Potenciais` | `RPOT` |
+| `frmRelatorio_PotenciaisSiemens` | `RPOTS` |
+| `frmRelatorio_Rev` | `RELREV` |
+| `frmRelatorio_Rev_Matricial` | `RELMATRI` |
+| `frmRelatorio_TAF` | `RTAF` |
+| `frmRelatorio_Veias` | `LVEI` |
+| `frmRelatorio_VeiasCopel` | `LCABCOP` |
+| `frmRevisaoAutomatica` | `REVAUT` |
+| `frmSequenciador` | `SEQ` |
+| `frmSequenciadorJumper` | `SEQJ` |
+| `frmSplash` | `ONSPL` |
+| `frmTextoLP` | `ADDDESC` |
+| `frmTopografico` | `TPG` |
+| `frmTopograficoAnilha` | `ATPG` |
+| `frmTrocaEditaBlocos` | `TROCBL` |
+| `frmTrocaPaineis` | `TROCAPN` (new frmTrocaPaineis(bAbre: false)) |
+| `frmTrocarChave` | `TCHAVE` |
+| `FrmTrocaUsuario` | `MUDAUSER` |
+| `frmVerificadorProjetoFiacao` | `VFIA` |
+| `frmVerificadorProjetoInterligacao` | `VINT` |
+
+## Contagens
+
+- `[CommandMethod]`: **216** nomes distintos no reverso.
+- Abrem alguma janela: **121**.
+- **So** abrem a janela (sem outra regra no corpo): **119**.
+- Dessas, abrem uma **variante** (construcao com argumento): **15**.
+- Ja tem par no recoder: **5**.
+- Viram comando do plugin (sem par e sem variante): **99**.
+

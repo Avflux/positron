@@ -769,6 +769,85 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 128 — frente 12: o mapa comando -> janela (99 comandos do original abrem as telas no CAD).**
+A rodada 127 decodificou as **127** telas; faltava o que o original usa para **chegar** nelas. No
+`Eletron4Z` o comando e fino de proposito: o corpo monta a janela (`new frmGerenciadorDWG();`) e a
+propria janela abre **dentro do CAD** (`Application.ShowModelessDialog(this)` no construtor do
+`frm*`). Entao a lista dos `[CommandMethod]` diz **quais nomes abrem quais telas** — e agora o
+plugin responde por eles.
+
+**Como rodar a extracao** (nao precisa do de4dot nem da DLL: le o decompilado direto):
+
+```
+powershell -ExecutionPolicy Bypass -File scripts/extrair-comandos-do-reverso.ps1
+# comandos: 216 | abrem janela: 121 | so abrem a janela: 119 | com variante: 15
+# comandos novos no plugin: 99
+# mapa:  docs/reverso-comandos.txt
+# dados: cad-plugin/Positron.Data/Interface/ComandosDoReverso.Dados.cs
+# comandos do plugin: cad-plugin/Positron.Plugin/ComandosDoOriginal.Gerado.cs
+```
+
+O script tem um modo de inspecao (`-Amostra`) que imprime a classificacao sem escrever arquivo —
+ele foi o que separou, com o olho em cada linha, os tres grupos: os que **so abrem a janela**, os que
+abrem **uma variante** (`new frmRelatorio_DICemig(3)`) e os que **fazem mais** alguma coisa.
+
+**As duas armadilhas da varredura** (as duas custaram uma rodada de numeros errados):
+
+1. **o corpo que abre com guarda.** O extrator procurava a chave de abertura e **avancava** a linha
+   antes de contar o nivel, entao o corpo comecava ja dentro do bloco e um comando como o
+   `DEF` — cujo corpo e `if (clsRegua.VerificaRegua()) { new frmDefinicao(); }` — fechava na
+   **primeira** linha do corpo e perdia o `new frmDefinicao()`. Sintoma: ele saia do mapa como "nao
+   abre janela" (e o `EDBORN` com ele). A correcao e parar **na** linha da chave.
+2. **o proprio gerado na conta do "ja no plugin".** O script varre o plugin para nao registrar duas
+   vezes um nome que o recoder ja tem; a primeira rodada gerou 96 comandos e a segunda, **3** —
+   porque o `ComandosDoOriginal.Gerado.cs` da primeira entrou na propria varredura e todos os
+   comandos passaram a constar como "ja implementados". A regra agora exclui `*.Gerado.cs`.
+
+**O que o de4dot diz do assembly original** (a pergunta "existe mais algo codificado?"):
+
+```
+tools/de4dotEx/de4dot.exe Eletron4_ZWcad/DLL/Eletron4Z.dll -o <fora do projeto>
+# Detected .NET Reactor
+# DNR decrypterType: V2 / V3 / V4  (o V4 devolve System.String - a tabela de strings cifradas)
+```
+
+- o original **tinha** as strings cifradas pelo **.NET Reactor** e o de4dot as decifra;
+- **a copia de trabalho ja esta decifrada:** no `decompiled-cleaned` nao sobra **nenhuma** chamada ao
+decifrador (o `guwp00C390P`/`GG5BlYp0wNmlGYMYs7HP` que aparece no `decompiled/` pre-limpeza
+**desapareceu**), e a classe `<Module>` ficou **vazia** (3 linhas, sem metodo) — ou seja, os
+literais que lemos (os textos do designer, os nomes de recurso, os indices do `mMensagem`) sao o
+**plaintext**;
+- os **3 recursos sem extensao** (`f0QEEDDabf39S0voTp.*`, `lQO5NCp2fwKETZ8xnu.*`,
+  `V9DgpHoXKSwaPCP9VK.*`) sao o **payload do proprio ofuscador**: byte aleatorio, nenhum
+  `GetManifestResourceStream` no reverso inteiro — **nada os le** (nao ha o que decodificar);
+- os unicos `Convert.FromBase64String` do reverso estao nos stubs de **licenca**
+  (`CProtect`/`cProtectNuvem`), que o recoder **nao porta** de proposito (§7.5 do plano);
+- **achado desta rodada, ainda nao decodificado:** o `Construtor4Z.dll` (2,3 MB) tem **dois**
+  formularios proprios (`frmConstrutor` e `frmSplash`) e **nao** esta descompilado em nenhuma copia
+  de trabalho — decodificar essa janela exige descompilador de IL (o de4dot **limpa**, nao gera C#).
+  Fica registrado como a proxima frente de decodificacao.
+
+**Como o plugin usa o mapa:** o `ComandosDoOriginal.Gerado.cs` (gerado, 99 metodos) tem um
+`[CommandMethod]` por comando **ligavel** e o corpo e so o **nome** — quem sabe a tela e o mapa do
+`Positron.Data.Interface.ComandosDoReverso`, entao mapa e comando saem de uma fonte so. O
+`JanelasDoOriginal.Abrir` abre cada janela pelo `JanelaDoReverso` e reporta com o **nome do comando
+na frente da linha**. Ficam **de fora, de proposito:** as **15 variantes** (abrir a tela padrao no
+lugar delas seria mentir — a construcao com o argumento fica no mapa) e os **5** que o recoder ja
+tem com regra propria (`APAGARXDATA`, `FIA`, `INT`, `SYNCD`, `STATBORN`).
+
+**Medido no ZWCAD 2026** (banco novo, sem fixture):
+
+```
+JANELAS: 127 de 127 tela(s) do reverso montada(s), nenhuma falha.
+GERDWG: "Gerenciador de DWGs do Projeto" (frmGerenciadorDWG) aberta no CAD - 7 controle(s).
+DEF: "Atribuir Definicao" (frmDefinicao) aberta no CAD - 15 controle(s).
+BORN: "Inserir Bornes" (frmBornes) aberta no CAD - 37 controle(s).
+JANELAS: seletor aberto com 127 tela(s) do reverso.
+```
+
+O seletor ganhou a coluna **Comando(s) do original** (com a construcao entre parenteses quando o
+comando abre uma variante): e a mesma lista do mapa, exibida onde se escolhe a tela.
+
 **Rodada 127 — frente 12: as 127 telas do reverso decodificadas e abertas no CAD (os `frm*`).**
 O dono do produto pediu o recode do maximo de `frm*` — os formularios que abrem **dentro do CAD** —
 e perguntou se, com o que existe, da para saber a formatacao correta das janelas. **Da**, e isso foi

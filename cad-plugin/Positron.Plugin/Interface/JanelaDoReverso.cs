@@ -99,21 +99,31 @@ namespace Positron.Plugin.Interface
         /// </summary>
         internal static string Abrir(string nome)
         {
+            return Abrir(nome, "JANELA");
+        }
+
+        /// <summary>
+        /// Abre a tela com o **rótulo do chamador** na frente da linha (o comando do original, por
+        /// exemplo: <c>GERDWG: "Gerenciador de DWGs" (frmGerenciadorDWG) aberta no CAD — 42
+        /// controle(s).</c>). É o que faz o comando do original responder com o próprio nome.
+        /// </summary>
+        internal static string Abrir(string nome, string rotulo)
+        {
             Tela tela = FormulariosDoReverso.Buscar(nome);
             if (tela == null)
             {
-                return "JANELA: não há \"" + nome + "\" no mapa do reverso (são " + FormulariosDoReverso.Quantidade + " telas).";
+                return rotulo + ": não há \"" + nome + "\" no mapa do reverso (são " + FormulariosDoReverso.Quantidade + " telas).";
             }
 
             try
             {
                 Form janela = Montar(tela);
                 Mostrar(janela);
-                return "JANELA: \"" + tela.Titulo + "\" (" + tela.Nome + ") aberta no CAD — " + tela.Campos.Count + " controle(s).";
+                return rotulo + ": \"" + tela.Titulo + "\" (" + tela.Nome + ") aberta no CAD — " + tela.Campos.Count + " controle(s).";
             }
             catch (Exception erro)
             {
-                return "JANELA: falhou em \"" + tela.Nome + "\" — " + erro.Message + ".";
+                return rotulo + ": falhou em \"" + tela.Nome + "\" — " + erro.Message + ".";
             }
         }
 

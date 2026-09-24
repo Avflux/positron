@@ -142,7 +142,7 @@ os icones, do nome do recurso (`Resources.X`), extraidos em `cad-plugin/lib/Icon
 
 ---
 
-## frmRelatorio_DInterlig â€” "Diagrama de Interligação ENEL-SP"
+## frmRelatorio_DInterlig - "Diagrama de Interligação ENEL-SP"
 
 Arquivo do reverso: `frmRelatorio_DInterlig.cs` (designer nas linhas 1232-1763). ClientSize: **404 x 611**.
 
@@ -203,7 +203,7 @@ Arquivo do reverso: `frmRelatorio_DInterlig.cs` (designer nas linhas 1232-1763).
 | `tbVeia` | TextBox | GroupBox8 | {Jah1LWHafV.alturaFonteVeia} | 95 | 19 | 34 | 20 |  |
 | `GroupBoxTipoCruz` | GroupBox |  | Tipo de Cruzamento | 12 | 459 | 137 | 70 |  |
 
-## frmRelatorio_DistribuicaoPotencial â€” "Distribuição de Potenciais"
+## frmRelatorio_DistribuicaoPotencial - "Distribuição de Potenciais"
 
 Arquivo do reverso: `frmRelatorio_DistribuicaoPotencial.cs` (designer nas linhas 499-786). ClientSize: **424 x 576**.
 
@@ -249,7 +249,7 @@ Arquivo do reverso: `frmRelatorio_DistribuicaoPotencial.cs` (designer nas linhas
 | `btApagar` | Button |  |  | 330 | 528 | 40 | 42 | Delete_32 |
 | `dgRevisaoF` | DataGridView |  |  | 277 | 6 | 139 | 98 |  |
 
-## frmRelatorio_Elektro â€” "Relatório Entradas/Saídas"
+## frmRelatorio_Elektro - "Relatório Entradas/Saídas"
 
 Arquivo do reverso: `frmRelatorio_Elektro.cs` (designer nas linhas 433-648). ClientSize: **684 x 411**.
 
@@ -281,7 +281,7 @@ Arquivo do reverso: `frmRelatorio_Elektro.cs` (designer nas linhas 433-648). Cli
 | `dgRelatorio` | DataGridView |  |  | 184 | 64 | 488 | 282 |  |
 | `btExportaDWG` | Button |  |  | 632 | 357 | 40 | 42 | btExportaDWG |
 
-## frmRelatorio_Diferencial â€” "Relatório Diferencial"
+## frmRelatorio_Diferencial - "Relatório Diferencial"
 
 Arquivo do reverso: `frmRelatorio_Diferencial.cs` (designer nas linhas 315-514). ClientSize: **884 x 538**.
 
@@ -314,7 +314,7 @@ Arquivo do reverso: `frmRelatorio_Diferencial.cs` (designer nas linhas 315-514).
 | `btPesquisar` | Button |  |  | 108 | 484 | 40 | 42 | Pesquisar_32 |
 | `` | Coluna (da rotina de carga) | dgDWG | DWG |  |  |  |  |  |
 
-## frmRelatorio_DIEnergisaMS â€” "Diagrama de Interligação ENERGISA MS"
+## frmRelatorio_DIEnergisaMS - "Diagrama de Interligação ENERGISA MS"
 
 Arquivo do reverso: `frmRelatorio_DIEnergisaMS.cs` (designer nas linhas 797-1160). ClientSize: **404 x 541**.
 
@@ -358,7 +358,7 @@ Arquivo do reverso: `frmRelatorio_DIEnergisaMS.cs` (designer nas linhas 797-1160
 | `dgEquip` | DataGridView |  |  | 13 | 177 | 137 | 205 |  |
 | `dgRegua` | DataGridView |  |  | 155 | 151 | 242 | 162 |  |
 
-## frmRelatorio_DIEnergisaMT â€” "Diagrama de Interligação ENERGISA MT"
+## frmRelatorio_DIEnergisaMT - "Diagrama de Interligação ENERGISA MT"
 
 Arquivo do reverso: `frmRelatorio_DIEnergisaMT.cs` (designer nas linhas 737-1068). ClientSize: **404 x 541**.
 
@@ -399,7 +399,7 @@ Arquivo do reverso: `frmRelatorio_DIEnergisaMT.cs` (designer nas linhas 737-1068
 | `btSincroniza` | Button |  |  | 36 | 489 | 40 | 42 | Sincroniza_32 |
 | `dgEquip` | DataGridView |  |  | 13 | 177 | 137 | 205 |  |
 
-## frmRelatorio_DIEnergisaSSE â€” "Diagrama de Interligação ENERGISA S/SE"
+## frmRelatorio_DIEnergisaSSE - "Diagrama de Interligação ENERGISA S/SE"
 
 Arquivo do reverso: `frmRelatorio_DIEnergisaSSE.cs` (designer nas linhas 519-773). ClientSize: **404 x 461**.
 
@@ -433,7 +433,7 @@ Arquivo do reverso: `frmRelatorio_DIEnergisaSSE.cs` (designer nas linhas 519-773
 | `rbCrescente` | RadioButton | GroupBox2 | Crescente | 6 | 19 | 82 | 17 |  |
 | `dgRegua` | DataGridView |  |  | 155 | 151 | 242 | 162 |  |
 
-## frmRelatorio_EstatisticaFiacao â€” "Estimativa de Fiação"
+## frmRelatorio_EstatisticaFiacao - "Estimativa de Fiação"
 
 Arquivo do reverso: `frmRelatorio_EstatisticaFiacao.cs` (designer nas linhas 682-987). ClientSize: **484 x 512**.
 
@@ -472,7 +472,7 @@ Arquivo do reverso: `frmRelatorio_EstatisticaFiacao.cs` (designer nas linhas 682
 | `tbDisp` | TextBox | GroupBox1 | 0" + numberDecimalSeparator + "05 | 140 | 30 | 71 | 21 |  |
 | `tbBB` | TextBox | GroupBox1 | 1" + numberDecimalSeparator + "5 | 140 | 108 | 71 | 21 |  |
 
-## frmRelatorio_FiacaoDWGCompacta â€” "Estrutura de Régua de Bornes"
+## frmRelatorio_FiacaoDWGCompacta - "Estrutura de Régua de Bornes"
 
 Arquivo do reverso: `frmRelatorio_FiacaoDWGCompacta.cs` (designer nas linhas 841-1128). ClientSize: **264 x 461**.
 
@@ -510,7 +510,7 @@ Arquivo do reverso: `frmRelatorio_FiacaoDWGCompacta.cs` (designer nas linhas 841
 | `TBAlturaInicialRelatorio` | TextBox | GBCores | 25 | 175 | 262 | 47 | 20 |  |
 | `tbFonteBloco` | TextBox | GBCores | 2 | 176 | 118 | 47 | 20 |  |
 
-## frmRelatorio_Furnas â€” "Relatório de Revisões Furnas"
+## frmRelatorio_Furnas - "Relatório de Revisões Furnas"
 
 Arquivo do reverso: `frmRelatorio_Furnas.cs` (designer nas linhas 255-344). ClientSize: **224 x 111**.
 
@@ -525,7 +525,7 @@ Arquivo do reverso: `frmRelatorio_Furnas.cs` (designer nas linhas 255-344). Clie
 | `btApaga` | Button |  |  | 166 | 59 | 40 | 40 | Delete_32 |
 | `BTY` | Button |  |  | 84 | 9 | 40 | 40 | Altura |
 
-## frmRelatorio_IndicedePaginas â€” "Índice de Páginas"
+## frmRelatorio_IndicedePaginas - "Índice de Páginas"
 
 Arquivo do reverso: `frmRelatorio_IndicedePaginas.cs` (designer nas linhas 1090-1454). ClientSize: **438 x 296**.
 
@@ -572,7 +572,7 @@ Arquivo do reverso: `frmRelatorio_IndicedePaginas.cs` (designer nas linhas 1090-
 | `TBAlturaInicialRelatorio` | TextBox | GroupBox1 | 25 | 175 | 209 | 47 | 20 |  |
 | `btExporta` | Button |  |  | 274 | 241 | 40 | 42 | btExporta |
 
-## frmRelatorio_FiacaoDWG â€” "Relatório de Fiação DWG"
+## frmRelatorio_FiacaoDWG - "Relatório de Fiação DWG"
 
 Arquivo do reverso: `frmRelatorio_FiacaoDWG.cs` (designer nas linhas 1064-1438). ClientSize: **441 x 391**.
 
@@ -621,7 +621,7 @@ Arquivo do reverso: `frmRelatorio_FiacaoDWG.cs` (designer nas linhas 1064-1438).
 | `TBPagina` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 783].ToString().ToUpper()} | 383 | 70 | 47 | 20 |  |
 | `TBAlturaInicialRelatorio` | TextBox | GBCores | 25 | 356 | 163 | 47 | 20 |  |
 
-## frmRelatorio_Fiacao â€” "Relatórios de Fiação"
+## frmRelatorio_Fiacao - "Relatórios de Fiação"
 
 Arquivo do reverso: `frmRelatorio_Fiacao.cs` (designer nas linhas 547-828). ClientSize: **1069 x 529**.
 
@@ -664,7 +664,7 @@ Arquivo do reverso: `frmRelatorio_Fiacao.cs` (designer nas linhas 547-828). Clie
 | `cbAlterarOrdem` | CheckBox |  | Alterar Ordem Dispositivos | 173 | 435 | 149 | 17 |  |
 | `rbDispositivos` | RadioButton | GroupBox1 | Dispositivos | 6 | 15 | 81 | 17 |  |
 
-## frmRelatorio_Fiacao_Compacta â€” "Estrutura de Régua de Bornes"
+## frmRelatorio_Fiacao_Compacta - "Estrutura de Régua de Bornes"
 
 Arquivo do reverso: `frmRelatorio_Fiacao_Compacta.cs` (designer nas linhas 259-437). ClientSize: **684 x 491**.
 
@@ -690,7 +690,7 @@ Arquivo do reverso: `frmRelatorio_Fiacao_Compacta.cs` (designer nas linhas 259-4
 | `btExportaDWG` | Button |  |  | 545 | 437 | 40 | 42 | btExportaDWG |
 | `dgDisp` | DataGridView |  |  | 173 | 193 | 194 | 286 |  |
 
-## frmRelatorio_Fiacao_Excel â€” "Relatório de Fiação Excel - Elétron"
+## frmRelatorio_Fiacao_Excel - "Relatório de Fiação Excel - Elétron"
 
 Arquivo do reverso: `frmRelatorio_Fiacao_Excel.cs` (designer nas linhas 1124-1531). ClientSize: **374 x 341**.
 
@@ -740,7 +740,7 @@ Arquivo do reverso: `frmRelatorio_Fiacao_Excel.cs` (designer nas linhas 1124-153
 | `btEletronorteE` | Button |  |  | 131 | 86 | 110 | 50 | eletron |
 | `btExportaEXCELELETROSUL` | Button | GroupBox_A_B_D |  | 307 | 135 | 40 | 45 | ExportaExcel_20 |
 
-## frmRelatorio_DICemig â€” "Diagrama de Interligação CEMIG-D PAINEL"
+## frmRelatorio_DICemig - "Diagrama de Interligação CEMIG-D PAINEL"
 
 Arquivo do reverso: `frmRelatorio_DICemig.cs` (designer nas linhas 954-1396). ClientSize: **414 x 611**.
 
@@ -791,7 +791,7 @@ Arquivo do reverso: `frmRelatorio_DICemig.cs` (designer nas linhas 954-1396). Cl
 | `dgEquip` | DataGridView |  |  | 13 | 177 | 137 | 250 |  |
 | `rbC` | RadioButton | GroupBox1 | C | 102 | 19 | 41 | 17 |  |
 
-## frmPesquisaCabos â€” "Pesquisar Cabos e Veias"
+## frmPesquisaCabos - "Pesquisar Cabos e Veias"
 
 Arquivo do reverso: `frmPesquisaCabos.cs` (designer nas linhas 121-194). ClientSize: **414 x 381**.
 
@@ -807,7 +807,7 @@ Arquivo do reverso: `frmPesquisaCabos.cs` (designer nas linhas 121-194). ClientS
 | `Tipo` | Coluna (da rotina de carga) | dgCabos | Tipo |  |  |  |  |  |
 | `Cabo` | Coluna (da rotina de carga) | dgCabos | Nome do Cabo |  |  |  |  |  |
 
-## frmPesquisaMateriais â€” "Pesquisar Materiais"
+## frmPesquisaMateriais - "Pesquisar Materiais"
 
 Arquivo do reverso: `frmPesquisaMateriais.cs` (designer nas linhas 452-604). ClientSize: **654 x 461**.
 
@@ -827,7 +827,7 @@ Arquivo do reverso: `frmPesquisaMateriais.cs` (designer nas linhas 452-604). Cli
 | `LBModelo` | Label | GroupBoxMateriais | Modelo | 381 | 21 | 175 | 17 |  |
 | `TBDescCompleta` | TextBox | GroupBoxMateriais |  | 384 | 134 | 247 | 246 |  |
 
-## frmPesquisaVeiasIndefinidas â€” "Pesquisar Veias Indefinidas"
+## frmPesquisaVeiasIndefinidas - "Pesquisar Veias Indefinidas"
 
 Arquivo do reverso: `frmPesquisaVeiasIndefinidas.cs` (designer nas linhas 83-126). ClientSize: **384 x 161**.
 
@@ -840,7 +840,7 @@ Arquivo do reverso: `frmPesquisaVeiasIndefinidas.cs` (designer nas linhas 83-126
 | `Indice` | Coluna (da rotina de carga) | dgVeiasDWG | # |  |  |  |  |  |
 | `pAGINA` | Coluna (da rotina de carga) | dgVeiasDWG | Página |  |  |  |  |  |
 
-## frmPDF â€” "Exportar PDF Inteligente"
+## frmPDF - "Exportar PDF Inteligente"
 
 Arquivo do reverso: `frmPDF.cs` (designer nas linhas 425-565). ClientSize: **454 x 276**.
 
@@ -863,7 +863,7 @@ Arquivo do reverso: `frmPDF.cs` (designer nas linhas 425-565). ClientSize: **454
 | `cbHiperlink` | CheckBox |  | Hiperlink de Páginas | 12 | 203 | 123 | 17 |  |
 | `rbA4` | RadioButton |  | A4 | 187 | 69 | 38 | 17 |  |
 
-## frmMisturador â€” "Importar DWG"
+## frmMisturador - "Importar DWG"
 
 Arquivo do reverso: `frmMisturador.cs` (designer nas linhas 418-570). ClientSize: **644 x 288**.
 
@@ -885,7 +885,7 @@ Arquivo do reverso: `frmMisturador.cs` (designer nas linhas 418-570). ClientSize
 | `btSelecionaArquivos` | Button |  |  | 12 | 10 | 40 | 44 | DWG |
 | `tbfim` | TextBox | GroupBox1 | {fdZFDJeQ5q} | 176 | 17 | 52 | 20 |  |
 
-## frmMudaPN â€” "Trocar Painel"
+## frmMudaPN - "Trocar Painel"
 
 Arquivo do reverso: `frmMudaPN.cs` (designer nas linhas 371-508). ClientSize: **245 x 223**.
 
@@ -906,7 +906,7 @@ Arquivo do reverso: `frmMudaPN.cs` (designer nas linhas 371-508). ClientSize: **
 | `GroupBox1` | GroupBox |  | PN Uso | 5 | 12 | 226 | 138 |  |
 | `GroupBox2` | GroupBox |  | Trocar para | 5 | 156 | 226 | 59 |  |
 
-## frmNavegador â€” "Navegador Elétron"
+## frmNavegador - "Navegador Elétron"
 
 Arquivo do reverso: `frmNavegador.cs` (designer nas linhas 436-649). ClientSize: **714 x 421**.
 
@@ -943,7 +943,7 @@ Arquivo do reverso: `frmNavegador.cs` (designer nas linhas 436-649). ClientSize:
 | `CKConexao` | CheckBox |  | Conexão | 160 | 367 | 82 | 17 |  |
 | `CKBornes` | CheckBox |  | Bornes | 12 | 367 | 59 | 17 |  |
 
-## frmPesquisaXdatas â€” "Apagar XDatas de Terceiros"
+## frmPesquisaXdatas - "Apagar XDatas de Terceiros"
 
 Arquivo do reverso: `frmPesquisaXdatas.cs` (designer nas linhas 149-215). ClientSize: **304 x 461**.
 
@@ -956,7 +956,7 @@ Arquivo do reverso: `frmPesquisaXdatas.cs` (designer nas linhas 149-215). Client
 | `DG` | DataGridView |  |  | 6 | 12 | 286 | 389 |  |
 | `CkXdataEletron` | CheckBox |  | Incluir xData Eletron | 12 | 421 | 121 | 17 |  |
 
-## frmRelatorio_AnilhasCabos â€” "Lista de Anilhas"
+## frmRelatorio_AnilhasCabos - "Lista de Anilhas"
 
 Arquivo do reverso: `frmRelatorio_AnilhasCabos.cs` (designer nas linhas 841-1279). ClientSize: **734 x 511**.
 
@@ -1008,7 +1008,7 @@ Arquivo do reverso: `frmRelatorio_AnilhasCabos.cs` (designer nas linhas 841-1279
 | `tbS1` | TextBox | GroupBox1 |  | 77 | 206 | 16 | 20 |  |
 | `tbP1` | TextBox | GroupBox1 |  | 7 | 206 | 16 | 20 |  |
 
-## frmRelatorio_Aranha â€” "Diagrama de Interligação ELETRONORTE"
+## frmRelatorio_Aranha - "Diagrama de Interligação ELETRONORTE"
 
 Arquivo do reverso: `frmRelatorio_Aranha.cs` (designer nas linhas 970-1422). ClientSize: **414 x 611**.
 
@@ -1060,7 +1060,7 @@ Arquivo do reverso: `frmRelatorio_Aranha.cs` (designer nas linhas 970-1422). Cli
 | `dgEquip` | DataGridView |  |  | 13 | 177 | 137 | 250 |  |
 | `rbC` | RadioButton | GroupBox1 | C | 102 | 19 | 41 | 17 |  |
 
-## frmRelatorio_Cabos â€” "Lista de Cabos"
+## frmRelatorio_Cabos - "Lista de Cabos"
 
 Arquivo do reverso: `frmRelatorio_Cabos.cs` (designer nas linhas 1079-1542). ClientSize: **884 x 611**.
 
@@ -1168,7 +1168,7 @@ Arquivo do reverso: `frmRelatorio_Cabos.cs` (designer nas linhas 1079-1542). Cli
 | `tbTit3` | TextBox | GroupBox4 | LISTA DE CABOS | 9 | 73 | 193 | 20 |  |
 | `btModeloEletrosul` | Button |  |  | 85 | 557 | 40 | 42 | ModeloExcel_32 |
 
-## frmRelatorio_Anilhas â€” "Relatório de Anilhas"
+## frmRelatorio_Anilhas - "Relatório de Anilhas"
 
 Arquivo do reverso: `frmRelatorio_Anilhas.cs` (designer nas linhas 793-1207). ClientSize: **834 x 641**.
 
@@ -1220,7 +1220,7 @@ Arquivo do reverso: `frmRelatorio_Anilhas.cs` (designer nas linhas 793-1207). Cl
 | `cbAlternativo` | CheckBox |  | Alternativo | 10 | 530 | 76 | 17 |  |
 | `rb6` | RadioButton | GroupBox2 |  | 199 | 170 | 14 | 13 |  |
 
-## frmPlaquetas â€” "Gerenciador de Plaquetas"
+## frmPlaquetas - "Gerenciador de Plaquetas"
 
 Arquivo do reverso: `frmPlaquetas.cs` (designer nas linhas 732-1056). ClientSize: **934 x 592**.
 
@@ -1267,7 +1267,7 @@ Arquivo do reverso: `frmPlaquetas.cs` (designer nas linhas 732-1056). ClientSize
 | `btAdicionaTexto` | Button | GroupBox2 |  | 71 | 13 | 38 | 38 | Adiciona_32 |
 | `GroupBox3` | GroupBox |  |  | 12 | 439 | 238 | 99 |  |
 
-## frmPortas â€” "Portas"
+## frmPortas - "Portas"
 
 Arquivo do reverso: `frmPortas.cs` (designer nas linhas 578-810). ClientSize: **487 x 494**.
 
@@ -1294,7 +1294,7 @@ Arquivo do reverso: `frmPortas.cs` (designer nas linhas 578-810). ClientSize: **
 | `GroupBox1` | GroupBox |  | Inserção Múltipla | 228 | 399 | 181 | 93 |  |
 | `CKAlternativo` | CheckBox |  | Alternativo Visível | 75 | 454 | 90 | 17 |  |
 
-## frmPositivoInterno â€” "Positivo Interno"
+## frmPositivoInterno - "Positivo Interno"
 
 Arquivo do reverso: `frmPositivoInterno.cs` (designer nas linhas 293-412). ClientSize: **460 x 411**.
 
@@ -1317,7 +1317,7 @@ Arquivo do reverso: `frmPositivoInterno.cs` (designer nas linhas 293-412). Clien
 | `dgBornes` | DataGridView |  |  | 306 | 12 | 141 | 313 |  |
 | `btRemovePositivoInterno` | Button |  |  | 398 | 359 | 40 | 40 | Subtrai |
 
-## frmRelatorio_Interligacao â€” "Relatório de Interligação"
+## frmRelatorio_Interligacao - "Relatório de Interligação"
 
 Arquivo do reverso: `frmRelatorio_Interligacao.cs` (designer nas linhas 782-1141). ClientSize: **1019 x 609**.
 
@@ -1374,14 +1374,14 @@ Arquivo do reverso: `frmRelatorio_Interligacao.cs` (designer nas linhas 782-1141
 | `GroupBox2` | GroupBox |  | Ordem Bornes Máscara | 12 | 430 | 152 | 82 |  |
 | `tbVazia` | TextBox | GBOpcionais |  | 108 | 136 | 60 | 20 |  |
 
-## frmSplash â€” "frmSplash"
+## frmSplash - "frmSplash"
 
 Arquivo do reverso: `frmSplash.cs` (designer nas linhas 34-53). ClientSize: **625 x 506**.
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 
-## frmTextoLP â€” "Inserir Descrição LP"
+## frmTextoLP - "Inserir Descrição LP"
 
 Arquivo do reverso: `frmTextoLP.cs` (designer nas linhas 1245-1674). ClientSize: **374 x 211**.
 
@@ -1434,7 +1434,7 @@ Arquivo do reverso: `frmTextoLP.cs` (designer nas linhas 1245-1674). ClientSize:
 | `TB_C_XMax` | TextBox | GBColuna |  | 6 | 106 | 132 | 20 |  |
 | `H_BTSelecionaPortas` | Button | GBHorizontal |  | 52 | 147 | 40 | 40 | AtribuirPortas_32 |
 
-## frmTopografico â€” "Topográfico"
+## frmTopografico - "Topográfico"
 
 Arquivo do reverso: `frmTopografico.cs` (designer nas linhas 1403-2070). ClientSize: **534 x 661**.
 
@@ -1509,7 +1509,7 @@ Arquivo do reverso: `frmTopografico.cs` (designer nas linhas 1403-2070). ClientS
 | `GroupBox3` | GroupBox |  | Delimitadores | 11 | 332 | 224 | 57 |  |
 | `rb3` | RadioButton | GroupBox2 |  | 199 | 157 | 14 | 13 |  |
 
-## frmSequenciadorJumper â€” "Sequenciador de Jumper Externo"
+## frmSequenciadorJumper - "Sequenciador de Jumper Externo"
 
 Arquivo do reverso: `frmSequenciadorJumper.cs` (designer nas linhas 331-532). ClientSize: **734 x 401**.
 
@@ -1538,7 +1538,7 @@ Arquivo do reverso: `frmSequenciadorJumper.cs` (designer nas linhas 331-532). Cl
 | `dgPot` | DataGridView |  |  | 373 | 12 | 101 | 377 |  |
 | `btSalvar` | Button |  |  | 677 | 344 | 45 | 45 | Salvar_32 |
 
-## frmRelatorio_VeiasCopel â€” "Lista de Cabos Copel GT"
+## frmRelatorio_VeiasCopel - "Lista de Cabos Copel GT"
 
 Arquivo do reverso: `frmRelatorio_VeiasCopel.cs` (designer nas linhas 467-709). ClientSize: **884 x 661**.
 
@@ -1577,7 +1577,7 @@ Arquivo do reverso: `frmRelatorio_VeiasCopel.cs` (designer nas linhas 467-709). 
 | `btPesquisar` | Button |  |  | 12 | 612 | 40 | 42 | Pesquisar_32 |
 | `dgRevisao` | DataGridView |  |  | 12 | 12 | 237 | 162 |  |
 
-## frmRevisaoAutomatica â€” "Revisão Automática"
+## frmRevisaoAutomatica - "Revisão Automática"
 
 Arquivo do reverso: `frmRevisaoAutomatica.cs` (designer nas linhas 585-804). ClientSize: **484 x 201**.
 
@@ -1605,7 +1605,7 @@ Arquivo do reverso: `frmRevisaoAutomatica.cs` (designer nas linhas 585-804). Cli
 | `btCorBloco` | Button | GroupBox1 |  | 76 | 29 | 26 | 25 |  |
 | `btInserirRevisao` | Button | GroupBox1 |  | 150 | 21 | 40 | 40 | Triangulo_32 |
 
-## frmSequenciador â€” "Sequenciador de Conexões"
+## frmSequenciador - "Sequenciador de Conexões"
 
 Arquivo do reverso: `frmSequenciador.cs` (designer nas linhas 489-737). ClientSize: **834 x 583**.
 
@@ -1639,7 +1639,7 @@ Arquivo do reverso: `frmSequenciador.cs` (designer nas linhas 489-737). ClientSi
 | `btBaixo` | Button |  |  | 800 | 260 | 23 | 23 | Baixo_16 |
 | `btCima` | Button |  |  | 800 | 231 | 23 | 23 | Cima_16 |
 
-## frmTopograficoAnilha â€” "Anilhas do Topográfico"
+## frmTopograficoAnilha - "Anilhas do Topográfico"
 
 Arquivo do reverso: `frmTopograficoAnilha.cs` (designer nas linhas 177-278). ClientSize: **634 x 461**.
 
@@ -1661,7 +1661,7 @@ Arquivo do reverso: `frmTopograficoAnilha.cs` (designer nas linhas 177-278). Cli
 | `` | Coluna (da rotina de carga) | dgEquip | Indice |  |  |  |  |  |
 | `btAnilha` | Button |  |  | 71 | 321 | 64 | 42 | Anilha |
 
-## frmVerificadorProjetoFiacao â€” "Verificar Fiação"
+## frmVerificadorProjetoFiacao - "Verificar Fiação"
 
 Arquivo do reverso: `frmVerificadorProjetoFiacao.cs` (designer nas linhas 1492-2250). ClientSize: **534 x 490**.
 
@@ -1771,7 +1771,7 @@ Arquivo do reverso: `frmVerificadorProjetoFiacao.cs` (designer nas linhas 1492-2
 | `GroupBox1` | GroupBox |  |  | 179 | 217 | 350 | 266 |  |
 | `GroupBox2` | GroupBox |  | Dispositivo Principal | 191 | 243 | 83 | 47 |  |
 
-## frmVerificadorProjetoInterligacao â€” "Verificar Interligação"
+## frmVerificadorProjetoInterligacao - "Verificar Interligação"
 
 Arquivo do reverso: `frmVerificadorProjetoInterligacao.cs` (designer nas linhas 1447-2126). ClientSize: **364 x 462**.
 
@@ -1864,7 +1864,7 @@ Arquivo do reverso: `frmVerificadorProjetoInterligacao.cs` (designer nas linhas 
 | `btMostraErroVeia` | Button | GroupBoxInterligacao |  | 6 | 18 | 40 | 40 | Liga_32 |
 | `GroupBox12` | GroupBox |  | Cópia feita à mão | 593 | 159 | 80 | 37 |  |
 
-## frmVisualizarBloco â€” "Blocos"
+## frmVisualizarBloco - "Blocos"
 
 Arquivo do reverso: `frmVisualizarBloco.cs` (designer nas linhas 304-431). ClientSize: **584 x 176**.
 
@@ -1881,7 +1881,7 @@ Arquivo do reverso: `frmVisualizarBloco.cs` (designer nas linhas 304-431). Clien
 | `btSeleciona` | Button |  |  | 542 | 133 | 40 | 40 | OK_32 |
 | `LbFiltro` | Label |  | Filtro | 250 | 9 | 81 | 20 |  |
 
-## FrmTrocaUsuario â€” "Trocar Usuário e Data"
+## FrmTrocaUsuario - "Trocar Usuário e Data"
 
 Arquivo do reverso: `FrmTrocaUsuario.cs` (designer nas linhas 217-313). ClientSize: **294 x 194**.
 
@@ -1896,7 +1896,7 @@ Arquivo do reverso: `FrmTrocaUsuario.cs` (designer nas linhas 217-313). ClientSi
 | `btMudaUserData` | Button |  |  | 129 | 150 | 36 | 36 | Restaura_32 |
 | `GroupBox1` | GroupBox |  | Trocar no desenho | 8 | 20 | 279 | 72 |  |
 
-## frmTrocaEditaBlocos â€” "Trocar Blocos - Substituir Blocos"
+## frmTrocaEditaBlocos - "Trocar Blocos - Substituir Blocos"
 
 Arquivo do reverso: `frmTrocaEditaBlocos.cs` (designer nas linhas 335-457). ClientSize: **354 x 217**.
 
@@ -1916,7 +1916,7 @@ Arquivo do reverso: `frmTrocaEditaBlocos.cs` (designer nas linhas 335-457). Clie
 | `btSelecionaSimbologia` | Button |  |  | 306 | 119 | 40 | 40 | DWG |
 | `btTrocaosPaineis` | Button |  |  | 157 | 165 | 40 | 40 | Update_32 |
 
-## frmTrocaPaineis â€” "Trocar Painel"
+## frmTrocaPaineis - "Trocar Painel"
 
 Arquivo do reverso: `frmTrocaPaineis.cs` (designer nas linhas 279-412). ClientSize: **784 x 350**.
 
@@ -1936,7 +1936,7 @@ Arquivo do reverso: `frmTrocaPaineis.cs` (designer nas linhas 279-412). ClientSi
 | `LabelPN` | Label |  | LB Novo Painel | 508 | 9 | 119 | 22 |  |
 | `btTrocaosPaineis` | Button |  |  | 462 | 298 | 40 | 40 | Sincroniza_32 |
 
-## frmTrocarChave â€” "Troca Chave Primária"
+## frmTrocarChave - "Troca Chave Primária"
 
 Arquivo do reverso: `frmTrocarChave.cs` (designer nas linhas 132-184). ClientSize: **124 x 481**.
 
@@ -1948,7 +1948,7 @@ Arquivo do reverso: `frmTrocarChave.cs` (designer nas linhas 132-184). ClientSiz
 | `btInserir` | Button |  |  | 31 | 430 | 40 | 40 | Key |
 | `dg` | DataGridView |  |  | 12 | 12 | 86 | 347 |  |
 
-## frmRelatorio_Veias â€” "Lista de Veias"
+## frmRelatorio_Veias - "Lista de Veias"
 
 Arquivo do reverso: `frmRelatorio_Veias.cs` (designer nas linhas 430-663). ClientSize: **884 x 611**.
 
@@ -1987,7 +1987,7 @@ Arquivo do reverso: `frmRelatorio_Veias.cs` (designer nas linhas 430-663). Clien
 | `RBSeparPaineis` | RadioButton | GroupBox1 | Mesma Worksheet | 22 | 31 | 102 | 17 |  |
 | `RBFuncaoCabo` | RadioButton | GroupBox2 |  Função do Cabo  | 22 | 15 | 101 | 17 |  |
 
-## frmRelatorio_JumpersDWG â€” "Lista de Jumpers"
+## frmRelatorio_JumpersDWG - "Lista de Jumpers"
 
 Arquivo do reverso: `frmRelatorio_JumpersDWG.cs` (designer nas linhas 599-794). ClientSize: **260 x 345**.
 
@@ -2015,7 +2015,7 @@ Arquivo do reverso: `frmRelatorio_JumpersDWG.cs` (designer nas linhas 599-794). 
 | `btCorBloco` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 176 | 19 | 47 | 25 |  |
 | `btCorTextoBloco` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 176 | 50 | 47 | 25 |  |
 
-## frmRelatorio_Materiais â€” "Relatório de Lista de Materiais"
+## frmRelatorio_Materiais - "Relatório de Lista de Materiais"
 
 Arquivo do reverso: `frmRelatorio_Materiais.cs` (designer nas linhas 1189-1629). ClientSize: **1002 x 428**.
 
@@ -2087,7 +2087,7 @@ Arquivo do reverso: `frmRelatorio_Materiais.cs` (designer nas linhas 1189-1629).
 | `ckMultPNDetalhado` | CheckBox | GroupBox5 | Detalhar Quantidade Por Painel | 7 | 20 | 122 | 17 |  |
 | `GroupBox4` | GroupBox |  |  | 113 | 157 | 191 | 103 |  |
 
-## frmRelatorio_MateriaisDWG â€” "Lista de Materiais DWG - {Dicionario.BuscaNomeDoPainel(h3hpNaCbc4r)}"
+## frmRelatorio_MateriaisDWG - "Lista de Materiais DWG - {Dicionario.BuscaNomeDoPainel(h3hpNaCbc4r)}"
 
 Arquivo do reverso: `frmRelatorio_MateriaisDWG.cs` (designer nas linhas 1243-1637). ClientSize: **447 x 361**.
 
@@ -2139,7 +2139,7 @@ Arquivo do reverso: `frmRelatorio_MateriaisDWG.cs` (designer nas linhas 1243-163
 | `TBNome` | TextBox | GroupBox2 |  | 20 | 20 | 159 | 20 |  |
 | `btExporta` | Button | GroupBox3 |  | 127 | 19 | 40 | 42 | btExporta |
 
-## frmRelatorio_Jumpers â€” "Lista de Jumpers"
+## frmRelatorio_Jumpers - "Lista de Jumpers"
 
 Arquivo do reverso: `frmRelatorio_Jumpers.cs` (designer nas linhas 272-443). ClientSize: **884 x 512**.
 
@@ -2166,7 +2166,7 @@ Arquivo do reverso: `frmRelatorio_Jumpers.cs` (designer nas linhas 272-443). Cli
 | `btExportaDWG` | Button |  |  | 174 | 458 | 40 | 42 | btExportaDWG |
 | `cbAlternativo` | CheckBox |  | Alternativo | 12 | 472 | 76 | 17 |  |
 
-## frmRelatorio_InterligacaoEletrosul â€” "Relatório de Interligação Eletrosul"
+## frmRelatorio_InterligacaoEletrosul - "Relatório de Interligação Eletrosul"
 
 Arquivo do reverso: `frmRelatorio_InterligacaoEletrosul.cs` (designer nas linhas 669-989). ClientSize: **1019 x 661**.
 
@@ -2216,7 +2216,7 @@ Arquivo do reverso: `frmRelatorio_InterligacaoEletrosul.cs` (designer nas linhas
 | `cbVeiasReserva` | CheckBox | GBOpcionais | Veias Reservas | 6 | 145 | 104 | 17 |  |
 | `rbCadastro` | RadioButton | GroupBox2 | Cadastro | 14 | 46 | 76 | 17 |  |
 
-## frmRelatorio_InterligacaoEletroSul_Excel â€” "INDICE"
+## frmRelatorio_InterligacaoEletroSul_Excel - "INDICE"
 
 Arquivo do reverso: `frmRelatorio_InterligacaoEletroSul_Excel.cs` (designer nas linhas 475-625). ClientSize: **290 x 246**.
 
@@ -2239,7 +2239,7 @@ Arquivo do reverso: `frmRelatorio_InterligacaoEletroSul_Excel.cs` (designer nas 
 | `btSelecionaImagem` | Button |  |  | 249 | 144 | 23 | 23 | Pesquisar_16 |
 | `lbPaginas` | Label |  | Páginas | 205 | 70 | 52 | 15 |  |
 
-## frmRelatorio_InterligacaoGIGA â€” "Interligação GIGA"
+## frmRelatorio_InterligacaoGIGA - "Interligação GIGA"
 
 Arquivo do reverso: `frmRelatorio_InterligacaoGIGA.cs` (designer nas linhas 526-798). ClientSize: **784 x 431**.
 
@@ -2271,7 +2271,7 @@ Arquivo do reverso: `frmRelatorio_InterligacaoGIGA.cs` (designer nas linhas 526-
 | `BTAdicionaCor` | Button |  |  | 312 | 1 | 40 | 40 | Adiciona_32 |
 | `btExportaEXCEL` | Button |  |  | 312 | 382 | 40 | 42 | ExportaExcel_20 |
 
-## frmRelatorio_Plaquetas â€” "Relatório Lista de Plaquetas"
+## frmRelatorio_Plaquetas - "Relatório Lista de Plaquetas"
 
 Arquivo do reverso: `frmRelatorio_Plaquetas.cs` (designer nas linhas 208-312). ClientSize: **934 x 461**.
 
@@ -2293,7 +2293,7 @@ Arquivo do reverso: `frmRelatorio_Plaquetas.cs` (designer nas linhas 208-312). C
 | `` | Coluna (da rotina de carga) | dgEquip | Indice |  |  |  |  |  |
 | `btExporta` | Button |  |  | 81 | 407 | 40 | 42 | btExporta |
 
-## frmRelatorio_Rev â€” "Relatório de Revisões"
+## frmRelatorio_Rev - "Relatório de Revisões"
 
 Arquivo do reverso: `frmRelatorio_Rev.cs` (designer nas linhas 1241-1664). ClientSize: **444 x 356**.
 
@@ -2347,7 +2347,7 @@ Arquivo do reverso: `frmRelatorio_Rev.cs` (designer nas linhas 1241-1664). Clien
 | `bt3A` | Button | GroupBox1 |  | 140 | 70 | 20 | 20 | Soma |
 | `bt1D` | Button | GroupBox1 |  | 86 | 18 | 20 | 20 | Subtrai |
 
-## frmRelatorio_Rev_Matricial â€” "Relatório de Revisões Matricial"
+## frmRelatorio_Rev_Matricial - "Relatório de Revisões Matricial"
 
 Arquivo do reverso: `frmRelatorio_Rev_Matricial.cs` (designer nas linhas 800-1039). ClientSize: **664 x 106**.
 
@@ -2380,7 +2380,7 @@ Arquivo do reverso: `frmRelatorio_Rev_Matricial.cs` (designer nas linhas 800-103
 | `R1` | TextBox | GroupBox4 |  | 144 | 15 | 30 | 22 |  |
 | `R12` | TextBox | GroupBox4 |  | 485 | 15 | 30 | 22 |  |
 
-## frmRelatorio_TAF â€” "Relatório TAF >> {DeclaracoesGeral.arqAtivo.Nome}"
+## frmRelatorio_TAF - "Relatório TAF >> {DeclaracoesGeral.arqAtivo.Nome}"
 
 Arquivo do reverso: `frmRelatorio_TAF.cs` (designer nas linhas 267-426). ClientSize: **884 x 381**.
 
@@ -2408,7 +2408,7 @@ Arquivo do reverso: `frmRelatorio_TAF.cs` (designer nas linhas 267-426). ClientS
 | `dgEquip` | DataGridView |  |  | 12 | 132 | 158 | 229 |  |
 | `btExportaEXCEL` | Button |  |  | 271 | 317 | 40 | 42 | ExportaExcel_20 |
 
-## frmRelatorio_PotenciaisSiemens â€” "Relatório Siemens"
+## frmRelatorio_PotenciaisSiemens - "Relatório Siemens"
 
 Arquivo do reverso: `frmRelatorio_PotenciaisSiemens.cs` (designer nas linhas 354-627). ClientSize: **1045 x 549**.
 
@@ -2450,7 +2450,7 @@ Arquivo do reverso: `frmRelatorio_PotenciaisSiemens.cs` (designer nas linhas 354
 | `` | Coluna (da rotina de carga) | _1_dgDWG | Arquivo |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | _1_dgDWG | DWG |  |  |  |  |  |
 
-## frmRelatorio_PlaquetasDWG â€” "Relatório Lista de Plaquetas : {Dicionario.BuscaNomeDoPainel(iPnSel)}"
+## frmRelatorio_PlaquetasDWG - "Relatório Lista de Plaquetas : {Dicionario.BuscaNomeDoPainel(iPnSel)}"
 
 Arquivo do reverso: `frmRelatorio_PlaquetasDWG.cs` (designer nas linhas 1062-1411). ClientSize: **501 x 255**.
 
@@ -2494,7 +2494,7 @@ Arquivo do reverso: `frmRelatorio_PlaquetasDWG.cs` (designer nas linhas 1062-141
 | `TBDisteEntreColunas` | TextBox | GroupBox2 | {6} | 177 | 64 | 52 | 20 |  |
 | `CBColunas` | ComboBox | GroupBox2 | 2 | 177 | 39 | 52 | 21 |  |
 
-## frmRelatorio_Potenciais â€” "Relatório de Potenciais"
+## frmRelatorio_Potenciais - "Relatório de Potenciais"
 
 Arquivo do reverso: `frmRelatorio_Potenciais.cs` (designer nas linhas 272-443). ClientSize: **884 x 512**.
 
@@ -2521,7 +2521,7 @@ Arquivo do reverso: `frmRelatorio_Potenciais.cs` (designer nas linhas 272-443). 
 | `btExportaEXCEL` | Button |  |  | 231 | 458 | 40 | 42 | ExportaExcel_20 |
 | `cbAlternativo` | CheckBox |  | Alternativo | 12 | 472 | 76 | 17 |  |
 
-## frmRelatorio_PotenciaisDWG â€” "Relatório de Potenciais"
+## frmRelatorio_PotenciaisDWG - "Relatório de Potenciais"
 
 Arquivo do reverso: `frmRelatorio_PotenciaisDWG.cs` (designer nas linhas 599-794). ClientSize: **260 x 339**.
 
@@ -2549,7 +2549,7 @@ Arquivo do reverso: `frmRelatorio_PotenciaisDWG.cs` (designer nas linhas 599-794
 | `btCorBloco` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 176 | 19 | 47 | 25 |  |
 | `btCorTextoBloco` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 176 | 50 | 47 | 25 |  |
 
-## frmMigraPortas â€” "Migrar Portas"
+## frmMigraPortas - "Migrar Portas"
 
 Arquivo do reverso: `frmMigraPortas.cs` (designer nas linhas 434-606). ClientSize: **584 x 311**.
 
@@ -2581,7 +2581,7 @@ Arquivo do reverso: `frmMigraPortas.cs` (designer nas linhas 434-606). ClientSiz
 | `tbNomeNovo2` | TextBox | gbPara |  | 128 | 23 | 116 | 20 |  |
 | `LBNome1` | Label | gbDe | Nome 1 | 6 | 18 | 54 | 13 |  |
 
-## frmCriarReguas â€” "Gerenciador de Réguas de Bornes"
+## frmCriarReguas - "Gerenciador de Réguas de Bornes"
 
 Arquivo do reverso: `frmCriarReguas.cs` (designer nas linhas 463-630). ClientSize: **384 x 361**.
 
@@ -2602,7 +2602,7 @@ Arquivo do reverso: `frmCriarReguas.cs` (designer nas linhas 463-630). ClientSiz
 | `BtAdicionaRegua` | Button | GroupBox2 |  | 4 | 71 | 40 | 40 | Adiciona_32 |
 | `dgPaineis` | DataGridView |  |  | 3 | 53 | 185 | 301 |  |
 
-## frmDadosOpcionaisVeias â€” "Atributos do Cabo"
+## frmDadosOpcionaisVeias - "Atributos do Cabo"
 
 Arquivo do reverso: `frmDadosOpcionaisVeias.cs` (designer nas linhas 680-901). ClientSize: **419 x 191**.
 
@@ -2633,7 +2633,7 @@ Arquivo do reverso: `frmDadosOpcionaisVeias.cs` (designer nas linhas 680-901). C
 | `btLimpar` | Button |  |  | 267 | 102 | 40 | 40 | Apagador_32 |
 | `lbFuncao` | Label | GroupBox2 | lbFunção | 12 | 58 | 51 | 13 |  |
 
-## frmDefinicao â€” "Atribuir Definição"
+## frmDefinicao - "Atribuir Definição"
 
 Arquivo do reverso: `frmDefinicao.cs` (designer nas linhas 494-691). ClientSize: **784 x 441**.
 
@@ -2655,7 +2655,7 @@ Arquivo do reverso: `frmDefinicao.cs` (designer nas linhas 494-691). ClientSize:
 | `GroupBox1` | GroupBox |  | _Atribuir | 265 | 348 | 151 | 85 |  |
 | `dgMascaras` | DataGridView |  |  | 9 | 12 | 250 | 375 |  |
 
-## frmCopiarObjetos â€” "Copiar Objetos"
+## frmCopiarObjetos - "Copiar Objetos"
 
 Arquivo do reverso: `frmCopiarObjetos.cs` (designer nas linhas 410-566). ClientSize: **174 x 567**.
 
@@ -2677,7 +2677,7 @@ Arquivo do reverso: `frmCopiarObjetos.cs` (designer nas linhas 410-566). ClientS
 | `cbBornes` | CheckBox | GroupBox2 | Bornes | 6 | 24 | 71 | 17 |  |
 | `lbTotal` | Label |  | Selecionados:  | 9 | 544 | 77 | 13 |  |
 
-## frmConfiguracaoLP â€” "Configuração da Lista de Pontos"
+## frmConfiguracaoLP - "Configuração da Lista de Pontos"
 
 Arquivo do reverso: `frmConfiguracaoLP.cs` (designer nas linhas 758-1059). ClientSize: **359 x 521**.
 
@@ -2718,7 +2718,7 @@ Arquivo do reverso: `frmConfiguracaoLP.cs` (designer nas linhas 758-1059). Clien
 | `Label14` | Label | GroupBox2 | Posição Funcional | 6 | 66 | 150 | 28 |  |
 | `cbDocumentoLogico` | ComboBox | GroupBox2 |  | 165 | 45 | 150 | 21 |  |
 
-## frmContatosAux â€” "ANSI"
+## frmContatosAux - "ANSI"
 
 Arquivo do reverso: `frmContatosAux.cs` (designer nas linhas 368-520). ClientSize: **488 x 524**.
 
@@ -2735,7 +2735,7 @@ Arquivo do reverso: `frmContatosAux.cs` (designer nas linhas 368-520). ClientSiz
 | `cbPainel` | ComboBox |  |  | 13 | 25 | 209 | 21 |  |
 | `dgBlocos` | DataGridView |  |  | 228 | 133 | 248 | 167 |  |
 
-## frmCopia â€” "Cópia sem Função Elétrica"
+## frmCopia - "Cópia sem Função Elétrica"
 
 Arquivo do reverso: `frmCopia.cs` (designer nas linhas 164-234). ClientSize: **304 x 361**.
 
@@ -2750,7 +2750,7 @@ Arquivo do reverso: `frmCopia.cs` (designer nas linhas 164-234). ClientSize: **3
 | `BTConstroiLink` | Button |  |  | 132 | 314 | 40 | 40 | Restaura_32 |
 | `btColar` | Button |  |  | 256 | 314 | 40 | 40 | Paste_32 |
 
-## frmDispPrincipal â€” "Dispositivo Principal"
+## frmDispPrincipal - "Dispositivo Principal"
 
 Arquivo do reverso: `frmDispPrincipal.cs` (designer nas linhas 1311-1773). ClientSize: **484 x 536**.
 
@@ -2808,7 +2808,7 @@ Arquivo do reverso: `frmDispPrincipal.cs` (designer nas linhas 1311-1773). Clien
 | `LBNome2` | Label |  | Nome 2 | 319 | 46 | 54 | 13 |  |
 | `LBDistancia` | Label | GroupBox2 | LBDistancia entre terminais do Modelo | 3 | 19 | 188 | 13 |  |
 
-## frmEditaFuncaoBobina â€” "ANSI"
+## frmEditaFuncaoBobina - "ANSI"
 
 Arquivo do reverso: `frmEditaFuncaoBobina.cs` (designer nas linhas 210-305). ClientSize: **434 x 371**.
 
@@ -2820,7 +2820,7 @@ Arquivo do reverso: `frmEditaFuncaoBobina.cs` (designer nas linhas 210-305). Cli
 | `DGContatos` | DataGridView |  |  | 222 | 12 | 203 | 301 |  |
 | `btExportarPN` | Button |  |  | 361 | 319 | 30 | 40 | ExportaExcel_20 |
 
-## frmEditaNomeCircuitos â€” "Editar Nome de Circuitos"
+## frmEditaNomeCircuitos - "Editar Nome de Circuitos"
 
 Arquivo do reverso: `frmEditaNomeCircuitos.cs` (designer nas linhas 228-357). ClientSize: **424 x 475**.
 
@@ -2843,7 +2843,7 @@ Arquivo do reverso: `frmEditaNomeCircuitos.cs` (designer nas linhas 228-357). Cl
 | `btEditar` | Button |  |  | 376 | 423 | 40 | 40 | Editar |
 | `dgPaginas` | DataGridView |  |  | 318 | 12 | 94 | 405 |  |
 
-## frmEditaRevisaoCompleta â€” "Editar Revisão Completa"
+## frmEditaRevisaoCompleta - "Editar Revisão Completa"
 
 Arquivo do reverso: `frmEditaRevisaoCompleta.cs` (designer nas linhas 327-416). ClientSize: **684 x 462**.
 
@@ -2868,7 +2868,7 @@ Arquivo do reverso: `frmEditaRevisaoCompleta.cs` (designer nas linhas 327-416). 
 | `ParaToolStripTextBox` | ToolStripTextBox |  | para |  |  | 100 | 23 |  |
 | `ColarToolStripMenuItem` | ToolStripMenuItem |  | Colar |  |  | 160 | 22 | Colar |
 
-## frmEditaDispositivosAvulsos â€” "Editor Terminais Disp. Avulsos"
+## frmEditaDispositivosAvulsos - "Editor Terminais Disp. Avulsos"
 
 Arquivo do reverso: `frmEditaDispositivosAvulsos.cs` (designer nas linhas 221-309). ClientSize: **354 x 461**.
 
@@ -2892,7 +2892,7 @@ Arquivo do reverso: `frmEditaDispositivosAvulsos.cs` (designer nas linhas 221-30
 | `btEdita` | Button |  |  | 298 | 407 | 40 | 40 | Editar_32 |
 | `CBLM1` | ComboBox | GroupBox1 |  | 12 | 26 | 297 | 21 |  |
 
-## frmDuplicarCaderno â€” "Duplicar Caderno"
+## frmDuplicarCaderno - "Duplicar Caderno"
 
 Arquivo do reverso: `frmDuplicarCaderno.cs` (designer nas linhas 184-241). ClientSize: **384 x 111**.
 
@@ -2904,7 +2904,7 @@ Arquivo do reverso: `frmDuplicarCaderno.cs` (designer nas linhas 184-241). Clien
 | `lbNomeDoCaderno` | Label |  | lbNome Do Caderno | 15 | 63 | 103 | 13 |  |
 | `tbCaderno` | TextBox |  |  | 15 | 81 | 299 | 20 |  |
 
-## frmEditaBornesSelecao â€” "Editor de Bornes"
+## frmEditaBornesSelecao - "Editor de Bornes"
 
 Arquivo do reverso: `frmEditaBornesSelecao.cs` (designer nas linhas 404-561). ClientSize: **324 x 500**.
 
@@ -2923,7 +2923,7 @@ Arquivo do reverso: `frmEditaBornesSelecao.cs` (designer nas linhas 404-561). Cl
 | `dgBornesReserva` | DataGridView |  |  | 167 | 29 | 149 | 324 |  |
 | `GroupBox1` | GroupBox |  | Ordem | 12 | 359 | 304 | 87 |  |
 
-## frmEditaConexao â€” "Editar Conexão"
+## frmEditaConexao - "Editar Conexão"
 
 Arquivo do reverso: `frmEditaConexao.cs` (designer nas linhas 96-140). ClientSize: **104 x 362**.
 
@@ -2933,7 +2933,7 @@ Arquivo do reverso: `frmEditaConexao.cs` (designer nas linhas 96-140). ClientSiz
 | `btEditar` | Button |  |  | 32 | 308 | 40 | 42 | OK_32 |
 | `dg` | DataGridView |  |  | 6 | 12 | 91 | 290 |  |
 
-## frmConfiguracaoGeral â€” "Configuração Geral"
+## frmConfiguracaoGeral - "Configuração Geral"
 
 Arquivo do reverso: `frmConfiguracaoGeral.cs` (designer nas linhas 2529-3565). ClientSize: **459 x 663**.
 
@@ -3050,14 +3050,14 @@ Arquivo do reverso: `frmConfiguracaoGeral.cs` (designer nas linhas 2529-3565). C
 | `Label12` | Label | GroupBox13 | Sufixo | 29 | 46 | 112 | 18 |  |
 | `SelDirSimbologiaEletrica` | Button | GroupBox9 |  | 373 | 19 | 36 | 36 | Folder |
 
-## FrmBuscaNuvem â€” "FrmBuscaNuvem"
+## FrmBuscaNuvem - "FrmBuscaNuvem"
 
 Arquivo do reverso: `FrmBuscaNuvem.cs` (designer nas linhas 34-54). ClientSize: **152 x 149**.
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 
-## frmCadastroDePaineis â€” "Cadastro de Painéis"
+## frmCadastroDePaineis - "Cadastro de Painéis"
 
 Arquivo do reverso: `frmCadastroDePaineis.cs` (designer nas linhas 532-727). ClientSize: **689 x 361**.
 
@@ -3080,7 +3080,7 @@ Arquivo do reverso: `frmCadastroDePaineis.cs` (designer nas linhas 532-727). Cli
 | `btEditar` | Button | GroupBox1 |  | 289 | 18 | 38 | 38 | Editar |
 | `LabelQuantidadeH` | Label |  | Label2 | 350 | 5 | 292 | 17 |  |
 
-## frmCarregaEL â€” "Controle de Licença do Elétron"
+## frmCarregaEL - "Controle de Licença do Elétron"
 
 Arquivo do reverso: `frmCarregaEL.cs` (designer nas linhas 258-351). ClientSize: **302 x 90**.
 
@@ -3095,7 +3095,7 @@ Arquivo do reverso: `frmCarregaEL.cs` (designer nas linhas 258-351). ClientSize:
 | `btNuvem` | Button |  |  | 231 | 12 | 48 | 48 | Nuvem |
 | `cbElecKey` | CheckBox |  | CheckBox1 | 105 | 66 | 81 | 17 |  |
 
-## frmBornes â€” "Inserir Bornes"
+## frmBornes - "Inserir Bornes"
 
 Arquivo do reverso: `frmBornes.cs` (designer nas linhas 1040-1429). ClientSize: **604 x 475**.
 
@@ -3139,7 +3139,7 @@ Arquivo do reverso: `frmBornes.cs` (designer nas linhas 1040-1429). ClientSize: 
 | `GroupBox3` | GroupBox |  | Inserção Múltipla | 348 | 366 | 249 | 105 |  |
 | `RBBornes` | RadioButton | GroupBox1 | Bornes | 6 | 68 | 73 | 17 |  |
 
-## frmAdicionaUmCabo â€” "Adicionar Cabo"
+## frmAdicionaUmCabo - "Adicionar Cabo"
 
 Arquivo do reverso: `frmAdicionaUmCabo.cs` (designer nas linhas 830-1101). ClientSize: **614 x 196**.
 
@@ -3178,7 +3178,7 @@ Arquivo do reverso: `frmAdicionaUmCabo.cs` (designer nas linhas 830-1101). Clien
 | `_9lbComprimento` | Label | PNCabos | Comprimento | 14 | 113 | 82 | 20 |  |
 | `tbT1Var` | TextBox | gbTrio | T1 | 10 | 19 | 50 | 20 |  |
 
-## frmAplicacao â€” "Aplicação da Fiação"
+## frmAplicacao - "Aplicação da Fiação"
 
 Arquivo do reverso: `frmAplicacao.cs` (designer nas linhas 749-1040). ClientSize: **834 x 336**.
 
@@ -3219,7 +3219,7 @@ Arquivo do reverso: `frmAplicacao.cs` (designer nas linhas 749-1040). ClientSize
 | `btImportaExcel` | Button |  |  | 640 | 234 | 40 | 48 | ImportaExcel_20 |
 | `tbIsolacao` | TextBox | GroupBox1 |  | 12 | 156 | 210 | 20 |  |
 
-## frmatribuirVeias â€” "Interligação de Painéis"
+## frmatribuirVeias - "Interligação de Painéis"
 
 Arquivo do reverso: `frmatribuirVeias.cs` (designer nas linhas 310-444). ClientSize: **484 x 261**.
 
@@ -3247,7 +3247,7 @@ Arquivo do reverso: `frmatribuirVeias.cs` (designer nas linhas 310-444). ClientS
 | `BTAtribuiVeia` | Button |  |  | 429 | 217 | 40 | 40 | OK_32 |
 | `CKOrdemSelecao` | CheckBox |  | CkOrdem de Seleção | 15 | 236 | 127 | 17 |  |
 
-## frmCircuito â€” "Circuitos"
+## frmCircuito - "Circuitos"
 
 Arquivo do reverso: `frmCircuito.cs` (designer nas linhas 510-690). ClientSize: **238 x 290**.
 
@@ -3272,7 +3272,7 @@ Arquivo do reverso: `frmCircuito.cs` (designer nas linhas 510-690). ClientSize: 
 | `tbPotencial` | TextBox |  | 0 | 12 | 76 | 67 | 20 |  |
 | `GroupBox2` | GroupBox |  | Ordenar por | 8 | 109 | 112 | 70 |  |
 
-## frmCompilarInterligacao â€” "Compilar Interligação"
+## frmCompilarInterligacao - "Compilar Interligação"
 
 Arquivo do reverso: `frmCompilarInterligacao.cs` (designer nas linhas 277-411). ClientSize: **374 x 321**.
 
@@ -3291,7 +3291,7 @@ Arquivo do reverso: `frmCompilarInterligacao.cs` (designer nas linhas 277-411). 
 | `tbRevisao` | TextBox |  |  | 134 | 289 | 42 | 20 |  |
 | `btApagarComp` | Button |  |  | 313 | 271 | 40 | 42 | ApagarComp_32 |
 
-## frmCompilarJumperExt â€” "Compilar Jumper Externo"
+## frmCompilarJumperExt - "Compilar Jumper Externo"
 
 Arquivo do reverso: `frmCompilarJumperExt.cs` (designer nas linhas 299-443). ClientSize: **374 x 321**.
 
@@ -3311,7 +3311,7 @@ Arquivo do reverso: `frmCompilarJumperExt.cs` (designer nas linhas 299-443). Cli
 | `tbRevisao` | TextBox |  |  | 120 | 279 | 42 | 20 |  |
 | `btApagarComp` | Button |  |  | 318 | 266 | 40 | 42 | ApagarComp_32 |
 
-## frmConfiguracaoBDProjeto â€” "Banco de Dados do Projeto"
+## frmConfiguracaoBDProjeto - "Banco de Dados do Projeto"
 
 Arquivo do reverso: `frmConfiguracaoBDProjeto.cs` (designer nas linhas 89-124). ClientSize: **384 x 91**.
 
@@ -3320,7 +3320,7 @@ Arquivo do reverso: `frmConfiguracaoBDProjeto.cs` (designer nas linhas 89-124). 
 | `tbProjeto` | TextBox |  |  | 12 | 12 | 323 | 68 |  |
 | `SelProj` | Button |  |  | 341 | 27 | 36 | 36 | Database_32 |
 
-## frmCompilarFiacao â€” "Compilar Fiação"
+## frmCompilarFiacao - "Compilar Fiação"
 
 Arquivo do reverso: `frmCompilarFiacao.cs` (designer nas linhas 373-565). ClientSize: **507 x 407**.
 
@@ -3345,7 +3345,7 @@ Arquivo do reverso: `frmCompilarFiacao.cs` (designer nas linhas 373-565). Client
 | `btAnalisar` | Button |  |  | 73 | 359 | 40 | 42 | Programacao_32 |
 | `btSalvar` | Button |  |  | 450 | 353 | 45 | 45 | Salvar_32 |
 
-## frmClonar â€” "Clonar Equipamentos"
+## frmClonar - "Clonar Equipamentos"
 
 Arquivo do reverso: `frmClonar.cs` (designer nas linhas 1203-1757). ClientSize: **454 x 461**.
 
@@ -3415,7 +3415,7 @@ Arquivo do reverso: `frmClonar.cs` (designer nas linhas 1203-1757). ClientSize: 
 | `TabPage2` | TabPage | TabControl1 | TabPage2 | 4 | 22 | 418 | 411 |  |
 | `tbDx` | TextBox | GroupBox5 | 0 | 27 | 19 | 38 | 20 |  |
 
-## frmClonarCabos â€” "Clonar Cabos"
+## frmClonarCabos - "Clonar Cabos"
 
 Arquivo do reverso: `frmClonarCabos.cs` (designer nas linhas 238-341). ClientSize: **334 x 474**.
 
@@ -3433,7 +3433,7 @@ Arquivo do reverso: `frmClonarCabos.cs` (designer nas linhas 238-341). ClientSiz
 | `lbTrocar` | Label |  | DE | 8 | 424 | 101 | 20 |  |
 | `btEditaNome` | Button |  |  | 282 | 422 | 40 | 40 | Editar |
 
-## frmClonarEstruturaRegua â€” "Clonar Estrutura Régua"
+## frmClonarEstruturaRegua - "Clonar Estrutura Régua"
 
 Arquivo do reverso: `frmClonarEstruturaRegua.cs` (designer nas linhas 405-561). ClientSize: **442 x 411**.
 
@@ -3453,7 +3453,7 @@ Arquivo do reverso: `frmClonarEstruturaRegua.cs` (designer nas linhas 405-561). 
 | `TBPesquisaDestino` | TextBox |  |  | 296 | 54 | 95 | 20 |  |
 | `LbFiltro` | Label |  | Filtro | 12 | 53 | 60 | 20 |  |
 
-## frmEditaRevisaoSimplificada â€” "Editar Revisão Simplificada"
+## frmEditaRevisaoSimplificada - "Editar Revisão Simplificada"
 
 Arquivo do reverso: `frmEditaRevisaoSimplificada.cs` (designer nas linhas 234-306). ClientSize: **214 x 462**.
 
@@ -3469,7 +3469,7 @@ Arquivo do reverso: `frmEditaRevisaoSimplificada.cs` (designer nas linhas 234-30
 | `EditarToolStripMenuItem` | ToolStripMenuItem |  | Editar |  |  | 111 | 22 | DWG1 |
 | `CopiarToolStripMenuItem` | ToolStripMenuItem |  | Copiar |  |  | 111 | 22 | Copiar |
 
-## frmImportarModelosDeContatos â€” "Importar Modelos de Contatos"
+## frmImportarModelosDeContatos - "Importar Modelos de Contatos"
 
 Arquivo do reverso: `frmImportarModelosDeContatos.cs` (designer nas linhas 754-1070). ClientSize: **959 x 598**.
 
@@ -3505,7 +3505,7 @@ Arquivo do reverso: `frmImportarModelosDeContatos.cs` (designer nas linhas 754-1
 | `tbLM2` | TextBox | Groupbox3 |  | 269 | 194 | 46 | 20 |  |
 | `Groupbox3` | GroupBox |  | gbDWGImportar | 12 | 68 | 600 | 270 |  |
 
-## frmImportarModelosDeMascaras â€” "Importar Modelos de Máscara"
+## frmImportarModelosDeMascaras - "Importar Modelos de Máscara"
 
 Arquivo do reverso: `frmImportarModelosDeMascaras.cs` (designer nas linhas 676-958). ClientSize: **959 x 645**.
 
@@ -3537,7 +3537,7 @@ Arquivo do reverso: `frmImportarModelosDeMascaras.cs` (designer nas linhas 676-9
 | `tbLM1` | TextBox | GroupBox3 |  | 186 | 194 | 50 | 20 |  |
 | `BTAdiciona` | Button | GroupBox3 |  | 542 | 183 | 40 | 40 | Adiciona_32 |
 
-## frmImportarProjetos â€” "Importar Projeto"
+## frmImportarProjetos - "Importar Projeto"
 
 Arquivo do reverso: `frmImportarProjetos.cs` (designer nas linhas 659-936). ClientSize: **784 x 561**.
 
@@ -3569,7 +3569,7 @@ Arquivo do reverso: `frmImportarProjetos.cs` (designer nas linhas 659-936). Clie
 | `tbBancoImportado` | TextBox |  |  | 19 | 71 | 711 | 20 |  |
 | `CKPlaquetas` | CheckBox | GBOpcoes | Plaquetas | 176 | 19 | 85 | 17 |  |
 
-## frmImportarInterligExcel â€” "Importar Interligação Excel"
+## frmImportarInterligExcel - "Importar Interligação Excel"
 
 Arquivo do reverso: `frmImportarInterligExcel.cs` (designer nas linhas 645-886). ClientSize: **1284 x 474**.
 
@@ -3608,7 +3608,7 @@ Arquivo do reverso: `frmImportarInterligExcel.cs` (designer nas linhas 645-886).
 | `LBDistancia` | Label | GroupBox2 | LBDistância | 270 | 11 | 64 | 17 |  |
 | `Ponto1` | Button |  | Button1 | 374 | 456 | 14 | 8 |  |
 
-## frmGerenciadorMatIndep â€” "Dispositivos Independentes e Avulsos"
+## frmGerenciadorMatIndep - "Dispositivos Independentes e Avulsos"
 
 Arquivo do reverso: `frmGerenciadorMatIndep.cs` (designer nas linhas 508-729). ClientSize: **764 x 261**.
 
@@ -3648,7 +3648,7 @@ Arquivo do reverso: `frmGerenciadorMatIndep.cs` (designer nas linhas 508-729). C
 | `GroupBox4` | GroupBox |  | Materiais | 100 | 183 | 552 | 65 |  |
 | `dgPaineis` | DataGridView |  |  | 12 | 12 | 182 | 154 |  |
 
-## frmGerenciadorReguasBornes â€” "Editor de Bornes"
+## frmGerenciadorReguasBornes - "Editor de Bornes"
 
 Arquivo do reverso: `frmGerenciadorReguasBornes.cs` (designer nas linhas 1797-2481). ClientSize: **859 x 671**.
 
@@ -3719,7 +3719,7 @@ Arquivo do reverso: `frmGerenciadorReguasBornes.cs` (designer nas linhas 1797-24
 | `btPrimeiroChassi` | Button | GroupBox11 |  | 10 | 18 | 23 | 23 | Primeiro_16 |
 | `btUltimoChassi` | Button | GroupBox11 |  | 10 | 105 | 23 | 23 | Ultimo_16 |
 
-## FrmImportarCabosExcel â€” "Importar Cabos do Excel"
+## FrmImportarCabosExcel - "Importar Cabos do Excel"
 
 Arquivo do reverso: `FrmImportarCabosExcel.cs` (designer nas linhas 285-391). ClientSize: **264 x 141**.
 
@@ -3737,7 +3737,7 @@ Arquivo do reverso: `FrmImportarCabosExcel.cs` (designer nas linhas 285-391). Cl
 | `tbT1Var` | TextBox | GroupBox3 | T1 | 17 | 19 | 50 | 20 |  |
 | `GroupBox1` | GroupBox |  | BL | 12 | 27 | 57 | 49 |  |
 
-## frmImprimir â€” " Imprimir"
+## frmImprimir - " Imprimir"
 
 Arquivo do reverso: `frmImprimir.cs` (designer nas linhas 200-291). ClientSize: **169 x 427**.
 
@@ -3753,7 +3753,7 @@ Arquivo do reverso: `frmImprimir.cs` (designer nas linhas 200-291). ClientSize: 
 | `dg` | DataGridView |  |  | 11 | 12 | 149 | 265 |  |
 | `ProgressBar1` | ProgressBar |  |  | 18 | 402 | 142 | 18 |  |
 
-## frmMarcador â€” "Marcador"
+## frmMarcador - "Marcador"
 
 Arquivo do reverso: `frmMarcador.cs` (designer nas linhas 392-525). ClientSize: **166 x 246**.
 
@@ -3772,7 +3772,7 @@ Arquivo do reverso: `frmMarcador.cs` (designer nas linhas 392-525). ClientSize: 
 | `tbFonte` | TextBox | GroupBox1 | {DeclaracoesGeral.Conf.FonteCircuito} | 80 | 56 | 35 | 20 |  |
 | `btInserir` | Button |  |  | 12 | 203 | 40 | 40 | OK_32 |
 
-## frmMascara â€” "Máscara"
+## frmMascara - "Máscara"
 
 Arquivo do reverso: `frmMascara.cs` (designer nas linhas 727-982). ClientSize: **734 x 421**.
 
@@ -3812,7 +3812,7 @@ Arquivo do reverso: `frmMascara.cs` (designer nas linhas 727-982). ClientSize: *
 | `btEditar` | Button |  |  | 18 | 372 | 40 | 40 | Editar |
 | `RBAtualizarPortas` | RadioButton | GroupBox1 | RB Atualizar Portas | 123 | 19 | 116 | 17 |  |
 
-## frmMigraBornes â€” "Migrar Bornes e Conexões"
+## frmMigraBornes - "Migrar Bornes e Conexões"
 
 Arquivo do reverso: `frmMigraBornes.cs` (designer nas linhas 231-331). ClientSize: **413 x 465**.
 
@@ -3825,7 +3825,7 @@ Arquivo do reverso: `frmMigraBornes.cs` (designer nas linhas 231-331). ClientSiz
 | `LabelPainel2` | Label |  | Label1 | 210 | 9 | 191 | 17 |  |
 | `btMigrar` | Button |  |  | 255 | 418 | 65 | 30 | BorneMigra |
 
-## frmLink â€” "Jumper Interno (Link)"
+## frmLink - "Jumper Interno (Link)"
 
 Arquivo do reverso: `frmLink.cs` (designer nas linhas 249-416). ClientSize: **514 x 562**.
 
@@ -3847,7 +3847,7 @@ Arquivo do reverso: `frmLink.cs` (designer nas linhas 249-416). ClientSize: **51
 | `btMultiLink` | Button |  |  | 417 | 510 | 40 | 40 | OKmult_32 |
 | `dgBornes` | DataGridView |  |  | 373 | 12 | 129 | 492 |  |
 
-## frmJumper â€” "Jumper Externo"
+## frmJumper - "Jumper Externo"
 
 Arquivo do reverso: `frmJumper.cs` (designer nas linhas 564-762). ClientSize: **261 x 253**.
 
@@ -3873,7 +3873,7 @@ Arquivo do reverso: `frmJumper.cs` (designer nas linhas 564-762). ClientSize: **
 | `btSelecionarPainel` | Button |  | \ | 221 | 14 | 40 | 40 | Select_32 |
 | `GroupBox2` | GroupBox |  | Ordenar por | 8 | 109 | 112 | 70 |  |
 
-## frmLayoutMec â€” "Layout Mecânico"
+## frmLayoutMec - "Layout Mecânico"
 
 Arquivo do reverso: `frmLayoutMec.cs` (designer nas linhas 1166-1676). ClientSize: **631 x 611**.
 
@@ -3943,7 +3943,7 @@ Arquivo do reverso: `frmLayoutMec.cs` (designer nas linhas 1166-1676). ClientSiz
 | `CKPlaquetas` | CheckBox | GroupBox6 | Incluir Plaquetas | 6 | 34 | 104 | 17 |  |
 | `BTCriaListaNomes` | Button |  |  | 479 | 562 | 42 | 42 | ListaLayout_32 |
 
-## frmLayoutRapido â€” "Layout Rápido"
+## frmLayoutRapido - "Layout Rápido"
 
 Arquivo do reverso: `frmLayoutRapido.cs` (designer nas linhas 618-876). ClientSize: **784 x 561**.
 
@@ -3979,7 +3979,7 @@ Arquivo do reverso: `frmLayoutRapido.cs` (designer nas linhas 618-876). ClientSi
 | `btBaixoPorta` | Button |  |  | 546 | 148 | 23 | 23 | Baixo_16 |
 | `CBMultiselecao` | CheckBox |  | Multiseleção | 584 | 519 | 85 | 17 |  |
 
-## frmGerenciadorMateriais â€” "Gerenciador de Materiais"
+## frmGerenciadorMateriais - "Gerenciador de Materiais"
 
 Arquivo do reverso: `frmGerenciadorMateriais.cs` (designer nas linhas 570-801). ClientSize: **804 x 426**.
 
@@ -4007,7 +4007,7 @@ Arquivo do reverso: `frmGerenciadorMateriais.cs` (designer nas linhas 570-801). 
 | `BTImportaEX` | Button | GroupBoxAdiciona |  | 310 | 309 | 30 | 42 | ImportaExcel_20 |
 | `BTExportaEX` | Button | GroupBoxAdiciona |  | 262 | 309 | 30 | 42 | ExportaExcel_20 |
 
-## frmEditorCabos â€” "Editor de Cabos"
+## frmEditorCabos - "Editor de Cabos"
 
 Arquivo do reverso: `frmEditorCabos.cs` (designer nas linhas 1333-1783). ClientSize: **1004 x 391**.
 
@@ -4075,7 +4075,7 @@ Arquivo do reverso: `frmEditorCabos.cs` (designer nas linhas 1333-1783). ClientS
 | `GroupBox3` | GroupBox |  | BL | 907 | 132 | 85 | 105 |  |
 | `_7cbAterrarED` | ComboBox | PNEditar | Não | 115 | 25 | 58 | 21 |  |
 
-## frmEstatisticaDeBornes â€” "Estatística de Bornes"
+## frmEstatisticaDeBornes - "Estatística de Bornes"
 
 Arquivo do reverso: `frmEstatisticaDeBornes.cs` (designer nas linhas 413-600). ClientSize: **434 x 502**.
 
@@ -4098,7 +4098,7 @@ Arquivo do reverso: `frmEstatisticaDeBornes.cs` (designer nas linhas 413-600). C
 | `qBorneTotal` | Label |  | Total | 345 | 441 | 78 | 52 |  |
 | `qBorneRD` | Label |  | {mQuantBornes2.qBorneRD} | 203 | 473 | 65 | 20 |  |
 
-## frmEstatisticaDeCabos â€” "Estatística de Cabos Utilizados"
+## frmEstatisticaDeCabos - "Estatística de Cabos Utilizados"
 
 Arquivo do reverso: `frmEstatisticaDeCabos.cs` (designer nas linhas 221-316). ClientSize: **544 x 261**.
 
@@ -4116,7 +4116,7 @@ Arquivo do reverso: `frmEstatisticaDeCabos.cs` (designer nas linhas 221-316). Cl
 | `RBTrajeto` | RadioButton | GroupBox18 | _Trajeto | 361 | 17 | 64 | 17 |  |
 | `dg` | DataGridView |  |  | 12 | 12 | 520 | 191 |  |
 
-## frmEditaVariosDispositivos â€” "Editor Dispositivos e Máscaras"
+## frmEditaVariosDispositivos - "Editor Dispositivos e Máscaras"
 
 Arquivo do reverso: `frmEditaVariosDispositivos.cs` (designer nas linhas 206-309). ClientSize: **534 x 361**.
 
@@ -4140,7 +4140,7 @@ Arquivo do reverso: `frmEditaVariosDispositivos.cs` (designer nas linhas 206-309
 | `btEditar` | Button |  |  | 482 | 309 | 40 | 40 | Editar |
 | `PN` | Coluna (da rotina de carga) | dgPaineis | # |  |  |  |  |  |
 
-## frmEditarNomesFuncoesVeias â€” "Editor de Nome e Função Veias"
+## frmEditarNomesFuncoesVeias - "Editor de Nome e Função Veias"
 
 Arquivo do reverso: `frmEditarNomesFuncoesVeias.cs` (designer nas linhas 357-505). ClientSize: **424 x 493**.
 
@@ -4166,7 +4166,7 @@ Arquivo do reverso: `frmEditarNomesFuncoesVeias.cs` (designer nas linhas 357-505
 | `dgCabos` | DataGridView |  |  | 5 | 58 | 188 | 426 |  |
 | `lbFormacao` | Label |  | lbFormação | 133 | 9 | 62 | 13 |  |
 
-## frmEditaTitulos â€” "Editar os Títulos"
+## frmEditaTitulos - "Editar os Títulos"
 
 Arquivo do reverso: `frmEditaTitulos.cs` (designer nas linhas 421-530). ClientSize: **684 x 492**.
 
@@ -4194,7 +4194,7 @@ Arquivo do reverso: `frmEditaTitulos.cs` (designer nas linhas 421-530). ClientSi
 | `ExportarStripMenuItem` | ToolStripMenuItem |  | Exportar |  |  | 160 | 22 | ExportarStripMenuItem |
 | `ParaToolStripTextBox` | ToolStripTextBox |  | para |  |  | 100 | 25 |  |
 
-## frmEditaTitulosTextos â€” "Editar Títulos e Textos"
+## frmEditaTitulosTextos - "Editar Títulos e Textos"
 
 Arquivo do reverso: `frmEditaTitulosTextos.cs` (designer nas linhas 321-459). ClientSize: **380 x 349**.
 
@@ -4215,7 +4215,7 @@ Arquivo do reverso: `frmEditaTitulosTextos.cs` (designer nas linhas 321-459). Cl
 | `BtEditar` | Button |  |  | 237 | 283 | 40 | 40 | Editar |
 | `dgPaginas` | DataGridView |  |  | 12 | 12 | 130 | 325 |  |
 
-## frmEstimativaVeiasLivres â€” "Estimativa Veias Faltantes"
+## frmEstimativaVeiasLivres - "Estimativa Veias Faltantes"
 
 Arquivo do reverso: `frmEstimativaVeiasLivres.cs` (designer nas linhas 99-153). ClientSize: **414 x 361**.
 
@@ -4227,7 +4227,7 @@ Arquivo do reverso: `frmEstimativaVeiasLivres.cs` (designer nas linhas 99-153). 
 | `dgTrajeto` | DataGridView |  |  | 12 | 12 | 390 | 292 |  |
 | `btCopiar` | Button |  |  | 180 | 310 | 40 | 40 | Copy_32 |
 
-## frmGerenciadorContatos â€” "Gerenciador de Contatos"
+## frmGerenciadorContatos - "Gerenciador de Contatos"
 
 Arquivo do reverso: `frmGerenciadorContatos.cs` (designer nas linhas 1384-1927). ClientSize: **1044 x 445**.
 
@@ -4298,7 +4298,7 @@ Arquivo do reverso: `frmGerenciadorContatos.cs` (designer nas linhas 1384-1927).
 | `lbLayout` | Label | GroupBox3 | Bloco de Layout | 281 | 20 | 112 | 16 |  |
 | `lbNomeModelo` | Label | GroupBox2 | lbNome | 5 | 19 | 43 | 13 |  |
 
-## frmGerenciadorDWG â€” "Gerenciador de DWGs do Projeto"
+## frmGerenciadorDWG - "Gerenciador de DWGs do Projeto"
 
 Arquivo do reverso: `frmGerenciadorDWG.cs` (designer nas linhas 234-331). ClientSize: **979 x 314**.
 
@@ -4312,7 +4312,7 @@ Arquivo do reverso: `frmGerenciadorDWG.cs` (designer nas linhas 234-331). Client
 | `BTExcluido` | Button |  |  | 959 | 51 | 10 | 8 |  |
 | `btApagar` | Button |  |  | 932 | 158 | 36 | 36 | Delete_32 |
 
-## frmGerenciadorMascaras â€” "Gerenciador de Máscaras"
+## frmGerenciadorMascaras - "Gerenciador de Máscaras"
 
 Arquivo do reverso: `frmGerenciadorMascaras.cs` (designer nas linhas 1336-1848). ClientSize: **1314 x 412**.
 
@@ -4369,7 +4369,7 @@ Arquivo do reverso: `frmGerenciadorMascaras.cs` (designer nas linhas 1336-1848).
 | `lbLayout` | Label | GroupBox3 | Bloco de Layout | 271 | 20 | 112 | 16 |  |
 | `BTExportaEX` | Button |  |  | 465 | 171 | 22 | 42 | ExportaExcel_20 |
 
-## frmFERRAR â€” "frmFERRAR"
+## frmFERRAR - "frmFERRAR"
 
 Arquivo do reverso: `frmFERRAR.cs` (designer nas linhas 108-139). ClientSize: **227 x 147**.
 
@@ -4379,7 +4379,7 @@ Arquivo do reverso: `frmFERRAR.cs` (designer nas linhas 108-139). ClientSize: **
 | `TextBox1` | TextBox |  | {100} | 63 | 68 | 100 | 20 |  |
 | `Button1` | Button |  | FERRAR | 74 | 25 | 75 | 23 |  |
 
-## frmExportarDWGs â€” "Exportar Páginas"
+## frmExportarDWGs - "Exportar Páginas"
 
 Arquivo do reverso: `frmExportarDWGs.cs` (designer nas linhas 623-873). ClientSize: **454 x 341**.
 
@@ -4413,7 +4413,7 @@ Arquivo do reverso: `frmExportarDWGs.cs` (designer nas linhas 623-873). ClientSi
 | `TBZeros` | TextBox | GroupBox2 | 0 | 117 | 81 | 26 | 24 |  |
 | `GroupBox2` | GroupBox |  | Formação do Nome | 12 | 83 | 240 | 156 |  |
 
-## frmExportarImportar â€” "Exportar/Importar"
+## frmExportarImportar - "Exportar/Importar"
 
 Arquivo do reverso: `frmExportarImportar.cs` (designer nas linhas 578-777). ClientSize: **364 x 341**.
 
@@ -4439,7 +4439,7 @@ Arquivo do reverso: `frmExportarImportar.cs` (designer nas linhas 578-777). Clie
 | `GroupBox1` | GroupBox |  | Deslocamento | 13 | 65 | 93 | 73 |  |
 | `btLigarImportados` | Button |  |  | 259 | 17 | 40 | 40 | Liga_32 |
 
-## frmExportarImportarTextos â€” "Exportar e Importar Textos"
+## frmExportarImportarTextos - "Exportar e Importar Textos"
 
 Arquivo do reverso: `frmExportarImportarTextos.cs` (designer nas linhas 291-404). ClientSize: **744 x 402**.
 

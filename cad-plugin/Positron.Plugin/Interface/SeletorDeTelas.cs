@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Positron.Data.Interface;
@@ -12,7 +13,10 @@ namespace Positron.Plugin.Interface
     ///
     /// Esta tela **não existe no original** — lá cada janela tem o seu comando (`GERDWG` abre a
     /// `frmGerenciadorDWG`, `DEF` a `frmDefinicao`, `BORN` a `frmBornes`…). O seletor é do recoder:
-    /// um lugar só para alcançar as 127 sem decorar 127 nomes de comando. O que ele abre é fiel.
+    /// um lugar só para alcançar as 127 sem decorar 127 nomes de comando. O que ele abre é fiel, e a
+    /// coluna **Comando(s) do original** mostra — pelo mapa do reverso
+    /// (<c>Positron.Data.Interface.ComandosDoReverso</c>) — quais deles abrem a tela selecionada;
+    /// esses nomes **também respondem** como comando no CAD desde a rodada 128.
     ///
     /// O botão **Montar todas** roda a mesma prova do comando <c>pzTelas</c> sem sair da tela:
     /// monta as 127 e descarta, reportando qualquer falha.
@@ -55,13 +59,16 @@ namespace Positron.Plugin.Interface
             };
             _grade.Columns.Add("frm", "frm (o nome no original)");
             _grade.Columns.Add("titulo", "Título");
+            _grade.Columns.Add("comandos", "Comando(s) do original");
             _grade.Columns.Add("controles", "Controles");
             _grade.Columns.Add("designer", "Designer (linha)");
-            _grade.Columns[0].FillWeight = 30;
-            _grade.Columns[1].FillWeight = 45;
-            _grade.Columns[2].FillWeight = 12;
-            _grade.Columns[3].FillWeight = 13;
+            _grade.Columns[0].FillWeight = 22;
+            _grade.Columns[1].FillWeight = 34;
+            _grade.Columns[2].FillWeight = 22;
+            _grade.Columns[3].FillWeight = 9;
+            _grade.Columns[4].FillWeight = 13;
             _grade.CellDoubleClick += (origem, evento) => AbrirSelecionada();
+            _grade.Columns[2].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
 
             Panel rodape = new Panel { Dock = DockStyle.Bottom, Height = 34 };
             Button abrir = new Button { Text = "Abrir no CAD", Left = 6, Top = 5, Width = 120 };
@@ -96,12 +103,42 @@ namespace Positron.Plugin.Interface
                     continue;
                 }
 
-                _grade.Rows.Add(tela.Nome, tela.Titulo, tela.Campos.Count, tela.Origem);
+                _grade.Rows.Add(tela.Nome, tela.Titulo, Comandos(tela), tela.Campos.Count, tela.Origem);
                 mostradas++;
             }
 
             _contagem.Text = mostradas + " de " + FormulariosDoReverso.Quantidade + " tela(s). Duplo clique abre no CAD.";
             return mostradas;
+        }
+
+        /// <summary>
+        /// Os comandos do original que abrem esta tela, com a construção entre parênteses quando
+        /// ela é uma **variante** (`DICEMIGDE (new frmRelatorio_DICemig(3))`). Vêm do mapa do
+        /// reverso (<c>Positron.Data.Interface.ComandosDoReverso</c>), não de uma lista aqui.
+        /// </summary>
+        private static string Comandos(Tela tela)
+        {
+            IReadOnlyList<Comando> comandos = ComandosDoReverso.DaTela(tela.Nome);
+            List<string> partes = new List<string>();
+            foreach (Comando comando in comandos)
+            {
+                string parte = comando.Nome;
+                if (comando.ComVariante)
+                {
+                    foreach (Janela janela in comando.Janelas)
+                    {
+                        if (janela.Nome == tela.Nome && janela.ComArgumento)
+                        {
+                            parte += " (" + janela.Construcao + ")";
+                            break;
+                        }
+                    }
+                }
+
+                partes.Add(parte);
+            }
+
+            return string.Join(", ", partes.ToArray());
         }
 
         private void AbrirSelecionada()

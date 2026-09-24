@@ -4,7 +4,7 @@
 #
 # De onde sai: o .cs descompilado guarda o metodo do designer inteiro (o `[DebuggerStepThrough]`
 # com `SuspendLayout()`), e o de4dot NAO ofuscou os nomes de controle nem os valores das
-# propriedades — so os campos privados e os nomes de metodo. Ou seja: a formatacao correta
+# propriedades - so os campos privados e os nomes de metodo. Ou seja: a formatacao correta
 # das janelas esta no arquivo.
 #
 # Uso: powershell -File scripts/extrair-formularios-do-reverso.ps1
@@ -86,7 +86,7 @@ function ResolverTexto([string]$e) {
   $e = $e.Trim()
   if ($e -match '^Conversions\.ToString\((.+)\)$') { return ResolverTexto $Matches[1] }
   if ($e -match '^Operators\.(ConcatenateObject|AddObject)\((.+)\)$') {
-    # cuidado: `$args` e automatico do PowerShell — nao pode ser o nome da variavel
+    # cuidado: `$args` e automatico do PowerShell - nao pode ser o nome da variavel
     $pedacos = Dividir-Argumentos $Matches[2]
     if ($pedacos.Count -eq 2) {
       $a = ResolverTexto $pedacos[0]
@@ -274,7 +274,7 @@ function Ler-Formulario([string]$caminho) {
     })
   }
 
-  # 3c) o texto que o designer deixa como PLACEHOLDER (igual ao nome do controle — o `Label1`
+  # 3c) o texto que o designer deixa como PLACEHOLDER (igual ao nome do controle - o `Label1`
   #     com texto "Label1") e o original preenche nas rotinas de carga com a `mMensagem`.
   #     So entram atribuicoes que resolvem para TEXTO (literal ou mMensagem): o que so existe
   #     em execucao fica como o designer deixou, e o placeholder nunca sobrescreve nada.
@@ -299,7 +299,7 @@ function Ler-Formulario([string]$caminho) {
     }
   }
 
-  # 3b) as colunas das grades: o designer NAO as cria — quem as cria sao as rotinas de carga
+  # 3b) as colunas das grades: o designer NAO as cria - quem as cria sao as rotinas de carga
   #     (`dg.Columns.Add("nome", "cabecalho")`), em qualquer metodo do arquivo. So entram as
   #     chamadas de duas strings resolviveis; o ajuste de largura em tempo de execucao (`Columns[0].Width`)
   #     fica de fora (nao ha como reproduzir sem os dados).
@@ -384,7 +384,7 @@ $doc.Add('')
 $doc.Add('---')
 $doc.Add('')
 foreach ($f in ($formularios | Sort-Object Nome)) {
-  $doc.Add('## ' + $f.Nome + ' — "' + $f.Titulo + '"')
+  $doc.Add('## ' + $f.Nome + ' - "' + $f.Titulo + '"')
   $doc.Add('')
   $doc.Add("Arquivo do reverso: ``$($f.Arquivo)`` (designer nas linhas $($f.LinhaIni)-$($f.LinhaFim)). ClientSize: **$($f.Largura) x $($f.Altura)**.")
   $doc.Add('')

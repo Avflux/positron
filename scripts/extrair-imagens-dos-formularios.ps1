@@ -1,10 +1,10 @@
-# Extrai as imagens que ficam no .resx de CADA formulario — as que o designer pega por
+# Extrai as imagens que ficam no .resx de CADA formulario - as que o designer pega por
 # `componentResourceManager.GetObject("btAdicionar.Image")` e que NAO estao no
 # `Eletron4.Resources` global (aquelas saem pelo scripts/extrair-icones-do-reverso.ps1).
 #
 # O valor no .resx e um Bitmap serializado pelo BinaryFormatter
 # (`mimetype="application/x-microsoft.net.object.binary.base64"`): decodifica o base64 e
-# desserializa — e o mesmo caminho que o ResourceReader do .NET faz.
+# desserializa - e o mesmo caminho que o ResourceReader do .NET faz.
 #
 # O nome do arquivo e a chave sem o sufixo da propriedade (`btAdicionar.Image` -> `btAdicionar`),
 # que e o nome que o scripts/extrair-formularios-do-reverso.ps1 grava no mapa.
