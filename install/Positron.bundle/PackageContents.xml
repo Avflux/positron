@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  O autoload do plugin Positron — o mesmo mecanismo que o instalador do original usa: o CAD varre
+  a pasta de aplicacoes e carrega a DLL sozinho, sem NETLOAD.
+
+  Onde colocar (Windows):
+    %APPDATA%\ZWSOFT\ZWCAD\2026\pt-PT\Support\Positron.bundle\   (ou a pasta de aplicacoes do produto)
+  e, dentro dela, a DLL compilada (Positron.Plugin.ZWCAD.dll) com este PackageContents.xml ao lado.
+
+  A frente 11 do docs/PLANO.md (7.8) descreve as fatias do shell; esta e a fatia 5.
+-->
+<ApplicationPackage SchemaVersion="1.0"
+                    ProductCode="{7B5F1E4C-2C7A-4C2E-9C6E-6A2E5C1B7D31}"
+                    Name="Positron"
+                    Description="Positron - fiacao e interligacao do diagrama funcional"
+                    Version="0.1.0"
+                    Author="positron">
+  <CompanyDetails Name="positron" />
+  <RuntimeRequirements OS="Win64" Platform="ZWCAD*" SeriesMin="2026" SeriesMax="2026" />
+  <Components Description="Plugin principal">
+    <RuntimeRequirements OS="Win64" Platform="ZWCAD*" SeriesMin="2026" SeriesMax="2026" />
+    <ComponentEntry AppName="Positron.Plugin"
+                    ModuleName="./Positron.Plugin.ZWCAD.dll"
+                    AppDescription="Comandos do Positron (ELET, FIA, INT, VERIF, FOLHAS, ...)"
+                    LoadOnAutoCADStartup="True"
+                    LoadOnCommandInvocation="False" />
+  </Components>
+</ApplicationPackage>

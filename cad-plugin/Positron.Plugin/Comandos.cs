@@ -61,9 +61,34 @@ namespace Positron.Plugin
         [CommandMethod("ELET")]
         public void Elet()
         {
-            Plugin.Escrever("Positron — fiação e interligação do diagrama funcional.");
-            Plugin.Escrever("FIA projeta a fiação do desenho para o banco do projeto.");
-            Plugin.Escrever("INT projeta a interligação do desenho para o banco do projeto.");
+            Plugin.Escrever(ExecutarJanelaDeFolhas());
+        }
+
+        /// <summary>
+        /// <c>FOLHAS</c> — abre a **janela de folhas** direto (o <c>ELET</c> faz o mesmo: no
+        /// reverso ele é um comando vazio e o arranque é o <c>IExtensionApplication</c>).
+        /// </summary>
+        [CommandMethod("FOLHAS")]
+        public void Folhas()
+        {
+            Plugin.Escrever(ExecutarJanelaDeFolhas());
+        }
+
+        /// <summary>Abre a janela de folhas e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarJanelaDeFolhas()
+        {
+            try
+            {
+                Interface.JanelaDeFolhas janela = new Interface.JanelaDeFolhas();
+                int paginas = janela.Carregar();
+                janela.Show();
+
+                return "Positron — janela de folhas aberta com " + paginas + " página(s) (fechar pela janela).";
+            }
+            catch (System.Exception erro)
+            {
+                return "ELET: falhou — " + DescreverErro(erro) + ".";
+            }
         }
 
         /// <summary>

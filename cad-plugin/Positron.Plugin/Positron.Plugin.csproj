@@ -27,6 +27,12 @@
     <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2020')">$(ProgramFiles)\Autodesk\AutoCAD 2020</AutoCadDir>
   </PropertyGroup>
 
+  <!-- A interface (a janela de folhas e, na próxima fatia, a barra de ferramentas) usa WinForms. -->
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(CadPlatform)' == 'AutoCAD' And '$(AutoCadDir)' != ''">
     <Reference Include="accoremgd">
       <HintPath>$(AutoCadDir)\accoremgd.dll</HintPath>

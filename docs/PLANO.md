@@ -904,6 +904,33 @@ licença para rodar — o `ServicoDeLicenca`/`ILicenca` e o gate dos comandos fo
 apagados, e nenhum dos três provedores do original (Rockey/ElecKey/Nuvem) é portado.
 Não sobra encaixe nem pendência nessa frente.
 
+### 7.8 Frente 11 — o shell do plugin (barra de ferramentas, folhas e arranque) · P1
+
+O recorte em lote está fechado, a frente 10 porta as regras das páginas, mas falta a **casca**: hoje
+o plugin só responde a comandos digitados. No original a DLL **se apresenta sozinha** quando é
+carregada, mostra a barra de ferramentas e abre a janela de folhas. A pesquisa no reverso:
+
+| peça do original | onde está | o que faz |
+|---|---|---|
+| o arranque | `myEletron.cs` — `class myEletron : IExtensionApplication`, `Initialize()` (linha 65) → `Iniciar.IniciarApp()` (linha 202) | é o **ponto de entrada** que a DLL registrada faz o CAD chamar no load |
+| o arranque de verdade | `Iniciar.cs` — `IniciarApp()` | splash, coleções, **`new Ribbon(); ribbon.CreateRibbon(); ribbon.CreateRibbon2();`** e os recursos (grava o `MascaraM.dwg` do recurso na pasta do usuário) |
+| a barra | `Ribbon.cs` — `CreateRibbon()` (linha 50) e `CreateRibbon2()` (linha 83) | monta as abas/painéis/botões (`ComponentManager.Ribbon`) |
+| a janela de folhas | `Comandos.cs:1454-1476` | `new PaletteSet(título, "", guid PT/EN)`, `Add("usc", new uscPaginas())`, ancorável (`DockEnabled`/`Dock`), `Visible = true`, e no fim `_uscPagina.CarregaPG()` |
+| o comando `ELET` | `Comandos.cs:49-52` | **vazio** (`public void elet() { }`) — quem faz o trabalho é o `IExtensionApplication` |
+| o assembly da interface | o `.csproj` do reverso | referencia **`ZdWindows`** (além de `ZwManaged`/`ZwDatabaseMgd`); o `ZdWindows.dll` está em `C:\Program Files\ZWSOFT\ZWCAD 2026` |
+
+**Fatias** (mesmo método da frente 10: a regra primeiro, a casca depois — e a validação visual é do
+dono do produto):
+
+| fatia | o que é | situação |
+|---|---|---|
+| 1 | o **ponto de entrada** `IExtensionApplication` (o `myEletron`), que se apresenta no load | ✅ rodada 120 |
+| 2 | a **janela de folhas** — a lista das páginas do caderno (WinForms), lendo o desenho pelo adapter e a regra do `Positron.Data` | ✅ rodada 120 (versão janela; a **paleta** ancorável do original é a fatia 3) |
+| 3 | a **paleta** (`PaletteSet` do `ZdWindows`) com o controle das folhas, ancorável como no original | ⏳ |
+| 4 | a **barra de ferramentas** (`Ribbon.CreateRibbon`/`CreateRibbon2`) com os botões dos comandos que existem | ⏳ |
+| 5 | o **autoload** — o `.bundle` + `PackageContents.xml` para a DLL ser carregada sem `NETLOAD` | ✅ rodada 120 (o manifesto em `install/Positron.bundle/`) |
+| 6 | o **splash** e os recursos (`frmSplash`, o `MascaraM.dwg` do recurso) | ⏳ |
+
 ### 7.7 Frente 10 — interface, uma funcionalidade por vez · P1
 
 O recorte em lote está fechado (rodada 117) e a auditoria (docs/AUDITORIA.md) mostrou o que falta:
