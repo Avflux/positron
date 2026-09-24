@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using Positron.Data.Modelos;
 using Positron.Plugin.Modelos;
 
-namespace Positron.Plugin.Interface
+namespace Positron.Plugin.Interface.Telas
 {
     /// <summary>
     /// A ligação do <c>frmEstatisticaDeBornes</c> (o comando <c>STATBORN</c>): a grade por régua (a

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Positron.Data.Interface;
+using Positron.Data.Interface.Mapas;
 using Xunit;
 
 namespace Positron.Data.Tests

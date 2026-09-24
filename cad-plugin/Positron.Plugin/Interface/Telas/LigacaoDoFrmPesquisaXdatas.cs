@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using Positron.Data.Limpeza;
 
-namespace Positron.Plugin.Interface
+namespace Positron.Plugin.Interface.Telas
 {
     /// <summary>
     /// A ligação do <c>frmPesquisaXdatas</c> (o comando <c>APAGARXDATA</c> do original): a grade

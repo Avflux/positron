@@ -19,7 +19,7 @@ namespace Positron.Plugin
     /// `GERDWG` abre a `frmGerenciadorDWG`, `DEF` a `frmDefinicao`, `BORN` a `frmBornes`.
     ///
     /// O corpo aqui e so o nome: quem sabe qual tela abrir e o mapa do reverso
-    /// (`Positron.Data.Interface.ComandosDoReverso`) - uma fonte so para o mapa e o comando.
+    /// (`Positron.Data.Interface.Mapas.ComandosDoReverso`) - uma fonte so para o mapa e o comando.
     ///</summary>
     public sealed class ComandosDoOriginal
     {
@@ -27,693 +27,693 @@ namespace Positron.Plugin
         [CommandMethod("ADDDESC")]
         public void ADDDESC()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("ADDDESC"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("ADDDESC"));
         }
 
         /// <summary>`APL` do reverso (`Comandos.cs:623`) - abre `frmAplicacao`.</summary>
         [CommandMethod("APL")]
         public void APL()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("APL"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("APL"));
         }
 
         /// <summary>`ATCABO` do reverso (`Comandos.cs:809`) - abre `frmatribuirVeias`.</summary>
         [CommandMethod("ATCABO")]
         public void ATCABO()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("ATCABO"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("ATCABO"));
         }
 
         /// <summary>`ATINDEP` do reverso (`Comandos.cs:1197`) - abre `frmGerenciadorMatIndep`.</summary>
         [CommandMethod("ATINDEP")]
         public void ATINDEP()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("ATINDEP"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("ATINDEP"));
         }
 
         /// <summary>`ATPG` do reverso (`Comandos.cs:741`) - abre `frmTopograficoAnilha`.</summary>
         [CommandMethod("ATPG")]
         public void ATPG()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("ATPG"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("ATPG"));
         }
 
         /// <summary>`BORN` do reverso (`Comandos.cs:441`) - abre `frmBornes`.</summary>
         [CommandMethod("BORN")]
         public void BORN()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("BORN"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("BORN"));
         }
 
         /// <summary>`CFG` do reverso (`Comandos.cs:95`) - abre `frmConfiguracaoGeral`.</summary>
         [CommandMethod("CFG")]
         public void CFG()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("CFG"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("CFG"));
         }
 
         /// <summary>`CIRC` do reverso (`Comandos.cs:492`) - abre `frmCircuito`.</summary>
         [CommandMethod("CIRC")]
         public void CIRC()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("CIRC"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("CIRC"));
         }
 
         /// <summary>`CLOBORN` do reverso (`Comandos.cs:486`) - abre `frmClonarEstruturaRegua`.</summary>
         [CommandMethod("CLOBORN")]
         public void CLOBORN()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("CLOBORN"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("CLOBORN"));
         }
 
         /// <summary>`CLOCAB` do reverso (`Comandos.cs:938`) - abre `frmClonarCabos`.</summary>
         [CommandMethod("CLOCAB")]
         public void CLOCAB()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("CLOCAB"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("CLOCAB"));
         }
 
         /// <summary>`CLONAR` do reverso (`Comandos.cs:1230`) - abre `frmClonar`.</summary>
         [CommandMethod("CLONAR")]
         public void CLONAR()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("CLONAR"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("CLONAR"));
         }
 
         /// <summary>`CONFLP` do reverso (`Comandos.cs:306`) - abre `frmConfiguracaoLP`.</summary>
         [CommandMethod("CONFLP")]
         public void CONFLP()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("CONFLP"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("CONFLP"));
         }
 
         /// <summary>`CONT` do reverso (`Comandos.cs:217`) - abre `frmContatosAux`.</summary>
         [CommandMethod("CONT")]
         public void CONT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("CONT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("CONT"));
         }
 
         /// <summary>`COPIAINT` do reverso (`Comandos.cs:1242`) - abre `frmCopia`.</summary>
         [CommandMethod("COPIAINT")]
         public void COPIAINT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("COPIAINT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("COPIAINT"));
         }
 
         /// <summary>`COPYCAD` do reverso (`Comandos.cs:1360`) - abre `frmCopiarObjetos`.</summary>
         [CommandMethod("COPYCAD")]
         public void COPYCAD()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("COPYCAD"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("COPYCAD"));
         }
 
         /// <summary>`DEF` do reverso (`Comandos.cs:223`) - abre `frmDefinicao`.</summary>
         [CommandMethod("DEF")]
         public void DEF()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("DEF"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DEF"));
         }
 
         /// <summary>`DIELN` do reverso (`Comandos.cs:1065`) - abre `frmRelatorio_Aranha`.</summary>
         [CommandMethod("DIELN")]
         public void DIELN()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("DIELN"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DIELN"));
         }
 
         /// <summary>`DIENER` do reverso (`Comandos.cs:1125`) - abre `frmRelatorio_DIEnergisaMS`.</summary>
         [CommandMethod("DIENER")]
         public void DIENER()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("DIENER"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DIENER"));
         }
 
         /// <summary>`DIENERMT` do reverso (`Comandos.cs:1131`) - abre `frmRelatorio_DIEnergisaMT`.</summary>
         [CommandMethod("DIENERMT")]
         public void DIENERMT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("DIENERMT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DIENERMT"));
         }
 
         /// <summary>`DIENERSSE` do reverso (`Comandos.cs:1137`) - abre `frmRelatorio_DIEnergisaSSE`.</summary>
         [CommandMethod("DIENERSSE")]
         public void DIENERSSE()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("DIENERSSE"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DIENERSSE"));
         }
 
         /// <summary>`DISP` do reverso (`Comandos.cs:205`) - abre `frmDispPrincipal`.</summary>
         [CommandMethod("DISP")]
         public void DISP()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("DISP"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DISP"));
         }
 
         /// <summary>`DPOT` do reverso (`Comandos.cs:723`) - abre `frmRelatorio_DistribuicaoPotencial`.</summary>
         [CommandMethod("DPOT")]
         public void DPOT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("DPOT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DPOT"));
         }
 
         /// <summary>`DUPCAD` do reverso (`Comandos.cs:163`) - abre `frmDuplicarCaderno`.</summary>
         [CommandMethod("DUPCAD")]
         public void DUPCAD()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("DUPCAD"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DUPCAD"));
         }
 
         /// <summary>`EDBORN` do reverso (`Comandos.cs:447`) - abre `frmGerenciadorReguasBornes`.</summary>
         [CommandMethod("EDBORN")]
         public void EDBORN()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EDBORN"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EDBORN"));
         }
 
         /// <summary>`EDCABO` do reverso (`Comandos.cs:821`) - abre `frmEditorCabos`.</summary>
         [CommandMethod("EDCABO")]
         public void EDCABO()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EDCABO"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EDCABO"));
         }
 
         /// <summary>`EDCONP` do reverso (`Comandos.cs:635`) - abre `frmEditaConexao`.</summary>
         [CommandMethod("EDCONP")]
         public void EDCONP()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EDCONP"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EDCONP"));
         }
 
         /// <summary>`EDNOMEFUNVEIAS` do reverso (`Comandos.cs:962`) - abre `frmEditarNomesFuncoesVeias`.</summary>
         [CommandMethod("EDNOMEFUNVEIAS")]
         public void EDNOMEFUNVEIAS()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EDNOMEFUNVEIAS"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EDNOMEFUNVEIAS"));
         }
 
         /// <summary>`EDTDISPS` do reverso (`Comandos.cs:360`) - abre `frmEditaVariosDispositivos`.</summary>
         [CommandMethod("EDTDISPS")]
         public void EDTDISPS()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EDTDISPS"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EDTDISPS"));
         }
 
         /// <summary>`EDTDISPSA` do reverso (`Comandos.cs:354`) - abre `frmEditaDispositivosAvulsos`.</summary>
         [CommandMethod("EDTDISPSA")]
         public void EDTDISPSA()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EDTDISPSA"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EDTDISPSA"));
         }
 
         /// <summary>`EDTFUNC` do reverso (`Comandos.cs:348`) - abre `frmEditaFuncaoBobina`.</summary>
         [CommandMethod("EDTFUNC")]
         public void EDTFUNC()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EDTFUNC"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EDTFUNC"));
         }
 
         /// <summary>`EDTNCIRC` do reverso (`Comandos.cs:567`) - abre `frmEditaNomeCircuitos`.</summary>
         [CommandMethod("EDTNCIRC")]
         public void EDTNCIRC()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EDTNCIRC"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EDTNCIRC"));
         }
 
         /// <summary>`ESTF` do reverso (`Comandos.cs:747`) - abre `frmRelatorio_EstatisticaFiacao`.</summary>
         [CommandMethod("ESTF")]
         public void ESTF()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("ESTF"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("ESTF"));
         }
 
         /// <summary>`ESTVCABOS` do reverso (`Comandos.cs:956`) - abre `frmEstatisticaDeCabos`.</summary>
         [CommandMethod("ESTVCABOS")]
         public void ESTVCABOS()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("ESTVCABOS"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("ESTVCABOS"));
         }
 
         /// <summary>`ESTVL` do reverso (`Comandos.cs:950`) - abre `frmEstimativaVeiasLivres`.</summary>
         [CommandMethod("ESTVL")]
         public void ESTVL()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("ESTVL"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("ESTVL"));
         }
 
         /// <summary>`EXPCOMP` do reverso (`Comandos.cs:1224`) - abre `frmExportarImportar`.</summary>
         [CommandMethod("EXPCOMP")]
         public void EXPCOMP()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EXPCOMP"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EXPCOMP"));
         }
 
         /// <summary>`EXPDWG` do reverso (`Comandos.cs:1336`) - abre `frmExportarDWGs`.</summary>
         [CommandMethod("EXPDWG")]
         public void EXPDWG()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EXPDWG"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EXPDWG"));
         }
 
         /// <summary>`EXPIT` do reverso (`Comandos.cs:1354`) - abre `frmExportarImportarTextos`.</summary>
         [CommandMethod("EXPIT")]
         public void EXPIT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EXPIT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EXPIT"));
         }
 
         /// <summary>`EXPLM` do reverso (`Comandos.cs:1212`) - abre `frmRelatorio_Materiais`.</summary>
         [CommandMethod("EXPLM")]
         public void EXPLM()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EXPLM"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EXPLM"));
         }
 
         /// <summary>`EXPPDF` do reverso (`Comandos.cs:1236`) - abre `frmPDF`.</summary>
         [CommandMethod("EXPPDF")]
         public void EXPPDF()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("EXPPDF"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("EXPPDF"));
         }
 
         /// <summary>`GERCONT` do reverso (`Comandos.cs:193`) - abre `frmGerenciadorContatos`.</summary>
         [CommandMethod("GERCONT")]
         public void GERCONT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("GERCONT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("GERCONT"));
         }
 
         /// <summary>`GERDWG` do reverso (`Comandos.cs:114`) - abre `frmGerenciadorDWG`.</summary>
         [CommandMethod("GERDWG")]
         public void GERDWG()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("GERDWG"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("GERDWG"));
         }
 
         /// <summary>`GERLM` do reverso (`Comandos.cs:1191`) - abre `frmGerenciadorMateriais`.</summary>
         [CommandMethod("GERLM")]
         public void GERLM()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("GERLM"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("GERLM"));
         }
 
         /// <summary>`GERMASC` do reverso (`Comandos.cs:199`) - abre `frmGerenciadorMascaras`.</summary>
         [CommandMethod("GERMASC")]
         public void GERMASC()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("GERMASC"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("GERMASC"));
         }
 
         /// <summary>`GERRB` do reverso (`Comandos.cs:435`) - abre `frmCriarReguas`.</summary>
         [CommandMethod("GERRB")]
         public void GERRB()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("GERRB"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("GERRB"));
         }
 
         /// <summary>`IIEX` do reverso (`Comandos.cs:1013`) - abre `frmImportarInterligExcel`.</summary>
         [CommandMethod("IIEX")]
         public void IIEX()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("IIEX"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("IIEX"));
         }
 
         /// <summary>`IMPCAD` do reverso (`Comandos.cs:1396`) - abre `frmMisturador`.</summary>
         [CommandMethod("IMPCAD")]
         public void IMPCAD()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("IMPCAD"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("IMPCAD"));
         }
 
         /// <summary>`IMPR` do reverso (`Comandos.cs:1342`) - abre `frmImprimir`.</summary>
         [CommandMethod("IMPR")]
         public void IMPR()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("IMPR"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("IMPR"));
         }
 
         /// <summary>`INDPG` do reverso (`Comandos.cs:169`) - abre `frmRelatorio_IndicedePaginas`.</summary>
         [CommandMethod("INDPG")]
         public void INDPG()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("INDPG"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("INDPG"));
         }
 
         /// <summary>`INSM` do reverso (`Comandos.cs:573`) - abre `frmMarcador`.</summary>
         [CommandMethod("INSM")]
         public void INSM()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("INSM"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("INSM"));
         }
 
         /// <summary>`IVEIEX` do reverso (`Comandos.cs:815`) - abre `FrmImportarCabosExcel`.</summary>
         [CommandMethod("IVEIEX")]
         public void IVEIEX()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("IVEIEX"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("IVEIEX"));
         }
 
         /// <summary>`JPEXT` do reverso (`Comandos.cs:505`) - abre `frmJumper`.</summary>
         [CommandMethod("JPEXT")]
         public void JPEXT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("JPEXT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("JPEXT"));
         }
 
         /// <summary>`LANI` do reverso (`Comandos.cs:1185`) - abre `frmRelatorio_AnilhasCabos`.</summary>
         [CommandMethod("LANI")]
         public void LANI()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("LANI"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("LANI"));
         }
 
         /// <summary>`LAYMEC` do reverso (`Comandos.cs:366`) - abre `frmLayoutMec`.</summary>
         [CommandMethod("LAYMEC")]
         public void LAYMEC()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("LAYMEC"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("LAYMEC"));
         }
 
         /// <summary>`LCAB` do reverso (`Comandos.cs:1035`) - abre `frmRelatorio_Cabos`.</summary>
         [CommandMethod("LCAB")]
         public void LCAB()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("LCAB"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("LCAB"));
         }
 
         /// <summary>`LCABCOP` do reverso (`Comandos.cs:1047`) - abre `frmRelatorio_VeiasCopel`.</summary>
         [CommandMethod("LCABCOP")]
         public void LCABCOP()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("LCABCOP"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("LCABCOP"));
         }
 
         /// <summary>`LGIGA` do reverso (`Comandos.cs:1179`) - abre `frmRelatorio_InterligacaoGIGA`.</summary>
         [CommandMethod("LGIGA")]
         public void LGIGA()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("LGIGA"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("LGIGA"));
         }
 
         /// <summary>`LJUMP` do reverso (`Comandos.cs:1173`) - abre `frmRelatorio_Jumpers`.</summary>
         [CommandMethod("LJUMP")]
         public void LJUMP()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("LJUMP"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("LJUMP"));
         }
 
         /// <summary>`LNK` do reverso (`Comandos.cs:665`) - abre `frmLink`.</summary>
         [CommandMethod("LNK")]
         public void LNK()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("LNK"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("LNK"));
         }
 
         /// <summary>`LR` do reverso (`Comandos.cs:647`) - abre `frmLayoutRapido`.</summary>
         [CommandMethod("LR")]
         public void LR()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("LR"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("LR"));
         }
 
         /// <summary>`LVEI` do reverso (`Comandos.cs:1041`) - abre `frmRelatorio_Veias`.</summary>
         [CommandMethod("LVEI")]
         public void LVEI()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("LVEI"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("LVEI"));
         }
 
         /// <summary>`MASC` do reverso (`Comandos.cs:247`) - abre `frmMascara`.</summary>
         [CommandMethod("MASC")]
         public void MASC()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("MASC"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("MASC"));
         }
 
         /// <summary>`MBOR` do reverso (`Comandos.cs:480`) - abre `frmMigraBornes`.</summary>
         [CommandMethod("MBOR")]
         public void MBOR()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("MBOR"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("MBOR"));
         }
 
         /// <summary>`MCONT` do reverso (`Comandos.cs:336`) - abre `frmImportarModelosDeContatos`.</summary>
         [CommandMethod("MCONT")]
         public void MCONT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("MCONT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("MCONT"));
         }
 
         /// <summary>`MIGPOR` do reverso (`Comandos.cs:330`) - abre `frmMigraPortas`.</summary>
         [CommandMethod("MIGPOR")]
         public void MIGPOR()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("MIGPOR"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("MIGPOR"));
         }
 
         /// <summary>`MMASC` do reverso (`Comandos.cs:342`) - abre `frmImportarModelosDeMascaras`.</summary>
         [CommandMethod("MMASC")]
         public void MMASC()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("MMASC"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("MMASC"));
         }
 
         /// <summary>`MOVPN` do reverso (`Comandos.cs:265`) - abre `frmMudaPN`.</summary>
         [CommandMethod("MOVPN")]
         public void MOVPN()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("MOVPN"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("MOVPN"));
         }
 
         /// <summary>`MUDAUSER` do reverso (`Comandos.cs:1390`) - abre `FrmTrocaUsuario`.</summary>
         [CommandMethod("MUDAUSER")]
         public void MUDAUSER()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("MUDAUSER"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("MUDAUSER"));
         }
 
         /// <summary>`OPVEIAS` do reverso (`Comandos.cs:968`) - abre `frmDadosOpcionaisVeias`.</summary>
         [CommandMethod("OPVEIAS")]
         public void OPVEIAS()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("OPVEIAS"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("OPVEIAS"));
         }
 
         /// <summary>`PESQC` do reverso (`Comandos.cs:856`) - abre `frmPesquisaVeiasIndefinidas`.</summary>
         [CommandMethod("PESQC")]
         public void PESQC()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("PESQC"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("PESQC"));
         }
 
         /// <summary>`PESQCAB` do reverso (`Comandos.cs:944`) - abre `frmPesquisaCabos`.</summary>
         [CommandMethod("PESQCAB")]
         public void PESQCAB()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("PESQCAB"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("PESQCAB"));
         }
 
         /// <summary>`PESQUISA` do reverso (`Comandos.cs:1384`) - abre `frmNavegador`.</summary>
         [CommandMethod("PESQUISA")]
         public void PESQUISA()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("PESQUISA"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("PESQUISA"));
         }
 
         /// <summary>`PesquisaBlocos` do reverso (`Correcao.cs:2050`) - abre `frmNavegador`.</summary>
         [CommandMethod("PesquisaBlocos")]
         public void PesquisaBlocos()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("PesquisaBlocos"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("PesquisaBlocos"));
         }
 
         /// <summary>`PLAQ` do reverso (`Comandos.cs:372`) - abre `frmPlaquetas`.</summary>
         [CommandMethod("PLAQ")]
         public void PLAQ()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("PLAQ"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("PLAQ"));
         }
 
         /// <summary>`PN` do reverso (`Comandos.cs:144`) - abre `frmCadastroDePaineis`.</summary>
         [CommandMethod("PN")]
         public void PN()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("PN"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("PN"));
         }
 
         /// <summary>`PORT` do reverso (`Comandos.cs:211`) - abre `frmPortas`.</summary>
         [CommandMethod("PORT")]
         public void PORT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("PORT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("PORT"));
         }
 
         /// <summary>`RANI` do reverso (`Comandos.cs:729`) - abre `frmRelatorio_Anilhas`.</summary>
         [CommandMethod("RANI")]
         public void RANI()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RANI"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RANI"));
         }
 
         /// <summary>`RBORELS` do reverso (`Comandos.cs:699`) - abre `frmRelatorio_Fiacao_Compacta`.</summary>
         [CommandMethod("RBORELS")]
         public void RBORELS()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RBORELS"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RBORELS"));
         }
 
         /// <summary>`RDIF` do reverso (`Comandos.cs:717`) - abre `frmRelatorio_Diferencial`.</summary>
         [CommandMethod("RDIF")]
         public void RDIF()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RDIF"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RDIF"));
         }
 
         /// <summary>`RELEKTRO` do reverso (`Comandos.cs:429`) - abre `frmRelatorio_Elektro`.</summary>
         [CommandMethod("RELEKTRO")]
         public void RELEKTRO()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RELEKTRO"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RELEKTRO"));
         }
 
         /// <summary>`RELMATRI` do reverso (`Comandos.cs:187`) - abre `frmRelatorio_Rev_Matricial`.</summary>
         [CommandMethod("RELMATRI")]
         public void RELMATRI()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RELMATRI"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RELMATRI"));
         }
 
         /// <summary>`RELPL` do reverso (`Comandos.cs:423`) - abre `frmRelatorio_Plaquetas`.</summary>
         [CommandMethod("RELPL")]
         public void RELPL()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RELPL"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RELPL"));
         }
 
         /// <summary>`RELREV` do reverso (`Comandos.cs:175`) - abre `frmRelatorio_Rev`.</summary>
         [CommandMethod("RELREV")]
         public void RELREV()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RELREV"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RELREV"));
         }
 
         /// <summary>`RELREVF` do reverso (`Comandos.cs:181`) - abre `frmRelatorio_Furnas`.</summary>
         [CommandMethod("RELREVF")]
         public void RELREVF()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RELREVF"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RELREVF"));
         }
 
         /// <summary>`REVAUT` do reverso (`Comandos.cs:1218`) - abre `frmRevisaoAutomatica`.</summary>
         [CommandMethod("REVAUT")]
         public void REVAUT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("REVAUT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("REVAUT"));
         }
 
         /// <summary>`RFIA` do reverso (`Comandos.cs:687`) - abre `frmRelatorio_Fiacao`.</summary>
         [CommandMethod("RFIA")]
         public void RFIA()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RFIA"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RFIA"));
         }
 
         /// <summary>`RINT` do reverso (`Comandos.cs:1053`) - abre `frmRelatorio_Interligacao`.</summary>
         [CommandMethod("RINT")]
         public void RINT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RINT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RINT"));
         }
 
         /// <summary>`RINTE` do reverso (`Comandos.cs:1059`) - abre `frmRelatorio_InterligacaoEletrosul`.</summary>
         [CommandMethod("RINTE")]
         public void RINTE()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RINTE"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RINTE"));
         }
 
         /// <summary>`RPOT` do reverso (`Comandos.cs:705`) - abre `frmRelatorio_Potenciais`.</summary>
         [CommandMethod("RPOT")]
         public void RPOT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RPOT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RPOT"));
         }
 
         /// <summary>`RPOTS` do reverso (`Comandos.cs:711`) - abre `frmRelatorio_PotenciaisSiemens`.</summary>
         [CommandMethod("RPOTS")]
         public void RPOTS()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RPOTS"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RPOTS"));
         }
 
         /// <summary>`RTAF` do reverso (`Comandos.cs:693`) - abre `frmRelatorio_TAF`.</summary>
         [CommandMethod("RTAF")]
         public void RTAF()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("RTAF"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("RTAF"));
         }
 
         /// <summary>`SELBORN` do reverso (`Comandos.cs:474`) - abre `frmEditaBornesSelecao`.</summary>
         [CommandMethod("SELBORN")]
         public void SELBORN()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("SELBORN"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("SELBORN"));
         }
 
         /// <summary>`SEQ` do reverso (`Comandos.cs:659`) - abre `frmSequenciador`.</summary>
         [CommandMethod("SEQ")]
         public void SEQ()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("SEQ"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("SEQ"));
         }
 
         /// <summary>`SEQJ` do reverso (`Comandos.cs:932`) - abre `frmSequenciadorJumper`.</summary>
         [CommandMethod("SEQJ")]
         public void SEQJ()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("SEQJ"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("SEQJ"));
         }
 
         /// <summary>`TCHAVE` do reverso (`Comandos.cs:1479`) - abre `frmTrocarChave`.</summary>
         [CommandMethod("TCHAVE")]
         public void TCHAVE()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("TCHAVE"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("TCHAVE"));
         }
 
         /// <summary>`TPG` do reverso (`Comandos.cs:735`) - abre `frmTopografico`.</summary>
         [CommandMethod("TPG")]
         public void TPG()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("TPG"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("TPG"));
         }
 
         /// <summary>`TROCBL` do reverso (`Comandos.cs:1366`) - abre `frmTrocaEditaBlocos`.</summary>
         [CommandMethod("TROCBL")]
         public void TROCBL()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("TROCBL"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("TROCBL"));
         }
 
         /// <summary>`TROCTT` do reverso (`Comandos.cs:1348`) - abre `frmEditaTitulosTextos`.</summary>
         [CommandMethod("TROCTT")]
         public void TROCTT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("TROCTT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("TROCTT"));
         }
 
         /// <summary>`VFIA` do reverso (`Comandos.cs:641`) - abre `frmVerificadorProjetoFiacao`.</summary>
         [CommandMethod("VFIA")]
         public void VFIA()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("VFIA"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("VFIA"));
         }
 
         /// <summary>`VINT` do reverso (`Comandos.cs:914`) - abre `frmVerificadorProjetoInterligacao`.</summary>
         [CommandMethod("VINT")]
         public void VINT()
         {
-            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("VINT"));
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("VINT"));
         }
 
     }

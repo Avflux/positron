@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Positron.Data.Interface
+namespace Positron.Data.Interface.Mapas
 {
     /// <summary>
     /// O **mapa dos comandos do reverso** — os 216 <c>[CommandMethod]</c> do <c>Eletron4Z</c> e as

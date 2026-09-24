@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace Positron.Plugin.Interface
+namespace Positron.Plugin.Interface.Telas
 {
     /// <summary>
     /// O **achador de controle** pelo `Name` do designer, em qualquer nível de aninhamento — o que

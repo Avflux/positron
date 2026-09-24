@@ -8,7 +8,7 @@
 // As extras vao em pares nome/valor e so trazem o que muda o visual; o resto da
 // formatacao do original fica no mapa docs/reverso-formularios.txt.
 // </auto-generated>
-namespace Positron.Data.Interface
+namespace Positron.Data.Interface.Mapas
 {
     public static partial class FormulariosDoReverso
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Positron.Data.Interface
+namespace Positron.Data.Interface.Mapas
 {
     /// <summary>
     /// O **mapa das janelas do reverso** — os 127 `frm*` do `Eletron4Z`: o título, o tamanho e

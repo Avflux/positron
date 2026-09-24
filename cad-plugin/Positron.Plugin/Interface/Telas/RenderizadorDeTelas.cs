@@ -5,9 +5,9 @@ using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using Positron.Data.Interface;
+using Positron.Data.Interface.Mapas;
 
-namespace Positron.Plugin.Interface
+namespace Positron.Plugin.Interface.Telas
 {
     /// <summary>
     /// Reconstrói uma **janela do reverso** a partir do mapa (<see cref="FormulariosDoReverso"/>)

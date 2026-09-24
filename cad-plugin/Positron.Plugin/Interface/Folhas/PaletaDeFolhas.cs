@@ -3,7 +3,7 @@ using System;
 using ZwSoft.ZwCAD.Windows;
 #endif
 
-namespace Positron.Plugin.Interface
+namespace Positron.Plugin.Interface.Folhas
 {
     /// <summary>
     /// A **paleta de folhas** — o <c>_pspag</c> do reverso: um <c>PaletteSet</c> do CAD (não uma

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Positron.Data.Interface;
+using Positron.Data.Interface.Mapas;
 
-namespace Positron.Plugin.Interface
+namespace Positron.Plugin.Interface.Telas
 {
     /// <summary>
     /// Abre a janela de um **comando do original** pelo nome dele: o <c>GERDWG</c> abre a

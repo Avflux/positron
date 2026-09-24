@@ -11,7 +11,7 @@
 #     com um argumento que troca a variante (`new frmRelatorio_DICemig(3)`); esses nao podem ser
 #     registrados como se fossem a tela padrao, porque nao sao.
 # Os que passam nas duas viram comando no plugin (o `ComandosDoOriginal.Gerado.cs`), com o nome
-# do original - e so o nome, que a tela vem do mapa `Positron.Data.Interface.ComandosDoReverso`.
+# do original - e so o nome, que a tela vem do mapa `Positron.Data.Interface.Mapas.ComandosDoReverso`.
 #
 # Uso: powershell -File scripts/extrair-comandos-do-reverso.ps1 [-Amostra]
 [CmdletBinding()]
@@ -283,7 +283,7 @@ $cs = New-Object System.Collections.ArrayList
 [void]$cs.Add('//     O mapa legivel e a evidencia ficam em docs/reverso-comandos.txt.')
 [void]$cs.Add('// </auto-generated>')
 [void]$cs.Add('')
-[void]$cs.Add('namespace Positron.Data.Interface')
+[void]$cs.Add('namespace Positron.Data.Interface.Mapas')
 [void]$cs.Add('{')
 [void]$cs.Add('    public static partial class ComandosDoReverso')
 [void]$cs.Add('    {')
@@ -332,7 +332,7 @@ $ger = New-Object System.Collections.ArrayList
 [void]$ger.Add('    /// `GERDWG` abre a `frmGerenciadorDWG`, `DEF` a `frmDefinicao`, `BORN` a `frmBornes`.')
 [void]$ger.Add('    ///')
 [void]$ger.Add('    /// O corpo aqui e so o nome: quem sabe qual tela abrir e o mapa do reverso')
-[void]$ger.Add('    /// (`Positron.Data.Interface.ComandosDoReverso`) - uma fonte so para o mapa e o comando.')
+[void]$ger.Add('    /// (`Positron.Data.Interface.Mapas.ComandosDoReverso`) - uma fonte so para o mapa e o comando.')
 [void]$ger.Add('    ///</summary>')
 [void]$ger.Add('    public sealed class ComandosDoOriginal')
 [void]$ger.Add('    {')
@@ -341,7 +341,7 @@ foreach ($c in $ligaveis) {
   [void]$ger.Add('        [CommandMethod("' + $c.Nome + '")]')
   [void]$ger.Add('        public void ' + $c.Nome + '()')
   [void]$ger.Add('        {')
-  [void]$ger.Add('            Plugin.Escrever(Interface.JanelasDoOriginal.Abrir("' + $c.Nome + '"));')
+  [void]$ger.Add('            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("' + $c.Nome + '"));')
   [void]$ger.Add('        }')
   [void]$ger.Add('')
 }

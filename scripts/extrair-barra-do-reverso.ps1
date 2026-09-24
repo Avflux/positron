@@ -392,7 +392,7 @@ $cs = New-Object System.Collections.ArrayList
 [void]$cs.Add('//     O mapa legivel e a evidencia ficam em docs/reverso-barra-do-original.txt.')
 [void]$cs.Add('// </auto-generated>')
 [void]$cs.Add('')
-[void]$cs.Add('namespace Positron.Data.Interface')
+[void]$cs.Add('namespace Positron.Data.Interface.Mapas')
 [void]$cs.Add('{')
 [void]$cs.Add('    public static partial class BarraDoReverso')
 [void]$cs.Add('    {')

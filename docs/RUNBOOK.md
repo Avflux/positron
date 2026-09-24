@@ -769,6 +769,34 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 131 — os namespaces acompanham as pastas (`Mapas`, `Barra`, `Folhas`, `Telas`).**
+A rodada 130 deixou as pastas separadas com todos os tipos no namespace antigo; o dono do produto pediu
+o casamento (pasta = namespace), que e a convencao do .NET. O que dava trabalho nao foi o `using` — foi
+os **emissores**:
+
+```
+Positron.Data.Interface.Mapas                 <- os tres mapas + os .Dados.cs gerados
+Positron.Plugin.Interface.Barra               <- BarraDeFerramentas
+Positron.Plugin.Interface.Folhas              <- PaletaDeFolhas, FolhasControle
+Positron.Plugin.Interface.Telas               <- RenderizadorDeTelas, SeletorDeTelas, JanelasDoOriginal,
+                                                 ILigacaoDeTela, LigacoesDasTelas, ControlesDaTela, Ligacao*
+Positron.Data.Interface / Plugin.Interface    <- so o compartilhado (MensagensDoReverso, IconesEmbutidos)
+```
+
+**Os tres extratores foram junto** (`namespace Positron.Data.Interface.Mapas` nos gerados, e o
+`ComandosDoOriginal.Gerado.cs` chamando `Interface.Telas.JanelasDoOriginal`): se o gerador ficasse no
+namespace antigo, a proxima regeracao criava a `partial class` em **dois** namespaces e o build
+quebrava. No consumo entraram `using Positron.Data.Interface.Mapas;` (cinco arquivos do plugin e tres
+testes), os comandos passaram a nomear `Interface.Barra.BarraDeFerramentas`,
+`Interface.Folhas.PaletaDeFolhas` e `Interface.Telas.*` (o `Positron.Plugin` enxerga
+`Positron.Plugin.Interface` mas **nao** as subpastas) e o `using Positron.Data.Interface;` que perdeu
+uso foi removido.
+
+**Checagens (as duas builds e o CAD):** 0 avisos / 0 erros nas duas plataformas, `plugin:test` **591**
+e o E2E no `Funcional.dwg` com os **mesmos** numeros de antes — barra `121 botao(oes) … 83 ligado(s),
+38 desativado(s); 76 abrem uma janela`, `JANELAS: 127 de 127 … Ligacoes: 2 de 127`, `APAGARXDATA: …
+CONSTRUTOR (4).`, `STATBORN: 31/199/17` e `DUPCAD` abrindo a `frmDuplicarCaderno`.
+
 **Rodada 130 — a interface organizada: nomes, pastas e o registro das ligacoes.**
 O dono do produto perguntou se era ideal os arquivos se chamarem "Reverso" e lembrou o que quer: a
 interface **montada** antes de integrar os metodos **um a um**. As duas coisas ficaram resolvidas com
@@ -787,8 +815,8 @@ numeros no desenho sao os mesmos).
 - Nomes de produto ficam como estavam: `BarraDeFerramentas`, `PaletaDeFolhas`, `FolhasControle`,
   `SeletorDeTelas`, `JanelasDoOriginal`.
 
-**As pastas** (namespaces **intactos**: e organizacao de arquivo, nao de namespace — o `.csproj` e
-SDK-style, entao mover nao exige edicao de projeto):
+**As pastas** (e os **namespaces acompanham**, desde a rodada 131 — o bloco acima conta a migracao; o
+`.csproj` e SDK-style, entao mover nao exigiu edicao de projeto):
 
 ```
 Positron.Data/Interface/                     Positron.Plugin/Interface/
@@ -810,8 +838,9 @@ Os tres extratores foram ajustados para escrever nos caminhos novos (`-Dados`, `
 1. a regra pura ja tem de existir no `Positron.Data` **com teste** (a regra de ouro do §7.7) e o
    adapter que le/escreve o desenho, se a regra olhar o desenho;
 2. crie `cad-plugin/Positron.Plugin/Interface/Telas/LigacaoDoFrmXxx.cs` copiando o molde
-   (`LigacaoDoFrmPesquisaXdatas.cs`): implemente `ILigacaoDeTela`, devolva o **nome do `frm*`** do
-   original em `NomeDaTela` e ligue os controles **pelo `Name` do designer** (o mapa
+   (`LigacaoDoFrmPesquisaXdatas.cs`) e mantenha o `namespace Positron.Plugin.Interface.Telas` (o
+   namespace acompanha a pasta, rodada 131): implemente `ILigacaoDeTela`, devolva o **nome do `frm*`**
+   do original em `NomeDaTela` e ligue os controles **pelo `Name` do designer** (o mapa
    `docs/reverso-formularios.txt` tem o nome e a caixa de cada um) com `ControlesDaTela.Achar<T>`;
 3. acrescente **uma linha** na lista `Todas` do `LigacoesDasTelas`;
 4. rode `npm run plugin:build` e, no CAD, o comando do original (ex.: `APAGARXDATA`) — a tela abre

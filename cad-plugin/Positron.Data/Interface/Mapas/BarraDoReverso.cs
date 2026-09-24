@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Positron.Data.Interface
+namespace Positron.Data.Interface.Mapas
 {
     /// <summary>
     /// A **barra de ferramentas do reverso** — o <c>Ribbon.cs</c> do <c>Eletron4Z</c>: a aba, os

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Positron.Data.Interface;
+using Positron.Data.Interface.Mapas;
 
 #if !AUTOCAD
 using System.Windows.Input;
@@ -9,7 +9,7 @@ using ZwSoft.Windows;
 using ZwSoft.ZwCAD.ApplicationServices;
 #endif
 
-namespace Positron.Plugin.Interface
+namespace Positron.Plugin.Interface.Barra
 {
     /// <summary>
     /// A **barra de ferramentas** do Positron, montada a partir do **mapa do reverso**

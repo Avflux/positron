@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using Positron.Data.Interface;
+using Positron.Data.Interface.Mapas;
 
-namespace Positron.Plugin.Interface
+namespace Positron.Plugin.Interface.Telas
 {
     /// <summary>
     /// O **seletor das telas do reverso**: lista as 127 janelas decodificadas (o nome do `frm`, o

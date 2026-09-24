@@ -1,6 +1,6 @@
 using System.Windows.Forms;
 
-namespace Positron.Plugin.Interface
+namespace Positron.Plugin.Interface.Telas
 {
     /// <summary>
     /// A **ligação de uma tela**: o que fazer quando a janela do designer abre. É o contrato que

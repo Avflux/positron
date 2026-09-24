@@ -4,7 +4,7 @@ using System.Windows.Forms;
 using Positron.Data.Paginas;
 using Positron.Plugin.Paginas;
 
-namespace Positron.Plugin.Interface
+namespace Positron.Plugin.Interface.Folhas
 {
     /// <summary>
     /// O controle das **folhas do caderno** — o `uscPaginas` do reverso: a grade `dg` com as

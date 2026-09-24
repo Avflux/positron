@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using Positron.Data.Interface;
+using Positron.Data.Interface.Mapas;
 
-namespace Positron.Plugin.Interface
+namespace Positron.Plugin.Interface.Telas
 {
     /// <summary>
     /// O **registro das ligações** das telas: para as janelas cuja **regra já está portada**, liga os

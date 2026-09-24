@@ -79,7 +79,7 @@ namespace Positron.Plugin
         {
             try
             {
-                int paginas = Interface.PaletaDeFolhas.Mostrar();
+                int paginas = Interface.Folhas.PaletaDeFolhas.Mostrar();
 
                 return "Positron — paleta de folhas com " + paginas + " página(s) (ancorada no CAD).";
             }
@@ -97,7 +97,7 @@ namespace Positron.Plugin
         [CommandMethod("JANELAS")]
         public void Janelas()
         {
-            Plugin.Escrever(Interface.SeletorDeTelas.Abrir());
+            Plugin.Escrever(Interface.Telas.SeletorDeTelas.Abrir());
         }
 
         /// <summary>
@@ -109,8 +109,8 @@ namespace Positron.Plugin
         [CommandMethod("JANELA")]
         public void Janela()
         {
-            string nome = Interface.RenderizadorDeTelas.NomeDaVariavel();
-            Plugin.Escrever(nome == null ? Interface.SeletorDeTelas.Abrir() : Interface.RenderizadorDeTelas.Abrir(nome));
+            string nome = Interface.Telas.RenderizadorDeTelas.NomeDaVariavel();
+            Plugin.Escrever(nome == null ? Interface.Telas.SeletorDeTelas.Abrir() : Interface.Telas.RenderizadorDeTelas.Abrir(nome));
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Positron.Plugin
         [CommandMethod("APAGARXDATA")]
         public void ApagarXData()
         {
-            Plugin.Escrever(Interface.RenderizadorDeTelas.Abrir("frmPesquisaXdatas"));
+            Plugin.Escrever(Interface.Telas.RenderizadorDeTelas.Abrir("frmPesquisaXdatas"));
         }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace Positron.Plugin
         [CommandMethod("pzTelas")]
         public void ConferirTelas()
         {
-            Plugin.Escrever(Interface.RenderizadorDeTelas.ConferirTodas());
+            Plugin.Escrever(Interface.Telas.RenderizadorDeTelas.ConferirTodas());
         }
 
         /// <summary>

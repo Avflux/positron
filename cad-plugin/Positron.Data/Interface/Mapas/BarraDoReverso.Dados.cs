@@ -3,7 +3,7 @@
 //     O mapa legivel e a evidencia ficam em docs/reverso-barra-do-original.txt.
 // </auto-generated>
 
-namespace Positron.Data.Interface
+namespace Positron.Data.Interface.Mapas
 {
     public static partial class BarraDoReverso
     {
