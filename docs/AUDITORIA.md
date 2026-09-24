@@ -32,7 +32,10 @@ powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Lista
 
 **Os "60 sem tela e sem nada no plugin" não são 60 regras faltando:** a triagem do §7.6 já dividiu
 cada um (só UI, interativo, destrutivo, ambiente ou substância coberta sob outro nome). O que sobra de
-**regra em lote de verdade** está na **frente 2**, e é pouca coisa:
+**regra em lote de verdade** está na **frente 2**, e é pouca coisa: dos **38** comandos dela, **30**
+estão entregues (contra os 27 do estado anterior, entraram `RENPAGA`, `APAGARXDATA` e `PesquisaBlocos`)
+e dos **8** que sobram **7 são regra de desenho** — o outro, `CorrigeJanelas`, é **ambiente** (mexe nas
+janelas do CAD, não no desenho):
 
 | comando | no reverso | corpo | veredito (medido na rodada 132) |
 |---|---|---|---|
