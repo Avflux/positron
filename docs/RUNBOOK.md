@@ -769,6 +769,32 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 120 — frente 11: o shell do plugin (o arranque, a janela de folhas e o autoload).**
+Pesquisa no reverso, com evidência:
+
+| peça | onde | o que faz |
+|---|---|---|
+| o arranque | `myEletron.cs@@I@@IExtensionApplication@@, @@Initialize()@@` | o CAD chama no load |
+| o arranque de verdade | `Iniciar.cs@@IniciarApp()@@` | splash, coleções, `Ribbon.CreateRibbon/CreateRibbon2` e os recursos |
+| a barra | `Ribbon.cs@@CreateRibbon@@(50)/@@CreateRibbon2@@(83)` | abas/painéis/botões |
+| a janela de folhas | `Comandos.cs:1454-1476` | `PaletteSet` + `uscPaginas`, ancorável, `CarregaPG()` |
+| o comando `ELET` | `Comandos.cs:49-52` | **vazio** no reverso |
+| a interface | o `.csproj` do reverso | referencia `ZdWindows` (está no diretório do ZWCAD 2026) |
+
+**O que entrou (fatias 1, 2 e 5):**
+
+- `InicializadorDoPositron` — o `IExtensionApplication`: a DLL **se apresenta no load**, sem depender de digitar comando (o `ELET` do reverso é vazio);
+- `PaginasDoDesenho` (o I/O: os layers que a regra aceita, na ordem) + `JanelaDeFolhas` (WinForms) com a grade das folhas, o decimal e o botão de recarregar — a **janela de folhas**;
+- `ELET` e o novo `FOLHAS` abrem a janela;
+- `install/Positron.bundle/PackageContents.xml` — o **autoload** (a DLL carregada na abertura do CAD, sem `NETLOAD`).
+
+> **Medição pendente nesta rodada:** o ZWCAD do dono do produto está aberto (PID 3652, iniciado
+> sem `/b`), e o ZWCAD é instância única — o harness recusa rodar e a instância existente não
+> herda as variáveis `POSITRON_*`. O teste visual é dele: `NETLOAD` da DLL nova e `ELET`.
+
+**As próximas fatias** (no §7.8): a **paleta** ancorável (`PaletteSet` do `ZdWindows`), a
+**barra de ferramentas** (`Ribbon`) e o splash/recursos.
+
 **Rodada 119 — frente 10, fatia 2: o nome da página pelo layer e a seção PAGINA do pzDiag.**
 A segunda fatia de páginas/caderno, agora na classe `PaginasDoCaderno`:
 
