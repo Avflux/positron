@@ -19,6 +19,20 @@ namespace Positron.Data.Diagnostico
 
         public const string CabecalhoDeCores = "COR;handle;nome;tag;corRef;corDef";
 
+        public const string CabecalhoDePaginas = "PAGINA;layer;decimal;ordem";
+
+        /// <summary>Uma linha da seção das páginas (o layer, o decimal e a posição na ordem).</summary>
+        public static string LinhaDePagina(string layer, double valor, int ordem)
+        {
+            return string.Join(";", new[]
+            {
+                "PAGINA",
+                Texto(layer),
+                valor.ToString("0.00", CultureInfo.InvariantCulture),
+                Numero(ordem),
+            });
+        }
+
         /// <summary>Uma linha da seção das portas (o separador é <c>;</c>).</summary>
         public static string LinhaDePorta(
             string tipo,

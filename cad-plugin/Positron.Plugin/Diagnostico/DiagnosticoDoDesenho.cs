@@ -4,6 +4,7 @@ using System.IO;
 using Positron.Data;
 using Positron.Data.Diagnostico;
 using Positron.Data.Fiacao;
+using Positron.Data.Paginas;
 #if AUTOCAD
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -152,6 +153,32 @@ namespace Positron.Plugin.Diagnostico
                             handle, bloco.Name, atributo.Tag, atributo.ColorIndex, daDefinicao));
                     }
                 }
+
+                // Seção das PÁGINAS: os layers que são páginas válidas, na ordem da regra —
+                // é o que o dono do produto confere contra o caderno (frente 10, fatia 2).
+                linhas.Add(RelatorioDeDiagnostico.CabecalhoDePaginas);
+                int paginasValidas = 0;
+                List<string> nomesDePagina = new List<string>();
+                foreach (ObjectId idLayer in (LayerTable)transacao.GetObject(banco.LayerTableId, OpenMode.ForRead))
+                {
+                    LayerTableRecord layer = transacao.GetObject(idLayer, OpenMode.ForRead) as LayerTableRecord;
+                    if (layer == null || !PaginasDoCaderno.LayerValido(layer.Name))
+                    {
+                        continue;
+                    }
+
+                    paginasValidas++;
+                    nomesDePagina.Add(layer.Name);
+                }
+
+                nomesDePagina.Sort((a, b) => PaginaNumerada.Decimal(a).CompareTo(PaginaNumerada.Decimal(b)));
+                for (int i = 0; i < nomesDePagina.Count; i++)
+                {
+                    linhas.Add(RelatorioDeDiagnostico.LinhaDePagina(
+                        nomesDePagina[i], PaginaNumerada.Decimal(nomesDePagina[i]), i + 1));
+                }
+
+                linhas.Add(RelatorioDeDiagnostico.Total("paginas", paginasValidas));
 
                 linhas.Insert(0, RelatorioDeDiagnostico.CabecalhoDePortas);
                 linhas.Add(RelatorioDeDiagnostico.Total("portas", portas, referencias, diferencas));

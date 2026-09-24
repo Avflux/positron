@@ -769,6 +769,43 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 119 — frente 10, fatia 2: o nome da página pelo layer e a seção PAGINA do pzDiag.**
+A segunda fatia de páginas/caderno, agora na classe `PaginasDoCaderno`:
+
+| regra do reverso | o que faz |
+|---|---|
+| `LayerValido` | número **maior que zero**, ou número + dígito/letra **maiúscula** (48-57 ou 65-90 no `Asc`) |
+| `montaNumeroPagina` | tira os zeros à esquerda e, com **largura fixa**, completa com zeros — **um a mais** quando o texto tem letra |
+| `localizaPaginaMatriz` | o índice **1-based** da página na lista, `0` quando não achou |
+| `BuscaProximaPaginaValida` | a próxima da lista (vazio se for a última) |
+| `BuscaAlternativo` | o alternativo; sem o "retorna vazio", devolve a própria página |
+
+A matriz de páginas do original virou uma `IReadOnlyList<PaginaDoCaderno>` — a regra fica
+testável sem o CAD.
+
+**A seção `PAGINA` do `pzDiag`** (o artefato para o dono do produto conferir no caderno):
+cabeçalho, uma linha por **layer válido** com o decimal e a ordem, e o `TOTAL;paginas`.
+
+**Medido no ZWCAD 2026** (`..\Elet\Teste_projeto_real\Funcional.dwg`, DWG 63):
+
+```text
+PAGINA;layer;decimal;ordem
+PAGINA;1;1.00;1
+PAGINA;2;2.00;2
+PAGINA;6;6.00;3
+PAGINA;7;7.00;4
+PAGINA;8;8.00;5
+PAGINA;15;15.00;6  (… 16 a 24 nas posições 7 a 15)
+PAGINA;1000;1000.00;16
+TOTAL;paginas;16
+```
+
+**16 páginas** na ordem da regra — pronto para conferência contra o caderno real.
+
+> **Duas expectativas minhas foram corrigidas pelo próprio original:** só zeros vira **vazio** (não
+> `"0"`) e a letra soma **dois** zeros na largura fixa (`10A` a 4 = `0010A`). Os testes
+> ficaram com o comportamento do reverso.
+
 **Rodada 111 — o `SYNCV`, o pipeline das veias (o gêmeo do `SYNCD`).**
 O `SYNCV` do reverso tem **nove** passos (barra de progresso com `Quantidade = 9`):
 
