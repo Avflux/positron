@@ -24,7 +24,8 @@ namespace Positron.Plugin
     {
         public void Initialize()
         {
-            Escrever("Positron carregado. Digite ELET para começar — ELET abre a janela de folhas (FOLHAS tambem).");
+            Escrever("Positron carregado. Digite ELET para começar — ELET abre a paleta de folhas (FOLHAS também).");
+            Escrever(Interface.BarraDeFerramentas.Criar());
         }
 
         public void Terminate()

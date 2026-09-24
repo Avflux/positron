@@ -7,25 +7,17 @@ using Positron.Plugin.Paginas;
 namespace Positron.Plugin.Interface
 {
     /// <summary>
-    /// A **janela de folhas** — a primeira fatia da frente 11 (o shell do plugin): a lista das
-    /// páginas do caderno (os layers do desenho que a regra aceita), na ordem do
-    /// <see cref="PaginaNumerada"/>.
-    ///
-    /// **Fatia atual:** uma janela WinForms com a grade e o botão de recarregar. A **paleta**
-    /// ancorável do original (<c>PaletteSet</c> + <c>uscPaginas</c>) e a **barra de ferramentas**
-    /// vêm nas próximas fatias — e a validação visual é do dono do produto.
+    /// O controle das **folhas do caderno** — a grade com as páginas do desenho (o
+    /// <c>uscPaginas</c> do reverso). Ele vive dentro da <see cref="PaletaDeFolhas"/> (a
+    /// <c>PaletteSet</c>), e não numa janela solta: a paleta é do CAD, então o desenho continua
+    /// utilizável sem perder o foco (a correção pedida na rodada 121).
     /// </summary>
-    internal sealed class JanelaDeFolhas : Form
+    internal sealed class FolhasControle : UserControl
     {
         private readonly DataGridView _grade;
 
-        internal JanelaDeFolhas()
+        internal FolhasControle()
         {
-            Text = "Positron — folhas do caderno";
-            Width = 420;
-            Height = 460;
-            StartPosition = FormStartPosition.CenterScreen;
-
             _grade = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -42,7 +34,7 @@ namespace Positron.Plugin.Interface
             Button recarregar = new Button
             {
                 Dock = DockStyle.Bottom,
-                Height = 30,
+                Height = 26,
                 Text = "Recarregar do desenho",
             };
             recarregar.Click += (origem, evento) => Carregar();
@@ -65,7 +57,6 @@ namespace Positron.Plugin.Interface
                     PaginaNumerada.Decimal(paginas[i]).ToString("0.00"));
             }
 
-            Text = "Positron — folhas do caderno (" + paginas.Count + ")";
             return paginas.Count;
         }
     }

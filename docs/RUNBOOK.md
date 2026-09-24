@@ -769,6 +769,43 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 121 — frente 11, fatias 3 e 4: a paleta de folhas e a barra de ferramentas.**
+Duas correções pedidas pelo dono do produto: **a janela de folhas era uma janela de sistema
+operacional** (roubava o foco e não dava para usar o CAD) e **a barra não existia**.
+
+**A API (pesquisada no reverso):** o ribbon vem de `ZwSoft.Windows` (`ComponentManager.Ribbon`,
+`RibbonTab`/`RibbonPanel`/`RibbonPanelSource`/`RibbonButton`) e a paleta de
+`ZwSoft.ZwCAD.Windows` (`PaletteSet`, `DockSides`) — os dois no `ZdWindows.dll`, que o
+.csproj do reverso referencia; o botão roda o comando pelo `ICommand` (`AdskCommandHandler`)
+lendo o `CommandParameter` e chamando `SendStringToExecute`; e o `DockEnabled`/`Dock` são
+`DockSides` (o reverso usa `(DockSides)20480` e `(DockSides)4096`).
+
+**O que entrou:**
+
+- `FolhasControle` (o `uscPaginas`: um `UserControl` com a grade e o recarregar) +
+  `PaletaDeFolhas` (a `PaletteSet` ancorável, uma instância por sessão) — a janela de OS foi **removida**;
+- `BarraDeFerramentas` — a aba `Positron` com dois painéis (Projeto: `ELET`, `FOLHAS`, `FIA`,
+  `INT`, `VERIF`, `SYNCD`; Interligação: `SYNCV`, `RECRIACABOS`, `STATBORN`,
+  `CBD`, `RESTPROJ`, `pzDiag`) e o `ComandoDoBotao` (`ICommand`) que manda o
+  comando para a linha de comando;
+- o `Plugin.Initialize` cria a barra no load; o `ELET`/`FOLHAS` abrem a **paleta**.
+
+**Ferramenta:** o `ZdWindows.dll` foi **vendorizado** em `cad-plugin/lib/ZWCAD/2026/` (como os outros dois
+DLLs da API) e o csproj passou a referenciá-lo, com `WindowsBase`/`PresentationCore`/
+`PresentationFramework`/`System.Xaml` (o ribbon deriva de `Control` do WPF).
+
+**Medido no ZWCAD 2026** (a passada `FOLHAS`):
+
+```text
+Positron carregado. Digite ELET para começar — ELET abre a paleta de folhas (FOLHAS também).
+Barra: aba "Positron" com 12 botão(ões).
+Positron — paleta de folhas com 16 página(s) (ancorada no CAD).
+OK: plugin carregado no ZWCAD 2026
+```
+
+A **barra** entra no load, a **paleta** abre com as 16 folhas e **o teste visual** (a barra e a
+paleta ancoradas no CAD) é do dono do produto.
+
 **Rodada 120 — frente 11: o shell do plugin (o arranque, a janela de folhas e o autoload).**
 Pesquisa no reverso, com evidência:
 

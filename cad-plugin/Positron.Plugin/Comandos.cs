@@ -79,11 +79,9 @@ namespace Positron.Plugin
         {
             try
             {
-                Interface.JanelaDeFolhas janela = new Interface.JanelaDeFolhas();
-                int paginas = janela.Carregar();
-                janela.Show();
+                int paginas = Interface.PaletaDeFolhas.Mostrar();
 
-                return "Positron — janela de folhas aberta com " + paginas + " página(s) (fechar pela janela).";
+                return "Positron — paleta de folhas com " + paginas + " página(s) (ancorada no CAD).";
             }
             catch (System.Exception erro)
             {

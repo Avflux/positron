@@ -27,11 +27,17 @@
     <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2020')">$(ProgramFiles)\Autodesk\AutoCAD 2020</AutoCadDir>
   </PropertyGroup>
 
-  <!-- A interface (a janela de folhas e, na próxima fatia, a barra de ferramentas) usa WinForms. -->
+  <!-- A interface (a paleta de folhas e a barra de ferramentas) usa WinForms e, no ZWCAD, o
+       ZdWindows (ZwSoft.Windows = ribbon, ZwSoft.ZwCAD.Windows = paleta). -->
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System.Xaml" />
   </ItemGroup>
+
 
   <ItemGroup Condition="'$(CadPlatform)' == 'AutoCAD' And '$(AutoCadDir)' != ''">
     <Reference Include="accoremgd">
@@ -71,6 +77,11 @@
     </Reference>
     <Reference Include="ZwDatabaseMgd">
       <HintPath>$(ZWCadDir)\ZwDatabaseMgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- A API de interface do ZWCAD: ZwSoft.Windows (ribbon) e ZwSoft.ZwCAD.Windows (paleta). -->
+    <Reference Include="ZdWindows">
+      <HintPath>$(ZWCadDir)\ZdWindows.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
