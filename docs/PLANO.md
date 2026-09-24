@@ -1052,13 +1052,14 @@ XML doc que já é lido. As pastas separam as duas coisas (namespaces **não** m
 arquivo, e o `.csproj` é SDK-style, então mover não exige edição de projeto):
 
 ```
-Positron.Data/Interface/            Positron.Plugin/Interface/
-  Mapas/      (gerado + recorte)      Barra/    BarraDeFerramentas
-    BarraDoReverso{,.Dados}           Folhas/   PaletaDeFolhas, FolhasControle
-    ComandosDoReverso{,.Dados}        Telas/    RenderizadorDeTelas, SeletorDeTelas,
-    FormulariosDoReverso{,.Dados}               JanelasDoOriginal, LigacoesDasTelas,
-    mensagens-pt.txt                            LigacaoDoFrm* (um por tela), ControlesDaTela
-  MensagensDoReverso.cs (escrito)     IconesEmbutidos.cs, LigacoesDasTelas (registro)
+Positron.Data/Interface/                 Positron.Plugin/Interface/
+  Mapas/          (gerado + recorte)       Barra/    BarraDeFerramentas
+    BarraDoReverso{,.Dados}.cs            Folhas/   PaletaDeFolhas, FolhasControle
+    ComandosDoReverso{,.Dados}.cs         Telas/    RenderizadorDeTelas, SeletorDeTelas,
+    FormulariosDoReverso{,.Dados}.cs                JanelasDoOriginal, ControlesDaTela,
+    mensagens-pt.txt                                ILigacaoDeTela, LigacoesDasTelas (registro),
+  MensagensDoReverso.cs (escrito)                   Ligacao* (um arquivo por tela)
+                                          IconesEmbutidos.cs (barra e menus)
 ```
 
 **O método, por tela (o mesmo do §7.7):** a tela abre fiel e **sem comportamento** até a regra
