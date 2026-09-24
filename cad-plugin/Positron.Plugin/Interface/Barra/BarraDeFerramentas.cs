@@ -129,7 +129,7 @@ namespace Positron.Plugin.Interface
         /// </summary>
         private static RibbonButton Botao(BotaoDaBarra botao, ref int ativos, ref int desativados)
         {
-            BitmapImage imagem = string.IsNullOrEmpty(botao.Icone) ? null : IconsDoReverso.Imagem(botao.Icone);
+            BitmapImage imagem = string.IsNullOrEmpty(botao.Icone) ? null : IconesEmbutidos.Imagem(botao.Icone);
             string dica = string.IsNullOrEmpty(botao.Dica) ? botao.Rotulo : botao.Dica;
 
             RibbonButton item = new RibbonButton
@@ -161,7 +161,7 @@ namespace Positron.Plugin.Interface
         /// <summary>Um botão dos comandos do recoder.</summary>
         private static RibbonButton DoRecoder(string[] comando)
         {
-            BitmapImage imagem = IconsDoReverso.Imagem(comando[2]);
+            BitmapImage imagem = IconesEmbutidos.Imagem(comando[2]);
             return new RibbonButton
             {
                 Text = comando[1],

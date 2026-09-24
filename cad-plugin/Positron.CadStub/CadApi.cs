@@ -110,7 +110,7 @@ namespace ZwSoft.ZwCAD.ApplicationServices
         /// <summary>
         /// A janela modeless presa ao CAD — e o que o original usa nas telas `frm*`
         /// (`Application.ShowModelessDialog(this)`, 121 chamadas no reverso) e o que o
-        /// <c>JanelaDoReverso</c> usa para abrir as telas decodificadas.
+        /// <c>RenderizadorDeTelas</c> usa para abrir as telas decodificadas.
         /// </summary>
         public static void ShowModelessDialog(System.Windows.Forms.Form janela)
         {

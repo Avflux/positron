@@ -21,7 +21,7 @@ namespace Positron.Plugin.Interface
     /// (um nome de painel buscado no banco, por exemplo) — aparecem como estão, sem valor
     /// inventado. O comportamento de cada tela é das rodadas seguintes; aqui entra a **casca**.
     /// </summary>
-    internal static class JanelaDoReverso
+    internal static class RenderizadorDeTelas
     {
         private static readonly Dictionary<string, Font> Fontes = new Dictionary<string, Font>(StringComparer.Ordinal);
 
@@ -89,7 +89,7 @@ namespace Positron.Plugin.Interface
 
             // As telas cuja regra ja esta portada ganham o comportamento aqui; as outras abrem
             // so com a casca fiel. Nunca lanca (reporta na linha de comando).
-            LigacoesDoReverso.Preencher(janela, tela);
+            LigacoesDasTelas.Preencher(janela, tela);
             return janela;
         }
 
@@ -168,11 +168,34 @@ namespace Positron.Plugin.Interface
             string resumo = "JANELAS: " + montadas + " de " + FormulariosDoReverso.Quantidade + " tela(s) do reverso montada(s)";
             if (falhas.Count == 0)
             {
-                return resumo + ", nenhuma falha.";
+                resumo += ", nenhuma falha.";
+            }
+            else
+            {
+                resumo += ", " + falhas.Count + " falha(s): " + string.Join(" | ", falhas.ToArray()) + ".";
             }
 
-            resumo += ", " + falhas.Count + " falha(s): " + string.Join(" | ", falhas.ToArray());
-            return resumo;
+            // A guarda das ligacoes: uma ligacao registrada com o nome de tela errado nunca acha a
+            // janela e ficaria muda para sempre - entao o nome e conferido contra o mapa aqui.
+            List<string> orfas = new List<string>();
+            foreach (ILigacaoDeTela ligacao in LigacoesDasTelas.Ligadas)
+            {
+                if (FormulariosDoReverso.Buscar(ligacao.NomeDaTela) == null)
+                {
+                    orfas.Add(ligacao.NomeDaTela);
+                }
+            }
+
+            // O outro lado da casca: quantas telas ja tem a **regra** ligada (as outras abrem so
+            // com a formatacao). E a medida que cresce uma a uma, a cada metodo integrado.
+            resumo += " Ligacoes: " + LigacoesDasTelas.Ligadas.Count + " de "
+                + FormulariosDoReverso.Quantidade + " tela(s) com regra (" + LigacoesDasTelas.Nomes() + ")";
+            if (orfas.Count > 0)
+            {
+                return resumo + ". ATENCAO: " + string.Join(", ", orfas.ToArray()) + " nao esta(o) no mapa de telas.";
+            }
+
+            return resumo + ".";
         }
 
         private static void Mostrar(Form janela)
@@ -218,7 +241,7 @@ namespace Positron.Plugin.Interface
 
                 if (!string.IsNullOrEmpty(campo.Imagem))
                 {
-                    Bitmap imagem = IconsDoReverso.BitmapDe(campo.Imagem);
+                    Bitmap imagem = IconesEmbutidos.BitmapDe(campo.Imagem);
                     if (imagem != null)
                     {
                         DefinirImagem(novo, imagem);
@@ -265,7 +288,7 @@ namespace Positron.Plugin.Interface
 
                 if (!string.IsNullOrEmpty(campo.Imagem))
                 {
-                    novo.Image = IconsDoReverso.BitmapDe(campo.Imagem);
+                    novo.Image = IconesEmbutidos.BitmapDe(campo.Imagem);
                 }
 
                 Aplicar(novo, campo.Propriedades, null);
@@ -554,7 +577,7 @@ namespace Positron.Plugin.Interface
             }
             else if (tipo == typeof(Image))
             {
-                Bitmap imagem = IconsDoReverso.BitmapDe(par.Valor);
+                Bitmap imagem = IconesEmbutidos.BitmapDe(par.Valor);
                 if (imagem == null)
                 {
                     return;

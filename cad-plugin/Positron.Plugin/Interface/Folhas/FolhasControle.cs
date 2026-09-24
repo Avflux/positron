@@ -172,7 +172,7 @@ namespace Positron.Plugin.Interface
         /// <summary>O ícone do item, pelo nome do recurso do produto (o mesmo da barra).</summary>
         private static void Icone(ToolStripMenuItem item, string nome)
         {
-            System.Drawing.Bitmap imagem = IconsDoReverso.BitmapDe(nome);
+            System.Drawing.Bitmap imagem = IconesEmbutidos.BitmapDe(nome);
             if (imagem != null)
             {
                 item.Image = imagem;

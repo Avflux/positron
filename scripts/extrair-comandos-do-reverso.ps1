@@ -19,7 +19,7 @@ param(
   [string] $Reverso = "C:\Users\Administrator\Downloads\Elet\Eletron4_ZWcad\decompiled-cleaned",
   [string] $Plugins = "cad-plugin\Positron.Plugin",
   [string] $Mapa    = "docs\reverso-comandos.txt",
-  [string] $Dados   = "cad-plugin\Positron.Data\Interface\ComandosDoReverso.Dados.cs",
+  [string] $Dados   = "cad-plugin\Positron.Data\Interface\Mapas\ComandosDoReverso.Dados.cs",
   [string] $Gerado  = "cad-plugin\Positron.Plugin\ComandosDoOriginal.Gerado.cs",
   [switch] $Amostra
 )

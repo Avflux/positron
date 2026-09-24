@@ -11,9 +11,9 @@
 [CmdletBinding()]
 param(
   [string] $Reverso   = "C:\Users\Administrator\Downloads\Elet\Eletron4_ZWcad\decompiled-cleaned\Eletron4",
-  [string] $Mensagens = "cad-plugin\Positron.Data\Interface\mensagens-pt.txt",
+  [string] $Mensagens = "cad-plugin\Positron.Data\Interface\Mapas\mensagens-pt.txt",
   [string] $Mapa      = "docs\reverso-formularios.txt",
-  [string] $Dados     = "cad-plugin\Positron.Data\Interface\FormulariosDoReverso.Dados.cs"
+  [string] $Dados     = "cad-plugin\Positron.Data\Interface\Mapas\FormulariosDoReverso.Dados.cs"
 )
 
 if (-not (Test-Path $Reverso)) { throw "reverso nao encontrado: $Reverso" }

@@ -9,7 +9,7 @@ namespace Positron.Plugin.Interface
     /// <summary>
     /// O **seletor das telas do reverso**: lista as 127 janelas decodificadas (o nome do `frm`, o
     /// título, quantos controles e a linha do designer) e abre a escolhida **dentro do CAD**, pelo
-    /// <see cref="JanelaDoReverso"/>.
+    /// <see cref="RenderizadorDeTelas"/>.
     ///
     /// Esta tela **não existe no original** — lá cada janela tem o seu comando (`GERDWG` abre a
     /// `frmGerenciadorDWG`, `DEF` a `frmDefinicao`, `BORN` a `frmBornes`…). O seletor é do recoder:
@@ -74,7 +74,7 @@ namespace Positron.Plugin.Interface
             Button abrir = new Button { Text = "Abrir no CAD", Left = 6, Top = 5, Width = 120 };
             abrir.Click += (origem, evento) => AbrirSelecionada();
             Button montar = new Button { Text = "Montar todas", Left = 132, Top = 5, Width = 110 };
-            montar.Click += (origem, evento) => Plugin.Escrever(JanelaDoReverso.ConferirTodas());
+            montar.Click += (origem, evento) => Plugin.Escrever(RenderizadorDeTelas.ConferirTodas());
             _contagem = new Label { Left = 252, Top = 10, Width = 500, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             rodape.Controls.Add(abrir);
             rodape.Controls.Add(montar);
@@ -149,7 +149,7 @@ namespace Positron.Plugin.Interface
             }
 
             string nome = _grade.SelectedRows[0].Cells[0].Value as string;
-            Plugin.Escrever(JanelaDoReverso.Abrir(nome));
+            Plugin.Escrever(RenderizadorDeTelas.Abrir(nome));
         }
 
         /// <summary>Abre o seletor modeless dentro do CAD e devolve a linha de resumo.</summary>

@@ -769,6 +769,86 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 130 — a interface organizada: nomes, pastas e o registro das ligacoes.**
+O dono do produto perguntou se era ideal os arquivos se chamarem "Reverso" e lembrou o que quer: a
+interface **montada** antes de integrar os metodos **um a um**. As duas coisas ficaram resolvidas com
+uma regra escrita e com a estrutura — nada aqui mudou comportamento (os testes continuam 591 e os
+numeros no desenho sao os mesmos).
+
+**A regra de nomes** (vale para o que vier):
+
+- **`DoReverso` / `DoOriginal` so em dado transcrito do original** — `BarraDoReverso`,
+  `ComandosDoReverso`, `FormulariosDoReverso` (os tres **gerados** por script),
+  `MensagensDoReverso` (a tabela escrita da `mMensagem`) e o recorte `mensagens-pt.txt`. Neles o nome
+  e o aviso de "nao edite a mao, a fonte e o descompilado".
+- **Codigo nosso leva o nome do que ele e**; a origem fica no XML doc (que o editor ja mostra):
+  `JanelaDoReverso` → **`RenderizadorDeTelas`**, `IconsDoReverso` → **`IconesEmbutidos`**,
+  `LigacoesDoReverso` → **`LigacoesDasTelas`**.
+- Nomes de produto ficam como estavam: `BarraDeFerramentas`, `PaletaDeFolhas`, `FolhasControle`,
+  `SeletorDeTelas`, `JanelasDoOriginal`.
+
+**As pastas** (namespaces **intactos**: e organizacao de arquivo, nao de namespace — o `.csproj` e
+SDK-style, entao mover nao exige edicao de projeto):
+
+```
+Positron.Data/Interface/                     Positron.Plugin/Interface/
+  Mapas/          <- gerado + recorte          Barra/   BarraDeFerramentas.cs
+    BarraDoReverso{,.Dados}.cs                 Folhas/  PaletaDeFolhas.cs, FolhasControle.cs
+    ComandosDoReverso{,.Dados}.cs              Telas/   RenderizadorDeTelas.cs, SeletorDeTelas.cs,
+    FormulariosDoReverso{,.Dados}.cs                     JanelasDoOriginal.cs, LigacoesDasTelas.cs,
+    mensagens-pt.txt                                     LigacaoDoFrm*.cs, ControlesDaTela.cs,
+  MensagensDoReverso.cs                                  ILigacaoDeTela.cs
+                                               IconesEmbutidos.cs
+```
+
+Os tres extratores foram ajustados para escrever nos caminhos novos (`-Dados`, `-Mensagens`,
+`-Comandos`). **Os caminhos citados nas rodadas 127 a 129** (`Positron.Data/Interface/…`) passaram a
+`Positron.Data/Interface/Mapas/…`: os comandos sao os mesmos, so mudou o destino.
+
+**Integrar o metodo de uma tela — a receita (1 arquivo + 1 linha):**
+
+1. a regra pura ja tem de existir no `Positron.Data` **com teste** (a regra de ouro do §7.7) e o
+   adapter que le/escreve o desenho, se a regra olhar o desenho;
+2. crie `cad-plugin/Positron.Plugin/Interface/Telas/LigacaoDoFrmXxx.cs` copiando o molde
+   (`LigacaoDoFrmPesquisaXdatas.cs`): implemente `ILigacaoDeTela`, devolva o **nome do `frm*`** do
+   original em `NomeDaTela` e ligue os controles **pelo `Name` do designer** (o mapa
+   `docs/reverso-formularios.txt` tem o nome e a caixa de cada um) com `ControlesDaTela.Achar<T>`;
+3. acrescente **uma linha** na lista `Todas` do `LigacoesDasTelas`;
+4. rode `npm run plugin:build` e, no CAD, o comando do original (ex.: `APAGARXDATA`) — a tela abre
+   fiel e a ligacao reporta na linha de comando o que leu/gravou;
+5. confira a conta: `pzTelas` (ou o botao *Montar todas* do seletor) imprime
+   `Ligacoes: N de 127 tela(s) com regra (…)` — e, se o `NomeDaTela` **nao existir** no mapa, a mesma
+   linha termina em `ATENCAO: frmX nao esta(o) no mapa de telas.` (uma ligacao com o nome errado
+   ficaria muda para sempre; a guarda foi conferida **quebrando o nome de proposito**:
+   `Ligacoes: 2 de 127 tela(s) com regra (frmPesquisaXdatas, frmNaoExiste). ATENCAO: frmNaoExiste
+   nao esta(o) no mapa de telas.`, com o nome restaurado depois).
+
+Nada disso toca nas telas ja ligadas, e uma tela **sem** ligacao abre do mesmo jeito: fiel e sem
+comportamento. As duas diferencas deliberadas de sempre: onde o original mostra `MsgBox`, o recoder
+escreve na **linha de comando** (o `MsgBox` trava um script); e onde a tela lia o banco, entra a
+**regra do recoder** que o comando equivalente ja usa e ja foi medida.
+
+**O que a rodada mediu (ZWCAD 2026, `Funcional.dwg` real, DLL recompilada):**
+
+```
+JANELAS: 127 de 127 tela(s) do reverso montada(s), nenhuma falha. Ligacoes: 2 de 127 tela(s) com regra (frmPesquisaXdatas, frmEstatisticaDeBornes).
+APAGARXDATA: 1 app name(s) de XData na grade (só os de terceiros): CONSTRUTOR (4).
+STATBORN: 31 régua(s), 199 usados simples, 17 de reserva simples, 0 usados duplos e 0 de reserva duplos (216 no total; 199 borne(s) no desenho e 17 reserva(s)).
+```
+
+sao os **mesmos numeros** da rodada 127 (as duas ligacoes passaram pelos arquivos novos e nao
+mudaram o resultado). E a prova de que a mudanca de pasta nao mexeu no que e gerado: os tres
+extratores regeraram **byte a byte iguais** — no `git status`, os mapas e o
+`ComandosDoOriginal.Gerado.cs` saem como *rename*, nao como modificacao.
+
+**Checagens:** `plugin:build:all` **0 avisos / 0 erros** (ZWCAD e AutoCAD), `plugin:test` **591** e
+`scripts/cad-zwcad-smoke.ps1` com exit 0.
+
+**Nota para quem ler os blocos abaixo:** os das rodadas 123 a 129 citam os nomes e os caminhos de
+então — `JanelaDoReverso`, `IconsDoReverso`, `LigacoesDoReverso` e `Positron.Data/Interface/<mapa>`.
+São o que os arquivos se chamavam naquele momento; hoje são `RenderizadorDeTelas`,
+`IconesEmbutidos`, `LigacoesDasTelas` + `Ligacao*`, e os mapas estão em `Interface/Mapas/`.
+
 **Rodada 129 — a barra de ferramentas do original (9 paineis, 121 botoes) e o menu das folhas pelo designer.**
 O dono do produto perguntou o quanto a **barra** que aparece no ZWCAD e o **controle de folhas** estao
 fieis ao original — e, em especial, se a barra ja **chama as outras janelas**. As duas respostas sairam
@@ -1119,7 +1199,7 @@ formatação do reverso em vez de inventar? **Dá** — e a receita ficou:
 3. no assembly **limpo**, o `ResourceManager("Eletron4.Resources", asm)` com um `AssemblyResolve`
    apontando para as DLLs do ZWCAD devolve `GetString("Mensagens")` — a **tabela inteira**
    (118.390 chars; a seção `[PT]` tem **60.680 chars / 1982 entradas**, salva em
-   `cad-plugin/Positron.Data/Interface/mensagens-pt.txt`).
+   `cad-plugin/Positron.Data/Interface/Mapas/mensagens-pt.txt`).
 
 **Os textos do original que a interface usa** (chaves do `mMensagem[1, N]`):
 

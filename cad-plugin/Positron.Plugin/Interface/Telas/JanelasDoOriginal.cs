@@ -11,7 +11,7 @@ namespace Positron.Plugin.Interface
     ///
     /// O caminho é um só para todos: o comando gerado (<c>ComandosDoOriginal.Gerado.cs</c>) diz o
     /// **nome**, o mapa do reverso (<see cref="ComandosDoReverso"/>) diz a **tela**, e aqui a
-    /// janela é montada e aberta pelo <see cref="JanelaDoReverso"/> (modeless, dentro do CAD).
+    /// janela é montada e aberta pelo <see cref="RenderizadorDeTelas"/> (modeless, dentro do CAD).
     /// A variante — o comando que abre a mesma tela com um argumento
     /// (<c>new frmRelatorio_DICemig(3)</c>) — **não** é registrada como comando: abrir a tela padrão
     /// no lugar dela seria mentir, então ela fica no mapa, com a construção, à espera da rodada que
@@ -41,7 +41,7 @@ namespace Positron.Plugin.Interface
                 List<string> linhas = new List<string>();
                 foreach (Janela janela in comando.Janelas)
                 {
-                    linhas.Add(JanelaDoReverso.Abrir(janela.Nome, comando.Nome));
+                    linhas.Add(RenderizadorDeTelas.Abrir(janela.Nome, comando.Nome));
                 }
 
                 return string.Join(" | ", linhas.ToArray());

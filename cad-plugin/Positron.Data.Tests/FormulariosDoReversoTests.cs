@@ -10,7 +10,7 @@ namespace Positron.Data.Tests
     ///
     /// Estes testes são o contrato da decodificação: as contagens são as **medidas** no
     /// decompilado (2026-09-24) e a integridade estrutural (todo pai existe, o título não é
-    /// vazio) é o que garante que o <c>JanelaDoReverso</c> consegue montar as telas.
+    /// vazio) é o que garante que o <c>RenderizadorDeTelas</c> consegue montar as telas.
     /// </summary>
     public class FormulariosDoReversoTests
     {

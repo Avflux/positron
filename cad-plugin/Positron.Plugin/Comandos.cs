@@ -92,7 +92,7 @@ namespace Positron.Plugin
         /// <summary>
         /// <c>JANELAS</c> — abre o **seletor das janelas do reverso**: as **127 telas `frm*`**
         /// decodificadas do original (o mapa é o `docs/reverso-formularios.txt`), com um filtro e
-        /// o botão de abrir montando a janela fiel dentro do CAD pelo <c>JanelaDoReverso</c>.
+        /// o botão de abrir montando a janela fiel dentro do CAD pelo <c>RenderizadorDeTelas</c>.
         /// </summary>
         [CommandMethod("JANELAS")]
         public void Janelas()
@@ -109,8 +109,8 @@ namespace Positron.Plugin
         [CommandMethod("JANELA")]
         public void Janela()
         {
-            string nome = Interface.JanelaDoReverso.NomeDaVariavel();
-            Plugin.Escrever(nome == null ? Interface.SeletorDeTelas.Abrir() : Interface.JanelaDoReverso.Abrir(nome));
+            string nome = Interface.RenderizadorDeTelas.NomeDaVariavel();
+            Plugin.Escrever(nome == null ? Interface.SeletorDeTelas.Abrir() : Interface.RenderizadorDeTelas.Abrir(nome));
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Positron.Plugin
         [CommandMethod("APAGARXDATA")]
         public void ApagarXData()
         {
-            Plugin.Escrever(Interface.JanelaDoReverso.Abrir("frmPesquisaXdatas"));
+            Plugin.Escrever(Interface.RenderizadorDeTelas.Abrir("frmPesquisaXdatas"));
         }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace Positron.Plugin
         [CommandMethod("pzTelas")]
         public void ConferirTelas()
         {
-            Plugin.Escrever(Interface.JanelaDoReverso.ConferirTodas());
+            Plugin.Escrever(Interface.RenderizadorDeTelas.ConferirTodas());
         }
 
         /// <summary>

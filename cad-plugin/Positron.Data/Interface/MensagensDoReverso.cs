@@ -10,7 +10,7 @@ namespace Positron.Data.Interface
     /// 1. `de4dot.exe` no `Eletron4Z.dll` → `Eletron4Z-cleaned.dll` (o obfuscador é o .NET Reactor);
     /// 2. `ResourceManager` no assembly limpo, com um `AssemblyResolve` apontando para as DLLs do
     ///    ZWCAD → `GetString("Mensagens")` devolve a tabela inteira (60.680 chars, 1982 entradas);
-    /// 3. o recorte `[PT]` fica em `Positron.Data/Interface/mensagens-pt.txt`.
+    /// 3. o recorte `[PT]` fica em `Positron.Data/Interface/Mapas/mensagens-pt.txt`.
     ///
     /// Os índices são os do `mMensagem[1, N]` do reverso.
     /// </summary>

@@ -20,13 +20,13 @@
 [CmdletBinding()]
 param(
   [string] $Ribbon    = "C:\Users\Administrator\Downloads\Elet\Eletron4_ZWcad\decompiled-cleaned\Eletron4\Ribbon.cs",
-  [string] $Mensagens = "cad-plugin\Positron.Data\Interface\mensagens-pt.txt",
+  [string] $Mensagens = "cad-plugin\Positron.Data\Interface\Mapas\mensagens-pt.txt",
   [string] $Plugins   = "cad-plugin\Positron.Plugin",
   [string] $Mapa      = "docs\reverso-barra-do-original.txt",
-  [string] $Dados     = "cad-plugin\Positron.Data\Interface\BarraDoReverso.Dados.cs",
+  [string] $Dados     = "cad-plugin\Positron.Data\Interface\Mapas\BarraDoReverso.Dados.cs",
   # O mapa dos comandos (do extrair-comandos-do-reverso.ps1): diz quais botoes da barra abrem
   # janela. A barra e o mapa de telas se cruzam por aqui, sem ninguem ler o outro por acaso.
-  [string] $Comandos  = "cad-plugin\Positron.Data\Interface\ComandosDoReverso.Dados.cs"
+  [string] $Comandos  = "cad-plugin\Positron.Data\Interface\Mapas\ComandosDoReverso.Dados.cs"
 )
 
 if (-not (Test-Path $Ribbon)) { throw "Ribbon.cs nao encontrado: $Ribbon" }

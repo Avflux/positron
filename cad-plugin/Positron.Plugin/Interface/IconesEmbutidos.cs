@@ -16,7 +16,7 @@ namespace Positron.Plugin.Interface
     /// em PNG e vira `BitmapImage` para o ribbon. O original usa o icone generico `Item` nos
     /// botoes sem icone proprio — aqui o fallback e o mesmo.
     /// </summary>
-    internal static class IconsDoReverso
+    internal static class IconesEmbutidos
     {
         internal const string Generico = "Item";
 
@@ -32,7 +32,7 @@ namespace Positron.Plugin.Interface
                 return guardado;
             }
 
-            Assembly assembly = typeof(IconsDoReverso).Assembly;
+            Assembly assembly = typeof(IconesEmbutidos).Assembly;
             using (Stream fluxo = assembly.GetManifestResourceStream("Positron.Icons." + chave + ".png"))
             {
                 if (fluxo == null)
