@@ -769,6 +769,93 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 129 — a barra de ferramentas do original (9 paineis, 121 botoes) e o menu das folhas pelo designer.**
+O dono do produto perguntou o quanto a **barra** que aparece no ZWCAD e o **controle de folhas** estao
+fieis ao original — e, em especial, se a barra ja **chama as outras janelas**. As duas respostas sairam
+de medicao contra o `Ribbon.cs` e o `uscPaginas.cs` do decompilado, nao de opiniao.
+
+**O que a barra do original e** (contra o que o recoder montava a mao):
+
+| | antes (rodada 121) | agora |
+|---|---|---|
+| estrutura | 2 paineis inventados (Projeto / Interligacao) | os **9 paineis** do original, na ordem de `CreateRibbon()` (dois) e `CreateRibbon2()` (sete) |
+| botoes | 12 (so os comandos que existiam) | os **121** do original: **83 ligados** (o comando existe), **38 desativados** com o comando que falta na dica |
+| janelas | 8 comandos do recoder num painel extra | **76** botoes do original abrem uma tela do mapa da rodada 128, mais os 8 do recoder |
+
+**Como a barra sabe o que ja funciona** — os dois campos sao **calculados**, nao digitados: `Coberto` e
+"existe um `[CommandMethod]` com esse nome no plugin" (varredura dos `.cs`, inclusive os **gerados** da
+rodada 128) e `AbreJanela` e o cruzamento com `docs/reverso-comandos.txt`. E por isso que os 121 botoes
+entraram **sem nenhum codigo de tela novo**.
+
+**A extracao estrutural** (o script foi reescrito; antes ele lia a lista achatada):
+
+```
+powershell -ExecutionPolicy Bypass -File scripts/extrair-barra-do-reverso.ps1
+# aba: CENG.ID_Elet (Eletron)
+# paineis: 9
+# botoes: 121
+# cobertos pelo plugin: 83
+# cobertos que abrem janela: 76
+# chamadas de ajudante no Ribbon.cs: 120 + 1 launcher(s) = 121
+# mapa:  docs/reverso-barra-do-original.txt          (a evidencia linha a linha)
+# dados: cad-plugin/Positron.Data/Interface/BarraDoReverso.Dados.cs
+```
+
+**As tres armadilhas da extracao** (medidas, e as tres davam barra a menos):
+
+1. **a lista achatada.** A primeira versao pegava os pares `"rotulo", "COMANDO "` por expressao
+   regular solta no arquivo e achava **42** — sem painel, sem ordem e com os botoes de icone de fora.
+   O original monta cada botao por um dos quatro ajudantes (nome ofuscado, corpo nao) e o
+   `CreateRibbon` chama um metodo por painel: so lendo a estrutura saem os **9 paineis / 121 botoes**.
+2. **a assinatura que mentia.** Cinco dos nove paineis **retornam** a `RibbonPanelSource` em vez de
+   `void` (o `CreateRibbon2` usa o retorno); exigir `void` na assinatura deixava exatamente esses
+   cinco de fora e a barra saia com **4 paineis e 33 botoes**.
+3. **as assinaturas contadas como chamadas.** As **quatro assinaturas** dos ajudantes no fim do
+   arquivo (`private void Nowp1LGUQxQ(ref RibbonButton P_0, ...)`) casam com o mesmo padrao das
+   chamadas e a conferencia dava **124** para 121 botoes. Declaracao nao e chamada: descartadas, a
+   conta fecha com o arquivo — **120** chamadas + **1** `DialogLauncher` (o `CFG` da Configuracao,
+   o unico do arquivo) = **121**.
+
+**O menu das folhas saiu do designer, item a item** (o `cmStrip1` do `uscPaginas`): os **14 itens na
+ordem do designer**, com o texto que o **construtor** do original grava por cima do literal do designer
+(a `mMensagem`) e os icones do produto — Multiselecao, Alternativo, Nova Pagina, Inserir, Excluir
+Paginas, **Renumerar Paginas**, Editar Unidade, Editar Alternativo, Editar Titulos, Editar Revisoes
+(com as duas revisoes dentro) e o combo **Folha** com os seis formatos literais (`12`, `012`, `0012`,
+`00012`, `000012`, `0000012`). O que ainda nao tem regra portada fica **desabilitado com o motivo** no
+tooltip, e o `Alternativo` faz o que o original faz no clique (esconde a coluna e o item
+`Editar Alternativo`).
+
+**Um erro de fidelidade corrigido aqui:** o campo do designer chama-se `RenomearPáginasToolStripMenuItem`,
+mas a `mMensagem[1, 22]` — o texto que o usuario le — e **"Renumerar Paginas"**, e a regra por tras e o
+`RENPAGA` (renumerar o caderno). O recoder escrevia "Renomear Paginas" desde a rodada 122; agora o rotulo
+do menu, o botao do rodape e um teste dizem o que a operacao faz.
+
+**Medido no ZWCAD 2026** (banco novo, `scripts/cad-zwcad-smoke.ps1`):
+
+```
+Positron carregado. Digite ELET para comecar - ELET abre a paleta de folhas (FOLHAS tambem).
+Barra: aba "Positron" com 10 painel(is) - 121 botao(oes) do original (83 ligado(s), 38 desativado(s);
+       76 abrem uma janela) e 8 do recoder.
+Positron - paleta de folhas com 0 pagina(s) (ancorada no CAD).
+DUPCAD: "Duplicar Caderno" (frmDuplicarCaderno) aberta no CAD - 5 controle(s).
+```
+
+Os **10** paineis sao os 9 do original + o nosso (os comandos do recoder que nao existem na barra de la:
+`ELET`, `FOLHAS`, `JANELAS`, `JANELA`, `VERIF`, `ELETCFG`, `pzDiag`, `pzTelas`). O `DUPCAD` foi rodado de
+proposito: e um botao que a barra **ativa** (comando coberto) e que **abre tela** — o caminho que o dono
+do produto perguntou se funcionava.
+
+**O que continuou diferente do original, de proposito** (esta escrito no codigo e no mapa): a aba e
+`POSITRON.ID_Positron` / "Positron" (o id e o titulo de la — `CENG.ID_Elet` / "Eletron" — ficam no
+`BarraDoReverso`), e os botoes pequenos, que no original mostram **so o icone** (o texto vai na dica),
+aqui mostram o texto curto, porque a nossa barra tem menos botoes por painel e o rotulo ajuda a chamar a
+janela certa.
+
+**Testes:** `BarraDoReversoTests` e `FolhasDoReversoTests` (**+19**, `plugin:test` **591**), com o
+cruzamento que interessa travado: todo botao que diz abrir janela tem o comando **e** a tela no outro
+mapa, os **83/76** sao fixados, e o unico `Dialogo` da barra e o `CFG`. As duas builds 0 avisos; **a
+validacao visual da barra e da paleta e do dono do produto**.
+
 **Rodada 128 — frente 12: o mapa comando -> janela (99 comandos do original abrem as telas no CAD).**
 A rodada 127 decodificou as **127** telas; faltava o que o original usa para **chegar** nelas. No
 `Eletron4Z` o comando e fino de proposito: o corpo monta a janela (`new frmGerenciadorDWG();`) e a

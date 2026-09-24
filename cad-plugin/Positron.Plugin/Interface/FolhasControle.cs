@@ -8,14 +8,16 @@ namespace Positron.Plugin.Interface
 {
     /// <summary>
     /// O controle das **folhas do caderno** — o `uscPaginas` do reverso: a grade `dg` com as
-    /// colunas dele (`Pg` e `PgDecimal` são técnicas, como lá) e o **menu de contexto** com os
-    /// itens literais do designer do original: Multiseleção, Nova Página, Inserir, Excluir
-    /// Páginas, Renomear Páginas, Editar Unidade e Editar Alternativo.
+    /// colunas dele (`Pg` e `PgDecimal` são técnicas, como lá) e o **menu de contexto inteiro**, os
+    /// 14 itens do `cmStrip1` na ordem do designer, com os textos que o usuário lê (a `mMensagem`
+    /// do original, que o construtor grava por cima do literal do designer — o `Renumerar Páginas`
+    /// é a mMensagem 22) e os ícones do produto (`Pagina`, `Colunas2`, `Apagar`, `Renomear`,
+    /// `Editar_16`), mais o combo `Folha` com os seis formatos literais.
     ///
-    /// Os **títulos** das três primeiras colunas e os textos dos painéis da barra vêm da tabela
-    /// `mMensagem` do original, que está nos **recursos ofuscados** da DLL (ver a auditoria da
-    /// rodada 122): aqui vão rótulos descritivos. Os itens cuja regra ainda não foi portada
-    /// (as fatias 3 a 5 da frente 10) ficam **desabilitados**, com o motivo no texto.
+    /// Os itens cuja regra ainda não foi portada (as fatias 4 a 6 da frente 10) ficam
+    /// **desabilitados**, com o motivo no tooltip — a mesma regra da barra e da frente 12: a tela
+    /// é a do original, e o que funciona é o que está ligado (`Inserir` pela regra do
+    /// `NovaPaginaEntre` e o `Renumerar Páginas` pelo `RENPAGA`).
     /// </summary>
     internal sealed class FolhasControle : UserControl
     {
@@ -55,7 +57,7 @@ namespace Positron.Plugin.Interface
             // A barra de baixo: o sufixo do RENPAGA, o renomear (a regra pura) e o recarregar.
             Panel rodape = new Panel { Dock = DockStyle.Bottom, Height = 30 };
             _sufixo = new TextBox { Left = 4, Top = 4, Width = 28, MaxLength = 1, Text = "A" };
-            Button renomear = new Button { Left = 36, Top = 3, Width = 150, Text = "Renomear Páginas" };
+            Button renomear = new Button { Left = 36, Top = 3, Width = 150, Text = Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas };
             renomear.Click += (origem, evento) => RenomearPaginas();
             Button recarregar = new Button { Left = 190, Top = 3, Width = 150, Text = "Recarregar do desenho" };
             recarregar.Click += (origem, evento) => Carregar();
@@ -68,35 +70,129 @@ namespace Positron.Plugin.Interface
         }
 
         /// <summary>
-        /// O menu de contexto com os itens **literais** do `uscPaginas` do reverso. Os que
-        /// dependem de regra ainda não portada ficam desabilitados — a intenção é a mesma tela,
-        /// com o que já funciona ligado.
+        /// O menu de contexto do `cmStrip1` do reverso: os **14 itens, na ordem do designer**, com
+        /// o **texto que o usuário lê** (o que o construtor do original grava por cima do literal
+        /// do designer — a `mMensagem`) e os **ícones do produto**. Os itens cuja regra ainda não
+        /// foi portada ficam desabilitados, com o motivo no tooltip.
         /// </summary>
         private ContextMenuStrip MenuDoReverso()
         {
             ContextMenuStrip menu = new ContextMenuStrip();
-            menu.Items.Add(new ToolStripMenuItem("Multiseleção"));
-            menu.Items.Add(new ToolStripMenuItem("Alternativo"));
+
+            // 1 e 2 - os dois checáveis do designer. O `Alternativo` faz o que o original faz
+            // (`uscPaginas.cs:2005`): liga/desliga a coluna e o item `Editar Alternativo`. O
+            // `Multiseleção` fica checável como lá, mas o efeito dele não foi rastreado.
+            ToolStripMenuItem multiselecao = new ToolStripMenuItem("Multiseleção")
+            {
+                CheckOnClick = true,
+                Checked = false,
+                ToolTipText = "o efeito deste item no original não foi portado",
+            };
+            menu.Items.Add(multiselecao);
+
+            ToolStripMenuItem alternativo = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.Alternativo)
+            {
+                CheckOnClick = true,
+                Checked = true,
+                ToolTipText = "mostra ou esconde a coluna Alternativo",
+            };
+            menu.Items.Add(alternativo);
+
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(Desabilitado("Nova Página", "regra na fatia 3 da frente 10"));
-            // O Inserir calcula (regra do reverso) a página entre a selecionada e a próxima.
+
+            // 4 - Nova Página (o `CriarPaginaToolStripMenuItem`, ícone Pagina).
+            menu.Items.Add(Desabilitado("Nova Página", "regra na fatia 6 da frente 10 (formato/títulos)", "Pagina"));
+
+            // 5 - Inserir: no original são CINCO sub-itens preenchidos em execução; aqui a conta
+            // da página entre as duas entra pela regra do `NovaPaginaEntre`.
             ToolStripMenuItem inserir = new ToolStripMenuItem("Inserir");
+            Icone(inserir, "Colunas2");
+            inserir.ToolTipText = "o original abre cinco sub-itens aqui, preenchidos em execução; este calcula a página entre a selecionada e a próxima";
             inserir.Click += (origem, evento) => InserirPagina();
             menu.Items.Add(inserir);
-            menu.Items.Add(Desabilitado("Excluir Páginas", "regra na fatia 4 da frente 10"));
-            // O Renomear está ligado na regra do RENPAGA (o sufixo vem do campo ao lado).
-            ToolStripMenuItem renomear = new ToolStripMenuItem("Renomear Páginas");
-            renomear.Click += (origem, evento) => RenomearPaginas();
-            menu.Items.Add(renomear);
+
+            // 6 - Excluir Páginas (ícone Apagar).
+            menu.Items.Add(Desabilitado("Excluir Páginas", "regra na fatia 4 da frente 10 (é destrutiva)", "Apagar"));
+
+            // 7 - o `RENPAGA`: a mMensagem 22 diz "Renumerar", e é isso que a regra faz.
+            ToolStripMenuItem renumerar = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas);
+            Icone(renumerar, "Renomear");
+            renumerar.ToolTipText = "aplica o sufixo do campo ao lado nas páginas do caderno";
+            renumerar.Click += (origem, evento) => RenomearPaginas();
+            menu.Items.Add(renumerar);
+
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(new ToolStripMenuItem("Editar Unidade"));
-            menu.Items.Add(new ToolStripMenuItem("Editar Alternativo"));
+
+            // 9 a 12 - os quatro `Editar*` (todos com o ícone Editar_16 no original).
+            menu.Items.Add(Desabilitado(Positron.Data.Interface.MensagensDoReverso.EditarUnidade, "regra na fatia 5 da frente 10", "Editar_16"));
+
+            ToolStripMenuItem editarAlternativo = Desabilitado(
+                Positron.Data.Interface.MensagensDoReverso.EditarAlternativo,
+                "regra na fatia 5 da frente 10",
+                "Editar_16");
+            menu.Items.Add(editarAlternativo);
+
+            menu.Items.Add(Desabilitado(Positron.Data.Interface.MensagensDoReverso.EditarTitulos, "regra na fatia 6 da frente 10 (títulos e formatos)", "Editar_16"));
+
+            ToolStripMenuItem revisoes = Desabilitado(
+                Positron.Data.Interface.MensagensDoReverso.EditarRevisoes,
+                "regra na fatia 5 da frente 10",
+                "Editar_16");
+            revisoes.DropDownItems.Add(Desabilitado(Positron.Data.Interface.MensagensDoReverso.RevisaoSimplificada, "regra não portada"));
+            revisoes.DropDownItems.Add(Desabilitado(Positron.Data.Interface.MensagensDoReverso.RevisaoCompleta, "regra não portada"));
+            menu.Items.Add(revisoes);
+
+            menu.Items.Add(new ToolStripSeparator());
+
+            // 14 - o `Folha`: no original é um **combo** no menu, com os seis formatos literais.
+            ToolStripComboBox folha = new ToolStripComboBox
+            {
+                Name = "FolhaToolStripMenuItem",
+                FlatStyle = FlatStyle.Standard,
+                BackColor = Color.LightGray,
+                ToolTipText = "o formato da folha (o original grava no layer da página; a regra não foi portada)",
+            };
+            foreach (string formato in Positron.Data.Interface.MensagensDoReverso.FormatosDeFolha)
+            {
+                folha.Items.Add(formato);
+            }
+
+            menu.Items.Add(folha);
+
+            // O que o original faz no clique do `Alternativo`.
+            alternativo.CheckedChanged += (origem, evento) =>
+            {
+                _grade.Columns["alternativo"].Visible = alternativo.Checked;
+                editarAlternativo.Visible = alternativo.Checked;
+            };
+
             return menu;
+        }
+
+        /// <summary>O ícone do item, pelo nome do recurso do produto (o mesmo da barra).</summary>
+        private static void Icone(ToolStripMenuItem item, string nome)
+        {
+            System.Drawing.Bitmap imagem = IconsDoReverso.BitmapDe(nome);
+            if (imagem != null)
+            {
+                item.Image = imagem;
+            }
         }
 
         private static ToolStripMenuItem Desabilitado(string texto, string motivo)
         {
-            return new ToolStripMenuItem(texto) { Enabled = false, ToolTipText = motivo };
+            return Desabilitado(texto, motivo, null);
+        }
+
+        private static ToolStripMenuItem Desabilitado(string texto, string motivo, string icone)
+        {
+            ToolStripMenuItem item = new ToolStripMenuItem(texto) { Enabled = false, ToolTipText = motivo };
+            if (!string.IsNullOrEmpty(icone))
+            {
+                Icone(item, icone);
+            }
+
+            return item;
         }
 
         /// <summary>

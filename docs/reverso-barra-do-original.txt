@@ -1,42 +1,301 @@
-CAD = CADERNO | Caderno_32
-GERDWG = GER DWG | Database_Preto_32
-REGH = REGUAH | ReguaH_32
-REGV = REGUAV | ReguaV_32
-GERCONT = GERCONT | GerContatos_32
-GERMASC = GERMASC | GerMascaras_32
-DISP = DISP | Dispositivos_32
-PORT = PORTA | Portas_32
-CONT = CONTATO | Contatos_32
-DEF = DEFINIÇÃO | Definicao_32
-LXLS = LXLS | Excel_32
-GERRB = GERRB | ReguaBorne_32
-BORN = BORNE | Bornes_32
-EDBORN = EDBORN | Editar_Preto_32
-SELBORN = SELBORN | EditaBornesSelecao_32
-CIRC = CIRCUITO | Circuito_32
-CON = CONEXAO | ConexaoTT_32
-CONAUT = CONEXAOAUTO | ConexaoAuto_32
-DERAUT = DERIVACAOAUTO | DerivacaoAuto_32
-GERLM = GERLM | LM_32
-LAYMEC = LAYMEC | Layout_32
-PLAQ = PLAQ | GerPlaquetas_32
-VEIA1 = VEIA1 | Interlig1_32
-VEIA = VEIA | Interlig_32
-VEIA2 = VEIA2 | Interlig2_32
-VEAUT = VEAUT | VeiaAuto_32
-BLI = BLI | Blindagem_32
-JPEXT = JUMPEXT | JumperExt_32
-IVEIEX = IVEIEX | Excel_32
-CON = CONEXAO | Derivacao_32
-EDCABO = EDCABO | Editar_Preto_32
-ATCABO = ATCABO | Veias_32
-EXPPDF = PDF | PDF_VM_32
-CLONAR = CLONAR | Clonar_32
-CBD = CBD | Comprimir_32
-EXPCOMP = EXPCOMP | ExpImp_Preto_32
-RESTPROJ = RESTPROJ | Sincroniza_32
-MOV = MOVER | Mover_32
-REVAUT = REVAUT | Revisao_32
-EXPDWG = EXPORTAR | DWG_Preto_32
-IMPR = IMPRIMIR | Imprimir_32
-AJUDA = Help | Ajuda_32
+# A barra de ferramentas do reverso (o `Ribbon.cs`)
+
+Gerado por `scripts/extrair-barra-do-reverso.ps1` a partir do descompilado
+(`..\Elet\Eletron4_ZWcad\decompiled-cleaned\Eletron4\Ribbon.cs`).
+
+A aba do original e `CENG.ID_Elet` (**Elétron**); os paineis saem na ordem em que o
+`CreateRibbon()` (dois) e o `CreateRibbon2()` (sete) os criam, e os botoes na ordem do corpo de
+cada painel. O titulo do painel e o **indice** da `mMensagem` que o corpo usa, resolvido aqui.
+
+`coberto` = o recoder responde a esse comando hoje (qualquer `[CommandMethod]` do plugin,
+inclusive os gerados da rodada 128) - e o que a barra usa para saber o que ja funciona.
+
+## A aba
+
+| id | titulo | paineis | botoes | cobertos |
+|---|---|---|---|---|
+| `CENG.ID_Elet` | Elétron | 9 | 121 | 83 |
+
+## Os paineis
+
+| # | painel | mMensagem | botoes | cobertos | metodo | linha |
+|---|---|---|---|---|---|---|
+| 1 | Configuração | 111 | 2 | 1 | `TSfp1Hv8Fcw` | 116 |
+| 2 | Caderno | 109 | 13 | 7 | `sqNp1kxf3Uh` | 158 |
+| 3 | Dispositivos | 110 | 24 | 18 | `Xcxp1ds9OPI` | 319 |
+| 4 | Bornes | 540 | 9 | 7 | `fJdp1fB9M7a` | 654 |
+| 5 | Fiação | 559 | 16 | 10 | `RuZp1DKCh0P` | 812 |
+| 6 | Construtivo | 1549 | 8 | 6 | `qGpp1vUUxZV` | 1185 |
+| 7 | Cabos e Veias | 560 | 30 | 18 | `HEpp169Agfo` | 1321 |
+| 8 | Utilitários | 112 | 18 | 16 | `E74p1tC6alM` | 1872 |
+| 9 | Help | -1 | 1 | 0 | `vwCp1jIpDXj` | 2119 |
+
+## Os botoes, na ordem da barra
+
+### 1. Configuração (`mMensagem[1, 111]`, linha 116)
+
+| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
+|---|---|---|---|---|---|---|---|
+|  | `` | `Setup_32` | Grande | nao | nao |  | 147 |
+| CFG | `CFG` | `` | Dialogo | sim | sim | Configurar o painel Configuração | 155 |
+
+### 2. Caderno (`mMensagem[1, 109]`, linha 158)
+
+| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
+|---|---|---|---|---|---|---|---|
+| CADERNO | `CAD` | `Caderno_32` | Pequeno | nao | nao | Cria ou troca o formato | 238 |
+| GER DWG | `GERDWG` | `Database_Preto_32` | Pequeno | sim | sim | Gerenciador de DWGs | 248 |
+| REGUAH | `REGH` | `ReguaH_32` | Pequeno | nao | nao | Cria ou troca a Régua Horizontal | 258 |
+| REGUAV | `REGV` | `ReguaV_32` | Pequeno | nao | nao | Cria ou troca a Régua Vertical | 268 |
+| Cadastro de Painéis | `PN` | `Item` | IconeTexto | sim | sim | Cadastro de Painéis | 282 |
+| Trocar Painel | `TROCAPN` | `Item` | IconeTexto | nao | sim | Trocar Painel | 286 |
+| Duplicar Caderno | `DUPCAD` | `Item` | IconeTexto | sim | sim | Duplicar Caderno | 290 |
+| Importar Projeto | `IMPBD` | `Item` | IconeTexto | nao | sim | Importar Projeto | 294 |
+| Índice de Páginas | `INDPG` | `Item` | IconeTexto | sim | sim | Índice de Páginas | 298 |
+| Relatório de Revisões | `RELREV` | `Item` | IconeTexto | sim | sim | Relatório de Revisões | 302 |
+| Relatório de Revisões Furnas | `RELREVF` | `Item` | IconeTexto | sim | sim | Relatório de Revisões Furnas | 306 |
+| Relatório de Revisões Matricial | `RELMATRI` | `Item` | IconeTexto | sim | sim | Relatório de Revisões Matricial | 310 |
+| Altura Base | `HBASE` | `Item` | IconeTexto | nao | nao | Altura Base | 314 |
+
+### 3. Dispositivos (`mMensagem[1, 110]`, linha 319)
+
+| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
+|---|---|---|---|---|---|---|---|
+| GERCONT | `GERCONT` | `GerContatos_32` | Pequeno | sim | sim | Gerenciador de Contatos | 449 |
+| GERMASC | `GERMASC` | `GerMascaras_32` | Pequeno | sim | sim | Gerenciador de Máscaras | 459 |
+| DISP | `DISP` | `Dispositivos_32` | Pequeno | sim | sim | Dispositivos | 469 |
+| PORTA | `PORT` | `Portas_32` | Pequeno | sim | sim | Portas | 479 |
+| CONTATO | `CONT` | `Contatos_32` | Pequeno | sim | sim | Contatos Auxiliares | 489 |
+| DEFINIÇÃO | `DEF` | `Definicao_32` | Pequeno | sim | sim | Definição | 499 |
+| LXLS | `LXLS` | `Excel_32` | Pequeno | nao | nao | Abrir Lista de Pontos | 509 |
+|  | `MASC` | `Mascara_16` | Icone | sim | sim | Máscara | 519 |
+|  | `LDAT` | `LigaDesligaAtributos_16` | Icone | nao | nao | Liga/Desliga Atributos | 529 |
+|  | `PINC` | `Pincel2_16` | Icone | nao | nao | Pincel | 539 |
+|  | `MOVPN` | `MoverPainel_16` | Icone | sim | sim | Mover Dispositivo Para Outro Painel | 549 |
+|  | `DEPARA` | `DePara_16` | Icone | nao | nao | De->Para | 559 |
+|  | `SYNCD` | `Sincronizar_16` | Icone | sim | nao | Sincronizar Dispositivos | 569 |
+| Configuração da Lista de Pontos | `CONFLP` | `Item` | IconeTexto | sim | sim | Configuração da Lista de Pontos | 607 |
+| Chave Automática | `CHVAUT` | `Item` | IconeTexto | nao | nao | Chave Automática | 611 |
+| Inserir Descrição Lista de Pontos | `ADDDESC` | `Item` | IconeTexto | sim | sim | Inserir Descrição Lista de Pontos | 615 |
+| Sincroniza Desenho + LP | `SYNCLP` | `Item` | IconeTexto | nao | nao | Sincroniza Desenho + LP | 619 |
+| Migrar Portas | `MIGPOR` | `Item` | IconeTexto | sim | sim | Migrar Portas | 623 |
+| Importar Modelos de Contatos | `MCONT` | `Item` | IconeTexto | sim | sim | Importar Modelos de Contatos | 627 |
+| Importar Modelos de Máscara | `MMASC` | `Item` | IconeTexto | sim | sim | Importar Modelos de Máscara | 631 |
+| Editor de Funções | `EDTFUNC` | `Item` | IconeTexto | sim | sim | Editor de Funções | 635 |
+| Editor Dispositivos e Máscaras | `EDTDISPS` | `Item` | IconeTexto | sim | sim | Editor Dispositivos e Máscaras | 639 |
+| Editor Terminais Disp. Avulsos | `EDTDISPSA` | `Item` | IconeTexto | sim | sim | Editor Terminais Disp. Avulsos | 643 |
+| Relatório Entradas/Saídas | `RELEKTRO` | `Item` | IconeTexto | sim | sim | Relatório Entradas/Saídas | 647 |
+
+### 4. Bornes (`mMensagem[1, 540]`, linha 654)
+
+| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
+|---|---|---|---|---|---|---|---|
+| GERRB | `GERRB` | `ReguaBorne_32` | Pequeno | sim | sim | Gerenciador de Réguas de Bornes | 720 |
+| BORNE | `BORN` | `Bornes_32` | Pequeno | sim | sim | Inserir Bornes | 730 |
+| EDBORN | `EDBORN` | `Editar_Preto_32` | Pequeno | sim | sim | Editar Bornes | 740 |
+| SELBORN | `SELBORN` | `EditaBornesSelecao_32` | Pequeno | sim | sim | Editar Bornes por Seleção | 750 |
+|  | `LDNR` | `LigaDesligaAtributos_16` | Icone | nao | nao | Liga/Desliga Nome Régua | 760 |
+|  | `OCPN` | `OcultaPainelBorne_16` | Icone | nao | nao | Ocultar Nome Painel | 770 |
+|  | `STATBORN` | `Estatistica_16` | Icone | sim | sim | Estatística de Bornes | 780 |
+| Migrar Bornes e Conexões | `MBOR` | `Item` | IconeTexto | sim | sim | Migrar Bornes | 801 |
+| Clonar Estrutura Régua | `CLOBORN` | `Item` | IconeTexto | sim | sim | Clonar Estrutura Régua | 805 |
+
+### 5. Fiação (`mMensagem[1, 559]`, linha 812)
+
+| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
+|---|---|---|---|---|---|---|---|
+| CIRCUITO | `CIRC` | `Circuito_32` | Pequeno | sim | sim | Circuito | 940 |
+| CONEXAO | `CON` | `ConexaoTT_32` | Pequeno | nao | nao | Conexão ou Derivação | 950 |
+| CONEXAOAUTO | `CONAUT` | `ConexaoAuto_32` | Pequeno | nao | nao | Conexão Automática | 960 |
+| DERIVACAOAUTO | `DERAUT` | `DerivacaoAuto_32` | Pequeno | nao | nao | Derivação Automática | 970 |
+|  | `INSM` | `InsereCor_16` | Icone | sim | sim | Inserir Marcador da Conexão | 1020 |
+|  | `EDCON` | `EditaSelecao_16` | Icone | nao | nao | Editar Conexões por Seleção | 1030 |
+|  | `EDCONP` | `Editor_16` | Icone | sim | sim | Editar Conexões das Páginas Selecionadas | 1040 |
+|  | `SYNCC` | `Sincronizar_16` | Icone | nao | nao | Sincronizar Circuitos e Jumpers | 1050 |
+|  | `APL` | `Aplicacao2_16` | Icone | sim | sim | Aplicação da Fiação | 1060 |
+|  | `EDTNCIRC` | `EditarBornes_16` | Icone | sim | sim | Editar Nome de Circuitos | 1070 |
+| Verificar Fiação | `VFIA` | `Item` | IconeTexto | sim | sim | Verificar Fiação | 1158 |
+| Layout Rápido | `LR` | `Item` | IconeTexto | sim | sim | Layout Rápido | 1162 |
+| Compilar Fiação | `FIA` | `Item` | IconeTexto | sim | sim | Compilar Fiação | 1166 |
+| Sequenciador | `SEQ` | `Item` | IconeTexto | sim | sim | Sequenciador | 1170 |
+| Jumper Interno | `LNK` | `Item` | IconeTexto | sim | sim | Jumper Interno | 1174 |
+| Apagar Revisões Fiação | `DELFIPROJ` | `Item` | IconeTexto | nao | nao | Apagar Revisões Fiação | 1178 |
+
+### 6. Construtivo (`mMensagem[1, 1549]`, linha 1185)
+
+| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
+|---|---|---|---|---|---|---|---|
+| GERLM | `GERLM` | `LM_32` | Pequeno | sim | sim | Gerenciador de Materiais | 1251 |
+| LAYMEC | `LAYMEC` | `Layout_32` | Pequeno | sim | sim | Layout Mecânico | 1261 |
+| PLAQ | `PLAQ` | `GerPlaquetas_32` | Pequeno | sim | sim | Gerenciador de Plaquetas | 1271 |
+| Dispositivos Independentes e Avulsos | `ATINDEP` | `Item` | IconeTexto | sim | sim | Dispositivos Independentes e Avulsos | 1298 |
+| Exportar Plaquetas BD Projeto | `EPLQ` | `Item` | IconeTexto | sim | nao | Exportar Plaquetas BD Projeto | 1302 |
+| Exportar LM BD Projeto | `COMPLM` | `Item` | IconeTexto | sim | nao | Exportar LM BD Projeto | 1306 |
+| Apagar LM BD Projeto | `DELLM` | `Item` | IconeTexto | nao | nao | Apagar LM BD Projeto | 1310 |
+| Apagar Plaquetas BD Projetos | `DELPLA` | `Item` | IconeTexto | nao | nao | Apagar Plaquetas BD Projetos | 1314 |
+
+### 7. Cabos e Veias (`mMensagem[1, 560]`, linha 1321)
+
+| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
+|---|---|---|---|---|---|---|---|
+| VEIA1 | `VEIA1` | `Interlig1_32` | Pequeno | nao | nao | Inserir Veia Parte 1 | 1523 |
+| VEIA | `VEIA` | `Interlig_32` | Pequeno | nao | nao | Inserir Veia | 1533 |
+| VEIA2 | `VEIA2` | `Interlig2_32` | Pequeno | nao | nao | Inserir Veia Parte 2 | 1543 |
+| VEAUT | `VEAUT` | `VeiaAuto_32` | Pequeno | nao | nao | Veia Automática | 1553 |
+| BLI | `BLI` | `Blindagem_32` | Pequeno | nao | nao | Blindagem | 1563 |
+| JUMPEXT | `JPEXT` | `JumperExt_32` | Pequeno | sim | sim | Jumper Externo | 1573 |
+| IVEIEX | `IVEIEX` | `Excel_32` | Pequeno | sim | sim | Importar Excel | 1583 |
+| CONEXAO | `CON` | `Derivacao_32` | Pequeno | nao | nao | Derivação de Jumper | 1593 |
+| EDCABO | `EDCABO` | `Editar_Preto_32` | Pequeno | sim | sim | Editor de Cabos | 1603 |
+| ATCABO | `ATCABO` | `Veias_32` | Pequeno | sim | sim | Atribuir Veias | 1613 |
+|  | `OCCAB` | `OcultarCabos_16` | Icone | nao | nao | Ocultar Nome | 1623 |
+|  | `LNOME` | `LigaDesligaAtributos_16` | Icone | nao | nao | Ligar Nome Cabo | 1633 |
+|  | `DNOME` | `Desliga_16` | Icone | nao | nao | Desligar Nome Cabo | 1643 |
+|  | `INDV` | `Indefinir_16` | Icone | nao | nao | Indefinir Veias | 1653 |
+|  | `PESQC` | `Pesquisar_16` | Icone | sim | sim | Pesquisar Veias Indefinidas | 1663 |
+|  | `SYNCV` | `Sincronizar_16` | Icone | sim | nao | Sincronizar Veias | 1673 |
+| Verificar Interligação | `VINT` | `Item` | IconeTexto | sim | sim | Verificar Interligação | 1813 |
+| Compilar Jumper Externo | `JMP` | `Item` | IconeTexto | sim | sim | Compilar Jumper Externo | 1817 |
+| Compilar Interligação | `INT` | `Item` | IconeTexto | sim | sim | Compilar Interligação | 1821 |
+| Sequenciador de Jumper Externo | `SEQJ` | `Item` | IconeTexto | sim | sim | Sequenciador de Jumper Externo | 1825 |
+| Clonar Cabos | `CLOCAB` | `Item` | IconeTexto | sim | sim | Clonar Cabos | 1829 |
+| Pesquisar Cabos e Veias | `PESQCAB` | `Item` | IconeTexto | sim | sim | Pesquisar Cabos e Veias | 1833 |
+| Estimativa Veias Faltantes | `ESTVL` | `Item` | IconeTexto | sim | sim | Estimativa Veias Faltantes | 1837 |
+| Estatística de Cabos Utilizados | `ESTVCABOS` | `Item` | IconeTexto | sim | sim | Estatística de Cabos Utilizados | 1841 |
+| Editor de Nome e Função Veias | `EDNOMEFUNVEIAS` | `Item` | IconeTexto | sim | sim | Editor de Nome e Função Veias | 1845 |
+| Recriar Textos dos Cabos | `RECRIACABOS` | `Item` | IconeTexto | sim | nao | Recriar Textos dos Cabos | 1849 |
+| Atributos do Cabo | `OPVEIAS` | `Item` | IconeTexto | sim | sim | Atributos do Cabo | 1853 |
+| Indefinir Todas Veias | `INDEFCAB` | `Item` | IconeTexto | nao | nao | Indefinir Todas Veias | 1857 |
+| Importar Interligação Excel | `IIEX` | `Item` | IconeTexto | sim | sim | Importar Interligação Excel | 1861 |
+| Apagar Revisões Interligação | `DELINTPROJ` | `Item` | IconeTexto | nao | nao | Apagar Revisões Interligação | 1865 |
+
+### 8. Utilitários (`mMensagem[1, 112]`, linha 1872)
+
+| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
+|---|---|---|---|---|---|---|---|
+| PDF | `EXPPDF` | `PDF_VM_32` | Pequeno | sim | sim | Exportar PDF Inteligente | 1974 |
+| CLONAR | `CLONAR` | `Clonar_32` | Pequeno | sim | sim | Clonar | 1984 |
+| CBD | `CBD` | `Comprimir_32` | Pequeno | sim | nao | Compactador BD Projeto | 1994 |
+| EXPCOMP | `EXPCOMP` | `ExpImp_Preto_32` | Pequeno | sim | sim | Exportar e Importar Entre DWGs | 2004 |
+| RESTPROJ | `RESTPROJ` | `Sincroniza_32` | Pequeno | sim | nao | Restaura Projeto | 2014 |
+| MOVER | `MOV` | `Mover_32` | Pequeno | nao | nao | Mover elementos de uma página para outra | 2024 |
+| REVAUT | `REVAUT` | `Revisao_32` | Pequeno | sim | sim | Revisão Automática | 2034 |
+| EXPORTAR | `EXPDWG` | `DWG_Preto_32` | Pequeno | sim | sim | Exportar Páginas | 2044 |
+| IMPRIMIR | `IMPR` | `Imprimir_32` | Pequeno | sim | sim | Imprimir | 2054 |
+| Editar Títulos e Textos | `TROCTT` | `Item` | IconeTexto | sim | sim | Editar Títulos e Textos | 2082 |
+| Exportar e Importar Textos | `EXPIT` | `Item` | IconeTexto | sim | sim | Exportar e Importar Textos | 2086 |
+| Copiar Objetos | `COPYCAD` | `Item` | IconeTexto | sim | sim | Copiar Objetos | 2090 |
+| Trocar Blocos | `TROCBL` | `Item` | IconeTexto | sim | sim | Trocar Blocos | 2094 |
+| Navegador Elétron | `PESQUISA` | `Item` | IconeTexto | sim | sim | Navegador Elétron | 2098 |
+| Apagar XDatas de Terceiros | `APAGARXDATA` | `Item` | IconeTexto | sim | sim | Apagar XDatas de Terceiros | 2102 |
+| Importar DWG | `IMPCAD` | `Item` | IconeTexto | sim | sim | Importar DWG | 2106 |
+| Trocar Usuário e Data | `MUDAUSER` | `Item` | IconeTexto | sim | sim | Trocar Usuário e Data | 2110 |
+| Reset Janelas Abertas | `CorrigeJanelas` | `Item` | IconeTexto | nao | nao | Reset Janelas Abertas | 2114 |
+
+### 9. Help (`mMensagem[1, -1]`, linha 2119)
+
+| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
+|---|---|---|---|---|---|---|---|
+| Help | `AJUDA` | `Ajuda_32` | Pequeno | nao | nao | Help | 2153 |
+
+## O que a barra ja chama hoje
+
+Os botoes cujo comando o recoder responde, **na ordem da barra** - e esta a lista que a
+barra ativa. Os que **abrem janela** sao os do mapa `docs/reverso-comandos.txt` (rodada 128):
+viraram botao de verdade sem nenhum codigo novo, porque o comando ja existe no CAD.
+
+| # | painel | rotulo | comando | icone | abre janela |
+|---|---|---|---|---|---|
+| 1 | Configuração | CFG | `CFG` | `` | sim |
+| 2 | Caderno | GER DWG | `GERDWG` | `Database_Preto_32` | sim |
+| 3 | Caderno | Cadastro de Painéis | `PN` | `Item` | sim |
+| 4 | Caderno | Duplicar Caderno | `DUPCAD` | `Item` | sim |
+| 5 | Caderno | Índice de Páginas | `INDPG` | `Item` | sim |
+| 6 | Caderno | Relatório de Revisões | `RELREV` | `Item` | sim |
+| 7 | Caderno | Relatório de Revisões Furnas | `RELREVF` | `Item` | sim |
+| 8 | Caderno | Relatório de Revisões Matricial | `RELMATRI` | `Item` | sim |
+| 9 | Dispositivos | GERCONT | `GERCONT` | `GerContatos_32` | sim |
+| 10 | Dispositivos | GERMASC | `GERMASC` | `GerMascaras_32` | sim |
+| 11 | Dispositivos | DISP | `DISP` | `Dispositivos_32` | sim |
+| 12 | Dispositivos | PORTA | `PORT` | `Portas_32` | sim |
+| 13 | Dispositivos | CONTATO | `CONT` | `Contatos_32` | sim |
+| 14 | Dispositivos | DEFINIÇÃO | `DEF` | `Definicao_32` | sim |
+| 15 | Dispositivos |  | `MASC` | `Mascara_16` | sim |
+| 16 | Dispositivos |  | `MOVPN` | `MoverPainel_16` | sim |
+| 17 | Dispositivos |  | `SYNCD` | `Sincronizar_16` | nao |
+| 18 | Dispositivos | Configuração da Lista de Pontos | `CONFLP` | `Item` | sim |
+| 19 | Dispositivos | Inserir Descrição Lista de Pontos | `ADDDESC` | `Item` | sim |
+| 20 | Dispositivos | Migrar Portas | `MIGPOR` | `Item` | sim |
+| 21 | Dispositivos | Importar Modelos de Contatos | `MCONT` | `Item` | sim |
+| 22 | Dispositivos | Importar Modelos de Máscara | `MMASC` | `Item` | sim |
+| 23 | Dispositivos | Editor de Funções | `EDTFUNC` | `Item` | sim |
+| 24 | Dispositivos | Editor Dispositivos e Máscaras | `EDTDISPS` | `Item` | sim |
+| 25 | Dispositivos | Editor Terminais Disp. Avulsos | `EDTDISPSA` | `Item` | sim |
+| 26 | Dispositivos | Relatório Entradas/Saídas | `RELEKTRO` | `Item` | sim |
+| 27 | Bornes | GERRB | `GERRB` | `ReguaBorne_32` | sim |
+| 28 | Bornes | BORNE | `BORN` | `Bornes_32` | sim |
+| 29 | Bornes | EDBORN | `EDBORN` | `Editar_Preto_32` | sim |
+| 30 | Bornes | SELBORN | `SELBORN` | `EditaBornesSelecao_32` | sim |
+| 31 | Bornes |  | `STATBORN` | `Estatistica_16` | sim |
+| 32 | Bornes | Migrar Bornes e Conexões | `MBOR` | `Item` | sim |
+| 33 | Bornes | Clonar Estrutura Régua | `CLOBORN` | `Item` | sim |
+| 34 | Fiação | CIRCUITO | `CIRC` | `Circuito_32` | sim |
+| 35 | Fiação |  | `INSM` | `InsereCor_16` | sim |
+| 36 | Fiação |  | `EDCONP` | `Editor_16` | sim |
+| 37 | Fiação |  | `APL` | `Aplicacao2_16` | sim |
+| 38 | Fiação |  | `EDTNCIRC` | `EditarBornes_16` | sim |
+| 39 | Fiação | Verificar Fiação | `VFIA` | `Item` | sim |
+| 40 | Fiação | Layout Rápido | `LR` | `Item` | sim |
+| 41 | Fiação | Compilar Fiação | `FIA` | `Item` | sim |
+| 42 | Fiação | Sequenciador | `SEQ` | `Item` | sim |
+| 43 | Fiação | Jumper Interno | `LNK` | `Item` | sim |
+| 44 | Construtivo | GERLM | `GERLM` | `LM_32` | sim |
+| 45 | Construtivo | LAYMEC | `LAYMEC` | `Layout_32` | sim |
+| 46 | Construtivo | PLAQ | `PLAQ` | `GerPlaquetas_32` | sim |
+| 47 | Construtivo | Dispositivos Independentes e Avulsos | `ATINDEP` | `Item` | sim |
+| 48 | Construtivo | Exportar Plaquetas BD Projeto | `EPLQ` | `Item` | nao |
+| 49 | Construtivo | Exportar LM BD Projeto | `COMPLM` | `Item` | nao |
+| 50 | Cabos e Veias | JUMPEXT | `JPEXT` | `JumperExt_32` | sim |
+| 51 | Cabos e Veias | IVEIEX | `IVEIEX` | `Excel_32` | sim |
+| 52 | Cabos e Veias | EDCABO | `EDCABO` | `Editar_Preto_32` | sim |
+| 53 | Cabos e Veias | ATCABO | `ATCABO` | `Veias_32` | sim |
+| 54 | Cabos e Veias |  | `PESQC` | `Pesquisar_16` | sim |
+| 55 | Cabos e Veias |  | `SYNCV` | `Sincronizar_16` | nao |
+| 56 | Cabos e Veias | Verificar Interligação | `VINT` | `Item` | sim |
+| 57 | Cabos e Veias | Compilar Jumper Externo | `JMP` | `Item` | sim |
+| 58 | Cabos e Veias | Compilar Interligação | `INT` | `Item` | sim |
+| 59 | Cabos e Veias | Sequenciador de Jumper Externo | `SEQJ` | `Item` | sim |
+| 60 | Cabos e Veias | Clonar Cabos | `CLOCAB` | `Item` | sim |
+| 61 | Cabos e Veias | Pesquisar Cabos e Veias | `PESQCAB` | `Item` | sim |
+| 62 | Cabos e Veias | Estimativa Veias Faltantes | `ESTVL` | `Item` | sim |
+| 63 | Cabos e Veias | Estatística de Cabos Utilizados | `ESTVCABOS` | `Item` | sim |
+| 64 | Cabos e Veias | Editor de Nome e Função Veias | `EDNOMEFUNVEIAS` | `Item` | sim |
+| 65 | Cabos e Veias | Recriar Textos dos Cabos | `RECRIACABOS` | `Item` | nao |
+| 66 | Cabos e Veias | Atributos do Cabo | `OPVEIAS` | `Item` | sim |
+| 67 | Cabos e Veias | Importar Interligação Excel | `IIEX` | `Item` | sim |
+| 68 | Utilitários | PDF | `EXPPDF` | `PDF_VM_32` | sim |
+| 69 | Utilitários | CLONAR | `CLONAR` | `Clonar_32` | sim |
+| 70 | Utilitários | CBD | `CBD` | `Comprimir_32` | nao |
+| 71 | Utilitários | EXPCOMP | `EXPCOMP` | `ExpImp_Preto_32` | sim |
+| 72 | Utilitários | RESTPROJ | `RESTPROJ` | `Sincroniza_32` | nao |
+| 73 | Utilitários | REVAUT | `REVAUT` | `Revisao_32` | sim |
+| 74 | Utilitários | EXPORTAR | `EXPDWG` | `DWG_Preto_32` | sim |
+| 75 | Utilitários | IMPRIMIR | `IMPR` | `Imprimir_32` | sim |
+| 76 | Utilitários | Editar Títulos e Textos | `TROCTT` | `Item` | sim |
+| 77 | Utilitários | Exportar e Importar Textos | `EXPIT` | `Item` | sim |
+| 78 | Utilitários | Copiar Objetos | `COPYCAD` | `Item` | sim |
+| 79 | Utilitários | Trocar Blocos | `TROCBL` | `Item` | sim |
+| 80 | Utilitários | Navegador Elétron | `PESQUISA` | `Item` | sim |
+| 81 | Utilitários | Apagar XDatas de Terceiros | `APAGARXDATA` | `Item` | sim |
+| 82 | Utilitários | Importar DWG | `IMPCAD` | `Item` | sim |
+| 83 | Utilitários | Trocar Usuário e Data | `MUDAUSER` | `Item` | sim |
+
+## Contagens
+
+- Paineis: **9**.
+- Botoes: **121** (o recoder responde a **83**).
+- Botoes que o recoder responde **e** abrem janela: **76**.
+- Comandos distintos na barra: **120**.
+- Icones distintos: **60** (sem os vazios).
+- Chamadas dos ajudantes no `Ribbon.cs`: **120** + **1** `DialogLauncher` = **121** (contra **121** botoes extraidos: as quatro assinaturas dos ajudantes no fim do arquivo nao contam).
+

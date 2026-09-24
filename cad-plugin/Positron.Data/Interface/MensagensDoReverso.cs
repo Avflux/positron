@@ -44,6 +44,35 @@ namespace Positron.Data.Interface
 
         public const string PainelHelp = "Help";
 
+        /// <summary>
+        /// O menu de contexto do `uscPaginas` (as folhas). Todo item que no designer tem um texto
+        /// literal sai daqui: o designer põe um valor e o construtor o **sobrescreve** pela
+        /// `mMensagem`, então o que o usuário lê é o desta tabela. Os índices são os do reverso
+        /// (`uscPaginas.cs:1300-1306`).
+        /// </summary>
+        /// <remarks>
+        /// O `Renumerar Páginas` é o caso que mais engana: o nome do campo no designer é
+        /// `RenomearPáginasToolStripMenuItem`, mas o texto que o usuário vê é a mMensagem 22 —
+        /// "Renumerar". A regra por trás é a do `RENPAGA` (renumerar o caderno), que é o que o
+        /// `PaginasDoCaderno` faz: o rótulo antigo do recoder ("Renomear Páginas") estava errado.
+        /// </remarks>
+        public const string RenumerarPaginas = "Renumerar Páginas";
+
+        public const string EditarUnidade = "Editar Unidade";
+
+        public const string EditarAlternativo = "Editar Alternativo";
+
+        public const string EditarTitulos = "Editar Títulos";
+
+        public const string EditarRevisoes = "Editar Revisões";
+
+        public const string RevisaoSimplificada = "Simplificada";
+
+        public const string RevisaoCompleta = "Completa";
+
+        /// <summary>Os formatos de folha do combo `Folha` do menu (literais do designer).</summary>
+        public static readonly string[] FormatosDeFolha = { "12", "012", "0012", "00012", "000012", "0000012" };
+
         /// <summary>Rótulos de botões da barra do original que caem em comandos que temos (Ribbon.cs).</summary>
         public const string BotaoGerDwg = "GER DWG";
 
