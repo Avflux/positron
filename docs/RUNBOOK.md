@@ -783,14 +783,22 @@ Pesquisa no reverso, com evidência:
 
 **O que entrou (fatias 1, 2 e 5):**
 
-- `InicializadorDoPositron` — o `IExtensionApplication`: a DLL **se apresenta no load**, sem depender de digitar comando (o `ELET` do reverso é vazio);
+- a mensagem do shell entrou no **`Plugin.Initialize()`** — o `IExtensionApplication` que **já existia** no projeto (e que os smokes procuram pela string `Positron carregado`): a DLL **se apresenta no load**, sem depender de digitar comando; eu tinha criado um **segundo** `IExtensionApplication` e o CAD chama **um só** — o duplicado foi **removido** (lição registrada);
 - `PaginasDoDesenho` (o I/O: os layers que a regra aceita, na ordem) + `JanelaDeFolhas` (WinForms) com a grade das folhas, o decimal e o botão de recarregar — a **janela de folhas**;
 - `ELET` e o novo `FOLHAS` abrem a janela;
 - `install/Positron.bundle/PackageContents.xml` — o **autoload** (a DLL carregada na abertura do CAD, sem `NETLOAD`).
 
-> **Medição pendente nesta rodada:** o ZWCAD do dono do produto está aberto (PID 3652, iniciado
-> sem `/b`), e o ZWCAD é instância única — o harness recusa rodar e a instância existente não
-> herda as variáveis `POSITRON_*`. O teste visual é dele: `NETLOAD` da DLL nova e `ELET`.
+**Medido no ZWCAD 2026** (depois do build, com o ZWCAD fechado), com a passada `FOLHAS`:
+
+```text
+Positron carregado. Digite ELET para começar — ELET abre a janela de folhas (FOLHAS tambem).
+Positron — janela de folhas aberta com 16 página(s) (fechar pela janela).
+OK: plugin carregado no ZWCAD 2026
+```
+
+A primeira linha é o **ponto de entrada** disparando no load; a segunda é a **janela de folhas**
+aberta com as **16 páginas** — o mesmo número do dump do `pzDiag` (a segunda testemunha). O
+**teste visual** (a janela em si) é do dono do produto.
 
 **As próximas fatias** (no §7.8): a **paleta** ancorável (`PaletteSet` do `ZdWindows`), a
 **barra de ferramentas** (`Ribbon`) e o splash/recursos.
