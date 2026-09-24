@@ -1,0 +1,3 @@
+using QdeA6lpmRAUVbrUrW7Km;
+
+internal delegate uVvdxDpm0bfFn5qAxA59.WBaNhBpsyOEd3pMpeTuh b2PQIVkWiCIaysW16CPY(object P_0, uVvdxDpm0bfFn5qAxA59.WBaNhBpsyOEd3pMpeTuh P_1);

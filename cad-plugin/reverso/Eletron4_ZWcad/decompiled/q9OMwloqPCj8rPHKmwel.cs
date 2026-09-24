@@ -1,0 +1,1 @@
+internal delegate void q9OMwloqPCj8rPHKmwel(object P_0, string revisao, long dwg, int painel, string Tag, string alternativo, string Tipo, string Handle, string Pagina, string BlocoTopografico, string BlocoLayout, int posicaoNum, int ordem);

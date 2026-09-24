@@ -1,0 +1,76 @@
+Conversion Report:
+Created by DWG TrueView DWG Convert quarta-feira, 4 de setembro de 2024, 14:59.
+
+Conversion Summary
+------------------
+Conversion File Format:  AutoCAD 2010/LT 2010 Drawing Format
+Conversion package type: In-place (overwrite files)
+Converted DWG files:     61
+Recovered DWG files:     0
+Conversion errors:       0
+
+
+Converted Files
+---------------
+Root Drawings:
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_NA_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_NA2_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_NF1_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_NF2_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_RV1_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_RV1I_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_RV2_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_RV2I_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_RV12_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_RV12I_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_RV22_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\H_A_RV22I_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\RC_NA.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\RC_NA2.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\RC_NF.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\RC_NF2.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\RC_RV.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\RC_TIT.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_1NA1_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NA1_INVERTIDO_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NA1_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NA1_ST_INVERTIDO.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NA2_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NA3_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NA4_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NA12_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NA18_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NF1_INVERTIDO_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NF1_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NF1_ST_INVERTIDO.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NF2_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_NF4_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1_TIT_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1E_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1E2_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1E4_INVERTIDO_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1E4_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1E4_ST_NF.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1I_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1I1_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1I2_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1I3_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1I4_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1I42_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1IE_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1NA_HORIZONTAL_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1NA_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1NF_HORIZONTAL_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1NF_INVERTIDO_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1NF_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1-Normal_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV1-TEMP1_TE.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV2_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV2E_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV2I_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV2IE_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV2NA_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RV2NF_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RVNA_ST.dwg
+	J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\Contatos\IEC\V_A_RVNF_ST.dwg

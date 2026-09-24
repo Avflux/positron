@@ -1,0 +1,3 @@
+using ZwSoft.Windows;
+
+internal delegate void vfjjAhHVGYnSoyIvjdSQ(object P_0, RibbonTab P_1);

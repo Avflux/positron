@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Eletron4Z</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <UseWPF>True</UseWPF>
+    <UseWindowsForms>True</UseWindowsForms>
+    <TargetFramework>net472</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>14.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace />
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="f0QEEDDabf39S0voTp.46YA9RvZWrgMIlCI9i" />
+    <None Remove="o9qIIFdQarQhUgHtGo.43ASFPfGpMtcy6EsQ8" />
+    <None Remove="V9DgpHoXKSwaPCP9VK.jXfy7RGBZouLOqht38" />
+    <None Remove="SbMrNQHvKnlYUOew1V.suixAgke9x6NmqId9X" />
+    <None Remove="rFKNLZJ5vrR0Gepijr.pTDSxeh3iLUkWcinbR" />
+    <None Remove="lQO5NCp2fwKETZ8xnu.tMh5WiTT3J9QauOTrX" />
+    <EmbeddedResource Include="f0QEEDDabf39S0voTp.46YA9RvZWrgMIlCI9i" LogicalName="f0QEEDDabf39S0voTp.46YA9RvZWrgMIlCI9i" />
+    <EmbeddedResource Include="o9qIIFdQarQhUgHtGo.43ASFPfGpMtcy6EsQ8" LogicalName="o9qIIFdQarQhUgHtGo.43ASFPfGpMtcy6EsQ8" />
+    <EmbeddedResource Include="V9DgpHoXKSwaPCP9VK.jXfy7RGBZouLOqht38" LogicalName="V9DgpHoXKSwaPCP9VK.jXfy7RGBZouLOqht38" />
+    <EmbeddedResource Include="SbMrNQHvKnlYUOew1V.suixAgke9x6NmqId9X" LogicalName="SbMrNQHvKnlYUOew1V.suixAgke9x6NmqId9X" />
+    <EmbeddedResource Include="rFKNLZJ5vrR0Gepijr.pTDSxeh3iLUkWcinbR" LogicalName="rFKNLZJ5vrR0Gepijr.pTDSxeh3iLUkWcinbR" />
+    <EmbeddedResource Include="lQO5NCp2fwKETZ8xnu.tMh5WiTT3J9QauOTrX" LogicalName="lQO5NCp2fwKETZ8xnu.tMh5WiTT3J9QauOTrX" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ZwDatabaseMgd" />
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="ZwManaged" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.SQLite">
+      <HintPath>..\DLL\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="KeyLib">
+      <HintPath>..\DLL\KeyLib.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="itextsharp">
+      <HintPath>..\DLL\itextsharp.dll</HintPath>
+    </Reference>
+    <Reference Include="ZdWindows" />
+  </ItemGroup>
+</Project>

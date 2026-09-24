@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Eletron4Z</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <UseWPF>True</UseWPF>
+    <UseWindowsForms>True</UseWindowsForms>
+    <TargetFramework>net472</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>14.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace />
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="f0QEEDDabf39S0voTp.46YA9RvZWrgMIlCI9i" />
+    <None Remove="V9DgpHoXKSwaPCP9VK.jXfy7RGBZouLOqht38" />
+    <None Remove="lQO5NCp2fwKETZ8xnu.tMh5WiTT3J9QauOTrX" />
+    <EmbeddedResource Include="f0QEEDDabf39S0voTp.46YA9RvZWrgMIlCI9i" LogicalName="f0QEEDDabf39S0voTp.46YA9RvZWrgMIlCI9i" />
+    <EmbeddedResource Include="V9DgpHoXKSwaPCP9VK.jXfy7RGBZouLOqht38" LogicalName="V9DgpHoXKSwaPCP9VK.jXfy7RGBZouLOqht38" />
+    <EmbeddedResource Include="lQO5NCp2fwKETZ8xnu.tMh5WiTT3J9QauOTrX" LogicalName="lQO5NCp2fwKETZ8xnu.tMh5WiTT3J9QauOTrX" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.SQLite" />
+    <Reference Include="ZwDatabaseMgd" />
+    <Reference Include="ZwManaged" />
+    <Reference Include="KeyLib" />
+    <Reference Include="ZdWindows" />
+    <Reference Include="System.Core" />
+    <Reference Include="itextsharp" />
+  </ItemGroup>
+</Project>
