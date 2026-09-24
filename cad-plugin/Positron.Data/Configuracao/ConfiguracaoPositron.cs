@@ -42,6 +42,9 @@ namespace Positron.Data.Configuracao
     /// <summary>Chave do prefixo do cruzamento interno (o `Conf.PrefixoCruzInterno`, padrão `(`).</summary>
     public const string ChavePrefixoCruzInterno = "prefixoCruzInterno";
 
+    /// <summary>Chave do passo da página (o `Conf.PassoPagina`, padrão 1).</summary>
+    public const string ChavePassoPagina = "passoPagina";
+
     /// <summary>Chave do sufixo do cruzamento interno (o `Conf.SufixoCruzInterno`, padrão `)`).</summary>
     public const string ChaveSufixoCruzInterno = "sufixoCruzInterno";
         public const string ChaveInterligacaoLayout = "interligacaoLayout";
@@ -67,6 +70,9 @@ namespace Positron.Data.Configuracao
 
     /// <summary>Variável de ambiente do prefixo do cruzamento interno.</summary>
     public const string VariavelPrefixoCruzInterno = "POSITRON_PREFIXO_CRUZ_INTERNO";
+
+    /// <summary>Variável de ambiente do passo da página.</summary>
+    public const string VariavelPassoPagina = "POSITRON_PASSO_PAGINA";
 
     /// <summary>Variável de ambiente do sufixo do cruzamento interno.</summary>
     public const string VariavelSufixoCruzInterno = "POSITRON_SUFIXO_CRUZ_INTERNO";
@@ -116,6 +122,9 @@ namespace Positron.Data.Configuracao
         /// <summary>Prefixo do cruzamento interno (o `Conf.PrefixoCruzInterno`, padrão `(`).</summary>
         public string PrefixoCruzInterno { get; set; }
 
+        /// <summary>Passo da página (o `Conf.PassoPagina` do original, padrão 1).</summary>
+        public int PassoPagina { get; set; }
+
         /// <summary>Sufixo do cruzamento interno (o `Conf.SufixoCruzInterno`, padrão `)`).</summary>
         public string SufixoCruzInterno { get; set; }
 
@@ -164,6 +173,7 @@ namespace Positron.Data.Configuracao
                 SeparadorCaboVeia = "/",
             SeparadorPainelRegua = "/",
             PrefixoCruzInterno = "(",
+            PassoPagina = 1,
             SufixoCruzInterno = ")",
                 InterligacaoLayout = 0,
                 CorInterligacao = 7,
@@ -250,6 +260,7 @@ namespace Positron.Data.Configuracao
             texto.AppendLine(ChaveSeparadorCaboVeia + "=" + (SeparadorCaboVeia ?? string.Empty));
             texto.AppendLine(ChaveSeparadorPainelRegua + "=" + (SeparadorPainelRegua ?? string.Empty));
             texto.AppendLine(ChavePrefixoCruzInterno + "=" + (PrefixoCruzInterno ?? string.Empty));
+            texto.AppendLine(ChavePassoPagina + "=" + PassoPagina.ToString(System.Globalization.CultureInfo.InvariantCulture));
             texto.AppendLine(ChaveSufixoCruzInterno + "=" + (SufixoCruzInterno ?? string.Empty));
             texto.AppendLine(ChaveInterligacaoLayout + "=" + InterligacaoLayout.ToString(CultureInfo.InvariantCulture));
             texto.AppendLine(ChaveCorInterligacao + "=" + CorInterligacao.ToString(CultureInfo.InvariantCulture));
@@ -309,6 +320,7 @@ namespace Positron.Data.Configuracao
             if (Mesma(chave, ChaveSeparadorCaboVeia, VariavelSeparadorCaboVeia)) { configuracao.SeparadorCaboVeia = Vazio(valor); return; }
             if (Mesma(chave, ChaveSeparadorPainelRegua, VariavelSeparadorPainelRegua)) { configuracao.SeparadorPainelRegua = Vazio(valor); return; }
             if (Mesma(chave, ChavePrefixoCruzInterno, VariavelPrefixoCruzInterno)) { configuracao.PrefixoCruzInterno = Vazio(valor); return; }
+            if (Mesma(chave, ChavePassoPagina, VariavelPassoPagina)) { configuracao.PassoPagina = Inteiro(valor, 1); return; }
             if (Mesma(chave, ChaveSufixoCruzInterno, VariavelSufixoCruzInterno)) { configuracao.SufixoCruzInterno = Vazio(valor); return; }
             if (Mesma(chave, ChaveInterligacaoLayout, VariavelInterligacaoLayout)) { configuracao.InterligacaoLayout = Inteiro(valor, configuracao.InterligacaoLayout); return; }
             if (Mesma(chave, ChaveCorInterligacao, VariavelCorInterligacao)) { configuracao.CorInterligacao = Inteiro(valor, configuracao.CorInterligacao); return; }
@@ -337,7 +349,7 @@ namespace Positron.Data.Configuracao
         private static IDictionary<string, string> Ambiente()
         {
             Dictionary<string, string> ambiente = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio, VariavelOrdemListaBanco, VariavelCorTextoInterligacao, VariavelFonteCabos, VariavelSeparadorCaboVeia, VariavelSeparadorPainelRegua, VariavelPrefixoCruzInterno, VariavelSufixoCruzInterno, VariavelInterligacaoLayout, VariavelCorInterligacao, VariavelEstiloLinha, VariavelEstiloLinhaEscala })
+            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio, VariavelOrdemListaBanco, VariavelCorTextoInterligacao, VariavelFonteCabos, VariavelSeparadorCaboVeia, VariavelSeparadorPainelRegua, VariavelPrefixoCruzInterno, VariavelSufixoCruzInterno, VariavelPassoPagina, VariavelInterligacaoLayout, VariavelCorInterligacao, VariavelEstiloLinha, VariavelEstiloLinhaEscala })
             {
                 string valor = Environment.GetEnvironmentVariable(nome);
                 if (!string.IsNullOrEmpty(valor))

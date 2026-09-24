@@ -769,6 +769,29 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 126 — a fatia 3: a pagina que cabe entre duas (o "Inserir").**
+O `Pagina.calculaNovaPagina` do reverso (170 linhas) foi portado **ramo a ramo** para a classe
+`NovaPaginaEntre`, com o `Conf.PassoPagina` (que entrou na configuracao, padrao 1):
+
+- cada lado e partido em numero/letra (o `Asc` da ultima letra e o prefixo numerico; no ramo
+  numerico o original usa o **numero inteiro**, no alfanumerico o `Mid(1, len-1)`);
+- as **quatro** combinacoes (numerico x alfanumerico) com a mesma casca — "cabe no passo? entao a
+  letra, senao o proximo numero; nao cabe? entao `num4 + Passo`";
+- posterior **vazio** vale o sentinela `1000000` (o fim) — e por isso o "Nova Pagina" tambem
+  tem a sua conta pronta;
+- saida: `PgNum`, `PgAlfa` (vazia quando o codigo e 64), `Pagina` e `PgDec`.
+
+**O que o portou ensinou (e os testes fixam):** o caso `0B` do ramo alfanumerico/alfanumerico e do
+proprio reverso (o numero invalido que os chamadores tratam), e o passo so aparece quando a
+distancia entre as paginas passa dele.
+
+**No menu:** o **Inserir** ficou **ligado** — ele pega a pagina selecionada e a **proxima** da lista,
+calcula a nova pela regra e **informa** ("entre X e Y a nova pagina e Z"); a criacao do layer e do
+formato entra na fatia 6, junto com o "Nova Pagina".
+
+**Testes:** +5 (vizinhas numericas → letra A; com espaco → o proximo numero; o sentinela do fim; o
+passo do caderno; o ramo alfanumerico) — `plugin:test` **532**.
+
 **Rodada 125 — o "Renomear Paginas" ligado na regra do RENPAGA.**
 O menu de contexto das folhas tinha sete itens do reverso, todos desabilitados. Agora **um deles
 funciona**, com a regra do original:

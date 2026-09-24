@@ -79,7 +79,10 @@ namespace Positron.Plugin.Interface
             menu.Items.Add(new ToolStripMenuItem("Alternativo"));
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(Desabilitado("Nova Página", "regra na fatia 3 da frente 10"));
-            menu.Items.Add(Desabilitado("Inserir", "regra na fatia 3 da frente 10"));
+            // O Inserir calcula (regra do reverso) a página entre a selecionada e a próxima.
+            ToolStripMenuItem inserir = new ToolStripMenuItem("Inserir");
+            inserir.Click += (origem, evento) => InserirPagina();
+            menu.Items.Add(inserir);
             menu.Items.Add(Desabilitado("Excluir Páginas", "regra na fatia 4 da frente 10"));
             // O Renomear está ligado na regra do RENPAGA (o sufixo vem do campo ao lado).
             ToolStripMenuItem renomear = new ToolStripMenuItem("Renomear Páginas");
@@ -116,6 +119,42 @@ namespace Positron.Plugin.Interface
 
             UltimaMensagem = "RENPAGA: " + renomeados + " página(s) renomeada(s) com o sufixo \"" + sufixo + "\".";
             return renomeados;
+        }
+
+        /// <summary>
+        /// O <c>Inserir</c> do menu: pega a página selecionada e a **próxima** da lista e calcula,
+        /// com a regra do reverso (<see cref="NovaPaginaEntre"/>), a página que cabe entre as duas.
+        /// A criação do layer e do formato entra na fatia 6 — aqui a conta é mostrada.
+        /// </summary>
+        internal string InserirPagina()
+        {
+            if (_grade.SelectedRows.Count == 0)
+            {
+                UltimaMensagem = "Inserir: selecione a página anterior à nova.";
+                return UltimaMensagem;
+            }
+
+            int linha = _grade.SelectedRows[0].Index;
+            string anterior = _grade.Rows[linha].Cells[0].Value as string;
+            string posterior = linha + 1 < _grade.Rows.Count ? _grade.Rows[linha + 1].Cells[0].Value as string : string.Empty;
+
+            PaginaCalculada nova = NovaPaginaEntre.Calcular(anterior, posterior, PassoPagina());
+            UltimaMensagem = "Inserir: entre \"" + anterior + "\" e \"" + (posterior ?? "") + "\" a nova página é \""
+                + nova.Pagina + "\" (o layer e o formato entram na fatia 6).";
+            return UltimaMensagem;
+        }
+
+        /// <summary>O passo do caderno (o <c>Conf.PassoPagina</c>; 1 quando não há configuração).</summary>
+        private static int PassoPagina()
+        {
+            try
+            {
+                return Positron.Data.Configuracao.ConfiguracaoPositron.Carregar().PassoPagina;
+            }
+            catch (System.Exception)
+            {
+                return 1;
+            }
         }
 
         /// <summary>Relê as páginas do desenho e preenche a grade. Devolve quantas achou.</summary>
