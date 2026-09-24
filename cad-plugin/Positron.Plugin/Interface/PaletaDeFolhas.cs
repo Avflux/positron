@@ -34,7 +34,8 @@ namespace Positron.Plugin.Interface
                 _controle = new FolhasControle();
                 // Os mesmos valores do reverso (`DockEnabled = (DockSides)20480`,
                 // `Dock = (DockSides)4096`): a paleta pode ancorar e nasce à direita.
-                _paleta = new PaletteSet("Positron — folhas", "", IdDaPaleta);
+                // O título é o do original: `mMensagem[1, 8]` = "Páginas".
+                _paleta = new PaletteSet(Positron.Data.Interface.MensagensDoReverso.Paginas, "", IdDaPaleta);
                 _paleta.DockEnabled = (DockSides)20480;
                 _paleta.Dock = (DockSides)4096;
                 _paleta.MinimumSize = new System.Drawing.Size(240, 320);

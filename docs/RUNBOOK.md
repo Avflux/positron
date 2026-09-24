@@ -769,6 +769,42 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 123 — o de4dot no DLL original: os textos do produto, extraídos.**
+O dono do produto apontou a ferramenta (`tools\de4dotEx`) e a pergunta certa: dá para pegar a
+formatação do reverso em vez de inventar? **Dá** — e a receita ficou:
+
+1. `de4dot.exe -d Eletron4Z.dll` → **.NET Reactor** detectado;
+2. `de4dot.exe Eletron4Z.dll` → `Eletron4Z-cleaned.dll` (7,5 MB, 138 recursos com nome legível);
+3. no assembly **limpo**, o `ResourceManager("Eletron4.Resources", asm)` com um `AssemblyResolve`
+   apontando para as DLLs do ZWCAD devolve `GetString("Mensagens")` — a **tabela inteira**
+   (118.390 chars; a seção `[PT]` tem **60.680 chars / 1982 entradas**, salva em
+   `cad-plugin/Positron.Data/Interface/mensagens-pt.txt`).
+
+**Os textos do original que a interface usa** (chaves do `mMensagem[1, N]`):
+
+| chave | texto | onde o original usa |
+|---|---|---|
+| 8 | **Páginas** | o título da `PaletteSet` (o `_pspag`) |
+| 9 / 10 / 11 | **Página** / **Alternativo** / **Unidade** | as três primeiras colunas do `dg` do `uscPaginas` |
+| 109..112 | **Caderno**, **Dispositivos**, **Configuração**, **Utilitários** | painéis da barra |
+| 540 / 559 / 560 / 1549 | **Bornes**, **Fiação**, **Cabos e Veias**, **Construtivo** | painéis da barra |
+
+E o **mapa da barra** (42 pares rótulo/comando do `Ribbon.cs`) ficou em
+`docs/reverso-barra-do-original.txt`, extraído pelo script novo
+`scripts/extrair-barra-do-reverso.ps1` — nele, dos nossos comandos, aparecem o `CBD`, o
+`RESTPROJ` e o `GERDWG` (com os rótulos do original).
+
+**O que mudou no recoder:** a paleta agora se chama **Páginas**; a grade tem as colunas
+**Página / Alternativo / Unidade** (mais as técnicas `Pg`/`PgDecimal`, escondidas); a barra
+passou a agrupar os nossos comandos **nos painéis do original** (Caderno, Fiação, Cabos e Veias,
+Bornes, Utilitários) com os rótulos do reverso onde eles existem; tudo vindo da classe
+`MensagensDoReverso`, que documenta a origem.
+
+> **O que ainda não é 1:1:** os **ícones** (ficam nos recursos que o .NET Reactor protege — o
+> de4dot limpou o código, mas as imagens continuam embutidas/compactadas nos três recursos
+> ofuscados que sobraram) e os **42 rótulos** da barra só entram conforme os comandos forem
+> portados (hoje temos 12 na barra).
+
 **Rodada 122 — o carregador, a formatação do reverso e a descoberta dos recursos ofuscados.**
 Três respostas para as perguntas do dono do produto.
 

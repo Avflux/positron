@@ -50,23 +50,35 @@ namespace Positron.Plugin.Interface
                 };
                 ribbon.Tabs.Add(aba);
 
+                // Os painéis usam os **títulos do original** (mMensagem 109..112, 540, 559, 560,
+                // 1549) e cada botão traz o comando que temos; os rótulos são os do reverso onde
+                // o comando existe na barra dele (`CBD`, `RESTPROJ`).
                 int botoes = 0;
-                botoes += Painel(aba, "Projeto", new[]
+                botoes += Painel(aba, Positron.Data.Interface.MensagensDoReverso.PainelCaderno, new[]
                 {
                     new[] { "ELET", "ELET" },
                     new[] { "FOLHAS", "FOLHAS" },
+                });
+                botoes += Painel(aba, Positron.Data.Interface.MensagensDoReverso.PainelFiacao, new[]
+                {
                     new[] { "FIA", "FIA" },
-                    new[] { "INT", "INT" },
-                    new[] { "VERIF", "VERIF" },
                     new[] { "SYNCD", "SYNCD" },
                 });
-                botoes += Painel(aba, "Interligação", new[]
+                botoes += Painel(aba, Positron.Data.Interface.MensagensDoReverso.PainelCabosEVeias, new[]
                 {
+                    new[] { "INT", "INT" },
                     new[] { "SYNCV", "SYNCV" },
                     new[] { "RECRIACABOS", "RECRIACABOS" },
+                    new[] { "RESTPROJ", Positron.Data.Interface.MensagensDoReverso.BotaoRestProj },
+                    new[] { "CBD", Positron.Data.Interface.MensagensDoReverso.BotaoCbd },
+                });
+                botoes += Painel(aba, Positron.Data.Interface.MensagensDoReverso.PainelBornes, new[]
+                {
                     new[] { "STATBORN", "STATBORN" },
-                    new[] { "CBD", "CBD" },
-                    new[] { "RESTPROJ", "RESTPROJ" },
+                });
+                botoes += Painel(aba, Positron.Data.Interface.MensagensDoReverso.PainelUtilitarios, new[]
+                {
+                    new[] { "VERIF", "VERIF" },
                     new[] { "pzDiag", "pzDiag" },
                 });
 

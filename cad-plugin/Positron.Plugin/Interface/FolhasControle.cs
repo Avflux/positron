@@ -37,9 +37,9 @@ namespace Positron.Plugin.Interface
 
             // As colunas do reverso: as três de conteúdo (da mMensagem) e as duas técnicas
             // (`Pg` e `PgDecimal`), que ficam escondidas como lá.
-            _grade.Columns.Add("pagina", "Folha");
-            _grade.Columns.Add("alternativo", "Alternativo");
-            _grade.Columns.Add("unidade", "Unidade");
+            _grade.Columns.Add("pagina", Positron.Data.Interface.MensagensDoReverso.Pagina);
+            _grade.Columns.Add("alternativo", Positron.Data.Interface.MensagensDoReverso.Alternativo);
+            _grade.Columns.Add("unidade", Positron.Data.Interface.MensagensDoReverso.Unidade);
             _grade.Columns.Add("Pg", "Pg");
             _grade.Columns.Add("PgDecimal", "PgDecimal");
             _grade.Columns[3].Visible = false;
