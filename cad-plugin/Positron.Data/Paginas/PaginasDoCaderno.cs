@@ -84,6 +84,42 @@ namespace Positron.Data.Paginas
         }
 
         /// <summary>
+        /// O sufixo do <c>RENPAGA</c> é válido? O original aceita **um** caractere: um número ou
+        /// uma letra **maiúscula** (o <c>Asc</c> entre 65 e 90) — e recusa alfabético fora disso.
+        /// </summary>
+        public static bool SufixoValido(string sufixo)
+        {
+            string texto = sufixo ?? string.Empty;
+            if (texto.Length != 1)
+            {
+                return false;
+            }
+
+            char c = texto[0];
+            return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z');
+        }
+
+        /// <summary>
+        /// A **renumeração em lote** do <c>RENPAGA</c> (o <c>renumerarPaginasLote</c>): cada página
+        /// vira <c>página + sufixo</c>. Devolve vazio quando o sufixo é inválido.
+        /// </summary>
+        public static IReadOnlyList<string> Renomear(IReadOnlyList<string> paginas, string sufixo)
+        {
+            List<string> novas = new List<string>();
+            if (paginas == null || !SufixoValido(sufixo))
+            {
+                return novas;
+            }
+
+            foreach (string pagina in paginas)
+            {
+                novas.Add((pagina ?? string.Empty) + sufixo);
+            }
+
+            return novas;
+        }
+
+        /// <summary>
         /// O índice **1-based** da página na lista (o <c>localizaPaginaMatriz</c>) — <c>0</c> quando
         /// não está; a comparação é sem caixa, como o <c>TextCompare</c> do original.
         /// </summary>

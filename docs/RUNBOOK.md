@@ -769,6 +769,30 @@ desenho real com os números, as corroborações cruzadas, os quirks medidos, o 
 recorte com motivo, como verificar e as pendências. Abaixo, o detalhe rodada a rodada (mais novo
 primeiro).
 
+**Rodada 125 — o "Renomear Paginas" ligado na regra do RENPAGA.**
+O menu de contexto das folhas tinha sete itens do reverso, todos desabilitados. Agora **um deles
+funciona**, com a regra do original:
+
+- **a regra pura** (`PaginasDoCaderno.SufixoValido` + `Renomear`): o sufixo tem de ser **um**
+  caractere — um número ou uma letra **maiúscula** (o `Asc` entre 65 e 90 do `RENPAGA`, que
+  recusa a minúscula e o alfabético com mais de um caractere) — e cada página vira
+  `página + sufixo` (o `renumerarPaginasLote`);
+- **o adapter** (`PaginasDoDesenho.Renomear`): renomeia os **layers** das páginas (o
+  `LayerTableRecord.Name` que o reverso troca no lote) e devolve quantos renomeou;
+- **na paleta**: um campo para o sufixo (padrão `A`), o botão **Renomear Páginas** no rodapé e o
+  item do menu de contexto ligados na mesma operação; a grade recarrega depois.
+
+Os outros três itens continuam desabilitados **com o motivo**, e agora se sabe exatamente por quê:
+
+| item | por quê ainda não |
+|---|---|
+| Nova Página | o `criarUmaNovaPagina` do reverso depende do `capturaTitulos` (os blocos de formato/título da folha) — fatia 6 |
+| Inserir | precisa do `calculaNovaPagina` (a página entre duas), que usa o `Conf.PassoPagina` |
+| Excluir Páginas | é **destrutivo** (`ApagarElementosPagina` apaga os elementos e o layer) — entra com confirmação, como as rotinas destrutivas do original |
+
+**Testes:** +3 (`SufixoValido` e a renomeação em lote, incluindo a recusa da minúscula e do
+sufixo vazio) — `plugin:test` **527**.
+
 **Rodada 124 — os icones do produto, extraidos e na barra.**
 O de4dot limpou o codigo e o `ResourceManager` devolveu os `Bitmap`: sairam **348 icones**
 (1,95 MB) para `cad-plugin/lib/Icons/` pelo script novo

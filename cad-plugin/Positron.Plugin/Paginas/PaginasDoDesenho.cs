@@ -49,5 +49,52 @@ namespace Positron.Plugin.Paginas
             paginas.Sort((a, b) => PaginaNumerada.Decimal(a).CompareTo(PaginaNumerada.Decimal(b)));
             return paginas;
         }
+
+        /// <summary>
+        /// Renomeia os layers das páginas (o <c>renumerarPaginasLote</c> do <c>RENPAGA</c>): recebe
+        /// os nomes antigos e os novos, na mesma ordem, e devolve quantos renomeou. A regra dos
+        /// nomes é pura (<see cref="PaginasDoCaderno.Renomear"/>).
+        /// </summary>
+        internal static int Renomear(IReadOnlyList<string> antigos, IReadOnlyList<string> novos)
+        {
+            if (antigos == null || novos == null || antigos.Count != novos.Count)
+            {
+                return 0;
+            }
+
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            if (documento == null)
+            {
+                return 0;
+            }
+
+            int renomeados = 0;
+            using (Transaction transacao = documento.Database.TransactionManager.StartTransaction())
+            {
+                LayerTable tabela = (LayerTable)transacao.GetObject(
+                    documento.Database.LayerTableId, OpenMode.ForRead);
+
+                for (int i = 0; i < antigos.Count; i++)
+                {
+                    if (!tabela.Has(antigos[i]))
+                    {
+                        continue;
+                    }
+
+                    LayerTableRecord layer = transacao.GetObject(tabela[antigos[i]], OpenMode.ForWrite) as LayerTableRecord;
+                    if (layer == null)
+                    {
+                        continue;
+                    }
+
+                    layer.Name = novos[i];
+                    renomeados++;
+                }
+
+                transacao.Commit();
+            }
+
+            return renomeados;
+        }
     }
 }

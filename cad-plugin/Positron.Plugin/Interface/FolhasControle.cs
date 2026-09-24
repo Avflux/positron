@@ -21,6 +21,11 @@ namespace Positron.Plugin.Interface
     {
         private readonly DataGridView _grade;
 
+        private readonly TextBox _sufixo;
+
+        /// <summary>O resultado da última operação, para o chamador registrar.</summary>
+        internal string UltimaMensagem { get; private set; } = string.Empty;
+
         internal FolhasControle()
         {
             _grade = new DataGridView
@@ -47,16 +52,19 @@ namespace Positron.Plugin.Interface
 
             _grade.ContextMenuStrip = MenuDoReverso();
 
-            Button recarregar = new Button
-            {
-                Dock = DockStyle.Bottom,
-                Height = 26,
-                Text = "Recarregar do desenho",
-            };
+            // A barra de baixo: o sufixo do RENPAGA, o renomear (a regra pura) e o recarregar.
+            Panel rodape = new Panel { Dock = DockStyle.Bottom, Height = 30 };
+            _sufixo = new TextBox { Left = 4, Top = 4, Width = 28, MaxLength = 1, Text = "A" };
+            Button renomear = new Button { Left = 36, Top = 3, Width = 150, Text = "Renomear Páginas" };
+            renomear.Click += (origem, evento) => RenomearPaginas();
+            Button recarregar = new Button { Left = 190, Top = 3, Width = 150, Text = "Recarregar do desenho" };
             recarregar.Click += (origem, evento) => Carregar();
+            rodape.Controls.Add(_sufixo);
+            rodape.Controls.Add(renomear);
+            rodape.Controls.Add(recarregar);
 
             Controls.Add(_grade);
-            Controls.Add(recarregar);
+            Controls.Add(rodape);
         }
 
         /// <summary>
@@ -64,7 +72,7 @@ namespace Positron.Plugin.Interface
         /// dependem de regra ainda não portada ficam desabilitados — a intenção é a mesma tela,
         /// com o que já funciona ligado.
         /// </summary>
-        private static ContextMenuStrip MenuDoReverso()
+        private ContextMenuStrip MenuDoReverso()
         {
             ContextMenuStrip menu = new ContextMenuStrip();
             menu.Items.Add(new ToolStripMenuItem("Multiseleção"));
@@ -73,7 +81,10 @@ namespace Positron.Plugin.Interface
             menu.Items.Add(Desabilitado("Nova Página", "regra na fatia 3 da frente 10"));
             menu.Items.Add(Desabilitado("Inserir", "regra na fatia 3 da frente 10"));
             menu.Items.Add(Desabilitado("Excluir Páginas", "regra na fatia 4 da frente 10"));
-            menu.Items.Add(Desabilitado("Renomear Páginas", "regra na fatia 4 da frente 10"));
+            // O Renomear está ligado na regra do RENPAGA (o sufixo vem do campo ao lado).
+            ToolStripMenuItem renomear = new ToolStripMenuItem("Renomear Páginas");
+            renomear.Click += (origem, evento) => RenomearPaginas();
+            menu.Items.Add(renomear);
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Editar Unidade"));
             menu.Items.Add(new ToolStripMenuItem("Editar Alternativo"));
@@ -83,6 +94,28 @@ namespace Positron.Plugin.Interface
         private static ToolStripMenuItem Desabilitado(string texto, string motivo)
         {
             return new ToolStripMenuItem(texto) { Enabled = false, ToolTipText = motivo };
+        }
+
+        /// <summary>
+        /// O <c>Renomear Páginas</c> do menu: aplica o sufixo do <c>RENPAGA</c> (a regra pura
+        /// valida e monta os nomes) e renomeia os layers; depois recarrega a grade.
+        /// </summary>
+        internal int RenomearPaginas()
+        {
+            string sufixo = _sufixo.Text;
+            if (!PaginasDoCaderno.SufixoValido(sufixo))
+            {
+                UltimaMensagem = "RENPAGA: o sufixo tem de ser um caractere (número ou A-Z).";
+                return 0;
+            }
+
+            List<string> antigos = PaginasDoDesenho.Ler();
+            IReadOnlyList<string> novos = PaginasDoCaderno.Renomear(antigos, sufixo);
+            int renomeados = PaginasDoDesenho.Renomear(antigos, novos);
+            Carregar();
+
+            UltimaMensagem = "RENPAGA: " + renomeados + " página(s) renomeada(s) com o sufixo \"" + sufixo + "\".";
+            return renomeados;
         }
 
         /// <summary>Relê as páginas do desenho e preenche a grade. Devolve quantas achou.</summary>
