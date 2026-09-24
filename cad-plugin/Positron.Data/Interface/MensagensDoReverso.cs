@@ -79,5 +79,23 @@ namespace Positron.Data.Interface
         public const string BotaoCbd = "CBD";
 
         public const string BotaoRestProj = "RESTPROJ";
+
+        /// <summary>
+        /// O resumo da **troca de blocos** (o <c>MsgBox</c> do <c>CorrigeAtributos</c>, a família
+        /// <c>clsTrocaEditaBlocos.cs</c>): os índices são do <c>mMensagem</c>, e o título muda com a
+        /// contagem — <c>1298</c> no singular, <c>1302</c> com mais de um, e o <c>1349</c>
+        /// (&quot;Blocos Trocados&quot;) entra no lugar do título quando algum handle mudou na troca.
+        /// </summary>
+        public const string TipoDeBlocoTrocado = "Tipo de Bloco Trocado";
+
+        public const string TiposDeBlocosTrocados = "Tipos de Blocos Trocados";
+
+        public const string BlocosTrocados = "Blocos Trocados";
+
+        public const string NaoExisteEsseBloco = "Não existe esse bloco";
+
+        public const string NaoExistemEssesBlocos = "Não existem esses blocos";
+
+        public const string NoDesenho = "no Desenho";
     }
 }

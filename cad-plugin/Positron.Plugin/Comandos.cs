@@ -13,6 +13,7 @@ using Positron.Data.Modelos;
 using Positron.Data.Paginas;
 using Positron.Data.Plaquetas;
 using Positron.Data.Relatorios;
+using Positron.Data.TrocaDeBlocos;
 using Positron.Plugin.Bornes;
 using Positron.Plugin.Fiacao;
 using Positron.Plugin.Interligacao;
@@ -154,6 +155,234 @@ namespace Positron.Plugin
             {
                 return "RENPAGA: falhou — " + DescreverErro(erro) + ".";
             }
+        }
+
+        /// <summary>
+        /// <c>LeTodosAtributos</c> — o **buffer da troca de blocos** (o <c>clsTrocaEditaBlocos.cs</c>
+        /// do original): varre o ModelSpace e guarda os atributos **invisíveis** de **todos** os
+        /// blocos. É por eles que o valor atravessa a substituição de um bloco — o projetista não os
+        /// vê na tela, e a troca não pode perder o que eles guardam. O buffer fica no estático do
+        /// adapter, como no original (lá os comandos são disparados por <c>SendStringToExecute</c>).
+        /// </summary>
+        [CommandMethod("LeTodosAtributos")]
+        public void LeTodosAtributos()
+        {
+            Plugin.Escrever(ExecutarLeituraDosAtributos("LeTodosAtributos", null));
+        }
+
+        /// <summary>
+        /// <c>LeAtributos</c> — o mesmo buffer, restrito aos blocos cujo nome está no
+        /// <c>POSITRON_BLOCOS</c> (lista separada por vírgula; sem a variável a leitura é a de todos
+        /// os blocos). No original a lista vem da grade da tela; a varredura é a mesma.
+        /// </summary>
+        [CommandMethod("LeAtributos")]
+        public void LeAtributos()
+        {
+            IReadOnlyCollection<string> nomes = NomesDeBlocoDaVariavel();
+            Plugin.Escrever(ExecutarLeituraDosAtributos(
+                nomes == null || nomes.Count == 0 ? "LeAtributos (sem POSITRON_BLOCOS: lê todos)" : "LeAtributos",
+                nomes));
+        }
+
+        /// <summary>A leitura dos atributos invisíveis e a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarLeituraDosAtributos(string comando, IReadOnlyCollection<string> nomesDeBloco)
+        {
+            try
+            {
+                TrocaDeBlocos.AtributosDoDesenho.ResultadoDaLeitura resultado =
+                    TrocaDeBlocos.AtributosDoDesenho.Ler(nomesDeBloco);
+
+                if (resultado.BlocosLidos == 0)
+                {
+                    return comando + ": o ModelSpace não tem bloco nenhum.";
+                }
+
+                return comando + ": " + resultado.EntradasNoBuffer + " atributo(s) invisível(is) no buffer ("
+                    + resultado.AtributosLidos + " atributo(s) em " + resultado.BlocosComAtributo + " bloco(s) de "
+                    + resultado.BlocosLidos + " bloco(s) lido(s)); " + TrocaDeBlocos.AtributosDoDesenho.NomesExistentes.Count
+                    + " bloco(s) com atributo(s), " + TrocaDeBlocos.AtributosDoDesenho.Buffer.Count
+                    + " entrada(s) no buffer" + ExemplosDoBuffer() + ".";
+            }
+            catch (System.Exception erro)
+            {
+                return comando + ": falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+        /// <summary>
+        /// <c>CorrigeAtributos</c> — aplica o buffer no desenho (o <c>EditaUmAtributoDeUmBloco</c>
+        /// do original, por handle do bloco e tag) e mostra o **resumo do original**: o MsgBox dele
+        /// vira linha de comando (um diálogo trava um script), com as mesmas <c>mMensagem</c>
+        /// (1298/1302/1349/1299/1300/1301) e as mesmas trocas de título.
+        /// </summary>
+        [CommandMethod("CorrigeAtributos")]
+        public void CorrigeAtributos()
+        {
+            Plugin.Escrever(ExecutarAplicacaoDosAtributos(true));
+        }
+
+        /// <summary>
+        /// <c>CorrigeAtributosSemMsg</c> — a mesma gravação **sem** o resumo do original (é o que a
+        /// tela usa quando não quer a caixa de mensagem).
+        /// </summary>
+        [CommandMethod("CorrigeAtributosSemMsg")]
+        public void CorrigeAtributosSemMsg()
+        {
+            Plugin.Escrever(ExecutarAplicacaoDosAtributos(false));
+        }
+
+        /// <summary>A aplica o buffer e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarAplicacaoDosAtributos(bool comResumo)
+        {
+            string comando = comResumo ? "CorrigeAtributos" : "CorrigeAtributosSemMsg";
+            try
+            {
+                if (TrocaDeBlocos.AtributosDoDesenho.Buffer.Count == 0)
+                {
+                    return comando + ": o buffer está vazio — rode o LeAtributos/LeTodosAtributos antes.";
+                }
+
+                TrocaDeBlocos.AtributosDoDesenho.ResultadoDaAplicacao resultado =
+                    TrocaDeBlocos.AtributosDoDesenho.Aplicar();
+
+                string medicao = "(" + resultado.AtributosAplicados + " atributo(s) gravado(s) em "
+                    + resultado.BlocosCasados + " de " + resultado.Entradas + " entrada(s) do buffer; "
+                    + resultado.VisibilidadesAplicadas + " visibilidade(s); "
+                    + resultado.TagsNaoAchadas + " bloco(s) sem a tag; " + resultado.BlocosNaoAchados + " fora do desenho)";
+
+                if (!comResumo)
+                {
+                    return comando + ": " + medicao + ".";
+                }
+
+                // O resumo do original vem do MsgBox dele — aqui ele sai na linha de comando, com as
+                // mesmas mMensagem, e a medição do recoder vem ao lado, entre parênteses.
+                return comando + ": " + AtributosDosBlocos.Resumo(
+                    TrocaDeBlocos.AtributosDoDesenho.NomesExistentes.Count,
+                    0,
+                    TrocaDeBlocos.AtributosDoDesenho.BlocosNaoExistentes) + " " + medicao + ".";
+            }
+            catch (System.Exception erro)
+            {
+                return comando + ": falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+        /// <summary>
+        /// <c>PreencheNovosAtributos</c> — o comando que a tela dispara **depois** da troca. Ele é
+        /// dois níveis do original num só: as marcas do nome escolhem as correções
+        /// (<c>frmTrocaEditaBlocos.cs:699-740</c>) — <c>_A_</c> → <c>CorrigeBlocosContatosAux</c>,
+        /// <c>_B_</c> → <c>CorrigePainelET1DosBornes</c>, e <c>_A_</c> **ou** <c>_E_</c> → este
+        /// comando (<c>flag | flag3</c>) — e o corpo dele (<c>clsTrocaEditaBlocos.cs:278-296</c>)
+        /// percorre os blocos: <c>_E_</c> → <c>clsPortas.AtualizaAsPortasTrocadas</c> (não portado:
+        /// precisa da matriz de handles que só a troca produz) e <c>_A_</c> →
+        /// <c>Correcao.CorrigeContatosAux()</c>, que é o nosso <c>CorrigeContatosAux</c>.
+        /// </summary>
+        [CommandMethod("PreencheNovosAtributos")]
+        public void PreencheNovosAtributos()
+        {
+            Plugin.Escrever(ExecutarPreenchimentoPosTroca());
+        }
+
+        /// <summary>O pós-troca: dispara as correções das marcas e devolve a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarPreenchimentoPosTroca()
+        {
+            try
+            {
+                if (TrocaDeBlocos.AtributosDoDesenho.NomesExistentes.Count == 0)
+                {
+                    return "PreencheNovosAtributos: nenhum bloco no buffer — rode o LeAtributos/LeTodosAtributos antes.";
+                }
+
+                CorrecoesPosTroca acoes =
+                    AtributosDosBlocos.AcoesPosTroca(TrocaDeBlocos.AtributosDoDesenho.NomesExistentes);
+
+                List<string> linhas = new List<string>();
+                if (acoes.ContatosAuxiliares)
+                {
+                    linhas.Add(ExecutarCorrigirBlocosContatosAux());
+                }
+
+                if (acoes.PainelEt1)
+                {
+                    linhas.Add(ExecutarCorrigirPainelET1DosBornes());
+                }
+
+                if (acoes.PreencheAtributos)
+                {
+                    linhas.Add(ExecutarCorrigirContatosAuxiliares());
+
+                    if (TemBlocoDosPortas())
+                    {
+                        linhas.Add("o ramo _E_ fica fora: o AtualizaAsPortasTrocadas precisa da matriz de "
+                            + "handles que só a troca de blocos produz (não portado)");
+                    }
+                }
+
+                if (linhas.Count == 0)
+                {
+                    return "PreencheNovosAtributos: nenhum bloco do buffer carrega as marcas _A_/_B_/_E_ — nada a preencher.";
+                }
+
+                return "PreencheNovosAtributos: " + string.Join(" ", linhas.ToArray()) + ".";
+            }
+            catch (System.Exception erro)
+            {
+                return "PreencheNovosAtributos: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+        /// <summary>Os blocos do <c>POSITRON_BLOCOS</c> (lista separada por vírgula); <c>null</c> quando não há.</summary>
+        internal static IReadOnlyCollection<string> NomesDeBlocoDaVariavel()
+        {
+            string valor = Environment.GetEnvironmentVariable("POSITRON_BLOCOS");
+            if (string.IsNullOrEmpty(valor))
+            {
+                return null;
+            }
+
+            List<string> nomes = new List<string>();
+            foreach (string parte in valor.Split(','))
+            {
+                string nome = parte.Trim();
+                if (nome.Length > 0)
+                {
+                    nomes.Add(nome);
+                }
+            }
+
+            return nomes.Count == 0 ? null : nomes;
+        }
+
+        /// <summary>Amostra do buffer (até três pares tag=valor) para a linha de comando.</summary>
+        private static string ExemplosDoBuffer()
+        {
+            List<string> exemplos = new List<string>();
+            foreach (AtributoDoBloco atributo in TrocaDeBlocos.AtributosDoDesenho.Buffer)
+            {
+                if (exemplos.Count == 3)
+                {
+                    exemplos.Add("...");
+                    break;
+                }
+
+                exemplos.Add(atributo.Tag + "=" + (atributo.Valor ?? string.Empty));
+            }
+
+            return exemplos.Count == 0 ? string.Empty : "; ex: " + string.Join(", ", exemplos.ToArray());
+        }
+
+        private static bool TemBlocoDosPortas()
+        {
+            foreach (string nome in TrocaDeBlocos.AtributosDoDesenho.NomesExistentes)
+            {
+                if (AtributosDosBlocos.EhDosPortas(nome))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

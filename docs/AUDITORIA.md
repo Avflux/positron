@@ -6,7 +6,7 @@
 
 **Não.** O que está coberto é o **recorte** — as correções e a limpeza do CAD (frente 2), a base/contexto (frente 1) e os três pipelines —, e o que está **mapeado** são os **216 comandos** do reverso (todos classificados). O que **não** está coberto é a **lógica por trás dos formulários** (49% do código do reverso) nem a pilha de exportação/importação, as rotinas destrutivas e a integração de ambiente/licença.
 
-## 0. Estado medido agora — o que falta, em ordem (rodadas 132–133)
+## 0. Estado medido agora — o que falta, em ordem (rodadas 132–135)
 
 Esta seção responde à pergunta recorrente *"o que já cobrimos e o que falta"* **com número medido no
 próprio repo**, e não com memória: o `scripts/cobertura-do-reverso.ps1` cruza o mapa dos 216 comandos
@@ -26,8 +26,8 @@ powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acopl
 | comandos do reverso | **216** |
 | deles, abrem alguma janela / são regra de desenho pura | **121** / **95** |
 | telas `frm*` | **127** |
-| comandos que o plugin responde | **153** = **54 escritos à mão** (41 do reverso + 13 nossos) + **99 gerados** (só abrem a tela) |
-| comandos do reverso **sem nada no plugin** | **76** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **59** de regra pura |
+| comandos que o plugin responde | **158** = **59 escritos à mão** (46 do reverso + 13 nossos) + **99 gerados** (só abrem a tela) |
+| comandos do reverso **sem nada no plugin** | **71** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **54** de regra pura |
 | telas alcançadas por algum comando | **103** (5 com regra escrita à mão, 98 só casca) |
 | telas que **nenhum** comando abre (sub-janela: relatórios DWG/Excel, editores) | **19** |
 | telas sem comando e sem casca pelo nome (variante/splash) | **5** |
@@ -39,13 +39,14 @@ leu** — `-Decomp` aponta para outra cópia (a de fora do repo, por exemplo). O
 regeração da rodada 134 saiu **byte a byte igual** ao que já estava no repo: só a linha de
 proveniência mudou.
 
-**Os "59 sem tela e sem nada no plugin" não são 59 regras faltando:** a triagem do §7.6 já dividiu
+**Os "54 sem tela e sem nada no plugin" não são 54 regras faltando:** a triagem do §7.6 já dividiu
 cada um (só UI, interativo, destrutivo, ambiente ou substância coberta sob outro nome). O que sobra de
-**regra em lote de verdade** está na **frente 2**, e é pouca coisa: dos **38** comandos dela, **30**
-estão entregues (contra os 27 do estado anterior, entraram `RENPAGA`, `APAGARXDATA` e `PesquisaBlocos`;
-e o `RENPAGA` deixou de ser "falta só registrar o nome do comando" na **rodada 134**, quando o comando
-entrou medido no `Funcional.dwg`) e dos **8** que sobram **7 são regra de desenho** — o outro,
-`CorrigeJanelas`, é **ambiente** (mexe nas janelas do CAD, não no desenho):
+**regra em lote de verdade** está na **frente 2**, e é pouca coisa: dos **38** comandos dela, **35**
+estão entregues (contra os 30 do estado anterior, entraram os **cinco da troca de blocos** na **rodada
+135**; e o `RENPAGA` deixou de ser "falta só registrar o nome do comando" na **rodada 134**, quando o
+comando entrou medido no `Funcional.dwg`) e dos **3** que sobram **2 são regra de desenho**
+(`CorrigeInterligacao` e `EncontraHandle`) — o outro, `CorrigeJanelas`, é **ambiente** (mexe nas janelas
+do CAD, não no desenho):
 
 | comando | no reverso | corpo | veredito (medido na rodada 132) |
 |---|---|---|---|
@@ -55,23 +56,26 @@ entrou medido no `Funcional.dwg`) e dos **8** que sobram **7 são regra de desen
 | `CorrigeJanelas` | `Correcao.cs:1083` | 5 linhas | **ambiente**: `Geral.moveFormOrigem()` mexe nas janelas do CAD, não no desenho |
 | `EncontraHandle` | `clsUtilitarios.cs:950` | 74 linhas | **candidato**: pede um handle no `Editor` e navega até o objeto |
 | `CorrigeInterligacao` | `clsUtilitarios.cs:611` | 216 linhas | **candidato grande**: varre as polylines de interligação, descobre o painel de **cada ponta** (`verificaDispInterlig`) e regrava `Painel1`/`Painel2` no XData — a leitura/gravação desse XData e a barra de progresso da paleta **já existem** (rodadas 60 e 121) |
-| `LeAtributos` · `LeTodosAtributos` · `CorrigeAtributos` · `CorrigeAtributosSemMsg` · `PreencheNovosAtributos` | `clsTrocaEditaBlocos.cs:18/171/141/267/278` | 122+95+29+10+21 = **277 linhas** | **candidato recomendado**: é um fluxo **grade → buffer → desenho**; o recorte o deixou de fora (nota no `CorrecaoDosBlocosMirror`) **porque não havia tela** — e a tela existe desde a rodada 127; ler/gravar atributo de bloco já é padrão no plugin (10 adaptadores usam `AttributeReference` e 5 já gravam) |
+| `LeAtributos` · `LeTodosAtributos` · `CorrigeAtributos` · `CorrigeAtributosSemMsg` · `PreencheNovosAtributos` | `clsTrocaEditaBlocos.cs:18/171/141/267/278` | 122+95+29+10+21 = **277 linhas** | **entregue** (rodada 135): o buffer dos atributos **invisíveis** e os 5 comandos, medidos no `Funcional.dwg` (1978 atributos em 557 blocos, **0 invisíveis** nesta cópia — o zero é o dado) e provados por fixture (o valor volta ao bloco e a invisibilidade é restaurada); **achado:** o `Entity.Visible` do original **sempre devolve verdadeiro** no ZWCAD, então o recoder lê `AttributeReference.Invisible` |
 
 **Os próximos passos, em ordem de valor por custo:**
 
-1. **A família dos atributos (5 comandos, 277 linhas)** — é exatamente o formato que a interface
-   acabou de ficar pronta para receber: a regra pura (o buffer e **quais** atributos trocar) no
-   `Positron.Data`, a tela e **uma ligação** no `LigacoesDasTelas`. O bloqueio registrado no recorte
-   ("sem a tela não há o que aplicar") **caiu**.
-2. **`CorrigeInterligacao` (216 linhas)** — fecha o laço do `VERIF` na interligação por **página
+1. **`CorrigeInterligacao` (216 linhas)** — fecha o laço do `VERIF` na interligação por **página
    inteira** (o `INDCABO` conserta os trechos escolhidos): o `Painel1`/`Painel2` que o comando conserta
    é o mesmo campo que a projeção do `INT` já lê e grava.
-3. **Ligar as três telas de compilação** — `frmCompilarFiacao`, `frmCompilarInterligacao` e
+2. **Ligar as três telas de compilação** — `frmCompilarFiacao`, `frmCompilarInterligacao` e
    `frmCompilarJumperExt` **já têm a regra** (os pipelines `FIA`/`INT`/`JMP`, medidos): a tela traz
    `btAnalisar` (rodar), `dgERROS` (os erros que o `VERIF` já calcula) e `dgRevisao`; o `btApagar`
    (apagar a compilação da revisão) é **destrutivo** e entra desabilitado com o motivo, como o menu das
    folhas.
 
+> **O item 1 desta lista saiu dela na rodada 135:** a **família dos atributos** (5 comandos, 277
+> linhas) entrou com a regra pura no `Positron.Data` e o fluxo medido no CAD — e o achado dela é que
+> o `Entity.Visible` do **original** mente no ZWCAD (sempre verdadeiro), o que deixou o buffer vazio
+> na primeira medição até o recoder passar a ler `AttributeReference.Invisible`. A **tela**
+> (`frmTrocaEditaBlocos`, 744 linhas) segue para a frente 12: o bloqueio "sem a tela não há o que
+> aplicar", que era o motivo de o fluxo ter ficado fora do recorte, **caiu**.
+>
 > O item trivial da fila (registrar o **nome `RENPAGA`**) saiu dela na rodada 134 — e a leitura do
 > corpo do original achou **dois defeitos latentes** na regra que já estava portada: a guarda que o
 > original usa para **recusar o lote inteiro** quando alguma página tem letra (sem ela, uma segunda
@@ -181,7 +185,7 @@ Ou seja: o recoder é **≈23,5 mil linhas** contra **408 mil** do reverso. Mesm
 ## 4. O que está coberto, e com que evidência
 
 - **Frente 1** (base/contexto) portada; **`SYNCD`** virou o pipeline do original (rodada 107).
-- **Frente 2** (correções e limpeza): **30 de 38** entregues, com medição no desenho real; dos **8** que sobram, **7 são regra de desenho** (a fila está no §0, com `arquivo:linha` e custo) e o `CorrigeJanelas` é **ambiente** (mexe nas janelas do CAD, não no desenho).
+- **Frente 2** (correções e limpeza): **35 de 38** entregues, com medição no desenho real; dos **3** que sobram, **2 são regra de desenho** (`CorrigeInterligacao` e `EncontraHandle` — a fila está no §0, com `arquivo:linha` e custo) e o `CorrigeJanelas` é **ambiente** (mexe nas janelas do CAD, não no desenho).
 - **Frente 3**: o candidato em lote (estatística de bornes) entregue como `STATBORN` (108).
 - **Frente 7**: o pipeline das veias `SYNCV` (111) e o `RECRIACABOS` (115).
 - **Frente 9**: `CBD` (112), `RESTPROJ` e `ApagaERROS` (113).

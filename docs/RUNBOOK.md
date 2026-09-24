@@ -772,6 +772,105 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 135 — a familia dos atributos: a troca de blocos (5 comandos, 277 linhas do reverso).**
+O **primeiro item da fila** do `AUDITORIA.md` §0 saiu dela. No `clsTrocaEditaBlocos.cs` o fluxo e
+**grade -> buffer -> desenho**: a tela `frmTrocaEditaBlocos` le os atributos dos blocos escolhidos para
+o buffer, o usuario troca os blocos e o buffer **devolve os valores** ao bloco novo. O unico detalhe
+que faz o fluxo existir e o **filtro do buffer**: entram so os atributos **invisiveis** (`if
+(!Entity.Visible)`, `clsTrocaEditaBlocos.cs:230`) — e neles que o projeto guarda o que o projetista nao
+ve na tela, e e por eles que o valor **atravessa a substituicao do bloco**.
+
+**O que entrou.** A regra pura em `Positron.Data/TrocaDeBlocos/AtributosDosBlocos.cs` (o buffer
+`Invisiveis`, os nomes/handles unicos do original, o resumo do `CorrigeAtributos` e a escolha das
+correcoes do pos-troca), o adapter `Positron.Plugin/TrocaDeBlocos/AtributosDoDesenho.cs` (a varredura
+do ModelSpace com o buffer **estatico**, como o `clsTrocaEditaBlocosMat.mAtributos` do original — la
+os comandos sao disparados por `SendStringToExecute` e nao recebem nada) e os **5 comandos**:
+`LeTodosAtributos`, `LeAtributos`, `CorrigeAtributos`, `CorrigeAtributosSemMsg` e
+`PreencheNovosAtributos`.
+
+| no original | no recoder |
+|---|---|
+| `LeTodosAtributos` (95 linhas): varre o ModelSpace e guarda os invisiveis | o mesmo, com a leitura instrumentada (blocos lidos, blocos com atributo, atributos lidos, entradas do buffer) |
+| `LeAtributos` (122 linhas): o mesmo com a lista de nomes **da grade** | a lista vem do **`POSITRON_BLOCOS`** (separada por virgula); sem a variavel, a varredura e a de todos |
+| `CorrigeAtributos` (29 linhas): aplica o buffer e mostra o resumo num `MsgBox` | aplica o buffer (por handle do bloco e tag; grava **so o que muda**) e o texto do `MsgBox` vai para a **linha de comando**, com as mesmas `mMensagem` (`1298`/`1302` no singular/plural, `1349` quando algum handle mudou, `1299`/`1300` para os blocos que nao existem, sempre com a `1301` "no Desenho") e as mesmas trocas de titulo |
+| `CorrigeAtributosSemMsg` (10 linhas): a mesma gravacao sem o resumo | idem (a tela usa quando nao quer a caixa) |
+| `PreencheNovosAtributos` (21 linhas): o pos-troca por bloco — `_E_` chama o `clsPortas.AtualizaAsPortasTrocadas` e `_A_` chama o `Correcao.CorrigeContatosAux` | o comando faz os **dois niveis** do original num so: as marcas do nome (`frmTrocaEditaBlocos.cs:699-740`) ligam o `CorrigeBlocosContatosAux` (`_A_`), o `CorrigePainelET1DosBornes` (`_B_`) e este comando (`_A_` **ou** `_E_`, o `flag | flag3`), e o corpo dele manda o `_A_` para o nosso `CorrigeContatosAux`; o `_E_` fica **registrado na linha** (o `AtualizaAsPortasTrocadas` precisa da matriz de handles que so a troca produz) |
+
+**Achado de medicao — o `Visible` do CAD mente para atributo.** A fixture foi montada para provar o
+buffer e o achado apareceu no primeiro disparo: **0 atributo(s) invisivel(is)** com os dois atributos
+invisiveis no desenho. Medindo as **duas** propriedades no mesmo atributo, com o `70` do DXF em `1`:
+
+```
+LeTodosAtributos: ... 3 atributo(s) em 2 bloco(s) ... TEMP: Visible=0 Invisible=2.
+dump:             ATRIB;249;MODELO_NA_1;T1;B2;SIM      <- o 70 bit 1 do DXF diz invisivel
+```
+
+O original le e grava `((Entity)val7).Visible`, e no ZWCAD esse membro **sempre devolve verdadeiro** —
+com ele o buffer sairia **vazio em todo desenho**. O recoder usa `AttributeReference.Invisible` (o
+mesmo flag `70` bit 1, e a propriedade que o leitor de portas do recoder ja usa desde a rodada 53).
+Fica no XML doc do adapter.
+
+**Medido no ZWCAD 2026, na fixture sintetica** (`scripts/cad-fixture-troca-atributos.lsp`: `MODELO_NA_1`
+com `T1` invisivel e `T2` visivel, `AUXILIAR_A_1` com `T3` invisivel; `(pz-tb:estraga)` e o **avesso
+da troca** — muda o texto do invisivel e o poe visivel, que e o que a substituicao do bloco faria com o
+bloco novo):
+
+```
+npm run cad:smoke -- -Fixture scripts/cad-fixture-troca-atributos.lsp -Banco "$TEMP/positron-troca.db" `
+  -Comandos "LeTodosAtributos,(pz-tb:estraga),CorrigeAtributosSemMsg,CorrigeAtributos,(pz-tb:conta)"
+#   LeTodosAtributos: 2 atributo(s) invisivel(is) no buffer (3 atributo(s) em 2 bloco(s) de 2 bloco(s) lido(s)); 2 bloco(s) com atributo(s), 2 entrada(s) no buffer; ex: T1=B2, T3=C3.
+#   CorrigeAtributosSemMsg: (2 atributo(s) gravado(s) em 2 de 2 entrada(s) do buffer; 2 visibilidade(s); 0 bloco(s) sem a tag; 0 fora do desenho).
+#   CorrigeAtributos: 2 Tipos de Blocos Trocados (0 atributo(s) gravado(s) em 2 de 2 entrada(s) do buffer; 0 visibilidade(s); 0 bloco(s) sem a tag; 0 fora do desenho).
+#   dump (fora do plugin): ATRIB;249;MODELO_NA_1;T1;B2;SIM
+#                         ATRIB;24D;AUXILIAR_A_1;T3;C3;SIM
+#                         TOTAL;insercoes;2;atributos;3;invisiveis;2
+```
+
+O dump e a prova **independente** do caminho de escrita: os dois atributos que o `estraga` tinha
+estragado (valor e visibilidade) voltaram ao valor do buffer **e** a invisibilidade foi restaurada — e a
+**segunda** passada (`CorrigeAtributos`, logo depois) grava **0**, com o resumo do original saindo na
+linha de comando. Sem o buffer lido, os dois comandos recusam:
+`o buffer esta vazio — rode o LeAtributos/LeTodosAtributos antes.`
+
+**Medido no `Funcional.dwg` real** (copia; banco novo):
+
+```
+#   LeTodosAtributos: 0 atributo(s) invisivel(is) no buffer (1978 atributo(s) em 557 bloco(s) de 557 bloco(s) lido(s)); 44 bloco(s) com atributo(s), 0 entrada(s) no buffer.
+#   CorrigeAtributosSemMsg / CorrigeAtributos: o buffer esta vazio — ...
+#   PreencheNovosAtributos: CorrigeBlocosContatosAux: 0 atributo(s) regravado(s) em 63 de 63 bloco(s) auxiliar(es) (8 modelo(s) e 26 contato(s) no CONTATOS). CorrigePainelET1DosBornes: 0 atributo(s) regravado(s) em 199 de 199 borne(s) (31 regua(s) no dicionario). CorrigeContatosAux: 0 de 129 modelo(s) com o HandleContatoAux acertado (63 bloco(s) auxiliar(es) lido(s); 66 modelo(s) sem contato casado). o ramo _E_ fica fora: ...
+```
+
+Nesta copia **nenhum atributo e invisivel** (1978 lidos, 0 invisiveis), entao o buffer sai vazio e o
+comando **recusa** — o zero e o dado do desenho, nao um no-op silencioso; e o `PreencheNovosAtributos`
+prova a **escolha das correcoes pelas marcas** no desenho real: os tres ramos do original disparam os
+comandos ja medidos nas rodadas 85/96/77, com os mesmos numeros (63/63, 199/199, 0 de 129).
+
+**Medido (o filtro do `LeAtributos`)**: a variavel vai **do shell** — o ZWCAD herda o ambiente de quem
+o lanca:
+
+```
+POSITRON_BLOCOS=AUXILIAR_A_1 npm run cad:smoke -- -Fixture scripts/cad-fixture-troca-atributos.lsp -Comandos LeAtributos ...
+#   LeAtributos: 1 atributo(s) invisivel(is) no buffer (1 atributo(s) em 1 bloco(s) de 2 bloco(s) lido(s)); 1 bloco(s) com atributo(s), 1 entrada(s) no buffer; ex: T3=C3.
+```
+
+**Licao de ferramenta (registrada):** uma linha LISP **com aspas** na lista do `-Comandos`
+(`(setenv "POSITRON_BLOCOS" "AUXILIAR_A_1")`) nao chega intacta ao `.scr`: o ZWCAD reexecutou o
+comando anterior no lugar dela e **engoliu a linha seguinte**. O `.scr` gerado estava correto — a
+linha e que nao serve para dirigir o plugin. Variavel de ambiente, so pelo shell.
+
+**Fora do recorte, documentado:** a **troca em si** (o `insereUmBlocoParaSubstituir`/
+`ApagaOsBlocosAntigos`/`corrigeOsHandlesDosBlocos`, que importam um DWG e apagam blocos), o ramo `_E_`
+(`clsPortas.AtualizaAsPortasTrocadas`) e o filtro de "bloco do Eletron" do `LeAtributos`
+(`clsBlocos.TipoBlocoDoEletron` le o `XData.ToString()` cru e para no `PointMonitorToolTips` do CAD:
+ambiente/UI, e aqui o recorte por nome ja limita a varredura). A **tela** (`frmTrocaEditaBlocos`,
+744 linhas) fica para a frente 12: a regra — que era o bloqueio registrado no `CorrecaoDosBlocosMirror`
+— esta pronta.
+
+**Gate desta rodada:** `plugin:test` **604** (+11, `TrocaDeBlocosTests`), as duas builds **0 avisos / 0 erros**
+e o painel de cobertura re-medido: **59** comandos escritos a mao (**46** do reverso + 13 nossos),
+**158** respondidos (com os 99 gerados) e **71** do reverso sem nada no plugin (**17** abrem janela +
+**54** de regra pura).
+
 **Rodada 134 — o reverso dentro do repo, o `RENPAGA` medido e a semantica dos 5 comandos de nucleo.**
 O dono do produto **adicionou o reverso ao repo** (`cad-plugin/reverso/Eletron4_ZWcad`, com o
 `decompiled/`, o `decompiled-cleaned/`, o `cleaned/` e o `DLL/`) e pediu tres coisas de uma vez:
