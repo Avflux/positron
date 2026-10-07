@@ -42,7 +42,10 @@ npm run test:sidecar
 
 `npm run dev` verifica se `cargo` está disponível e, se não estiver, baixa e
 executa o instalador oficial do rustup para instalar o toolchain stable. Depois,
-usa `concurrently` para subir o Vite **e** o `tauri dev` em paralelo. O
+usa `concurrently` para subir o Vite **e** o `tauri dev` em paralelo. No modo dev,
+o Rust roda o sidecar Python do código-fonte via `uv run`; não é necessário
+compilá-lo com PyInstaller. O `uv run` sincroniza o ambiente Python quando preciso,
+e alterações no sidecar entram em vigor ao reiniciar o app. O
 `devUrl`/`frontendDist` do `tauri.conf.json` dizem ao Tauri o que esperar, e ele
 fica sondando `http://localhost:5173` até o Vite responder.
 
@@ -92,17 +95,16 @@ com um erro de compilação vermelho só atrapalha. `cargo check` é o gate.
 npm run tauri --workspace @app/desktop -- icon ../../logo.png
 # e adicione o array "icon" em tauri.conf.json
 
-# 2) empacote o sidecar -> apps/desktop/src-tauri/binaries/sidecar-<triple>.exe
-npm run sidecar:build
-
-# 3) builde web + app
+# 2) gera o sidecar standalone e builde web + app
 npm run build:desktop
 ```
 
-O `sidecar:build` termina com um smoke test: roda o executável gerado e confere
-se ele emitiu o `SIDECAR_READY`. É o que pega o erro clássico do PyInstaller —
+`build:desktop` gera o sidecar standalone antes de empacotar o app. O
+`sidecar:build` termina com um smoke test: roda o executável gerado e confere se
+ele emitiu o `SIDECAR_READY`. É o que pega o erro clássico do PyInstaller —
 módulo importado dinamicamente (uvicorn, fastapi) que não entrou no bundle e só
-quebra na execução.
+quebra na execução. A configuração `tauri.bundle.conf.json` adiciona o
+`externalBin` somente nesse build; por isso o `tauri dev` não exige o executável.
 
 ## Troubleshooting
 

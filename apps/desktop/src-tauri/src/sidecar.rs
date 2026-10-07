@@ -294,13 +294,17 @@ fn candidates() -> Vec<Command> {
 
     // 1) Produção: o PyInstaller é copiado para o lado do executável principal
     //    pelo `externalBin` (o Tauri remove o sufixo do target triple ao empacotar).
-    if let Some(dir) = std::env::current_exe()
-        .ok()
-        .and_then(|exe| exe.parent().map(|p| p.to_path_buf()))
+    //    Em dev, sempre executar o código-fonte para refletir alterações sem rebuild.
+    #[cfg(not(dev))]
     {
-        let packaged = dir.join(format!("sidecar{EXE_SUFFIX}"));
-        if packaged.exists() {
-            out.push(Command::new(packaged));
+        if let Some(dir) = std::env::current_exe()
+            .ok()
+            .and_then(|exe| exe.parent().map(|p| p.to_path_buf()))
+        {
+            let packaged = dir.join(format!("sidecar{EXE_SUFFIX}"));
+            if packaged.exists() {
+                out.push(Command::new(packaged));
+            }
         }
     }
 

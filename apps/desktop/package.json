@@ -5,7 +5,7 @@
   "description": "Shell Tauri: abre a janela, sobe o sidecar Python e é o único dono dos sockets ZMQ",
   "scripts": {
     "dev": "tauri dev",
-    "build": "tauri build",
+    "build": "tauri build --config src-tauri/tauri.bundle.conf.json",
     "tauri": "tauri",
     "check:rust": "cargo check --manifest-path src-tauri/Cargo.toml",
     "fmt:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml"

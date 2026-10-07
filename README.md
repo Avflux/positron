@@ -54,7 +54,7 @@ sabe dos problemas chatos (o principal: `zmq.asyncio` e o loop do Windows).
 
 ```bash
 npm install                                        # 1) deps JS (web, desktop, protocol)
-npm run sidecar:sync                               # 2) deps Python
+npm run sidecar:sync                               # 2) deps Python (opcional: uv run sincroniza ao iniciar)
 npm run protocol:gen                               # 3) contrato em sincronia
 npm run test:sidecar                               # 4) round-trip ZMQ de verdade
 npm run dev                                        # 5) app completo (Vite + Tauri)
@@ -65,6 +65,11 @@ instalador oficial do Rust stable automaticamente. É necessário ter conexão c
 internet na primeira execução; outras dependências nativas do Tauri, como o
 compilador C/C++ no Windows, ainda precisam estar instaladas.
 
+No modo de desenvolvimento, o Rust inicia o sidecar Python diretamente do
+código-fonte com `uv run`. Assim, alterações no sidecar são usadas ao reiniciar
+o app, sem gerar um executável PyInstaller. O ambiente Python é sincronizado pelo
+`uv` quando necessário. O executável standalone só é gerado para empacotar o app.
+
 ## Scripts (raiz)
 
 | Script | O que faz |
@@ -72,12 +77,12 @@ compilador C/C++ no Windows, ainda precisam estar instaladas.
 | `npm run dev` | verifica/instala o Rust se necessário e inicia Vite + `tauri dev` em paralelo; o Tauri sobe o sidecar |
 | `npm run dev:web` | só a UI no navegador — ela usa o FastAPI do sidecar automaticamente |
 | `npm run build` | build do web → `apps/web/dist` |
-| `npm run build:desktop` | build do web + `tauri build` (empacota o app) |
+| `npm run build:desktop` | gera o sidecar standalone e empacota o app com `tauri build` |
 | `npm run typecheck` | `tsc --noEmit` em todos os workspaces TS |
 | `npm run test:sidecar` | `pytest` do sidecar, com sockets reais |
 | `npm run sidecar:sync` | `uv sync` do ambiente Python |
 | `npm run sidecar:run` | roda só o sidecar (`python -m sidecar`) |
-| `npm run sidecar:build` | empacota o sidecar com PyInstaller (para o app distribuir) |
+| `npm run sidecar:build` | empacota o sidecar com PyInstaller (usado automaticamente por `build:desktop`) |
 | `npm run protocol:gen` | falha se Python e TS divergirem no contrato |
 
 ## Estado atual
