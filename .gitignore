@@ -1,0 +1,29 @@
+# Node
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# Rust / Tauri
+target/
+# O app empacotado só enxerga binários em src-tauri/binaries (ver `externalBin`).
+apps/desktop/src-tauri/binaries/*
+!apps/desktop/src-tauri/binaries/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+
+# Env
+.env
+.env.local
+
+# Editor / OS
+.idea/
+.DS_Store
+Thumbs.db

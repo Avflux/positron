@@ -1,0 +1,27 @@
+{
+  "name": "electron-zmq-starter",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Desktop app scaffold: Tauri shell + Vite/React UI + Python ZMQ sidecar",
+  "workspaces": [
+    "apps/web",
+    "apps/desktop",
+    "packages/protocol"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n web,tauri -c cyan,magenta \"npm:dev:web\" \"npm:dev:desktop\"",
+    "dev:web": "npm run dev --workspace @app/web",
+    "dev:desktop": "npm run dev --workspace @app/desktop",
+    "build": "npm run build --workspace @app/web",
+    "build:desktop": "npm run build --workspace @app/web && npm run build --workspace @app/desktop",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test:sidecar": "uv run --directory services/sidecar pytest -q",
+    "sidecar:sync": "uv sync --directory services/sidecar",
+    "sidecar:run": "uv run --directory services/sidecar python -m sidecar",
+    "sidecar:build": "powershell -ExecutionPolicy Bypass -File scripts/build-sidecar.ps1",
+    "protocol:gen": "node scripts/gen-protocol.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

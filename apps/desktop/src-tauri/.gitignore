@@ -1,0 +1,10 @@
+# Saída do cargo
+/target
+
+# Gerado pelo tauri-build (schemas das capabilities)
+/gen/schemas
+
+# Binário do sidecar empacotado pelo PyInstaller: artefato, não fonte.
+# O nome precisa terminar com o target triple (ver scripts/build-sidecar.ps1).
+/binaries/*
+!/binaries/.gitkeep

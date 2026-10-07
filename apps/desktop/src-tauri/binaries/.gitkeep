@@ -1,0 +1,2 @@
+# Mantido para versionar o diretório. Os binários do sidecar (sidecar-<triple>.exe)
+# são gerados por scripts/build-sidecar.ps1 e NÃO são versionados.

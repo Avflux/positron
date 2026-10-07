@@ -1,0 +1,22 @@
+# Política de fim de linha explícita, para não depender do `core.autocrlf` de
+# cada contribuidor. Sem isto, um Windows com `autocrlf=true` e um Linux com
+# `input` divergem e qualquer edição vira diff de arquivo inteiro.
+#
+# O CI roda em Linux; LF no repositório é o que mantém os testes e o build
+# idênticos entre as máquinas.
+* text=auto eol=lf
+
+# Os scripts .ps1 são salvos como UTF-8 **com BOM** (exigência do PowerShell 5.1,
+# ver docs/RUNBOOK.md). O BOM não é afetado pela normalização de fim de linha, mas
+# declarar o arquivo como texto deixa claro que ele não é binário.
+*.ps1 text eol=lf
+
+# Lockfiles são gerados; o Git não deve tentar mesclá-los linha a linha.
+package-lock.json -diff
+services/sidecar/uv.lock -diff
+
+# Artefatos binários.
+*.exe binary
+*.ico binary
+*.icns binary
+*.png binary

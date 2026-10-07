@@ -1,0 +1,16 @@
+{
+  "name": "@app/desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Shell Tauri: abre a janela, sobe o sidecar Python e é o único dono dos sockets ZMQ",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri",
+    "check:rust": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "fmt:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0"
+  }
+}

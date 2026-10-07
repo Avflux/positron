@@ -1,0 +1,28 @@
+[package]
+name = "app-desktop"
+version = "0.1.0"
+edition = "2021"
+description = "Shell Tauri: abre a janela, supervisiona o sidecar e é o dono dos sockets ZMQ"
+rust-version = "1.77"
+default-run = "app-desktop"
+
+# O `lib` existe para que `tauri build` consiga gerar bindings (e, no futuro,
+# alvos mobile) a partir do mesmo código que o binário usa.
+[lib]
+name = "app_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "process", "io-util"] }
+
+# A feature `vendored` compila o libzmq junto (precisa de cmake + compilador C no
+# PATH) e linka estaticamente: é o que evita exigir libzmq instalado na máquina de
+# quem clona o repositório. Troque por `zmq = "0.10"` se já tiver o libzmq no sistema.
+zmq = { version = "0.10", features = ["vendored"] }

@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permissões da janela principal. Só o core: eventos (`listen`/`emit`) e janela. O sidecar é acessado pelos nossos próprios comandos (`zmq_request`), que não passam pelo sistema de permissões, e não há plugin de shell habilitado.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default"
+  ]
+}
