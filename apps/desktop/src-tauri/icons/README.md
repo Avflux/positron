@@ -1,12 +1,14 @@
 # Ícones
 
-`icon.svg` é um ícone provisório para permitir o desenvolvimento no Windows.
-Substitua-o por um ícone de marca antes de distribuir o app.
+`icon.svg` é exibido na interface web e como favicon. O `icon.ico` é usado pelo
+Tauri como ícone do app no Windows. Ambos são carregados diretamente deste
+diretório; substitua os arquivos aqui para atualizar esses usos.
 
-## O que fazer antes do primeiro `tauri build`
+## Ícones para distribuição em outras plataformas
 
-1. Ponha um PNG quadrado de 1024×1024 em qualquer lugar (ex.: `logo.png`).
-2. Rode, da raiz do repositório:
+Para distribuir em macOS ou Linux, gere também os ícones específicos dessas
+plataformas a partir de um PNG quadrado de 1024×1024 (ex.: `logo.png`).
+1. Rode, da raiz do repositório:
 
    ```bash
    npm run tauri --workspace @app/desktop -- icon ../../logo.png
@@ -18,7 +20,7 @@ Substitua-o por um ícone de marca antes de distribuir o app.
    Isso gera `32x32.png`, `128x128.png`, `128x128@2x.png`, `icon.icns`,
    `icon.ico` e os ícones do Windows Store. É o mesmo comando do template oficial.
 
-3. Configure os ícones gerados em `bundle.icon` no
+2. Configure os ícones gerados em `bundle.icon` no arquivo base
    `apps/desktop/src-tauri/tauri.conf.json`:
 
    ```json
@@ -31,4 +33,7 @@ Substitua-o por um ícone de marca antes de distribuir o app.
    ]
    ```
 
-`tauri dev` funciona sem nada disso — só o empacotamento exige ícone.
+O ícone do Windows já está configurado em
+`apps/desktop/src-tauri/tauri.windows.conf.json`. Ao substituir o `.svg`, a
+interface usa o novo arquivo após recarregar a página; ao substituir o `.ico`,
+reinicie ou recompile o app desktop para atualizar o ícone do executável.

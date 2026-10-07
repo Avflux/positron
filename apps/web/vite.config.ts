@@ -6,6 +6,7 @@ import { fileURLToPath, URL } from "node:url";
 export default defineConfig({
   plugins: [react()],
   clearScreen: false,
+  publicDir: fileURLToPath(new URL("../desktop/src-tauri/icons", import.meta.url)),
   server: {
     port: 5173,
     strictPort: true,
