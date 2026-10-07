@@ -11,10 +11,6 @@
 # declarar o arquivo como texto deixa claro que ele não é binário.
 *.ps1 text eol=lf
 
-# Lockfiles são gerados; o Git não deve tentar mesclá-los linha a linha.
-package-lock.json -diff
-services/sidecar/uv.lock -diff
-
 # Artefatos binários.
 *.exe binary
 *.ico binary
