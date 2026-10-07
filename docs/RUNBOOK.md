@@ -5,14 +5,16 @@
 | Ferramenta | Versão | Para quê | Como conferir |
 |---|---|---|---|
 | Node.js | 20+ | `apps/web`, `packages/protocol` | `node -v` |
-| **Rust (rustup)** | stable | `apps/desktop` — **não é opcional para o app rodar** | `cargo -V` |
+| **Rust (rustup)** | stable | `apps/desktop` — instalado automaticamente por `npm run dev` se faltar | `cargo -V` |
 | Python | 3.11+ | `services/sidecar` | `python -V` |
 | [uv](https://docs.astral.sh/uv/) | — | deps do Python | `uv --version` |
 | **CMake + compilador C** | — | libzmq compilado junto (`zmq` com feature `vendored`) | `cmake --version` |
 | WebView2 | — | só no Windows, e já vem no Windows 10/11 | — |
 
-Só o Python + Node são necessários para rodar os testes e a UI no navegador. O
-Rust é necessário para o app desktop de verdade.
+Só o Python + Node são necessários para rodar os testes e a UI no navegador.
+`npm run dev` instala o Rust stable via rustup se `cargo` não estiver disponível;
+é necessária conexão com a internet na primeira execução. O Rust é necessário
+para o app desktop de verdade.
 
 ## Primeira execução
 
@@ -38,9 +40,15 @@ npm run test:sidecar
 | Só a UI no navegador | `npm run dev:web` | Vite; a UI usa o FastAPI em `127.0.0.1:8765` |
 | Só o sidecar | `npm run sidecar:run` | ZMQ + FastAPI |
 
-`npm run dev` usa `concurrently` para subir o Vite **e** o `tauri dev` em
-paralelo. O `devUrl`/`frontendDist` do `tauri.conf.json` dizem ao Tauri o que
-esperar, e ele fica sondando `http://localhost:5173` até o Vite responder.
+`npm run dev` verifica se `cargo` está disponível e, se não estiver, baixa e
+executa o instalador oficial do rustup para instalar o toolchain stable. Depois,
+usa `concurrently` para subir o Vite **e** o `tauri dev` em paralelo. O
+`devUrl`/`frontendDist` do `tauri.conf.json` dizem ao Tauri o que esperar, e ele
+fica sondando `http://localhost:5173` até o Vite responder.
+
+No Windows, o Tauri também exige as ferramentas de build do Visual Studio
+(MSVC/C++), além do WebView2. A instalação automática do Rust não instala esses
+pré-requisitos.
 
 > **Não rode `tauri dev` direto** de dentro de `apps/desktop`: sem o Vite no ar a
 > janela abre em branco. Rode `npm run dev` da raiz.

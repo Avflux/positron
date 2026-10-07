@@ -60,14 +60,16 @@ npm run test:sidecar                               # 4) round-trip ZMQ de verdad
 npm run dev                                        # 5) app completo (Vite + Tauri)
 ```
 
-Falta o **Rust**? O passo 5 não roda, mas 1–4 rodam: o sidecar, os testes e a UI no
-navegador (`npm run dev:web`) funcionam sem ele.
+Se o **Rust** ainda não estiver instalado, `npm run dev` baixa e executa o
+instalador oficial do Rust stable automaticamente. É necessário ter conexão com a
+internet na primeira execução; outras dependências nativas do Tauri, como o
+compilador C/C++ no Windows, ainda precisam estar instaladas.
 
 ## Scripts (raiz)
 
 | Script | O que faz |
 |---|---|
-| `npm run dev` | Vite + `tauri dev` em paralelo (`concurrently`); o Tauri sobe o sidecar |
+| `npm run dev` | verifica/instala o Rust se necessário e inicia Vite + `tauri dev` em paralelo; o Tauri sobe o sidecar |
 | `npm run dev:web` | só a UI no navegador — ela usa o FastAPI do sidecar automaticamente |
 | `npm run build` | build do web → `apps/web/dist` |
 | `npm run build:desktop` | build do web + `tauri build` (empacota o app) |

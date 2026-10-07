@@ -9,7 +9,8 @@
     "packages/protocol"
   ],
   "scripts": {
-    "dev": "concurrently -k -n web,tauri -c cyan,magenta \"npm:dev:web\" \"npm:dev:desktop\"",
+    "dev": "node scripts/dev.mjs",
+    "dev:parallel": "concurrently -k -n web,tauri -c cyan,magenta \"npm:dev:web\" \"npm:dev:desktop\"",
     "dev:web": "npm run dev --workspace @app/web",
     "dev:desktop": "npm run dev --workspace @app/desktop",
     "build": "npm run build --workspace @app/web",
