@@ -115,7 +115,8 @@ impl ZmqBridge {
         // `ts` é opcional no envelope: o Pydantic preenche se faltar.
         let envelope = json!({ "v": 1, "id": id, "method": method, "params": params });
         socket.set_rcvtimeo(timeout.as_millis().min(i32::MAX as u128) as i32)?;
-        socket.send(envelope.to_string(), 0)?;
+        let message = envelope.to_string();
+        socket.send(message.as_bytes(), 0)?;
 
         loop {
             let bytes = match socket.recv_bytes(0) {
@@ -267,15 +268,15 @@ pub fn spawn_subscriber(
 ///
 /// O frame 0 é o tópico e o 1 é o envelope JSON. Emitimos só o `payload`, porque é
 /// isso que o `SidecarEventMap` do `@protocol` declara.
-fn forward(app: &AppHandle, frames: &[zmq::Message]) {
+fn forward(app: &AppHandle, frames: &[Vec<u8>]) {
     let [topic, body, ..] = frames else { return };
 
-    let Ok(topic) = std::str::from_utf8(topic.as_ref()) else {
+    let Ok(topic) = std::str::from_utf8(topic) else {
         eprintln!("zmq-sub: tópico que não é UTF-8");
         return;
     };
 
-    let Ok(envelope) = serde_json::from_slice::<Value>(body.as_ref()) else {
+    let Ok(envelope) = serde_json::from_slice::<Value>(body) else {
         eprintln!("zmq-sub: evento com JSON inválido no tópico {topic}");
         return;
     };

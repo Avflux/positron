@@ -1,10 +1,7 @@
 # Ícones
 
-**Este diretório está vazio de propósito.** O `tauri.conf.json` não declara
-`bundle.icon`, então nada aqui é referenciado ainda.
-
-Por quê: ícones são arte, não esqueleto. Ícone placeholder em repositório de
-referência vira ícone de produção — ninguém troca depois.
+`icon.svg` é um ícone provisório para permitir o desenvolvimento no Windows.
+Substitua-o por um ícone de marca antes de distribuir o app.
 
 ## O que fazer antes do primeiro `tauri build`
 
@@ -21,7 +18,8 @@ referência vira ícone de produção — ninguém troca depois.
    Isso gera `32x32.png`, `128x128.png`, `128x128@2x.png`, `icon.icns`,
    `icon.ico` e os ícones do Windows Store. É o mesmo comando do template oficial.
 
-3. Adicione ao `bundle` do `apps/desktop/src-tauri/tauri.conf.json`:
+3. Configure os ícones gerados em `bundle.icon` no
+   `apps/desktop/src-tauri/tauri.conf.json`:
 
    ```json
    "icon": [

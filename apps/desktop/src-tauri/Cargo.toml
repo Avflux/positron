@@ -22,7 +22,5 @@ serde_json = "1"
 thiserror = "2"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "process", "io-util"] }
 
-# A feature `vendored` compila o libzmq junto (precisa de cmake + compilador C no
-# PATH) e linka estaticamente: é o que evita exigir libzmq instalado na máquina de
-# quem clona o repositório. Troque por `zmq = "0.10"` se já tiver o libzmq no sistema.
-zmq = { version = "0.10", features = ["vendored"] }
+# `zmq-sys` compila o libzmq a partir do código-fonte via `zeromq-src`.
+zmq = "0.10"

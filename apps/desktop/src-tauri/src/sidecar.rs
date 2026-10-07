@@ -21,8 +21,8 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter};
-use tokio::io::{AsyncBufReadExt, BufReader, ChildStdout, Lines};
-use tokio::process::{Child, Command};
+use tokio::io::{AsyncBufReadExt, BufReader, Lines};
+use tokio::process::{Child, ChildStdout, Command};
 use tokio::sync::watch;
 
 /// Prefixo da linha de handshake. Tem que casar com `__main__.READY_PREFIX`.

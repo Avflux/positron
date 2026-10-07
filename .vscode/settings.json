@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "avflux",
+        "projectKey": "Avflux_positron"
+    }
+}

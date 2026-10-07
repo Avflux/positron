@@ -1,11 +1,11 @@
-# electron-zmq-starter
+# positron
 
 Esqueleto de **app desktop com sidecar**: janela **Tauri** (Rust) + UI
 **Vite/React/TypeScript** + serviço **Python (FastAPI + pyzmq)** conversando por
 **ZeroMQ**.
 
-> O nome da pasta é `electron-zmq-starter`, mas o shell escolhido é **Tauri**.
-> Para renomear: `mv electron-zmq-starter tauri-zmq-starter` (e ajuste `name` nos
+> O nome da pasta é `positron`, mas o shell escolhido é **Tauri**.
+> Para renomear: `mv positron tauri-zmq-starter` (e ajuste `name` nos
 > `package.json`).
 
 Serve como base para um projeto maior: a estrutura, os contratos e as decisões
