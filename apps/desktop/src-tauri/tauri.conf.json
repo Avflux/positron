@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "identifier": "com.example.zmqstarter",
   "build": {
+    "beforeBuildCommand": "npm run build --workspace @app/web",
     "frontendDist": "../../web/dist",
     "devUrl": "http://localhost:5173"
   },

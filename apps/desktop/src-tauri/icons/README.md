@@ -34,6 +34,6 @@ plataformas a partir de um PNG quadrado de 1024×1024 (ex.: `logo.png`).
    ```
 
 O ícone do Windows já está configurado em
-`apps/desktop/src-tauri/tauri.windows.conf.json`. Ao substituir o `.svg`, a
-interface usa o novo arquivo após recarregar a página; ao substituir o `.ico`,
-reinicie ou recompile o app desktop para atualizar o ícone do executável.
+`apps/desktop/src-tauri/tauri.windows.conf.json`. O comando de build do Tauri
+recompila a interface antes de empacotá-la, incluindo o SVG. Ao substituir o
+`.ico`, recompile o app desktop para atualizar o ícone do executável.
