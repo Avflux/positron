@@ -9,15 +9,21 @@
     "packages/protocol"
   ],
   "scripts": {
+    "_comment_dev": "--- DESENVOLVIMENTO: faz bootstrap completo e sobe o app ---",
     "dev": "node scripts/dev.mjs",
     "dev:parallel": "concurrently -k -n web,tauri -c cyan,magenta \"npm:dev:web\" \"npm:dev:desktop\"",
     "dev:web": "npm run dev --workspace @app/web",
     "dev:desktop": "npm run dev --workspace @app/desktop",
-    "build": "npm run build --workspace @app/web",
+
+    "_comment_build": "--- PRODUÇÃO: apenas compila, sem subir o app ---",
+    "build:web": "npm run build --workspace @app/web",
     "build:desktop": "npm run sidecar:build && npm run build --workspace @app/desktop",
+    "build:all": "npm run protocol:gen && npm run build:web && npm run build:desktop",
+
+    "_comment_utils": "--- UTILITÁRIOS ---",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test:sidecar": "uv run --directory services/sidecar pytest -q",
-    "sidecar:sync": "uv sync --directory services/sidecar",
+    "sidecar:sync": "uv sync --directory services/sidecar --group dev",
     "sidecar:run": "uv run --directory services/sidecar python -m sidecar",
     "sidecar:build": "powershell -ExecutionPolicy Bypass -File scripts/build-sidecar.ps1",
     "protocol:gen": "node scripts/gen-protocol.mjs && node scripts/gen-schema.mjs",

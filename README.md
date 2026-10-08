@@ -43,7 +43,7 @@ o caminho de produção é ZMQ.
 | `apps/desktop/src-tauri/` | Shell Tauri, spawn do sidecar e bridge ZMQ |
 | `services/sidecar/` | Serviço Python (ROUTER + PUB) + FastAPI opcional |
 | `packages/protocol/` | Tipos do contrato compartilhado (TS). `apps/web` não o declara como dependência: `@protocol` é um alias de caminho no `tsconfig.json`/`vite.config.ts` |
-| `scripts/` | Empacotamento do sidecar e checagem do contrato |
+| `scripts/` | Empacotamento do sidecar, bootstrap de dev e checagem do contrato |
 | `docs/` | `ARCHITECTURE.md`, `PROTOCOL.md`, `RUNBOOK.md` |
 
 **Leia `docs/ARCHITECTURE.md` e `docs/PROTOCOL.md` antes de mexer.** O
@@ -52,39 +52,70 @@ sabe dos problemas chatos (o principal: `zmq.asyncio` e o loop do Windows).
 
 ## Começando
 
+### Desenvolvimento
+
+Um único comando cuida de tudo:
+
 ```bash
-npm install                                        # 1) deps JS (web, desktop, protocol)
-npm run sidecar:sync                               # 2) deps Python (opcional: uv run sincroniza ao iniciar)
-npm run protocol:gen                               # 3) contrato em sincronia
-npm run test:sidecar                               # 4) round-trip ZMQ de verdade
-npm run dev                                        # 5) app completo (Vite + Tauri)
+npm run dev
 ```
 
-Se o **Rust** ainda não estiver instalado, `npm run dev` baixa e executa o
-instalador oficial do Rust stable automaticamente. É necessário ter conexão com a
-internet na primeira execução; outras dependências nativas do Tauri, como o
-compilador C/C++ no Windows, ainda precisam estar instaladas.
+Ele executa automaticamente (em sequência, abortando se alguma etapa falhar):
 
-No modo de desenvolvimento, o Rust inicia o sidecar Python diretamente do
-código-fonte com `uv run`. Assim, alterações no sidecar são usadas ao reiniciar
-o app, sem gerar um executável PyInstaller. O ambiente Python é sincronizado pelo
-`uv` quando necessário. O executável standalone só é gerado para empacotar o app.
+1. `npm install` — garante `node_modules` atualizado
+2. `uv sync` — sincroniza o ambiente Python do sidecar
+3. `protocol:gen` — confirma que o contrato TS ↔ Python está em sincronia
+4. Verifica/instala o Rust via rustup (só na primeira vez)
+5. Sobe **Vite + `tauri dev`** em paralelo, com logs coloridos por processo
+
+> Se o **Rust** ainda não estiver instalado, a etapa 4 baixa e executa o instalador
+> oficial automaticamente. É necessário ter conexão com a internet na primeira
+> execução. Outras dependências nativas do Tauri no Windows (CMake, MSVC) ainda
+> precisam estar instaladas previamente — veja `docs/RUNBOOK.md`.
+
+No modo dev o Tauri inicia o sidecar Python **direto do código-fonte** via
+`uv run`, sem gerar um executável PyInstaller. Alterações no sidecar entram em
+vigor ao reiniciar o app.
+
+### Produção (só compila, não sobe o app)
+
+```bash
+npm run build:web        # compila apenas o frontend → apps/web/dist
+npm run build:desktop    # compila sidecar (PyInstaller) + bundle Tauri
+npm run build:all        # protocol:gen → build:web → build:desktop (tudo)
+```
 
 ## Scripts (raiz)
 
+### Desenvolvimento
+
 | Script | O que faz |
 |---|---|
-| `npm run dev` | verifica/instala o Rust se necessário e inicia Vite + `tauri dev` em paralelo; o Tauri sobe o sidecar |
-| `npm run dev:web` | só a UI no navegador — ela usa o FastAPI do sidecar automaticamente |
-| `npm run build` | build do web → `apps/web/dist` |
-| `npm run build:desktop` | gera o sidecar standalone e empacota o app com `tauri build` |
+| `npm run dev` | **Bootstrap completo** (install → uv sync → protocol → Rust) e sobe Vite + `tauri dev` em paralelo |
+| `npm run dev:web` | Só a UI no navegador — usa o FastAPI do sidecar automaticamente |
+| `npm run dev:desktop` | Só o `tauri dev` (assume que `dev:web` já está rodando) |
+
+### Produção — apenas compila, sem subir o app
+
+| Script | O que faz |
+|---|---|
+| `npm run build:web` | Build do frontend → `apps/web/dist` |
+| `npm run build:desktop` | Gera o sidecar standalone (PyInstaller) e empacota com `tauri build` |
+| `npm run build:all` | `protocol:gen` → `build:web` → `build:desktop` (pipeline completo) |
+
+### Utilitários
+
+| Script | O que faz |
+|---|---|
 | `npm run typecheck` | `tsc --noEmit` em todos os workspaces TS |
-| `npm run test:sidecar` | `pytest` do sidecar, com sockets reais |
-| `npm run sidecar:sync` | `uv sync` do ambiente Python |
-| `npm run sidecar:run` | roda só o sidecar (`python -m sidecar`) |
-| `npm run sidecar:build` | empacota o sidecar com PyInstaller (usado automaticamente por `build:desktop`) |
-| `npm run protocol:gen` | falha se o contrato divergir: métodos Python↔TS **ou** os tipos gerados do schema |
-| `npm run schema:sync` | regrava os tipos TS/C# a partir de `services/sidecar/src/sidecar/db/schema.sql` |
+| `npm run test:sidecar` | `pytest` do sidecar com sockets reais |
+| `npm run sidecar:sync` | `uv sync --group dev` do ambiente Python |
+| `npm run sidecar:run` | Roda só o sidecar (`python -m sidecar`) |
+| `npm run sidecar:build` | Empacota o sidecar com PyInstaller (chamado automaticamente por `build:desktop`) |
+| `npm run protocol:gen` | Falha se o contrato divergir: métodos Python↔TS **ou** os tipos gerados do schema |
+| `npm run schema:sync` | Regrava os tipos TS/C# a partir de `services/sidecar/src/sidecar/db/schema.sql` |
+| `npm run plugin:build` | Compila o plugin ZWCAD (C# / net472) |
+| `npm run plugin:test` | Roda os 46 testes xunit do plugin |
 
 ## Estado atual
 
