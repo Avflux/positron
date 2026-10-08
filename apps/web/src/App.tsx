@@ -1,30 +1,25 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { PainelView } from "@/features/painel/PainelView";
 import { ProjetoPanel } from "@/features/projeto/ProjetoPanel";
 import { useProjeto } from "@/hooks/useProjeto";
 import { Sidebar } from "@/components/Sidebar";
 import { SettingsModal } from "@/components/SettingsModal";
-import { SearchDialog } from "@/components/SearchDialog";
 import { WindowControls } from "@/components/WindowControls";
 
 export default function App() {
   const projeto = useProjeto();
   const [showSettings, setShowSettings] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
 
   return (
-    <div className="layout">
+    <div className="app-wrapper">
       <WindowControls />
-      <Sidebar 
-        onOpenSettings={() => setShowSettings(true)} 
-        onOpenSearch={() => setShowSearch(true)}
-      />
-      
-      <main className="app-content">
-        <header className="page-header" data-tauri-drag-region>
-          <h1 data-tauri-drag-region>Pósitron</h1>
-          <p className="muted" data-tauri-drag-region>Fiação e interligação do diagrama funcional</p>
-        </header>
+      <div className="layout">
+        <Sidebar
+          onOpenSettings={() => setShowSettings(true)}
+        />
+
+        <main className="app-content">
+        <header className="page-header" data-tauri-drag-region></header>
 
         <div className="stack">
           <ProjetoPanel projeto={projeto} />
@@ -33,15 +28,12 @@ export default function App() {
       </main>
 
       {showSettings && (
-        <SettingsModal 
-          projeto={projeto} 
-          onClose={() => setShowSettings(false)} 
+        <SettingsModal
+          projeto={projeto}
+          onClose={() => setShowSettings(false)}
         />
       )}
-
-      {showSearch && (
-        <SearchDialog onClose={() => setShowSearch(false)} />
-      )}
+      </div>
     </div>
   );
 }
