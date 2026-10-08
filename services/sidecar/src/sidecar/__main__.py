@@ -114,7 +114,7 @@ def _run(coro: Coroutine[Any, Any, None]) -> None:
 
 
 async def _serve(settings: Settings) -> None:
-    handlers = Handlers()
+    handlers = Handlers(settings.db_path)
     bus = EventBus()
     ctx = zmq.asyncio.Context()
 

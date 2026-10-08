@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     #: Intervalo do evento `heartbeat` em segundos (0 desliga).
     heartbeat_seconds: float = 15.0
 
+    #: Banco do projeto (SQLite) aberto na subida. `None` = a UI escolhe via
+    #: `projeto_abrir`. Ver `docs/POSITRON.md`.
+    db_path: str | None = None
+
     @property
     def pub_port_offset(self) -> int:
         """O PUB mora em PORT+1 para o Rust conseguir prever o endereço."""

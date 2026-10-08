@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Não há código escrito à mão aqui: este projeto só empacota os tipos gerados
+    do `schema.sql` (namespace `Positron.Contract`). Editar o arquivo à mão é
+    inútil — `npm run protocol:gen` o sobrescreve.
+  -->
+  <PropertyGroup>
+    <RootNamespace>Positron.Contract</RootNamespace>
+    <AssemblyName>Positron.Contract</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\packages\protocol\csharp\Tables.g.cs" Link="Contract\Tables.g.cs" />
+  </ItemGroup>
+
+</Project>

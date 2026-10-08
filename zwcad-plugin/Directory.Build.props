@@ -1,0 +1,25 @@
+<!--
+  Comum a todos os projetos do plugin ZWCAD (ver docs/POSITRON.md).
+
+  - `net472` + `LangVersion 7.3`: é o runtime e o nível de linguagem do ZWCAD e
+    do assembly original (Eletron4Z). Também é o que o contrato gerado
+    (`packages/protocol/csharp/Tables.g.cs`) assume — veja `scripts/gen-schema.mjs`.
+  - `x64`: o ZWCAD é 64-bit e o plugin roda dentro dele.
+  - `TreatWarningsAsErrors`: aviso escondido vira erro no CI.
+  - `Microsoft.NETFramework.ReferenceAssemblies`: traz os assemblies de
+    referência do net472 sem depender do Visual Studio instalado.
+-->
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <PlatformTarget>x64</PlatformTarget>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

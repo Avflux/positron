@@ -20,7 +20,10 @@
     "sidecar:sync": "uv sync --directory services/sidecar",
     "sidecar:run": "uv run --directory services/sidecar python -m sidecar",
     "sidecar:build": "powershell -ExecutionPolicy Bypass -File scripts/build-sidecar.ps1",
-    "protocol:gen": "node scripts/gen-protocol.mjs"
+    "protocol:gen": "node scripts/gen-protocol.mjs && node scripts/gen-schema.mjs",
+    "schema:sync": "node scripts/gen-schema.mjs --write",
+    "plugin:build": "dotnet build zwcad-plugin/Positron.Plugin/Positron.Plugin.csproj",
+    "plugin:test": "dotnet test zwcad-plugin/Positron.Data.Tests/Positron.Data.Tests.csproj"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

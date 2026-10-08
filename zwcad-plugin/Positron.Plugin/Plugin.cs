@@ -1,0 +1,42 @@
+using ZwSoft.ZwCAD.ApplicationServices;
+using ZwSoft.ZwCAD.EditorInput;
+using ZwSoft.ZwCAD.Runtime;
+
+namespace Positron.Plugin
+{
+    /// <summary>
+    /// Ponto de entrada carregado pelo `NETLOAD` (ver docs/POSITRON.md, seção 4).
+    ///
+    /// O ZWCAD procura o tipo que implementa <see cref="IExtensionApplication"/> e
+    /// chama <see cref="Initialize"/> ao carregar a DLL. É aqui que o plugin
+    /// validaria o tipo do desenho (só atua no diagrama funcional, tipo "E") —
+    /// isso entra junto com o fluxo de fiação (fase 5).
+    /// </summary>
+    public sealed class Plugin : IExtensionApplication
+    {
+        public void Initialize()
+        {
+            Escrever("Positron carregado. Digite ELET para começar.");
+        }
+
+        public void Terminate()
+        {
+            // Nada a liberar ainda: o plugin não abre recursos que sobrevivam ao
+            // descarregamento (conexões são abertas e fechadas por consulta).
+        }
+
+        /// <summary>Escreve uma linha na linha de comando do ZWCAD.</summary>
+        internal static void Escrever(string mensagem)
+        {
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            if (documento == null)
+            {
+                // Sem documento ativo não há editor; evita NullReferenceException.
+                return;
+            }
+
+            Editor editor = documento.Editor;
+            editor.WriteMessage("\n" + mensagem);
+        }
+    }
+}

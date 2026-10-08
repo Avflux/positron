@@ -17,7 +17,7 @@ body {
   font: 14px/1.5 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
 }
 
-.app { max-width: 720px; margin: 0 auto; padding: 32px 20px; }
+.app { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
 .app-brand { display: flex; align-items: center; gap: 12px; }
 .app-brand img { width: 40px; height: 40px; object-fit: contain; }
 h1 { margin: 0 0 4px; font-size: 22px; }
@@ -44,3 +44,31 @@ button:disabled { opacity: .5; cursor: default; }
 
 .ok { color: var(--ok); }
 .error { color: var(--err); }
+
+/* --- Fase 3: projeto, fiação e interligação --- */
+
+.stack > * + * { margin-top: 16px; }
+
+.open-row { display: flex; gap: 8px; margin-bottom: 12px; }
+input {
+  flex: 1; min-width: 0;
+  background: #0f1115; color: var(--fg);
+  border: 1px solid #3a4358; border-radius: 6px;
+  padding: 7px 10px; font: inherit;
+}
+input:focus { outline: none; border-color: #5b6785; }
+
+.chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 12px 0 0; }
+.chips button.active { border-color: var(--ok); color: var(--ok); }
+
+.subsection { margin-top: 18px; }
+.subsection h3 {
+  margin: 0 0 8px; font-size: 13px;
+  text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+}
+
+/* Números alinhados em coluna; nada de string larga empurrando a tabela. */
+table.data { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table.data th, table.data td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #232733; }
+table.data th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+table.data tr:last-child td { border-bottom: none; }

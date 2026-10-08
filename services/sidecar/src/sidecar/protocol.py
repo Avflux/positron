@@ -95,6 +95,34 @@ class EchoResult(BaseModel):
     count: int
 
 
+# --- Banco do projeto (frontend APP) ---------------------------------------
+# Os `result` destes métodos carregam linhas do banco; o formato de cada linha
+# é o do `schema.sql`, espelhado em packages/protocol/src/schema.generated.ts.
+# Por isso só os `params` têm modelo aqui — validar a linha inteira seria
+# duplicar as 341 colunas que o gerador já conhece.
+
+
+class ProjetoAbrirParams(BaseModel):
+    caminho: str = Field(min_length=1)
+
+
+class CatalogoListarMateriaisParams(BaseModel):
+    filtro: str | None = None
+
+
+class FiacaoPorPainelParams(BaseModel):
+    painel: int
+    revisao: str | None = None
+
+
+class InterligacaoPorCaboParams(BaseModel):
+    tag_cabo: str = Field(min_length=1)
+
+
+class InterligacaoPorPainelParams(BaseModel):
+    painel: int
+
+
 #: Erros do domínio do sidecar. `code` é o que a UI usa para decidir o que mostrar.
 class SidecarError(Exception):
     def __init__(self, code: str, message: str, detail: Any | None = None) -> None:
@@ -112,3 +140,17 @@ class UnknownMethod(SidecarError):
 class BadParams(SidecarError):
     def __init__(self, method: str, detail: Any) -> None:
         super().__init__("bad_params", f"parâmetros inválidos para {method!r}", detail)
+
+
+class DatabaseNotOpen(SidecarError):
+    """Nenhum projeto aberto: a UI precisa chamar `projeto_abrir` primeiro."""
+
+    def __init__(self) -> None:
+        super().__init__("db_not_open", "nenhum projeto aberto; chame projeto_abrir primeiro")
+
+
+class DatabaseError(SidecarError):
+    """Falha ao abrir ou consultar o banco do projeto."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__("db_error", message)

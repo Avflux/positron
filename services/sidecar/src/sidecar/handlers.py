@@ -14,11 +14,19 @@ from typing import Any
 from pydantic import ValidationError
 
 from . import __version__
+from .db import ProjectDatabase
 from .protocol import (
     BadParams,
+    CatalogoListarMateriaisParams,
+    DatabaseError,
+    DatabaseNotOpen,
     EchoParams,
     EchoResult,
+    FiacaoPorPainelParams,
+    InterligacaoPorCaboParams,
+    InterligacaoPorPainelParams,
     PingResult,
+    ProjetoAbrirParams,
     SidecarError,
     UnknownMethod,
 )
@@ -29,11 +37,20 @@ Handler = Callable[[dict[str, Any]], Awaitable[Any]]
 class Handlers:
     """Estado + dispatch. Uma instância por processo."""
 
-    def __init__(self) -> None:
+    def __init__(self, db_path: str | None = None) -> None:
         self.served = 0
+        #: Banco do projeto aberto. `None` até `projeto_abrir` (ou a config) definir um.
+        self._db: ProjectDatabase | None = ProjectDatabase(db_path) if db_path else None
         self._table: dict[str, Handler] = {
             "ping": self._ping,
             "echo": self._echo,
+            "projeto_abrir": self._projeto_abrir,
+            "projeto_listar_paineis": self._projeto_listar_paineis,
+            "catalogo_listar_materiais": self._catalogo_listar_materiais,
+            "catalogo_listar_modelos_cabo": self._catalogo_listar_modelos_cabo,
+            "fiacao_por_painel": self._fiacao_por_painel,
+            "interligacao_por_cabo": self._interligacao_por_cabo,
+            "interligacao_por_painel": self._interligacao_por_painel,
         }
 
     @property
@@ -49,6 +66,46 @@ class Handlers:
         parsed = _validate("echo", EchoParams, params)
         return EchoResult(message=" ".join([parsed.message] * parsed.repeat), count=parsed.repeat)
 
+    # ------------------------------------------------------------ banco (APP)
+    #
+    # Todos leem o `.db` do projeto; o plugin ZWCAD escreve as tabelas derivadas
+    # do diagrama (ver docs/POSITRON.md, seção 2, decisão 2).
+
+    async def _projeto_abrir(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("projeto_abrir", ProjetoAbrirParams, params)
+        db = ProjectDatabase(parsed.caminho)
+        if not db.exists:
+            raise DatabaseError(f"banco do projeto não encontrado: {parsed.caminho}")
+        self._db = db
+        return {"caminho": str(db.path), "tabelas": await db.tables()}
+
+    async def _projeto_listar_paineis(self, _params: dict[str, Any]) -> dict[str, Any]:
+        return {"paineis": await self._require_db().list_paineis()}
+
+    async def _catalogo_listar_materiais(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("catalogo_listar_materiais", CatalogoListarMateriaisParams, params)
+        return {"materiais": await self._require_db().list_materiais(parsed.filtro)}
+
+    async def _catalogo_listar_modelos_cabo(self, _params: dict[str, Any]) -> dict[str, Any]:
+        return {"modelos": await self._require_db().list_modelos_cabo()}
+
+    async def _fiacao_por_painel(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("fiacao_por_painel", FiacaoPorPainelParams, params)
+        return {"fios": await self._require_db().fiacao_por_painel(parsed.painel, parsed.revisao)}
+
+    async def _interligacao_por_cabo(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("interligacao_por_cabo", InterligacaoPorCaboParams, params)
+        return {"trechos": await self._require_db().interligacao_por_cabo(parsed.tag_cabo)}
+
+    async def _interligacao_por_painel(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("interligacao_por_painel", InterligacaoPorPainelParams, params)
+        return {"trechos": await self._require_db().interligacao_por_painel(parsed.painel)}
+
+    def _require_db(self) -> ProjectDatabase:
+        if self._db is None:
+            raise DatabaseNotOpen()
+        return self._db
+
     # ---------------------------------------------------------------- dispatch
 
     async def dispatch(self, method: str, params: dict[str, Any] | None = None) -> Any:
@@ -58,7 +115,7 @@ class Handlers:
 
         self.served += 1
         result = await handler(params or {})
-        # Modelos Pydantic viram dict para o JSONEncoder não precisar conhecê-los.
+        # dicts (linhas do banco) já são serializáveis; modelos Pydantic viram dict.
         return result.model_dump() if hasattr(result, "model_dump") else result
 
 

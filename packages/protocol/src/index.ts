@@ -6,8 +6,15 @@
  * e rode `npm run protocol:gen` (scripts/gen-protocol.ps1) que valida o diff.
  *
  * Convenção de nomes: métodos em snake_case (`list_fixtures`), para casar com o
- * `dispatch` do Python sem camada de tradução.
+ * `dispatch` do Python sem camada de tradução. O `gen-protocol` cobra isto (a
+ * regex só aceita `[a-z_][a-z0-9_]*`), então nada de `namespace.metodo`.
  */
+
+import type { Fiacao, Interligacao4, Materiais, ModelosCabos, Paineis } from "./schema.generated";
+
+// Os tipos das linhas do banco fazem parte do contrato público: a UI importa
+// `Paineis`, `Fiacao`, ... daqui, nunca do arquivo gerado direto.
+export * from "./schema.generated";
 
 /** Envelope trocado no socket DEALER/ROUTER (frame único, JSON UTF-8). */
 export interface RequestEnvelope<T = unknown> {
@@ -56,10 +63,63 @@ export interface EchoResult {
   count: number;
 }
 
+/* ------------------------------------------------------------------ */
+/* Banco do projeto (frontend APP)                                     */
+/*                                                                     */
+/* As linhas têm o formato do schema.sql, espelhado em                 */
+/* schema.generated.ts. O plugin ZWCAD é quem escreve as tabelas       */
+/* derivadas do diagrama; aqui o app lê (ver docs/POSITRON.md).        */
+/* ------------------------------------------------------------------ */
+
+export interface ProjetoAbrirParams {
+  caminho: string;
+}
+
+export interface ProjetoAbrirResult {
+  caminho: string;
+  tabelas: string[];
+}
+
+export interface CatalogoListarMateriaisParams {
+  filtro?: string | null;
+}
+
+export interface FiacaoPorPainelParams {
+  painel: number;
+  revisao?: string | null;
+}
+
+export interface InterligacaoPorCaboParams {
+  tag_cabo: string;
+}
+
+export interface InterligacaoPorPainelParams {
+  painel: number;
+}
+
 /** Mapa método -> assinatura. É a única fonte de tipos para `request()`. */
 export interface MethodMap {
   ping: { params: Record<string, never>; result: PingResult };
   echo: { params: EchoParams; result: EchoResult };
+  projeto_abrir: { params: ProjetoAbrirParams; result: ProjetoAbrirResult };
+  projeto_listar_paineis: { params: Record<string, never>; result: { paineis: Paineis[] } };
+  catalogo_listar_materiais: {
+    params: CatalogoListarMateriaisParams;
+    result: { materiais: Materiais[] };
+  };
+  catalogo_listar_modelos_cabo: {
+    params: Record<string, never>;
+    result: { modelos: ModelosCabos[] };
+  };
+  fiacao_por_painel: { params: FiacaoPorPainelParams; result: { fios: Fiacao[] } };
+  interligacao_por_cabo: {
+    params: InterligacaoPorCaboParams;
+    result: { trechos: Interligacao4[] };
+  };
+  interligacao_por_painel: {
+    params: InterligacaoPorPainelParams;
+    result: { trechos: Interligacao4[] };
+  };
 }
 
 export type Method = keyof MethodMap;

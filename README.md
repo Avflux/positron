@@ -83,18 +83,29 @@ o app, sem gerar um executável PyInstaller. O ambiente Python é sincronizado p
 | `npm run sidecar:sync` | `uv sync` do ambiente Python |
 | `npm run sidecar:run` | roda só o sidecar (`python -m sidecar`) |
 | `npm run sidecar:build` | empacota o sidecar com PyInstaller (usado automaticamente por `build:desktop`) |
-| `npm run protocol:gen` | falha se Python e TS divergirem no contrato |
+| `npm run protocol:gen` | falha se o contrato divergir: métodos Python↔TS **ou** os tipos gerados do schema |
+| `npm run schema:sync` | regrava os tipos TS/C# a partir de `services/sidecar/src/sidecar/db/schema.sql` |
 
 ## Estado atual
 
-O **sidecar Python, o contrato e a UI são funcionais e verificados**: 7 testes de
-round-trip com sockets reais, handshake de processo ponta a ponta, `typecheck`
-limpo e build do web gerando `dist/`.
+O **sidecar Python, o contrato e a UI são funcionais e verificados**: 20 testes
+(round-trip ZMQ com sockets reais + leitura do SQLite do projeto), handshake de
+processo ponta a ponta, `typecheck` limpo e build do web gerando `dist`.
 
-O que **não** foi verificado: o **código Rust nunca foi compilado** — Rust não
-está instalado na máquina onde este esqueleto foi montado. O job `desktop` do CI
-roda `cargo check` e é onde isso aparece primeiro. A lista completa do que foi e
-do que não foi executado está no fim de `docs/RUNBOOK.md`.
+A reconstrução do Eletron4Z sobre este esqueleto (dois frontends, contrato de
+dados) está em `docs/POSITRON.md`.
+
+O **plugin ZWCAD** (C# net472) também está funcional e testado (46 testes xunit; veja
+`zwcad-plugin/README.md` e `docs/POSITRON.md`). Ele builda com `npm run plugin:build`
+e testa com `npm run plugin:test`.
+
+O que **não** foi verificado: o **ZWCAD não está instalado**, então o plugin compila
+contra um stub (`Positron.ZwcadStub`) — um gate de compilação que **não** gera um
+assembly carregável por `NETLOAD`. Nenhum comando do plugin rodou dentro de um
+desenho. O Rust **está** instalado nesta máquina e a lib do desktop compila
+(`cargo build`), mas o `tauri dev`/`build` completo ainda exige CMake + MSVC. A
+lista completa do que foi e do que não foi executado está no fim de
+`docs/RUNBOOK.md`.
 
 ## O que trocar primeiro
 

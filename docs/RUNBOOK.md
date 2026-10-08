@@ -72,10 +72,13 @@ primeiro.
 ## Verificações
 
 ```bash
-npm run protocol:gen     # contrato Python <-> TS em sincronia (exit 1 se não)
+npm run protocol:gen     # contrato Python <-> TS e tipos do schema em sincronia (exit 1 se não)
+npm run schema:sync      # regrava os tipos TS/C# gerados a partir do schema.sql
 npm run typecheck        # tsc --noEmit nos dois workspaces TS
 npm run test:sidecar     # pytest, incluindo round-trip ZMQ real
 npm run build            # build do web, gera apps/web/dist
+npm run plugin:build     # C# do plugin ZWCAD (net472) compila
+npm run plugin:test      # xunit do plugin ZWCAD (net472)
 
 # no sidecar
 uv run --directory services/sidecar ruff check .
@@ -187,7 +190,10 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 
 **Executado e verificado nesta máquina (Windows, Python 3.14, Node 24):**
 
-- `pytest` — 7 testes passando, com DEALER/ROUTER e SUB/PUB reais.
+- `pytest` — 20 testes passando, com DEALER/ROUTER e SUB/PUB reais e leitura do
+  SQLite do projeto.
+- `npm run plugin:build` / `npm run plugin:test` — 0 erros/0 avisos e 46 testes
+  xunit (net472) do plugin ZWCAD, contra o stub.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge
@@ -198,9 +204,10 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 
 **Não executado (por falta de ferramenta no ambiente, não por escolha):**
 
-- `cargo check` / `tauri dev` / `tauri build` — **Rust não está instalado** nesta
-  máquina, e a feature `vendored` do crate `zmq` ainda exigiria CMake + MSVC. Os
-  arquivos em `apps/desktop/src-tauri/src/` foram escritos mas **nunca
-  compilados**. O job `desktop` do CI (`.github/workflows/ci.yml`) roda
-  `cargo check` e é onde isso vai ser pego primeiro.
+- `tauri dev` / `tauri build` — o Rust **está** instalado (a lib do desktop
+  compila com `cargo build`), mas a feature `vendored` do crate `zmq` ainda
+  exigiria CMake + MSVC, que não estão no PATH.
+- **Dentro do ZWCAD** — o ZWCAD não está instalado, então o plugin builda contra o
+  stub (`Positron.ZwcadStub`) e **não** carrega por `NETLOAD`. Nenhum comando do
+  plugin (`FIA`, `INT`) rodou dentro de um desenho.
 - `npm run sidecar:build` (PyInstaller) — não executado aqui.
