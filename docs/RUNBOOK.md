@@ -189,10 +189,13 @@ Você tem outro virtualenv ativo no shell. Ou desative (`deactivate`), ou use
 
 ### `npm install` falha com `EALLOWSCRIPTS`
 
-Alguma configuração de `allow-scripts` no npm está bloqueando scripts de
-instalação. Rode `npm install-scripts ls` para ver o que está pendente;
-se for só o `esbuild` (que vem de `.d.ts`/`postinstall`), o build funciona mesmo
-assim, porque o binário real vem de `@esbuild/win32-x64`.
+Rode `npm install-scripts ls` para ver quais pacotes aguardam aprovação e
+aprove apenas os scripts necessários, por exemplo `npm install-scripts approve
+esbuild`. O npm grava a aprovação no `allowScripts` do `package.json`. Se uma
+configuração global também define `allow-scripts` no `.npmrc`, o npm avisa que
+ela foi ignorada em favor da política do projeto; isso é esperado. O bootstrap
+remove a variável de ambiente herdada do npm para que ela não seja interpretada
+como uma opção de linha de comando proibida nas instalações locais.
 
 ### Editar os scripts `.ps1`
 

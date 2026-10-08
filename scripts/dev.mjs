@@ -37,7 +37,9 @@ const installerTargets = {
 const cargoHome = path.resolve(process.env.CARGO_HOME || path.join(homedir(), ".cargo"));
 const cargoBin  = path.join(cargoHome, "bin");
 const env = {
-  ...process.env,
+  ...Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => key.toLowerCase() !== "npm_config_allow_scripts")
+  ),
   PATH: `${cargoBin}${path.delimiter}${process.env.PATH || ""}`,
 };
 

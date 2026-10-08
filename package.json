@@ -14,12 +14,10 @@
     "dev:parallel": "concurrently -k -n web,tauri -c cyan,magenta \"npm:dev:web\" \"npm:dev:desktop\"",
     "dev:web": "npm run dev --workspace @app/web",
     "dev:desktop": "npm run dev --workspace @app/desktop",
-
     "_comment_build": "--- PRODUÇÃO: apenas compila, sem subir o app ---",
     "build:web": "npm run build --workspace @app/web",
     "build:desktop": "npm run sidecar:build && npm run build --workspace @app/desktop",
     "build:all": "npm run protocol:gen && npm run build:web && npm run build:desktop",
-
     "_comment_utils": "--- UTILITÁRIOS ---",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test:sidecar": "uv run --directory services/sidecar pytest -q",
@@ -36,5 +34,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.0"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true
   }
 }
