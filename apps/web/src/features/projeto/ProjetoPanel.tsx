@@ -1,10 +1,19 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import type { useProjeto } from "@/hooks/useProjeto";
+import { getLastPath } from "@/lib/bridge";
 
 type Projeto = ReturnType<typeof useProjeto>;
 
 export function ProjetoPanel({ projeto }: { projeto: Projeto }) {
   const [caminho, setCaminho] = useState("");
+
+  useEffect(() => {
+    void getLastPath().then((ultimo) => {
+      if (ultimo) {
+        setCaminho((atual) => (atual === "" ? ultimo : atual));
+      }
+    });
+  }, []);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();

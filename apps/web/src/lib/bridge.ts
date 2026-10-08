@@ -80,3 +80,35 @@ export async function onEvent<T = unknown>(
   return unlisten;
 }
 
+/** Retorna o último caminho acessado pelo usuário (gravado em AppData\Local\positron\state.json). */
+export async function getLastPath(): Promise<string | null> {
+  const invoke = await loadInvoke();
+  if (invoke) {
+    try {
+      return await invoke<string | null>("get_last_path");
+    } catch {
+      return null;
+    }
+  }
+  return typeof localStorage !== "undefined"
+    ? localStorage.getItem("positron:last_path")
+    : null;
+}
+
+/** Salva o último caminho acessado pelo usuário em AppData\Local\positron\state.json. */
+export async function setLastPath(path: string): Promise<void> {
+  const invoke = await loadInvoke();
+  if (invoke) {
+    try {
+      await invoke("set_last_path", { path });
+      return;
+    } catch {
+      // Ignora erro de invoke e grava fallback no localStorage
+    }
+  }
+  if (typeof localStorage !== "undefined") {
+    localStorage.setItem("positron:last_path", path);
+  }
+}
+
+

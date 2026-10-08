@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import type { Paineis } from "@protocol";
-import { request } from "@/lib/bridge";
+import { request, setLastPath } from "@/lib/bridge";
 
 /**
  * Estado do projeto aberto no sidecar (ver docs/POSITRON.md).
@@ -26,6 +26,7 @@ export function useProjeto() {
       setTabelas(aberto.tabelas);
       setPaineis(lista.paineis);
       setSelecionado(lista.paineis[0] ?? null);
+      void setLastPath(alvo);
     } catch (e) {
       // Falhou: não deixa um projeto meio-aberto na tela.
       setCaminho(null);

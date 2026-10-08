@@ -11,6 +11,7 @@
 //! | Rust → UI      | `emit("zmq://sidecar")`        | estado do processo        |
 
 mod sidecar;
+mod window_state;
 mod zmq_bridge;
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -21,6 +22,7 @@ use serde_json::Value;
 use tauri::{AppHandle, Manager, RunEvent, State};
 
 use sidecar::{Sidecar, SidecarError, Status};
+use window_state::WindowStateManager;
 use zmq_bridge::{BridgeError, ZmqBridge};
 
 /// Estado gerenciado pelo Tauri, acessível pelos comandos via `State`.
@@ -30,6 +32,7 @@ pub struct AppState {
     /// Avisa a thread do SUB para sair. Sem isto ela só morreria junto com o
     /// processo, atrasando o desligamento.
     stop: Arc<AtomicBool>,
+    window_state: Arc<WindowStateManager>,
 }
 
 /// Erro que atravessa o IPC. `code` é para a máquina decidir, `message` para humanos.
@@ -93,24 +96,47 @@ async fn sidecar_restart(state: State<'_, AppState>) -> Result<Status, IpcError>
     Ok(state.sidecar.status())
 }
 
+/// Retorna o último caminho acessado pelo usuário (salvo em AppData\Local\positron\state.json).
+#[tauri::command]
+fn get_last_path(state: State<'_, AppState>) -> Option<String> {
+    state.window_state.get_last_path()
+}
+
+/// Grava o último caminho acessado pelo usuário em AppData\Local\positron\state.json.
+#[tauri::command]
+fn set_last_path(state: State<'_, AppState>, path: String) -> Result<(), String> {
+    state.window_state.set_last_path(path)
+}
+
 pub fn run() {
     let sidecar = Sidecar::new();
     let bridge = ZmqBridge::new();
     let stop = Arc::new(AtomicBool::new(false));
+    let window_state = Arc::new(WindowStateManager::new());
 
     tauri::Builder::default()
         .manage(AppState {
             sidecar: Arc::clone(&sidecar),
             bridge: Arc::clone(&bridge),
             stop: Arc::clone(&stop),
+            window_state: Arc::clone(&window_state),
         })
         .invoke_handler(tauri::generate_handler![
             zmq_request,
             sidecar_status,
-            sidecar_restart
+            sidecar_restart,
+            get_last_path,
+            set_last_path
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
+
+            // Mapeamento e restauração da geometria da janela (com suporte a multi-monitor)
+            if let Some(window) = app.get_webview_window("main") {
+                window_state.restore_window(&window);
+                window_state.attach_listeners(&window);
+                let _ = window.show();
+            }
 
             // SUB: uma thread dedicada para toda a vida do app.
             zmq_bridge::spawn_subscriber(
@@ -150,6 +176,7 @@ fn handle_run_event(app: &AppHandle, event: RunEvent) {
         if let Some(state) = app.try_state::<AppState>() {
             state.stop.store(true, Ordering::Relaxed);
             state.sidecar.kill_now();
+            let _ = state.window_state.save();
         }
     }
 }
