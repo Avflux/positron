@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Positron.Contract;
 using Positron.Data;
+using Positron.Data.Cabos;
 using Positron.Data.Bornes;
 using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
@@ -156,10 +158,18 @@ namespace Positron.Plugin
                 ReguasModelo reguas = ReguasDoDesenho.Ler();
                 IReadOnlyList<PontoBorne> bornes = BornesDoDesenho.Ler(reguas);
 
-                InterligacaoProjetor projetor = new InterligacaoProjetor(new ProjectStore(caminho));
+                ProjectStore store = new ProjectStore(caminho);
+                InterligacaoProjetor projetor = new InterligacaoProjetor(store);
                 int gravados = projetor.Projetar(pontos, contexto, bornes);
+
+                // Snapshot do catálogo por revisão (RUIU5Sbjhj/v1TU0cEjWd do
+                // original): Cabos4/Veias4 são o catálogo carimbado com a revisão.
+                int cabos = RegravarCabos4(store, contexto);
+                int veias = RegravarVeias4(store, contexto);
+
                 Plugin.Escrever("INT: " + gravados + " linha(s) gravada(s) em Interligacao4 ("
-                    + bornes.Count + " borne(s)).");
+                    + bornes.Count + " borne(s)); " + cabos + " cabo(s) em Cabos4; "
+                    + veias + " veia(s) em Veias4.");
             }
             catch (Exception erro)
             {
@@ -220,6 +230,23 @@ namespace Positron.Plugin
                 auxiliaresPorModelo,
                 dispositivos.TerminaisBobinas);
             store.InserirContatos(linhas, contexto.Revisao, contexto.Dwg);
+            return linhas.Count;
+        }
+
+        /// <summary>Regrava <c>Cabos4</c> como snapshot do catálogo da revisão.</summary>
+        private static int RegravarCabos4(ProjectStore store, ContextoInterligacao contexto)
+        {
+            List<Cabos4Row> linhas = CabosVeias4Gerador.GerarCabos(
+                store.LerCabos(), contexto.Revisao, contexto.Criador, contexto.Data);
+            store.RegravarCabos4(contexto.Revisao, linhas);
+            return linhas.Count;
+        }
+
+        /// <summary>Regrava <c>Veias4</c> como snapshot do catálogo da revisão.</summary>
+        private static int RegravarVeias4(ProjectStore store, ContextoInterligacao contexto)
+        {
+            List<Veias4Row> linhas = CabosVeias4Gerador.GerarVeias(store.LerVeias(), contexto.Revisao);
+            store.RegravarVeias4(contexto.Revisao, linhas);
             return linhas.Count;
         }
 

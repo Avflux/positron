@@ -297,6 +297,11 @@ dado ausente é melhor que dado inventado. Continua aproximada a semântica fina
 `Tipo == 3` (o original anexa uma linha só de destino, em vez de mesclar); como o
 ZWCAD não está instalado, nada disso rodou dentro do desenho.
 
+O `INT` também regrava **`Cabos4`/`Veias4`** como **snapshot do catálogo**
+(`Cabos`/`Veias`) carimbado com a revisão — o `RUIU5Sbjhj`/`v1TU0cEjWd` do
+original (que copiam o catálogo, sem derivar do desenho). A regravação apaga as
+linhas da revisão antes de inserir, para rodar duas vezes não duplicar.
+
 A fase 7 também está **parcial**. Já existem e são testados: o leitor do XData de
 borne (`Dispositivo` tipo `"B"`), o parser do dicionário de réguas
 do desenho (`REGUAS`/`MODELOS2`) e o casamento ponto↔borne por proximidade
@@ -385,19 +390,17 @@ instalado.
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
-1. **`Cabos4` e `Veias4`** a partir do diagrama (`wrlU180vl0`/`RUIU5Sbjhj` no
-   reverso).
-2. **Reordenação de `Ordem`** da `Fiacao` (`ReordenaOrdemPotenciais`), que fecha
+1. **Reordenação de `Ordem`** da `Fiacao` (`ReordenaOrdemPotenciais`), que fecha
    `PosicaoNum`/`BLink` — e, por consequência, o `NRegua` das duas pontas do
    `Interligacao4`.
-3. **Casamento por bounds** do bloco no lugar da distância de inserção
+2. **Casamento por bounds** do bloco no lugar da distância de inserção
    (`Bounds ±0,25` + tabela de deslocamento por nome de bloco).
-4. **`TerminalNumerico`** com as formas `:` e `-` (`VerificaOrientacaoContato`
+3. **`TerminalNumerico`** com as formas `:` e `-` (`VerificaOrientacaoContato`
    também, para os contatos).
-5. **`SYNCD` e `VERIF`** — comandos restantes do recorte do plugin.
-6. **UI WinForms** do plugin (as telas `frmCompilar*`), hoje substituídas por
+4. **`SYNCD` e `VERIF`** — comandos restantes do recorte do plugin.
+5. **UI WinForms** do plugin (as telas `frmCompilar*`), hoje substituídas por
    comandos que leem variáveis de ambiente.
-7. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
+6. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
 
 **Convenções que não podem ser esquecidas**
 
@@ -414,7 +417,7 @@ instalado.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 48 testes)
+npm run plugin:test       # xunit, net472 (hoje 52 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

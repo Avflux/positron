@@ -125,6 +125,12 @@ borne do desenho (XData `Dispositivo` tipo `"B"`) e as réguas do dicionário
 `Interligacao4` (o `pf6UXj3X1f` do original). Isso preenche, por ponta, `Tag`,
 `Alternativo`, `Terminal`, `TerminalNum`, `TipoBorne`, `Handle` e `IndexModelo`.
 
+**Snapshot do catálogo (backlog 2).** O `INT` também regrava **`Cabos4`** e
+**`Veias4`** copiando o catálogo (`Cabos`/`Veias`) e carimbando cada linha com a
+revisão — o `RUIU5Sbjhj`/`v1TU0cEjWd` do original. Não é derivado do desenho: é o
+catálogo por revisão. As linhas da revisão são apagadas antes de inserir, para
+rodar duas vezes não duplicar.
+
 **O que ainda sai vazio:** `NRegua` (depende da passada de reordenação, ainda não
 implementada) e `Documento`/`Posicao`/`DWG1`/`DWG2` (configuração e por-ponta, não
 projetadas). Ficam nulas de propósito. A semântica fina do `Tipo == 3` também

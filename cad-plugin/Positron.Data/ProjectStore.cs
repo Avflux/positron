@@ -338,6 +338,283 @@ namespace Positron.Data
             return linhas;
         }
 
+        /// <summary>Lê o catálogo de cabos (<c>Cabos</c>) — fonte do snapshot <c>Cabos4</c>.</summary>
+        public IReadOnlyList<CabosRow> LerCabos()
+        {
+            List<CabosRow> linhas = new List<CabosRow>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Tag, Formacao, Blindagem, Pn1, Pn2, Codigo, Funcao, Alarme, Aterrar, Comprimento, " +
+                    "Trajeto, Instrucao, Diametro, Grupo, Cabos FROM Cabos ORDER BY Tag";
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new CabosRow
+                        {
+                            Tag = Texto(leitor, "Tag"),
+                            Formacao = Texto(leitor, "Formacao"),
+                            Blindagem = Logico(leitor, "Blindagem"),
+                            Pn1 = Inteiro(leitor, "Pn1"),
+                            Pn2 = Inteiro(leitor, "Pn2"),
+                            Codigo = Texto(leitor, "Codigo"),
+                            Funcao = Texto(leitor, "Funcao"),
+                            Alarme = Inteiro(leitor, "Alarme"),
+                            Aterrar = Inteiro(leitor, "Aterrar"),
+                            Comprimento = Real(leitor, "Comprimento"),
+                            Trajeto = Texto(leitor, "Trajeto"),
+                            Instrucao = Texto(leitor, "Instrucao"),
+                            Diametro = Real(leitor, "Diametro"),
+                            Grupo = Texto(leitor, "Grupo"),
+                            Cabos = Inteiro(leitor, "Cabos"),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
+        /// <summary>Lê o catálogo de veias (<c>Veias</c>) — fonte do snapshot <c>Veias4</c>.</summary>
+        public IReadOnlyList<VeiasRow> LerVeias()
+        {
+            List<VeiasRow> linhas = new List<VeiasRow>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Tag, Indice, Nome_Veia, Uso, Handle, Arquivo, Pagina, Chave, Funcao FROM Veias ORDER BY Tag";
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new VeiasRow
+                        {
+                            Tag = Texto(leitor, "Tag"),
+                            Indice = Inteiro(leitor, "Indice"),
+                            Nome_Veia = Texto(leitor, "Nome_Veia"),
+                            Uso = Logico(leitor, "Uso"),
+                            Handle = Texto(leitor, "Handle"),
+                            Arquivo = Inteiro(leitor, "Arquivo"),
+                            Pagina = Texto(leitor, "Pagina"),
+                            Chave = leitor.IsDBNull(leitor.GetOrdinal("Chave")) ? 0L : leitor.GetInt64(leitor.GetOrdinal("Chave")),
+                            Funcao = Texto(leitor, "Funcao"),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
+        /// <summary>
+        /// Regrava o snapshot <c>Cabos4</c> da revisão — apaga as linhas anteriores
+        /// dessa revisão e insere as novas (como o <c>RemoveRevisaoTabelaParaTodosDWG</c>
+        /// + <c>RUIU5Sbjhj</c> do original). Devolve quantas linhas foram gravadas.
+        /// </summary>
+        public int RegravarCabos4(string revisao, IEnumerable<Cabos4Row> linhas)
+        {
+            List<Cabos4Row> lista = linhas == null ? new List<Cabos4Row>() : new List<Cabos4Row>(linhas);
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            {
+                using (SQLiteCommand remover = conexao.CreateCommand())
+                {
+                    remover.CommandText = "DELETE FROM Cabos4 WHERE IFNULL(Revisao, '') = IFNULL(@revisao, '')";
+                    remover.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+                    remover.ExecuteNonQuery();
+                }
+
+                using (SQLiteCommand comando = conexao.CreateCommand())
+                {
+                    comando.CommandText =
+                        "INSERT INTO Cabos4(Revisao, Tag, Formacao, Blindagem, Pn1, Pn2, Codigo, Funcao, Aterrar, " +
+                        "Comprimento, Trajeto, Instrucao, Diametro, Grupo, Cabos, Criador, Data) " +
+                        "VALUES(@revisao, @tag, @formacao, @blindagem, @pn1, @pn2, @codigo, @funcao, @aterrar, " +
+                        "@comprimento, @trajeto, @instrucao, @diametro, @grupo, @cabos, @criador, @data)";
+
+                    SQLiteParameter[] parametros =
+                    {
+                        comando.Parameters.Add("@revisao", System.Data.DbType.String),
+                        comando.Parameters.Add("@tag", System.Data.DbType.String),
+                        comando.Parameters.Add("@formacao", System.Data.DbType.String),
+                        comando.Parameters.Add("@blindagem", System.Data.DbType.Boolean),
+                        comando.Parameters.Add("@pn1", System.Data.DbType.Int32),
+                        comando.Parameters.Add("@pn2", System.Data.DbType.Int32),
+                        comando.Parameters.Add("@codigo", System.Data.DbType.String),
+                        comando.Parameters.Add("@funcao", System.Data.DbType.String),
+                        comando.Parameters.Add("@aterrar", System.Data.DbType.Int32),
+                        comando.Parameters.Add("@comprimento", System.Data.DbType.Double),
+                        comando.Parameters.Add("@trajeto", System.Data.DbType.String),
+                        comando.Parameters.Add("@instrucao", System.Data.DbType.String),
+                        comando.Parameters.Add("@diametro", System.Data.DbType.Double),
+                        comando.Parameters.Add("@grupo", System.Data.DbType.String),
+                        comando.Parameters.Add("@cabos", System.Data.DbType.Int32),
+                        comando.Parameters.Add("@criador", System.Data.DbType.String),
+                        comando.Parameters.Add("@data", System.Data.DbType.DateTime),
+                    };
+
+                    foreach (Cabos4Row linha in lista)
+                    {
+                        parametros[0].Value = Nulo(linha.Revisao);
+                        parametros[1].Value = Nulo(linha.Tag);
+                        parametros[2].Value = Nulo(linha.Formacao);
+                        parametros[3].Value = linha.Blindagem;
+                        parametros[4].Value = Falta(linha.Pn1);
+                        parametros[5].Value = Falta(linha.Pn2);
+                        parametros[6].Value = Nulo(linha.Codigo);
+                        parametros[7].Value = Nulo(linha.Funcao);
+                        parametros[8].Value = Falta(linha.Aterrar);
+                        parametros[9].Value = Falta(linha.Comprimento);
+                        parametros[10].Value = Nulo(linha.Trajeto);
+                        parametros[11].Value = Nulo(linha.Instrucao);
+                        parametros[12].Value = Falta(linha.Diametro);
+                        parametros[13].Value = Nulo(linha.Grupo);
+                        parametros[14].Value = Falta(linha.Cabos);
+                        parametros[15].Value = Nulo(linha.Criador);
+                        parametros[16].Value = linha.Data.HasValue ? (object)linha.Data.Value : DBNull.Value;
+                        comando.ExecuteNonQuery();
+                    }
+                }
+
+                transacao.Commit();
+                return lista.Count;
+            }
+        }
+
+        /// <summary>
+        /// Regrava o snapshot <c>Veias4</c> da revisão — apaga as anteriores e
+        /// insere as novas (o <c>v1TU0cEjWd</c> do original).
+        /// </summary>
+        public int RegravarVeias4(string revisao, IEnumerable<Veias4Row> linhas)
+        {
+            List<Veias4Row> lista = linhas == null ? new List<Veias4Row>() : new List<Veias4Row>(linhas);
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            {
+                using (SQLiteCommand remover = conexao.CreateCommand())
+                {
+                    remover.CommandText = "DELETE FROM Veias4 WHERE IFNULL(Revisao, '') = IFNULL(@revisao, '')";
+                    remover.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+                    remover.ExecuteNonQuery();
+                }
+
+                using (SQLiteCommand comando = conexao.CreateCommand())
+                {
+                    comando.CommandText =
+                        "INSERT INTO Veias4(Revisao, Tag, Num_Veia, Nome_Veia, Uso, Funcao) " +
+                        "VALUES(@revisao, @tag, @numVeia, @nomeVeia, @uso, @funcao)";
+
+                    SQLiteParameter[] parametros =
+                    {
+                        comando.Parameters.Add("@revisao", System.Data.DbType.String),
+                        comando.Parameters.Add("@tag", System.Data.DbType.String),
+                        comando.Parameters.Add("@numVeia", System.Data.DbType.Int32),
+                        comando.Parameters.Add("@nomeVeia", System.Data.DbType.String),
+                        comando.Parameters.Add("@uso", System.Data.DbType.Boolean),
+                        comando.Parameters.Add("@funcao", System.Data.DbType.String),
+                    };
+
+                    foreach (Veias4Row linha in lista)
+                    {
+                        parametros[0].Value = Nulo(linha.Revisao);
+                        parametros[1].Value = Nulo(linha.Tag);
+                        parametros[2].Value = Falta(linha.Num_Veia);
+                        parametros[3].Value = Nulo(linha.Nome_Veia);
+                        parametros[4].Value = linha.Uso;
+                        parametros[5].Value = Nulo(linha.Funcao);
+                        comando.ExecuteNonQuery();
+                    }
+                }
+
+                transacao.Commit();
+                return lista.Count;
+            }
+        }
+
+        /// <summary>Lê o snapshot <c>Cabos4</c> de uma revisão (para o app conferir).</summary>
+        public IReadOnlyList<Cabos4Row> Cabos4PorRevisao(string revisao)
+        {
+            List<Cabos4Row> linhas = new List<Cabos4Row>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, Tag, Formacao, Blindagem, Pn1, Pn2, Codigo, Funcao, Aterrar, " +
+                    "Comprimento, Trajeto, Instrucao, Diametro, Grupo, Cabos, Criador, Data FROM Cabos4 " +
+                    "WHERE Revisao = @revisao ORDER BY Tag";
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new Cabos4Row
+                        {
+                            Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
+                            Revisao = Texto(leitor, "Revisao"),
+                            Tag = Texto(leitor, "Tag"),
+                            Formacao = Texto(leitor, "Formacao"),
+                            Blindagem = Logico(leitor, "Blindagem"),
+                            Pn1 = Inteiro(leitor, "Pn1"),
+                            Pn2 = Inteiro(leitor, "Pn2"),
+                            Codigo = Texto(leitor, "Codigo"),
+                            Funcao = Texto(leitor, "Funcao"),
+                            Aterrar = Inteiro(leitor, "Aterrar"),
+                            Comprimento = Real(leitor, "Comprimento"),
+                            Trajeto = Texto(leitor, "Trajeto"),
+                            Instrucao = Texto(leitor, "Instrucao"),
+                            Diametro = Real(leitor, "Diametro"),
+                            Grupo = Texto(leitor, "Grupo"),
+                            Cabos = Inteiro(leitor, "Cabos"),
+                            Criador = Texto(leitor, "Criador"),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
+        /// <summary>Lê o snapshot <c>Veias4</c> de uma revisão.</summary>
+        public IReadOnlyList<Veias4Row> Veias4PorRevisao(string revisao)
+        {
+            List<Veias4Row> linhas = new List<Veias4Row>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, Tag, Num_Veia, Nome_Veia, Uso, Funcao FROM Veias4 " +
+                    "WHERE Revisao = @revisao ORDER BY Tag";
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new Veias4Row
+                        {
+                            Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
+                            Revisao = Texto(leitor, "Revisao"),
+                            Tag = Texto(leitor, "Tag"),
+                            Num_Veia = Inteiro(leitor, "Num_Veia"),
+                            Nome_Veia = Texto(leitor, "Nome_Veia"),
+                            Uso = Logico(leitor, "Uso"),
+                            Funcao = Texto(leitor, "Funcao"),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
         /// <summary>Grava as portas de fiação (<c>Portas4F</c>) — ver <see cref="Portas4FGerador"/>.</summary>
         public void InserirPortas(IEnumerable<Porta4F> portas, string revisao, int dwg)
         {
@@ -531,6 +808,12 @@ namespace Positron.Data
             return valor.HasValue ? (object)valor.Value : DBNull.Value;
         }
 
+        /// <summary>Converte um valor opcional para o parâmetro (DBNull quando ausente).</summary>
+        private static object Falta(long? valor)
+        {
+            return valor.HasValue ? (object)valor.Value : DBNull.Value;
+        }
+
         private static FiacaoRow LerFiacao(SQLiteDataReader leitor)
         {
             return new FiacaoRow
@@ -566,6 +849,12 @@ namespace Positron.Data
         {
             int indice = leitor.GetOrdinal(coluna);
             return leitor.IsDBNull(indice) ? (double?)null : leitor.GetDouble(indice);
+        }
+
+        private static bool Logico(SQLiteDataReader leitor, string coluna)
+        {
+            int indice = leitor.GetOrdinal(coluna);
+            return !leitor.IsDBNull(indice) && leitor.GetBoolean(indice);
         }
     }
 }
