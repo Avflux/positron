@@ -113,7 +113,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
   background: var(--panel);
   font-size: 13px;
 }
-.chips button.active { 
+.chips button.active {
   background: var(--accent);
   color: white;
   border-color: var(--accent);
@@ -152,7 +152,7 @@ table.data tr:last-child td { border-bottom: none; }
 }
 
 .sidebar {
-  width: 250px;
+  width: 200px;
   background: var(--panel);
   border-right: 1px solid var(--panel-border);
   display: flex;
@@ -163,7 +163,7 @@ table.data tr:last-child td { border-bottom: none; }
 }
 
 .sidebar.closed {
-  width: 64px;
+  width: 60px;
 }
 
 .sidebar-header {
@@ -175,10 +175,10 @@ table.data tr:last-child td { border-bottom: none; }
   height: 64px; /* Fixed height to prevent jumpiness */
 }
 
-.sidebar-brand { transition: opacity 0.2s; user-select: none; 
+.sidebar-brand { transition: opacity 0.2s; user-select: none;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -268,7 +268,7 @@ table.data tr:last-child td { border-bottom: none; }
 }
 
 .sidebar-footer {
-  padding: 12px;
+  padding: 5px;
   border-top: 1px solid var(--panel-border);
 }
 
@@ -280,8 +280,8 @@ table.data tr:last-child td { border-bottom: none; }
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 5px 5px;
+  border-radius: 5px;
   white-space: nowrap;
   font-weight: 500;
   box-shadow: none;
