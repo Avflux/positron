@@ -55,7 +55,7 @@ jobs:
         run: npm run protocol:gen
 
       - run: npm run typecheck
-      - run: npm run build
+      - run: npm run build:web
 
   desktop:
     name: Rust (shell Tauri)
@@ -71,7 +71,7 @@ jobs:
       # O `tauri-build` valida o `frontendDist` durante o build.rs, então os
       # estáticos do web precisam existir antes do `cargo check`.
       - run: npm ci
-      - run: npm run build
+      - run: npm run build:web
 
       - uses: dtolnay/rust-toolchain@stable
 
