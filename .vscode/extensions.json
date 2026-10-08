@@ -1,0 +1,33 @@
+{
+  // Recomendações de extensões para o workspace Positron
+  // Arquitetura: Tauri (Rust) + React/TS + Python Sidecar (uv/ruff) + CAD Plugin (.NET C#) + SQLite
+  "recommendations": [
+    // --- Rust & Tauri (Desktop Shell) ---
+    "rust-lang.rust-analyzer",
+    "tauri-apps.tauri-vscode",
+
+    // --- Python (Sidecar ZMQ/FastAPI) ---
+    "ms-python.python",
+    "ms-python.debugpy",
+    "charliermarsh.ruff",
+
+    // --- C# / .NET (Plugin CAD ZWCAD/AutoCAD) ---
+    "ms-dotnettools.csdevkit",
+    "ms-dotnettools.csharp",
+
+    // --- Qualidade de Código & Regras do Projeto ---
+    "SonarSource.sonarlint-vscode",
+    "editorconfig.editorconfig",
+
+    // --- Formatos de Configuração & Utilitários ---
+    "tamasfe.even-better-toml",
+    "qwtel.sqlite-viewer",
+    "ms-vscode.powershell"
+  ],
+  "unwantedRecommendations": [
+    "rust-lang.rust",
+    "ms-python.black-formatter",
+    "ms-python.isort",
+    "ms-python.flake8"
+  ]
+}

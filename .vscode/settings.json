@@ -1,6 +1,82 @@
 {
-    "sonarlint.connectedMode.project": {
-        "connectionId": "avflux",
-        "projectKey": "Avflux_positron"
+  // --- SonarLint (Configuração Existente) ---
+  "sonarlint.connectedMode.project": {
+    "connectionId": "avflux",
+    "projectKey": "Avflux_positron"
+  },
+  // --- Rust & Tauri (apps/desktop) ---
+  "rust-analyzer.linkedProjects": [
+    "apps/desktop/src-tauri/Cargo.toml"
+  ],
+  "rust-analyzer.check.command": "clippy",
+  // --- Python Sidecar (services/sidecar) ---
+  "python.defaultInterpreterPath": "${workspaceFolder}/services/sidecar/.venv/Scripts/python.exe",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/services/sidecar/src"
+  ],
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [
+    "services/sidecar/tests"
+  ],
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.fixAll": "explicit"
     }
+  },
+  // --- PowerShell (Crítico: UTF-8 com BOM para compatibilidade com PS 5.1) ---
+  "[powershell]": {
+    "files.encoding": "utf8bom"
+  },
+  // --- TypeScript & Web (apps/web, packages/protocol) ---
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features",
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
+  },
+  // --- Regras Gerais de Arquivos (conforme .editorconfig) ---
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  // --- Linha Limite (Régua) e Quebra de Linha ---
+  "editor.rulers": [
+    100
+  ],
+  "editor.wordWrap": "on",
+  // --- Performance no Windows & Exclusões de Busca ---
+  "files.watcherExclude": {
+    "**/apps/desktop/src-tauri/target/**": true,
+    "**/services/sidecar/.venv/**": true,
+    "**/services/sidecar/.pytest_cache/**": true,
+    "**/cad-plugin/**/bin/**": true,
+    "**/cad-plugin/**/obj/**": true,
+    "**/node_modules/**": true,
+    "**/dist/**": true
+  },
+  "search.exclude": {
+    "**/apps/desktop/src-tauri/target": true,
+    "**/services/sidecar/.venv": true,
+    "**/services/sidecar/.pytest_cache": true,
+    "**/cad-plugin/**/bin": true,
+    "**/cad-plugin/**/obj": true,
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  "commentTranslate.targetLanguage": "pt",
+  "commentTranslate.hover.enabled": true
 }
