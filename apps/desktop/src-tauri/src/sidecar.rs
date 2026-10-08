@@ -39,8 +39,10 @@ const BACKOFF_BASE: Duration = Duration::from_millis(500);
 const MAX_CONSECUTIVE_FAILURES: u32 = 5;
 
 #[cfg(windows)]
+#[allow(dead_code)]
 const EXE_SUFFIX: &str = ".exe";
 #[cfg(not(windows))]
+#[allow(dead_code)]
 const EXE_SUFFIX: &str = "";
 
 /// O que o handshake traz do Python.
