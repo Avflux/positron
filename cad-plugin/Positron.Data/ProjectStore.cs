@@ -186,11 +186,20 @@ namespace Positron.Data
             using (SQLiteTransaction transacao = conexao.BeginTransaction())
             using (SQLiteCommand comando = conexao.CreateCommand())
             {
-                // Colunas do INSERT canônico do original; Indice fica de fora (SQLite atribui o rowid).
+                // Colunas do INSERT canônico do original (cDadosAccessInterligacao2.
+                // AdicionaItemInterligacao); Indice fica de fora — o SQLite atribui
+                // o rowid. As colunas que a varredura de bornes preenche vêm do
+                // TrechoInterligacao; as demais saem nulas de propósito.
                 comando.CommandText =
-                    "INSERT INTO Interligacao4(Revisao, DWG, Tag_Cabo, Num_Veia, Nome_Veia, Painel1, Pagina1, " +
-                    "Painel2, Pagina2, Criador, Data) " +
-                    "VALUES(@revisao, @dwg, @tagCabo, @numVeia, @nomeVeia, @painel1, @pagina1, @painel2, @pagina2, " +
+                    "INSERT INTO Interligacao4(Revisao, DWG, Tag_Cabo, Num_Veia, Nome_Veia, DWG1, Documento1, " +
+                    "Painel1, Tag1, Alternativo1, NRegua1, Terminal1, TerminalNum1, TipoBorne1, Handle1, " +
+                    "Pagina1, Posicao1, IndexModelo1, DWG2, Documento2, Painel2, Tag2, Alternativo2, NRegua2, " +
+                    "Terminal2, TerminalNum2, TipoBorne2, Handle2, Pagina2, Posicao2, IndexModelo2, " +
+                    "Criador, Data) " +
+                    "VALUES(@revisao, @dwg, @tagCabo, @numVeia, @nomeVeia, @dwg1, @documento1, @painel1, @tag1, " +
+                    "@alternativo1, @nregua1, @terminal1, @terminalNum1, @tipoBorne1, @handle1, @pagina1, " +
+                    "@posicao1, @indexModelo1, @dwg2, @documento2, @painel2, @tag2, @alternativo2, @nregua2, " +
+                    "@terminal2, @terminalNum2, @tipoBorne2, @handle2, @pagina2, @posicao2, @indexModelo2, " +
                     "@criador, @data)";
 
                 SQLiteParameter[] parametros =
@@ -200,10 +209,32 @@ namespace Positron.Data
                     comando.Parameters.Add("@tagCabo", System.Data.DbType.String),
                     comando.Parameters.Add("@numVeia", System.Data.DbType.Int32),
                     comando.Parameters.Add("@nomeVeia", System.Data.DbType.String),
+                    comando.Parameters.Add("@dwg1", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@documento1", System.Data.DbType.String),
                     comando.Parameters.Add("@painel1", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@tag1", System.Data.DbType.String),
+                    comando.Parameters.Add("@alternativo1", System.Data.DbType.String),
+                    comando.Parameters.Add("@nregua1", System.Data.DbType.String),
+                    comando.Parameters.Add("@terminal1", System.Data.DbType.String),
+                    comando.Parameters.Add("@terminalNum1", System.Data.DbType.Double),
+                    comando.Parameters.Add("@tipoBorne1", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@handle1", System.Data.DbType.String),
                     comando.Parameters.Add("@pagina1", System.Data.DbType.String),
+                    comando.Parameters.Add("@posicao1", System.Data.DbType.String),
+                    comando.Parameters.Add("@indexModelo1", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@dwg2", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@documento2", System.Data.DbType.String),
                     comando.Parameters.Add("@painel2", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@tag2", System.Data.DbType.String),
+                    comando.Parameters.Add("@alternativo2", System.Data.DbType.String),
+                    comando.Parameters.Add("@nregua2", System.Data.DbType.String),
+                    comando.Parameters.Add("@terminal2", System.Data.DbType.String),
+                    comando.Parameters.Add("@terminalNum2", System.Data.DbType.Double),
+                    comando.Parameters.Add("@tipoBorne2", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@handle2", System.Data.DbType.String),
                     comando.Parameters.Add("@pagina2", System.Data.DbType.String),
+                    comando.Parameters.Add("@posicao2", System.Data.DbType.String),
+                    comando.Parameters.Add("@indexModelo2", System.Data.DbType.Int32),
                     comando.Parameters.Add("@criador", System.Data.DbType.String),
                     comando.Parameters.Add("@data", System.Data.DbType.DateTime),
                 };
@@ -215,12 +246,34 @@ namespace Positron.Data
                     parametros[2].Value = Nulo(trecho.Tag_Cabo);
                     parametros[3].Value = trecho.NumVeia;
                     parametros[4].Value = Nulo(trecho.NomeVeia);
-                    parametros[5].Value = trecho.Painel1 > 0 ? (object)(int)trecho.Painel1 : DBNull.Value;
-                    parametros[6].Value = Nulo(trecho.Pagina1);
-                    parametros[7].Value = trecho.Painel2 > 0 ? (object)(int)trecho.Painel2 : DBNull.Value;
-                    parametros[8].Value = Nulo(trecho.Pagina2);
-                    parametros[9].Value = Nulo(trecho.Criador);
-                    parametros[10].Value = trecho.Data;
+                    parametros[5].Value = DBNull.Value; // DWG1: por ponta, ainda não resolvido
+                    parametros[6].Value = DBNull.Value; // Documento1: conf. local, não projetada
+                    parametros[7].Value = trecho.Painel1 > 0 ? (object)(int)trecho.Painel1 : DBNull.Value;
+                    parametros[8].Value = Nulo(trecho.Tag1);
+                    parametros[9].Value = Nulo(trecho.Alternativo1);
+                    parametros[10].Value = DBNull.Value; // NRegua1: depende da passada de reordenação
+                    parametros[11].Value = Nulo(trecho.Terminal1);
+                    parametros[12].Value = Falta(trecho.TerminalNum1);
+                    parametros[13].Value = Falta(trecho.TipoBorne1);
+                    parametros[14].Value = Nulo(trecho.Handle1);
+                    parametros[15].Value = Nulo(trecho.Pagina1);
+                    parametros[16].Value = DBNull.Value; // Posicao1: o original grava ""
+                    parametros[17].Value = Falta(trecho.IndexModelo1);
+                    parametros[18].Value = DBNull.Value; // DWG2
+                    parametros[19].Value = DBNull.Value; // Documento2
+                    parametros[20].Value = trecho.Painel2 > 0 ? (object)(int)trecho.Painel2 : DBNull.Value;
+                    parametros[21].Value = Nulo(trecho.Tag2);
+                    parametros[22].Value = Nulo(trecho.Alternativo2);
+                    parametros[23].Value = DBNull.Value; // NRegua2
+                    parametros[24].Value = Nulo(trecho.Terminal2);
+                    parametros[25].Value = Falta(trecho.TerminalNum2);
+                    parametros[26].Value = Falta(trecho.TipoBorne2);
+                    parametros[27].Value = Nulo(trecho.Handle2);
+                    parametros[28].Value = Nulo(trecho.Pagina2);
+                    parametros[29].Value = DBNull.Value; // Posicao2
+                    parametros[30].Value = Falta(trecho.IndexModelo2);
+                    parametros[31].Value = Nulo(trecho.Criador);
+                    parametros[32].Value = trecho.Data;
                     comando.ExecuteNonQuery();
                 }
 
@@ -240,8 +293,10 @@ namespace Positron.Data
             using (SQLiteCommand comando = conexao.CreateCommand())
             {
                 comando.CommandText =
-                    "SELECT Indice, Revisao, DWG, Tag_Cabo, Num_Veia, Nome_Veia, Painel1, Pagina1, Painel2, " +
-                    "Pagina2, Criador FROM Interligacao4 WHERE Tag_Cabo = @tagCabo ORDER BY Num_Veia, Indice";
+                    "SELECT Indice, Revisao, DWG, Tag_Cabo, Num_Veia, Nome_Veia, Painel1, Pagina1, Tag1, " +
+                    "Alternativo1, Terminal1, TerminalNum1, TipoBorne1, Handle1, IndexModelo1, Painel2, " +
+                    "Pagina2, Tag2, Alternativo2, Terminal2, TerminalNum2, TipoBorne2, Handle2, IndexModelo2, " +
+                    "Criador FROM Interligacao4 WHERE Tag_Cabo = @tagCabo ORDER BY Num_Veia, Indice";
                 comando.Parameters.AddWithValue("@tagCabo", tagCabo);
 
                 using (SQLiteDataReader leitor = comando.ExecuteReader())
@@ -258,8 +313,22 @@ namespace Positron.Data
                             Nome_Veia = Texto(leitor, "Nome_Veia"),
                             Painel1 = Inteiro(leitor, "Painel1"),
                             Pagina1 = Texto(leitor, "Pagina1"),
+                            Tag1 = Texto(leitor, "Tag1"),
+                            Alternativo1 = Texto(leitor, "Alternativo1"),
+                            Terminal1 = Texto(leitor, "Terminal1"),
+                            TerminalNum1 = Real(leitor, "TerminalNum1"),
+                            TipoBorne1 = Inteiro(leitor, "TipoBorne1"),
+                            Handle1 = Texto(leitor, "Handle1"),
+                            IndexModelo1 = Inteiro(leitor, "IndexModelo1"),
                             Painel2 = Inteiro(leitor, "Painel2"),
                             Pagina2 = Texto(leitor, "Pagina2"),
+                            Tag2 = Texto(leitor, "Tag2"),
+                            Alternativo2 = Texto(leitor, "Alternativo2"),
+                            Terminal2 = Texto(leitor, "Terminal2"),
+                            TerminalNum2 = Real(leitor, "TerminalNum2"),
+                            TipoBorne2 = Inteiro(leitor, "TipoBorne2"),
+                            Handle2 = Texto(leitor, "Handle2"),
+                            IndexModelo2 = Inteiro(leitor, "IndexModelo2"),
                             Criador = Texto(leitor, "Criador"),
                         });
                     }
@@ -450,6 +519,18 @@ namespace Positron.Data
             return string.IsNullOrEmpty(valor) ? (object)DBNull.Value : valor;
         }
 
+        /// <summary>Converte um valor opcional para o parâmetro (DBNull quando ausente).</summary>
+        private static object Falta(double? valor)
+        {
+            return valor.HasValue ? (object)valor.Value : DBNull.Value;
+        }
+
+        /// <summary>Converte um valor opcional para o parâmetro (DBNull quando ausente).</summary>
+        private static object Falta(int? valor)
+        {
+            return valor.HasValue ? (object)valor.Value : DBNull.Value;
+        }
+
         private static FiacaoRow LerFiacao(SQLiteDataReader leitor)
         {
             return new FiacaoRow
@@ -479,6 +560,12 @@ namespace Positron.Data
         {
             int indice = leitor.GetOrdinal(coluna);
             return leitor.IsDBNull(indice) ? (long?)null : leitor.GetInt64(indice);
+        }
+
+        private static double? Real(SQLiteDataReader leitor, string coluna)
+        {
+            int indice = leitor.GetOrdinal(coluna);
+            return leitor.IsDBNull(indice) ? (double?)null : leitor.GetDouble(indice);
         }
     }
 }

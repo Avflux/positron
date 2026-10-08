@@ -150,9 +150,16 @@ namespace Positron.Plugin
                     Data = DateTime.Now,
                 };
 
+                // Bornes do desenho completam as duas pontas (terminal, régua,
+                // tipo). Sem dicionário de réguas os bornes ficam sem nome de
+                // régua, mas o terminal ainda casa.
+                ReguasModelo reguas = ReguasDoDesenho.Ler();
+                IReadOnlyList<PontoBorne> bornes = BornesDoDesenho.Ler(reguas);
+
                 InterligacaoProjetor projetor = new InterligacaoProjetor(new ProjectStore(caminho));
-                int gravados = projetor.Projetar(pontos, contexto);
-                Plugin.Escrever("INT: " + gravados + " linha(s) gravada(s) em Interligacao4.");
+                int gravados = projetor.Projetar(pontos, contexto, bornes);
+                Plugin.Escrever("INT: " + gravados + " linha(s) gravada(s) em Interligacao4 ("
+                    + bornes.Count + " borne(s)).");
             }
             catch (Exception erro)
             {

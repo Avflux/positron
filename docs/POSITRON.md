@@ -285,15 +285,17 @@ do desenho.
 
 A fase 6 também está **parcial**, pelo mesmo motivo da 5. Já existem e são
 testados: o comando `INT`, o leitor do XData `INTERLIGACAO`, a mesclagem das
-pontas por `(Tag_Cabo, Num_Veia)` (o `ssqypmV1FI`/`yHoU3hlYPo` do original) e a
-projeção para `Interligacao4` — verificado ponta a ponta (o projetor .NET grava e
-o sidecar lê `interligacao_por_cabo`/`interligacao_por_painel`). O que **falta** é
-a varredura de **bornes/terminais**, que preenche `Tag`, `Alternativo`, `NRegua`,
-`Terminal`, `TerminalNum`, `TipoBorne`, `Handle`, `Posicao`, `IndexModelo` e
-`Documento` das duas pontas — essas colunas saem vazias, de propósito. Também
-ficou aproximada a semântica fina do `Tipo == 3` (o original anexa uma linha só
-de destino, em vez de mesclar); como o ZWCAD não está instalado, isso não pôde ser
-conferido no desenho.
+pontas por `(Tag_Cabo, Num_Veia)` (o `ssqypmV1FI`/`yHoU3hlYPo` do original), a
+**varredura de bornes/terminais das duas pontas** (a mesma da fase 7, aplicada ao
+`Interligacao4` — o `pf6UXj3X1f` do original) e a projeção para `Interligacao4` —
+verificado ponta a ponta (o projetor .NET grava e o sidecar lê
+`interligacao_por_cabo`/`interligacao_por_painel`). A varredura preenche `Tag`,
+`Alternativo`, `Terminal`, `TerminalNum`, `TipoBorne`, `Handle` e `IndexModelo` de
+cada ponta. Ficam nulas de propósito: `NRegua` (depende da passada de reordenação)
+e `Documento`/`Posicao`/`DWG1`/`DWG2` (configuração e por-ponta, não projetadas) —
+dado ausente é melhor que dado inventado. Continua aproximada a semântica fina do
+`Tipo == 3` (o original anexa uma linha só de destino, em vez de mesclar); como o
+ZWCAD não está instalado, nada disso rodou dentro do desenho.
 
 A fase 7 também está **parcial**. Já existem e são testados: o leitor do XData de
 borne (`Dispositivo` tipo `"B"`), o parser do dicionário de réguas
@@ -383,20 +385,19 @@ instalado.
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
-1. **Interligação — bornes/terminais** das duas pontas (mesma varredura da fase 7,
-   aplicada ao `Interligacao4`).
-2. **`Cabos4` e `Veias4`** a partir do diagrama (`wrlU180vl0`/`RUIU5Sbjhj` no
+1. **`Cabos4` e `Veias4`** a partir do diagrama (`wrlU180vl0`/`RUIU5Sbjhj` no
    reverso).
-3. **Reordenação de `Ordem`** da `Fiacao` (`ReordenaOrdemPotenciais`), que fecha
-   `PosicaoNum`/`BLink`.
-4. **Casamento por bounds** do bloco no lugar da distância de inserção
+2. **Reordenação de `Ordem`** da `Fiacao` (`ReordenaOrdemPotenciais`), que fecha
+   `PosicaoNum`/`BLink` — e, por consequência, o `NRegua` das duas pontas do
+   `Interligacao4`.
+3. **Casamento por bounds** do bloco no lugar da distância de inserção
    (`Bounds ±0,25` + tabela de deslocamento por nome de bloco).
-5. **`TerminalNumerico`** com as formas `:` e `-` (`VerificaOrientacaoContato`
+4. **`TerminalNumerico`** com as formas `:` e `-` (`VerificaOrientacaoContato`
    também, para os contatos).
-6. **`SYNCD` e `VERIF`** — comandos restantes do recorte do plugin.
-7. **UI WinForms** do plugin (as telas `frmCompilar*`), hoje substituídas por
+5. **`SYNCD` e `VERIF`** — comandos restantes do recorte do plugin.
+6. **UI WinForms** do plugin (as telas `frmCompilar*`), hoje substituídas por
    comandos que leem variáveis de ambiente.
-8. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
+7. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
 
 **Convenções que não podem ser esquecidas**
 
@@ -413,7 +414,7 @@ instalado.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 46 testes)
+npm run plugin:test       # xunit, net472 (hoje 48 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

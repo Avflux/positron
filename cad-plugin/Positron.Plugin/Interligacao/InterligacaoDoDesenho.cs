@@ -70,13 +70,69 @@ namespace Positron.Plugin.Interligacao
                         continue;
                     }
 
-                    pontos.Add(PontoInterligacao.DeInterligacao(ilig, entidade.Layer));
+                    PontoInterligacao ponto = PontoInterligacao.DeInterligacao(ilig, entidade.Layer);
+                    MarcarGeometria(ponto, linha, ilig);
+                    pontos.Add(ponto);
                 }
 
                 transacao.Commit();
             }
 
             return pontos;
+        }
+
+        /// <summary>
+        /// Marca quais pontas esta polyline fornece e guarda a posição de cada
+        /// uma — o que casa com o borne (<see cref="Positron.Data.Bornes.CasamentoBorne"/>).
+        /// Mesma regra do <c>frmCompilarInterligacao</c>:
+        ///
+        /// - <c>Tipo == 1</c>: as duas pontas (vértice 0 e último vértice).
+        /// - <c>Tipo == 2</c>: uma ponta — <c>Painel1 &gt; 0</c> é a ponta 1.
+        /// - <c>Tipo == 3</c>: só a ponta 2 (último vértice).
+        /// </summary>
+        private static void MarcarGeometria(PontoInterligacao ponto, Polyline linha, InterligacaoXData ilig)
+        {
+            int ultimo = linha.NumberOfVertices - 1;
+
+            if (ilig.Tipo == 3)
+            {
+                Point2d fim = linha.GetPoint2dAt(ultimo);
+                ponto.TemPonta2 = true;
+                ponto.X2 = fim.X;
+                ponto.Y2 = fim.Y;
+                return;
+            }
+
+            if (ilig.Tipo == 2)
+            {
+                if (ilig.Painel1 > 0)
+                {
+                    Point2d inicio = linha.GetPoint2dAt(0);
+                    ponto.TemPonta1 = true;
+                    ponto.X1 = inicio.X;
+                    ponto.Y1 = inicio.Y;
+                }
+                else
+                {
+                    Point2d fim = linha.GetPoint2dAt(ultimo);
+                    ponto.TemPonta2 = true;
+                    ponto.X2 = fim.X;
+                    ponto.Y2 = fim.Y;
+                }
+
+                return;
+            }
+
+            // Tipo == 1 (e desconhecidos): a polyline traz as duas pontas.
+            Point2d inicioTipo1 = linha.GetPoint2dAt(0);
+            ponto.TemPonta1 = true;
+            ponto.X1 = inicioTipo1.X;
+            ponto.Y1 = inicioTipo1.Y;
+
+            Point2d fimTipo1 = linha.GetPoint2dAt(ultimo);
+            ponto.TemPonta2 = true;
+            ponto.X2 = fimTipo1.X;
+            ponto.Y2 = fimTipo1.Y;
         }
     }
 }

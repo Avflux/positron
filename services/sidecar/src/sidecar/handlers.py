@@ -19,7 +19,6 @@ from .db import ProjectDatabase
 from .protocol import (
     BadParams,
     CatalogoListarMateriaisParams,
-    DatabaseError,
     DatabaseNotOpen,
     EchoParams,
     EchoResult,

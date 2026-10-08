@@ -118,10 +118,16 @@ em `Positron.Data/Interligacao/InterligacaoXData.cs`), mescla as pontas por
 original. Usa as mesmas variáveis de ambiente do `FIA` (`POSITRON_DB_PATH`,
 `POSITRON_DWG`, `POSITRON_REVISAO`).
 
-**O que ainda sai vazio:** `Tag`, `Alternativo`, `NRegua`, `Terminal`,
-`TerminalNum`, `TipoBorne`, `Handle`, `Posicao`, `IndexModelo` e `Documento` das
-duas pontas vêm da varredura de **bornes/terminais**, que ainda não foi
-implementada. Ficam nulas de propósito. A semântica fina do `Tipo == 3` também
+**Bornes/terminais das duas pontas (backlog 1).** O `INT` varre os blocos de
+borne do desenho (XData `Dispositivo` tipo `"B"`) e as réguas do dicionário
+(`REGUAS`/`MODELOS2`), e casa cada ponta do trecho ao borne mais próximo
+(`Positron.Data/Bornes/`) — a mesma varredura da fase 7 aplicada ao
+`Interligacao4` (o `pf6UXj3X1f` do original). Isso preenche, por ponta, `Tag`,
+`Alternativo`, `Terminal`, `TerminalNum`, `TipoBorne`, `Handle` e `IndexModelo`.
+
+**O que ainda sai vazio:** `NRegua` (depende da passada de reordenação, ainda não
+implementada) e `Documento`/`Posicao`/`DWG1`/`DWG2` (configuração e por-ponta, não
+projetadas). Ficam nulas de propósito. A semântica fina do `Tipo == 3` também
 ficou aproximada (ver `../docs/POSITRON.md`).
 
 O leitor e o projetor são puros (não dependem do CAD) e têm teste real contra
