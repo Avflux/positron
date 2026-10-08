@@ -1,7 +1,12 @@
 using System.Collections.Generic;
 using Positron.Data.Bornes;
+#if AUTOCAD
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
+#else
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
+#endif
 
 namespace Positron.Plugin.Bornes
 {

@@ -9,7 +9,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+#if AUTOCAD
+namespace Autodesk.AutoCAD.DatabaseServices
+#else
 namespace ZwSoft.ZwCAD.DatabaseServices
+#endif
 {
     public enum OpenMode
     {

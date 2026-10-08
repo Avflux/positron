@@ -1,24 +1,32 @@
 using System.Collections.Generic;
 using Positron.Data.Fiacao;
+using Positron.Data.Interligacao;
+#if AUTOCAD
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
+#else
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
+#endif
 
-namespace Positron.Plugin.Fiacao
+namespace Positron.Plugin.Interligacao
 {
     /// <summary>
-    /// Única parte do fluxo de fiação que toca a API do ZWCAD: varre o ModelSpace
-    /// atrás de <c>LWPOLYLINE</c> com XData <c>CONEXAO</c> e devolve os pontos já
-    /// em tipos neutros (<see cref="PontoFiacao"/>), que o resto do código sabe
-    /// projetar e testar sem o ZWCAD.
+    /// Única parte do fluxo de interligação que toca a API do ZWCAD: varre o
+    /// ModelSpace atrás de <c>LWPOLYLINE</c> com XData <c>INTERLIGACAO</c> e
+    /// devolve os pontos já em tipos neutros (<see cref="PontoInterligacao"/>),
+    /// que o resto do código sabe projetar e testar sem o ZWCAD.
     ///
-    /// A varredura é a mesma do original (ver <c>clsConexao</c>): abre uma
-    /// transação, pega a BlockTable/ModelSpace e lê o XData por entidade.
+    /// Mesma varredura do original (<c>frmCompilarInterligacao</c>): uma
+    /// transação, BlockTable/ModelSpace e leitura do XData por entidade.
+    /// Trechos com <c>Num_Veia == -1000</c> (veia indefinida) são descartados,
+    /// como no original.
     /// </summary>
-    public static class FiacaoDoDesenho
+    public static class InterligacaoDoDesenho
     {
-        public static IReadOnlyList<PontoFiacao> Ler()
+        public static IReadOnlyList<PontoInterligacao> Ler()
         {
-            List<PontoFiacao> pontos = new List<PontoFiacao>();
+            List<PontoInterligacao> pontos = new List<PontoInterligacao>();
 
             Document documento = Application.DocumentManager.MdiActiveDocument;
             if (documento == null)
@@ -44,29 +52,25 @@ namespace Positron.Plugin.Fiacao
                         continue;
                     }
 
-                    ResultBuffer xdata = ((DBObject)linha).GetXDataForApplication(ConexaoXData.AppName);
+                    ResultBuffer xdata = ((DBObject)linha).GetXDataForApplication(InterligacaoXData.AppName);
                     if (xdata == null)
                     {
                         continue;
                     }
 
-                    ConexaoXData conexao;
-                    if (!ConexaoXData.Ler(XDataNeutro.Para(xdata), out conexao))
+                    InterligacaoXData ilig;
+                    if (!InterligacaoXData.Ler(XDataNeutro.Para(xdata), out ilig))
                     {
                         // XData inválido/truncado não derruba o comando.
                         continue;
                     }
 
-                    PontoFiacao ponto = PontoFiacao.DeConexao(conexao);
+                    if (ilig.NumVeia == InterligacaoXData.NumVeiaIndefinido)
+                    {
+                        continue;
+                    }
 
-                    // A posição do ponto vem da geometria (não do XData): o
-                    // primeiro vértice da linha, como o original casa o borne.
-                    Point2d inicio = linha.GetPoint2dAt(0);
-                    ponto.X = inicio.X;
-                    ponto.Y = inicio.Y;
-                    ponto.Layer = ((Entity)linha).Layer;
-
-                    pontos.Add(ponto);
+                    pontos.Add(PontoInterligacao.DeInterligacao(ilig, entidade.Layer));
                 }
 
                 transacao.Commit();

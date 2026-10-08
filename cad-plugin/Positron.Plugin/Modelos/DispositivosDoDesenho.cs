@@ -1,8 +1,13 @@
 using System.Collections.Generic;
 using System.Text;
 using Positron.Data.Modelos;
+#if AUTOCAD
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
+#else
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
+#endif
 
 namespace Positron.Plugin.Modelos
 {

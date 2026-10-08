@@ -77,8 +77,9 @@ npm run schema:sync      # regrava os tipos TS/C# gerados a partir do schema.sql
 npm run typecheck        # tsc --noEmit nos dois workspaces TS
 npm run test:sidecar     # pytest, incluindo round-trip ZMQ real
 npm run build            # build do web, gera apps/web/dist
-npm run plugin:build     # C# do plugin ZWCAD (net472) compila
-npm run plugin:test      # xunit do plugin ZWCAD (net472)
+npm run plugin:build     # C# do plugin CAD (net472) compila (ZWCAD padrão)
+npm run plugin:build:autocad # C# do plugin CAD para AutoCAD
+npm run plugin:test      # xunit do plugin CAD (net472)
 
 # no sidecar
 uv run --directory services/sidecar ruff check .
@@ -108,6 +109,22 @@ ele emitiu o `SIDECAR_READY`. É o que pega o erro clássico do PyInstaller —
 módulo importado dinamicamente (uvicorn, fastapi) que não entrou no bundle e só
 quebra na execução. A configuração `tauri.bundle.conf.json` adiciona o
 `externalBin` somente nesse build; por isso o `tauri dev` não exige o executável.
+
+### Onde os binários de produção são salvos
+
+Ao rodar `npm run build:desktop` (ou `npm run build:all`), os arquivos finais são distribuídos nos seguintes caminhos:
+
+1. **Binário standalone do sidecar (consumido pelo Tauri):**
+   - `apps/desktop/src-tauri/binaries/sidecar-<target-triple>.exe`
+
+2. **Executáveis de produção (executáveis diretos):**
+   - `apps/desktop/src-tauri/target/release/app-desktop.exe` (executável principal)
+   - `apps/desktop/src-tauri/target/release/sidecar.exe` (sidecar Python empacotado que o Tauri copia para o lado do executável)
+
+3. **Instaladores e pacotes de distribuição (bundles):**
+   - `apps/desktop/src-tauri/target/release/bundle/nsis/*.exe` (instalador Windows via NSIS)
+   - `apps/desktop/src-tauri/target/release/bundle/msi/*.msi` (instalador Windows via WiX)
+   - `apps/web/dist/` (build de produção dos assets do frontend React/Vite)
 
 ## Troubleshooting
 
@@ -193,7 +210,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `pytest` — 20 testes passando, com DEALER/ROUTER e SUB/PUB reais e leitura do
   SQLite do projeto.
 - `npm run plugin:build` / `npm run plugin:test` — 0 erros/0 avisos e 46 testes
-  xunit (net472) do plugin ZWCAD, contra o stub.
+  xunit (net472) do plugin CAD (ZWCAD/AutoCAD), contra o stub.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge
@@ -207,7 +224,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `tauri dev` / `tauri build` — o Rust **está** instalado (a lib do desktop
   compila com `cargo build`), mas a feature `vendored` do crate `zmq` ainda
   exigiria CMake + MSVC, que não estão no PATH.
-- **Dentro do ZWCAD** — o ZWCAD não está instalado, então o plugin builda contra o
-  stub (`Positron.ZwcadStub`) e **não** carrega por `NETLOAD`. Nenhum comando do
+- **Dentro do CAD** — nem o ZWCAD nem o AutoCAD estão instalados, então o plugin builda contra o
+  stub (`Positron.CadStub`) e **não** carrega por `NETLOAD`. Nenhum comando do
   plugin (`FIA`, `INT`) rodou dentro de um desenho.
 - `npm run sidecar:build` (PyInstaller) — não executado aqui.

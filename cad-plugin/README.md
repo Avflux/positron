@@ -1,21 +1,21 @@
-# Positron — plugin ZWCAD
+# Positron — plugin CAD (ZWCAD / AutoCAD)
 
-Frontend ZWCAD do Positron: um assembly **.NET Framework 4.7.2 (x64)** carregado
-no ZWCAD por **`NETLOAD`**. Ele constrói a **fiação e a interligação do diagrama
+Frontend CAD do Positron: um assembly **.NET Framework 4.7.2 (x64)** carregado
+no CAD por **`NETLOAD`**. Ele constrói a **fiação e a interligação do diagrama
 funcional** e é o único que escreve as tabelas derivadas do diagrama no `.db` do
 projeto. O contexto todo está em `../docs/POSITRON.md`.
 
 ```text
 Positron.Contract/   tipos do schema gerado (namespace Positron.Contract)
-Positron.Data/       acesso ao SQLite do projeto (System.Data.SQLite)
-Positron.Plugin/     IExtensionApplication + comandos ([CommandMethod])
-Positron.ZwcadStub/  stub de compilação — só quando não há ZWCAD (ver abaixo)
+Positron.Data/       acesso ao SQLite do projeto (System.Data.SQLite - 100% puro/agnóstico)
+Positron.Plugin/     IExtensionApplication + comandos ([CommandMethod]) para ZWCAD e AutoCAD
+Positron.CadStub/    stub de compilação — gate de compilação quando não há CAD instalado
 ```
 
 ## Por que não é Electron/React
 
-A API de desenho (`ZwSoft.ZwCAD.*`, `ZwManaged.dll` v26) só existe **dentro do
-processo do ZWCAD**. `NETLOAD` carrega um assembly .NET que a referencia — não há
+A API de desenho (`ZwSoft.ZwCAD.*` ou `Autodesk.AutoCAD.*`) só existe **dentro do
+processo do CAD**. `NETLOAD` carrega um assembly .NET que a referencia — não há
 como um frontend web tocar entidades ou XData.
 
 ## Build
@@ -26,27 +26,50 @@ O contrato é gerado no repositório principal — rode antes:
 npm run schema:sync      # regrava packages/protocol/csharp/Tables.g.cs
 ```
 
-**Com o ZWCAD instalado** (gera a DLL carregável de verdade):
+### 1. ZWCAD
+
+**Com o ZWCAD instalado** (gera a DLL carregável de verdade `Positron.Plugin.ZWCAD.dll`):
 
 ```bash
-dotnet build Positron.Plugin/Positron.Plugin.csproj -p:ZWCadDir="C:\Program Files\ZWSOFT\ZWCAD 2026"
+dotnet build Positron.Plugin/Positron.Plugin.csproj -p:CadPlatform=ZWCAD -p:ZWCadDir="C:\Program Files\ZWSOFT\ZWCAD 2026"
+# ou via npm:
+npm run plugin:build:zwcad
 ```
 
 **Sem o ZWCAD** (gate de compilação):
 
 ```bash
-dotnet build Positron.Plugin/Positron.Plugin.csproj
+dotnet build Positron.Plugin/Positron.Plugin.csproj -p:CadPlatform=ZWCAD
 ```
 
-Nesse caso o `Positron.Plugin` compila contra o **stub** (`Positron.ZwcadStub`),
-que reproduz a fatia mínima da API copiada dos `using` do código reverso. O
-stub **não é a API do ZWCAD** e o assembly resultante **não carrega por
-NETLOAD** — ele referencia o stub, que não existe dentro do ZWCAD. Serve só para
-o build não quebrar em máquina sem ZWCAD e para o CI ter um gate.
+Nesse caso o `Positron.Plugin` compila contra o **stub** (`Positron.CadStub`),
+que reproduz a fatia mínima da API. Serve para o build não quebrar em máquinas sem CAD e para o CI ter um gate.
+
+### 2. AutoCAD
+
+**Com o AutoCAD instalado** (gera a DLL carregável de verdade `Positron.Plugin.AutoCAD.dll`):
+
+```bash
+dotnet build Positron.Plugin/Positron.Plugin.csproj -p:CadPlatform=AutoCAD -p:AutoCadDir="C:\Program Files\Autodesk\AutoCAD 2024"
+# ou via npm:
+npm run plugin:build:autocad
+```
+
+**Sem o AutoCAD** (gate de compilação contra o stub):
+
+```bash
+dotnet build Positron.Plugin/Positron.Plugin.csproj -p:CadPlatform=AutoCAD
+```
+
+### 3. Build de ambos
+
+```bash
+npm run plugin:build:all
+```
 
 ## Comandos
 
-Digitados na linha de comando do ZWCAD depois do `NETLOAD`:
+Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 
 | Comando | Estado |
 |---|---|
@@ -101,7 +124,7 @@ duas pontas vêm da varredura de **bornes/terminais**, que ainda não foi
 implementada. Ficam nulas de propósito. A semântica fina do `Tipo == 3` também
 ficou aproximada (ver `../docs/POSITRON.md`).
 
-O leitor e o projetor são puros (não dependem do ZWCAD) e têm teste real contra
+O leitor e o projetor são puros (não dependem do CAD) e têm teste real contra
 um SQLite montado do `schema.sql`:
 
 ```bash
@@ -113,5 +136,4 @@ npm run plugin:test      # xunit, net472
 - **.NET Framework 4.7.2** e um SDK do .NET para o `dotnet build` (o pacote
   `Microsoft.NETFramework.ReferenceAssemblies` traz os assemblies de referência
   sem exigir o Visual Studio).
-- **ZWCAD 2026+** para gerar/carregar a DLL real (`ZwManaged` v26). Uma build
-  contra a v26 não roda em versões anteriores.
+- **ZWCAD 2026+** ou **AutoCAD 2024+** para gerar/carregar a DLL real.

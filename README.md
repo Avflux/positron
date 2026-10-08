@@ -114,7 +114,7 @@ npm run build:all        # protocol:gen → build:web → build:desktop (tudo)
 | `npm run sidecar:build` | Empacota o sidecar com PyInstaller (chamado automaticamente por `build:desktop`) |
 | `npm run protocol:gen` | Falha se o contrato divergir: métodos Python↔TS **ou** os tipos gerados do schema |
 | `npm run schema:sync` | Regrava os tipos TS/C# a partir de `services/sidecar/src/sidecar/db/schema.sql` |
-| `npm run plugin:build` | Compila o plugin ZWCAD (C# / net472) |
+| `npm run plugin:build` | Compila o plugin CAD (ZWCAD padrão, ou AutoCAD via `plugin:build:autocad`) |
 | `npm run plugin:test` | Roda os 46 testes xunit do plugin |
 
 ## Estado atual
@@ -126,12 +126,12 @@ processo ponta a ponta, `typecheck` limpo e build do web gerando `dist`.
 A reconstrução do Eletron4Z sobre este esqueleto (dois frontends, contrato de
 dados) está em `docs/POSITRON.md`.
 
-O **plugin ZWCAD** (C# net472) também está funcional e testado (46 testes xunit; veja
-`zwcad-plugin/README.md` e `docs/POSITRON.md`). Ele builda com `npm run plugin:build`
+O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (46 testes xunit; veja
+`cad-plugin/README.md` e `docs/POSITRON.md`). Ele builda com `npm run plugin:build`
 e testa com `npm run plugin:test`.
 
-O que **não** foi verificado: o **ZWCAD não está instalado**, então o plugin compila
-contra um stub (`Positron.ZwcadStub`) — um gate de compilação que **não** gera um
+O que **não** foi verificado: nem o **ZWCAD** nem o **AutoCAD** estão instalados nesta máquina, então o plugin compila
+contra um stub (`Positron.CadStub`) — um gate de compilação que **não** gera um
 assembly carregável por `NETLOAD`. Nenhum comando do plugin rodou dentro de um
 desenho. O Rust **está** instalado nesta máquina e a lib do desktop compila
 (`cargo build`), mas o `tauri dev`/`build` completo ainda exige CMake + MSVC. A

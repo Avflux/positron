@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using Positron.Data.Fiacao;
+#if AUTOCAD
+using Autodesk.AutoCAD.DatabaseServices;
+#else
 using ZwSoft.ZwCAD.DatabaseServices;
+#endif
 
 namespace Positron.Plugin
 {

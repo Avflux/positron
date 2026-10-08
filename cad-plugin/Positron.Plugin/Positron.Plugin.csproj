@@ -1,0 +1,75 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Positron.Plugin</RootNamespace>
+    <!-- Plataforma alvo: ZWCAD (padrão) ou AutoCAD -->
+    <CadPlatform Condition="'$(CadPlatform)' == ''">ZWCAD</CadPlatform>
+    <DefineConstants Condition="'$(CadPlatform)' == 'AutoCAD'">AUTOCAD;$(DefineConstants)</DefineConstants>
+    <DefineConstants Condition="'$(CadPlatform)' == 'ZWCAD'">ZWCAD;$(DefineConstants)</DefineConstants>
+    <AssemblyName Condition="'$(CadPlatform)' == 'AutoCAD'">Positron.Plugin.AutoCAD</AssemblyName>
+    <AssemblyName Condition="'$(CadPlatform)' == 'ZWCAD'">Positron.Plugin.ZWCAD</AssemblyName>
+    <OutputPath>bin\$(Configuration)\$(CadPlatform)\</OutputPath>
+  </PropertyGroup>
+
+  <!--
+    CONFIGURAÇÃO AUTOCAD
+    Se `AutoCadDir` for fornecido ou detectado na máquina, referencia as DLLs reais do AutoCAD:
+        dotnet build -p:CadPlatform=AutoCAD -p:AutoCadDir="C:\Program Files\Autodesk\AutoCAD 2024"
+    Caso contrário, compila com o stub Positron.CadStub como gate de compilação.
+  -->
+  <PropertyGroup Condition="'$(CadPlatform)' == 'AutoCAD'">
+    <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2026')">$(ProgramFiles)\Autodesk\AutoCAD 2026</AutoCadDir>
+    <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2025')">$(ProgramFiles)\Autodesk\AutoCAD 2025</AutoCadDir>
+    <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2024')">$(ProgramFiles)\Autodesk\AutoCAD 2024</AutoCadDir>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(CadPlatform)' == 'AutoCAD' And '$(AutoCadDir)' != ''">
+    <Reference Include="accoremgd">
+      <HintPath>$(AutoCadDir)\accoremgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="acmgd">
+      <HintPath>$(AutoCadDir)\acmgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="acdbmgd">
+      <HintPath>$(AutoCadDir)\acdbmgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(CadPlatform)' == 'AutoCAD' And '$(AutoCadDir)' == ''">
+    <ProjectReference Include="..\Positron.CadStub\Positron.CadStub.csproj" />
+  </ItemGroup>
+
+  <!--
+    CONFIGURAÇÃO ZWCAD
+    Com `ZWCadDir` definido ou detectado, o plugin é gerado contra a API gerenciada REAL:
+        dotnet build -p:CadPlatform=ZWCAD -p:ZWCadDir="C:\Program Files\ZWSOFT\ZWCAD 2026"
+    Sem ele, compila contra o stub (Positron.CadStub) para gate de compilação.
+  -->
+  <PropertyGroup Condition="'$(CadPlatform)' == 'ZWCAD'">
+    <ZWCadDir Condition="'$(ZWCadDir)' == '' And Exists('$(ProgramFiles)\ZWSOFT\ZWCAD 2026')">$(ProgramFiles)\ZWSOFT\ZWCAD 2026</ZWCadDir>
+    <ZWCadDir Condition="'$(ZWCadDir)' == '' And Exists('$(ProgramFiles)\ZWSOFT\ZWCAD 2025')">$(ProgramFiles)\ZWSOFT\ZWCAD 2025</ZWCadDir>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(CadPlatform)' == 'ZWCAD' And '$(ZWCadDir)' != ''">
+    <Reference Include="ZwManaged">
+      <HintPath>$(ZWCadDir)\ZwManaged.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="ZwDatabaseMgd">
+      <HintPath>$(ZWCadDir)\ZwDatabaseMgd.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(CadPlatform)' == 'ZWCAD' And '$(ZWCadDir)' == ''">
+    <ProjectReference Include="..\Positron.CadStub\Positron.CadStub.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Positron.Data\Positron.Data.csproj" />
+  </ItemGroup>
+
+</Project>

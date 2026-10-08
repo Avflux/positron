@@ -9,7 +9,11 @@ using Positron.Plugin.Bornes;
 using Positron.Plugin.Fiacao;
 using Positron.Plugin.Interligacao;
 using Positron.Plugin.Modelos;
+#if AUTOCAD
+using Autodesk.AutoCAD.Runtime;
+#else
 using ZwSoft.ZwCAD.Runtime;
+#endif
 
 namespace Positron.Plugin
 {

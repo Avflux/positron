@@ -103,6 +103,14 @@ $exePath = Join-Path $binDir $exeName
 Write-Host "==> Triple : $Triple"
 Write-Host "==> Destino: $exePath"
 
+# Encerra processos remanescentes que estejam usando o binário para evitar PermissionError no PyInstaller
+Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+    Where-Object { $_.ExecutablePath -eq $exePath } |
+    ForEach-Object {
+        Write-Host "Encerrando processo anterior em execucao (PID $($_.ProcessId))..."
+        try { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } catch { }
+    }
+
 if (-not $SkipSync) {
     Write-Host "==> uv sync"
     Push-Location $sidecar
@@ -178,5 +186,12 @@ try {
     }
 }
 finally {
-    if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
+    if ($proc) {
+        try { & taskkill /PID $proc.Id /T /F 2>$null | Out-Null } catch { }
+    }
+    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.ExecutablePath -eq $exePath } |
+        ForEach-Object {
+            try { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } catch { }
+        }
 }

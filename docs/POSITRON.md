@@ -202,7 +202,7 @@ recorte mínimo:
 | `VERIF` | valida o projeto (espelho de `frmVerificadorProjetoFiacao`) |
 
 Implementados: `ELET`, `FIA` e `INT` (sem tela ainda — ver
-`zwcad-plugin/README.md`). `SYNCD` e `VERIF` ficam para depois.
+`cad-plugin/README.md`). `SYNCD` e `VERIF` ficam para depois.
 
 Os nomes vêm do `COMANDOS.txt` do reverso — evitamos inventar comandos novos para
 o usuário não reaprender.
@@ -224,11 +224,11 @@ positron/
 │  ├─ src/schema.generated.ts   # tipos TS das tabelas (frontend APP)
 │  └─ csharp/Tables.g.cs        # tipos C# das tabelas (frontend ZWCAD)
 ├─ scripts/gen-schema.mjs       # gera os dois a partir do schema.sql
-├─ zwcad-plugin/                # frontend ZWCAD (C# net472)
+├─ cad-plugin/                  # frontend CAD: ZWCAD + AutoCAD (C# net472)
 │  ├─ Positron.Contract/        # compila os tipos gerados
 │  ├─ Positron.Data/            # acesso SQLite (System.Data.SQLite)
-│  ├─ Positron.Plugin/          # IExtensionApplication + comandos
-│  └─ Positron.ZwcadStub/       # stub de compilação (sem ZWCAD)
+│  ├─ Positron.Plugin/          # IExtensionApplication + comandos (ZWCAD/AutoCAD)
+│  └─ Positron.CadStub/         # stub de compilação neutro (sem CAD instalado)
 └─ docs/POSITRON.md             # este documento
 ```
 
@@ -270,7 +270,7 @@ Cada fase é verificável sozinha. As fases 2 e 4 não dependem uma da outra —
 A fase 4 está **parcial**: o scaffold compila (0 avisos) e registra o `ELET`, mas
 (a) não foi carregado dentro do ZWCAD — ele não está instalado nesta máquina,
 então não há `ZwManaged.dll` — e (b) o `SYNCD` ainda não existe. Neste ambiente o
-plugin builda contra o stub (`Positron.ZwcadStub`), que é só gate de compilação e
+plugin builda contra o stub (`Positron.CadStub`), que é só gate de compilação e
 **não** produz um assembly carregável por NETLOAD.
 
 A fase 5 também está **parcial**. Já existem e são testados: o comando `FIA`, o
@@ -373,9 +373,9 @@ reler o repositório inteiro.
 - Reverso (referência): `C:\Users\RNO\Desktop\APP\Elet\Eletron4_ZWcad` — o código
   descompilado em `decompiled-cleaned/Eletron4/` (435 `.cs`) e `COMANDOS.txt`.
 - Dono do contrato de dados: `services/sidecar/src/sidecar/db/schema.sql`
-  (gera `packages/protocol/...`). Plugin: `zwcad-plugin/`.
-- Frontend ZWCAD em `zwcad-plugin/Positron.Data/` (núcleo puro, testável sem
-  ZWCAD) e `zwcad-plugin/Positron.Plugin/` (adapters do ZWCAD).
+  (gera `packages/protocol/...`). Plugin: `cad-plugin/`.
+- Frontend CAD em `cad-plugin/Positron.Data/` (núcleo puro, testável sem
+  CAD) e `cad-plugin/Positron.Plugin/` (adapters do ZWCAD e AutoCAD).
 
 **Estado:** fases 0–3 **feitas**; fases 4–9 **parciais** (a tabela do §6 diz o
 que falta em cada uma). Nenhuma delas rodou dentro do ZWCAD — ele não está
@@ -427,7 +427,7 @@ e rode um teste de gravação; depois leia com o sidecar (ou `sqlite3`). Ex.:
 
 ```bash
 DB="C:/Users/RNO/AppData/Local/Temp/positron-e2e.db"; rm -f "$DB"*
-POSITRON_TEST_DB="$DB" dotnet test zwcad-plugin/Positron.Data.Tests/Positron.Data.Tests.csproj \
+POSITRON_TEST_DB="$DB" dotnet test cad-plugin/Positron.Data.Tests/Positron.Data.Tests.csproj \
   --filter "FullyQualifiedName~Grava_no_banco_e_le_de_volta"
 uv run --directory services/sidecar python -c "import asyncio,sys; ..."
 ```

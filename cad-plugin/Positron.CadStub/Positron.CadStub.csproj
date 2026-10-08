@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Stub de compilação neutro para CAD (AutoCAD e ZWCAD).
+    Referenciado por Positron.Plugin só quando a instalação do CAD não está definida,
+    para que `dotnet build` funcione como gate de compilação em qualquer máquina e no CI.
+    Nunca acompanha o plugin em produção no CAD.
+  -->
+  <PropertyGroup>
+    <RootNamespace>Positron.CadStub</RootNamespace>
+    <CadPlatform Condition="'$(CadPlatform)' == ''">ZWCAD</CadPlatform>
+    <DefineConstants Condition="'$(CadPlatform)' == 'AutoCAD'">AUTOCAD;$(DefineConstants)</DefineConstants>
+    <DefineConstants Condition="'$(CadPlatform)' == 'ZWCAD'">ZWCAD;$(DefineConstants)</DefineConstants>
+    <AssemblyName Condition="'$(CadPlatform)' == 'AutoCAD'">Positron.AutoCadStub</AssemblyName>
+    <AssemblyName Condition="'$(CadPlatform)' == 'ZWCAD'">Positron.ZwcadStub</AssemblyName>
+    <OutputPath>bin\$(Configuration)\$(CadPlatform)\</OutputPath>
+  </PropertyGroup>
+
+</Project>
