@@ -24,3 +24,4 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"
 
 # `zmq-sys` compila o libzmq a partir do código-fonte via `zeromq-src`.
 zmq = "0.10"
+tauri-plugin-dialog = "2.0.0-rc.8"

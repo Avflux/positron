@@ -115,6 +115,7 @@ pub fn run() {
     let window_state = Arc::new(WindowStateManager::new());
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(AppState {
             sidecar: Arc::clone(&sidecar),
             bridge: Arc::clone(&bridge),

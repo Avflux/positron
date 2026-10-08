@@ -142,10 +142,14 @@ async def test_catalogo_modelos_cabo(project_db: Path):
     assert modelos["modelos"][0]["CodigoCliente"] == "M-1"
 
 
-async def test_projeto_abrir_caminho_inexistente(tmp_path: Path):
+async def test_projeto_abrir_cria_banco_se_nao_existir(tmp_path: Path):
     handlers = Handlers()
-    with pytest.raises(DatabaseError):
-        await handlers.dispatch("projeto_abrir", {"caminho": str(tmp_path / "nao_existe.db")})
+    novo_caminho = tmp_path / "novo_projeto.db"
+    res = await handlers.dispatch("projeto_abrir", {"caminho": str(novo_caminho)})
+    assert res["caminho"] == str(novo_caminho)
+    # Tem que ter tabelas (schema aplicado)
+    assert len(res["tabelas"]) > 10
+    assert novo_caminho.exists()
 
 
 async def test_params_invalidos_viram_bad_params(project_db: Path):

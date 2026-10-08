@@ -7,6 +7,7 @@ ZMQ (`zmq/responder.py`) quanto o HTTP (`http/app.py`) chamam este mesmo `dispat
 
 from __future__ import annotations
 
+import asyncio
 import os
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -75,7 +76,8 @@ class Handlers:
         parsed = _validate("projeto_abrir", ProjetoAbrirParams, params)
         db = ProjectDatabase(parsed.caminho)
         if not db.exists:
-            raise DatabaseError(f"banco do projeto não encontrado: {parsed.caminho}")
+            # Em vez de falhar, inicializamos o arquivo em branco usando o schema oficial
+            await asyncio.to_thread(db.create_from_schema)
         self._db = db
         return {"caminho": str(db.path), "tabelas": await db.tables()}
 

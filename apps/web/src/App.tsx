@@ -22,7 +22,10 @@ export default function App() {
         <header className="page-header" data-tauri-drag-region></header>
 
         <div className="stack">
-          <ProjetoPanel projeto={projeto} />
+          <ProjetoPanel 
+            projeto={projeto} 
+            onOpenSettings={() => setShowSettings(true)} 
+          />
           {projeto.selecionado && <PainelView painel={projeto.selecionado} />}
         </div>
       </main>

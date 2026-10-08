@@ -23,6 +23,8 @@ pub struct WindowGeometry {
     pub width: u32,
     pub height: u32,
     pub maximized: bool,
+    #[serde(default)]
+    pub fullscreen: bool,
 }
 
 /// Estado geral salvo no arquivo `state.json`.
@@ -289,7 +291,9 @@ impl WindowStateManager {
                 }
             }
 
-            if geom.maximized {
+            if geom.fullscreen {
+                let _ = window.set_fullscreen(true);
+            } else if geom.maximized {
                 let _ = window.maximize();
             }
         } else {
@@ -319,12 +323,15 @@ impl WindowStateManager {
 
         window.on_window_event(move |event| match event {
             WindowEvent::Moved(pos) => {
-                if let Ok(false) = win.is_maximized() {
+                let is_max = win.is_maximized().unwrap_or(false);
+                let is_full = win.is_fullscreen().unwrap_or(false);
+                if !is_max && !is_full {
                     let mut guard = manager.data.lock().unwrap();
                     if let Some(geom) = guard.window.as_mut() {
                         geom.x = pos.x;
                         geom.y = pos.y;
                         geom.maximized = false;
+                        geom.fullscreen = false;
                     } else {
                         guard.window = Some(WindowGeometry {
                             x: pos.x,
@@ -332,24 +339,29 @@ impl WindowStateManager {
                             width: 1000,
                             height: 720,
                             maximized: false,
+                            fullscreen: false,
                         });
                     }
                     manager.dirty.store(true, Ordering::Release);
-                } else if let Ok(true) = win.is_maximized() {
+                } else if is_max || is_full {
                     let mut guard = manager.data.lock().unwrap();
                     if let Some(geom) = guard.window.as_mut() {
-                        geom.maximized = true;
+                        geom.maximized = is_max;
+                        geom.fullscreen = is_full;
                     }
                     manager.dirty.store(true, Ordering::Release);
                 }
             }
             WindowEvent::Resized(size) => {
-                if let Ok(false) = win.is_maximized() {
+                let is_max = win.is_maximized().unwrap_or(false);
+                let is_full = win.is_fullscreen().unwrap_or(false);
+                if !is_max && !is_full {
                     let mut guard = manager.data.lock().unwrap();
                     if let Some(geom) = guard.window.as_mut() {
                         geom.width = size.width;
                         geom.height = size.height;
                         geom.maximized = false;
+                        geom.fullscreen = false;
                     } else {
                         guard.window = Some(WindowGeometry {
                             x: 100,
@@ -357,13 +369,15 @@ impl WindowStateManager {
                             width: size.width,
                             height: size.height,
                             maximized: false,
+                            fullscreen: false,
                         });
                     }
                     manager.dirty.store(true, Ordering::Release);
-                } else if let Ok(true) = win.is_maximized() {
+                } else if is_max || is_full {
                     let mut guard = manager.data.lock().unwrap();
                     if let Some(geom) = guard.window.as_mut() {
-                        geom.maximized = true;
+                        geom.maximized = is_max;
+                        geom.fullscreen = is_full;
                     }
                     manager.dirty.store(true, Ordering::Release);
                 }
@@ -390,18 +404,21 @@ impl WindowStateManager {
     /// Sincroniza o estado atual diretamente da janela antes de fechar.
     pub fn sync_from_window(&self, window: &WebviewWindow) {
         let is_max = window.is_maximized().unwrap_or(false);
+        let is_full = window.is_fullscreen().unwrap_or(false);
         let mut guard = self.data.lock().unwrap();
 
-        if is_max {
+        if is_max || is_full {
             if let Some(geom) = guard.window.as_mut() {
-                geom.maximized = true;
+                geom.maximized = is_max;
+                geom.fullscreen = is_full;
             } else if let (Ok(pos), Ok(size)) = (window.outer_position(), window.outer_size()) {
                 guard.window = Some(WindowGeometry {
                     x: pos.x,
                     y: pos.y,
                     width: size.width,
                     height: size.height,
-                    maximized: true,
+                    maximized: is_max,
+                    fullscreen: is_full,
                 });
             }
         } else if let (Ok(pos), Ok(size)) = (window.outer_position(), window.outer_size()) {
@@ -411,6 +428,7 @@ impl WindowStateManager {
                 width: size.width,
                 height: size.height,
                 maximized: false,
+                fullscreen: false,
             });
         }
     }

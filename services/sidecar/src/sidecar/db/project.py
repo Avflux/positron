@@ -49,6 +49,24 @@ class ProjectDatabase:
     def exists(self) -> bool:
         return self.path.is_file()
 
+    def create_from_schema(self) -> None:
+        """Cria o arquivo do banco de dados e aplica o schema.sql oficial."""
+        schema_path = Path(__file__).parent / "schema.sql"
+        try:
+            schema_sql = schema_path.read_text(encoding="utf-8")
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            connection = sqlite3.connect(
+                self.path,
+                timeout=BUSY_TIMEOUT_MS / 1000,
+            )
+            # WAL para manter o padrão de performance
+            connection.execute("PRAGMA journal_mode=WAL")
+            connection.executescript(schema_sql)
+            connection.commit()
+            connection.close()
+        except Exception as exc:
+            raise DatabaseError(f"falha ao criar banco de dados novo: {exc}") from exc
+
     async def tables(self) -> list[str]:
         rows = await self.query(
             "SELECT name FROM sqlite_master "
