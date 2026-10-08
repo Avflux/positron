@@ -1,48 +1,24 @@
-import { useEffect, useState, type FormEvent } from "react";
 import type { useProjeto } from "@/hooks/useProjeto";
-import { getLastPath } from "@/lib/bridge";
 
 type Projeto = ReturnType<typeof useProjeto>;
 
 export function ProjetoPanel({ projeto }: { projeto: Projeto }) {
-  const [caminho, setCaminho] = useState("");
-
-  useEffect(() => {
-    void getLastPath().then((ultimo) => {
-      if (ultimo) {
-        setCaminho((atual) => (atual === "" ? ultimo : atual));
-      }
-    });
-  }, []);
-
-  const onSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    const alvo = caminho.trim();
-    if (alvo) void projeto.abrir(alvo);
-  };
+  if (!projeto.caminho && !projeto.erro) {
+    return (
+      <div className="panel" style={{ textAlign: "center", padding: "40px 20px" }}>
+        <h2 style={{ marginBottom: "8px" }}>Nenhum projeto carregado</h2>
+        <p className="muted" style={{ margin: 0 }}>Vá em Configurações para carregar o banco de dados.</p>
+      </div>
+    );
+  }
 
   return (
     <section className="panel">
-      <h2>Projeto</h2>
-
-      <form className="open-row" onSubmit={onSubmit}>
-        <input
-          value={caminho}
-          onChange={(e) => setCaminho(e.target.value)}
-          placeholder="C:\caminho\para\projeto.db"
-          aria-label="Caminho do banco do projeto"
-          spellCheck={false}
-        />
-        <button type="submit" disabled={projeto.carregando || caminho.trim() === ""}>
-          {projeto.carregando ? "abrindo…" : "abrir"}
-        </button>
-      </form>
-
-      {projeto.erro && <p className="error">{projeto.erro}</p>}
+      <h2>Painéis do Projeto</h2>
 
       {projeto.caminho && (
         <p className="muted">
-          {projeto.caminho} · {projeto.tabelas.length} tabelas · {projeto.paineis.length} painéis
+          {projeto.caminho} • {projeto.tabelas.length} tabelas • {projeto.paineis.length} painéis
         </p>
       )}
 
