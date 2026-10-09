@@ -82,8 +82,8 @@ def make_project_db(target: Path) -> Path:
             VALUES (100, 'R0', 1, 7, 'FUSIVEL', 'T', '1'),
                    (101, 'R0', 1, 7, 'FUSIVEL', 'T', '2');
 
-        INSERT INTO Bornes4F(Indice, Revisao, DWG, Painel, IndexRegua, Regua, Borne, Ordem, Pagina, bReserva)
-            VALUES (110, 'R0', 1, 503, 5, 'R1', '11', 1.0, '12', 0);
+        INSERT INTO Bornes4F(Indice, Revisao, Painel, IndexRegua, Regua, Borne, Ordem, bReserva)
+            VALUES (110, 'R0', 503, 5, 'R1', '11', 1.0, 0);
 
         INSERT INTO Veias4(Indice, Revisao, Tag, Num_Veia, Uso)
             VALUES (95, 'R0', 'C-100', 1, 0);
