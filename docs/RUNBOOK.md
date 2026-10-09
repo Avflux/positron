@@ -656,6 +656,57 @@ linha de base confere (238 = 107 + 119 + 10 + 2)
 IDEMPOTENTE: mesmo conteudo (ignorando Data)
 ```
 
+### A/B de conteúdo das tabelas (`scripts/cad-ab-tabelas.ps1` + `.py`)
+
+O A/B de conteúdo virou ferramenta: um script exporta as tabelas do produto e o outro
+compara com o banco do recoder, com os dois lados passando pela **mesma normalização**.
+
+```powershell
+# lado do produto (Access, numa copia) -> um CSV por tabela
+powershell -ExecutionPolicy Bypass -File scripts/cad-ab-tabelas.ps1 `
+  -Dwg 63 -Revisao 3 -SaidaDir "$env:TEMP\positron-ab"
+
+# comparacao (o filtro do recoder vem por parametro: o rotulo da revisao e outro)
+& services\sidecar\.venv\Scripts\python.exe scripts\cad-ab-tabelas.py `
+  "$env:TEMP\positron-projeto.db" "$env:TEMP\positron-ab\mdb-..." --nosso-dwg 63 --nosso-revisao R0
+```
+
+**Normalizações obrigatórias** (cada uma já gerou falso positivo): `None`/vazio → `''`;
+`True`/`False` do Access → o **mesmo formato numérico** (`0.0000`) do SQLite, não `0`;
+números com 4 casas (`Ordem 1.0` × `1`); e o texto do Access desfeito da dupla
+codificação (`s.encode('cp1252').decode('utf-8')`). Sem a normalização de bool, toda
+linha com coluna booleana aparecia diferente.
+
+Resultado no `Funcional.dwg` (revisão `3` do produto contra `R0` do recoder):
+
+| Tabela | Recoder | Produto | Situação |
+|---|---|---|---|
+| `Portas4F` | 265 | 265 | **idêntico** |
+| `Contatos4F` | 70 | 70 | **idêntico** |
+| `Circuitos4F` | 11 | 11 | **idêntico** |
+| `Aplicacao4F` | 15 | 15 | **idêntico** |
+| `Fiacao` | 494 | 494 | difere — ver abaixo |
+| `Bornes4F` | 168 | 155 | difere pela cópia do desenho (régua `ENTR 1` × `52-X1`, bornes da página 1000) |
+| `Dispositivos4F` | 83 | 83 | difere em 42 linhas — `BlocoTopografico`/`BlocoLayout` vazios no recoder |
+
+**Duas diferenças da `Fiacao` que não são da cópia do desenho** (as linhas amostradas
+mostram as duas colunas isoladas):
+
+```
+recoder: ...|FU3|FU3|NA|A|...        produto: ...|FU3||NA|A|...
+recoder: ...|R6|R6|40|B|...|0.00|    produto: ...|R6||40|B|...|1.00|
+```
+
+1. **`NRegua`**: o recoder preenche o nome da régua no ponto que casou com borne; o
+   produto deixa **vazio** — das 38.221 linhas de `Fiacao` do banco do produto, só
+   **14** têm `NRegua` preenchida. Falta descobrir o caso das 14;
+2. **`TipoBorne`**: em `R6`/borne `40` o produto grava `1` e o recoder `0` (o tipo do
+   borne — simples/duplo). Indica índice de XData ou origem do valor diferentes.
+
+E o `Dispositivos4F` tem os nomes de bloco no desenho (`DIODOS_SKR.dwg`/`PONTE SKR.dwg`)
+que o produto grava nas duas colunas e o recoder deixa em branco — o dado existe, falta
+levá-lo até a tabela.
+
 ### Comparação de **conteúdo** (não só de contagem) — `Portas4I`/`Bornes4I`
 
 Contagem igual não é conteúdo igual, e a rodada 40 provou isso: `Bornes4I` tinha 216
