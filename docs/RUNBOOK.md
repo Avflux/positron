@@ -358,6 +358,25 @@ ela foi ignorada em favor da política do projeto; isso é esperado. O bootstrap
 remove a variável de ambiente herdada do npm para que ela não seja interpretada
 como uma opção de linha de comando proibida nas instalações locais.
 
+### XData num `INSERT` pelo LISP não funciona no ZWCAD 2026
+
+Tentar carimbar XData num bloco (`INSERT`) pelo LISP falha com
+`incorrect type - nil` — nas três formas testadas: `entmake` com o grupo `-3` na
+criação, `entmakex` idem, e `entmod` (com o `entget` inteiro ou com a lista
+mínima `-1`/`0`/`8`/`10` + `-3`), tanto num INSERT criado por `entmakex` quanto
+por `_.INSERT`. O mesmo `entmod` com `-3` funciona em `LWPOLYLINE` (é assim que a
+fixture monta `CONEXAO`/`INTERLIGACAO`). Ou seja: a fixture com blocos não sai por
+LISP.
+
+Alternativas para as fases 7–9 num CAD (nenhuma feita ainda):
+- montar o DWG a partir da **biblioteca de simbologia** do produto — há DWGs com
+  XData real em `..\Elet\libs\Simbologia` (`H_P_B1_VCC++.dwg` tem `CONEXAO`;
+  vários `H_B_*`/`H_P_*` têm `Dispositivo`) —, inserindo e explodindo o símbolo
+  para trazer o bloco com XData ao ModelSpace;
+- **abrir um DWG de símbolo** como desenho ativo e rodar o plugin sobre ele;
+- carimbar pelo próprio plugin (um comando de teste), o que enfraquece o E2E
+  (testaria o nosso gravador contra o nosso leitor).
+
 ### Editar os scripts `.ps1`
 
 `scripts/build-sidecar.ps1` tem acentos e o PowerShell 5.1 **lê arquivo sem BOM
@@ -403,7 +422,9 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - **Blocos dentro do CAD** — a fixture do `cad:e2e` só tem polylines com XData; não
   tem **bornes, máscaras nem contatos**, então as fases 7–9 (casamento com o
   borne, `Portas4F`/`Bornes4F`/`Contatos4F`, `Jumper4`) seguem exercitadas só por
-  teste unitário, não dentro do CAD.
+  teste unitário, não dentro do CAD. **Obstáculo medido** (ver a armadilha do
+  INSERT abaixo): carimbar XData num `INSERT` pelo LISP não funciona neste ZWCAD,
+  então a fixture com blocos tem que vir de um DWG pronto.
 - **AutoCAD** — o AutoCAD 2020 dos ensaios de `FIA`/`INT` (positivos) não está
   instalado aqui; o alvo AutoCAD builda contra o stub (`Positron.CadStub`) e não
   carrega por `NETLOAD`.
