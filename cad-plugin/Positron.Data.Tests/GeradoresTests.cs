@@ -90,6 +90,28 @@ namespace Positron.Data.Tests
             Assert.Equal(string.Empty, linhas[1].Handle);
             Assert.Equal("14", linhas[1].Borne);
             Assert.True(linhas[1].BReserva);
+            // A página da reserva vem da tabela de mensagens do original
+            // (`mMensagem[1, 1050]`), e o dado do produto mostra `RESERVA`.
+            Assert.Equal("RESERVA", linhas[1].Pagina);
+        }
+
+        [Fact]
+        public void Reserva_de_tipo_desconhecido_nao_inventa_pagina()
+        {
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            Dictionary<int, IReadOnlyList<BorneReserva>> reservas = new Dictionary<int, IReadOnlyList<BorneReserva>>
+            {
+                [5] = new List<BorneReserva>
+                {
+                    new BorneReserva { Numero = "15", Ordem = 5.0, Tipo = 2, Reserva = true },
+                },
+            };
+
+            List<Borne4F> linhas = Bornes4FGerador.Gerar(new List<PontoBorne>(), reguas, new List<int> { 3 }, reservas);
+
+            // `Tipo == 2` usa a mensagem 1890 do original, cujo texto nao esta no
+            // reverso nem no banco (nao ha reserva tipo 2 em lugar nenhum).
+            Assert.Equal(string.Empty, Assert.Single(linhas).Pagina);
         }
 
         [Fact]

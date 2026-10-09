@@ -698,6 +698,15 @@ namespace Positron.Plugin
 
             foreach (Bornes4FRow borne in linhasBornes)
             {
+                // A reserva não tem página de desenho: o original grava o rótulo
+                // "RESERVA" (mensagem 1050) na coluna. Comparar esse rótulo com a
+                // `LayerTable` acusaria página ausente em toda revisão — a linha de base
+                // do VERIF pegou exatamente isso (rodada 40).
+                if (borne.bReserva)
+                {
+                    continue;
+                }
+
                 paginasGravadas.Add(borne.Pagina);
             }
 

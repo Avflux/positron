@@ -656,6 +656,62 @@ linha de base confere (238 = 107 + 119 + 10 + 2)
 IDEMPOTENTE: mesmo conteudo (ignorando Data)
 ```
 
+### Comparação de **conteúdo** (não só de contagem) — `Portas4I`/`Bornes4I`
+
+Contagem igual não é conteúdo igual, e a rodada 40 provou isso: `Bornes4I` tinha 216
+linhas dos dois lados e **17 linhas diferentes**. A receita vale para qualquer tabela:
+exportar as colunas escolhidas dos dois lados, normalizar e comparar os conjuntos.
+
+```powershell
+# lado do recoder (Python, UTF-8)
+#   SELECT Regua, Borne, Pagina, bReserva FROM Bornes4I
+# lado do produto (PowerShell + ODBC, gravando com [Text.Encoding]::UTF8)
+#   SELECT ... FROM Bornes4I WHERE DWG=63 AND Revisao='00A-1'
+# e a comparacao em Python, com duas normalizacoes obrigatorias:
+#   * Bool: o Access devolve True/False, o SQLite devolve 1/0;
+#   * Texto: o driver ODBC entrega os bytes UTF-8 lidos como CP1252
+#     (BARRA FORÇA chega como BARRA FORÃ‡A) -> s.encode('cp1252').decode('utf-8').
+```
+
+Uma armadilha de harness que custou tempo: `Get-Content` sem `-Encoding` le um arquivo
+UTF-8 como CP1252, o que reintroduz o mojibake no lado que estava certo. Leia os dois
+lados com a mesma codificacao explicita (ou faca a comparacao inteira numa linguagem).
+
+Resultado depois das normalizacoes:
+
+| Tabela | recoder | produto | conteúdo |
+|---|---|---|---|
+| `Portas4I` | 265 | 265 | **hash igual** (`b8dc1259…`) |
+| `Bornes4I` | 216 | 216 | **hash igual** (`f03c69df…`) |
+| `Interligacao4` | 20 | 20 | **hash igual** (`ddf44e52…`) |
+
+Ou seja: a projecao do **`INT` inteira** e igual ao produto, linha a linha. As tabelas do
+`FIA` estao conferidas por **contagem** (e batem); a comparacao de conteudo delas e o
+proximo passo natural.
+
+### A pagina da reserva: o bug que so o conteudo pegaria
+
+As 17 linhas diferentes eram todas de **reserva**, e a diferenca era uma coluna:
+`Pagina`. O produto grava o rotulo **`RESERVA`** (2.645 linhas de reserva no banco, nas
+duas tabelas, todas com `Tipo` 0 ou 1); o recoder gravava vazio.
+
+A origem esta no `DicionarioBorne.LeDicBornesReserva` (linhas 253-261 do reverso): a
+pagina da reserva vem da **tabela de mensagens** do produto —
+`mMensagem[1, 1050]` para `tipo` 0/1 e `mMensagem[1, 1890]` para `tipo` 2, sempre em
+maiusculas. Nenhum literal `"RESERVA"` existe no codigo descompilado (por isso a busca
+por string nao achava nada) e a tabela de mensagens **nao** esta no `RCD.mdb`: o texto
+so aparece no dado. `Tipo == 2` ficou vazio de proposito — nao ha reserva tipo 2 em
+lugar nenhum no banco, entao o texto da mensagem 1890 nao e recuperavel; inventar seria
+pior que faltar.
+
+**E a linha de base do `VERIF` pegou o efeito colateral.** Com a pagina `RESERVA`
+gravada, a regra `PaginaAusente` passou a acusar o rotulo como pagina fora da
+`LayerTable`: o total foi de 238 para 239 (`PaginaAusente: 1`), o script acusou `NOVO` e
+saiu 1. Correcao: a regra ignora as linhas de reserva (a reserva nao tem pagina de
+desenho). Total de volta em **238**, linha de base conferindo — o ciclo completo
+funcionando como projetado: o A/B acha a diferenca de dado, a linha de base protege as
+regras de verificacao.
+
 ### Linha de base do `VERIF` (regressão do conjunto de regras)
 
 O conjunto de regras do `VERIF` cresceu (são **seis** checagens do desenho além das de

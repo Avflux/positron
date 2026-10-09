@@ -116,7 +116,15 @@ namespace Positron.Data.Modelos
                             Borne = reserva.Numero,
                             Ordem = reserva.Ordem,
                             Tipo = reserva.Tipo,
-                            Pagina = string.Empty,
+                            // A página da reserva vem da **tabela de mensagens** do original
+                            // (`DicionarioBorne.LeDicBornesReserva`: `mMensagem[1, 1050]` para
+                            // `tipo` 0/1 e `mMensagem[1, 1890]` para `tipo` 2, em maiúsculas).
+                            // O dado do produto tem `Pagina = "RESERVA"` nas 2.645 reservas das
+                            // duas tabelas, todas com `Tipo` 0 ou 1 — é esse o caso implementado.
+                            // `Tipo == 2` usa a mensagem 1890, cujo texto não está no reverso nem
+                            // no banco (não há reserva tipo 2 em lugar nenhum): fica vazio a
+                            // combinar, em vez de inventar o texto.
+                            Pagina = reserva.Tipo == 0 || reserva.Tipo == 1 ? "RESERVA" : string.Empty,
                             BReserva = reserva.Reserva,
                             Lm = reserva.Lm,
                             Orientacao = NormalizarOrientacao(reserva.Orientacao),
