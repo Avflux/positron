@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Positron.Contract;
+using Positron.Data.Bornes;
 
 namespace Positron.Data
 {
@@ -10,6 +11,9 @@ namespace Positron.Data
         Fiacao,
         Interligacao,
         Modelos,
+
+        /// <summary>Lido do próprio desenho, não das tabelas gravadas.</summary>
+        Desenho,
     }
 
     /// <summary>Categoria do problema (ver <see cref="VerificadorProjeto"/> para as regras).</summary>
@@ -41,6 +45,12 @@ namespace Positron.Data
 
         /// <summary>Modelo com borne ausente (<c>Portas4F</c>/<c>Bornes4F</c>).</summary>
         SemBorne,
+
+        /// <summary>Cabo referenciado no desenho que não existe no catálogo (<c>Cabos</c>).</summary>
+        CaboSemCatalogo,
+
+        /// <summary>Borne do desenho cuja régua não resolve no dicionário.</summary>
+        BorneSemRegua,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -314,6 +324,97 @@ namespace Positron.Data
                         vistos[chave] = true;
                     }
                 }
+            }
+
+            return problemas;
+        }
+
+        // --------------------------------------------------------------- Desenho
+        //
+        // O verifier original também pinta erros lidos do DESENHO (o que não está
+        // nas tabelas gravadas). Estas duas regras são as que dão para checar sem
+        // geometria: a régua do borne e o cabo referenciado fora do catálogo.
+
+        /// <summary>
+        /// Cabo referenciado no desenho/projeção que não existe no catálogo
+        /// (<c>Cabos</c>) — o <c>IndefineCabosNaoExistentes</c> do original. A
+        /// comparação de tags ignora caixa e aponta cada tag uma vez.
+        /// </summary>
+        public static List<Problema> VerificarCabosSemCatalogo(
+            IEnumerable<string> cabosUsados,
+            IEnumerable<string> catalogo)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (cabosUsados == null)
+            {
+                return problemas;
+            }
+
+            HashSet<string> conhecidos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (catalogo != null)
+            {
+                foreach (string tag in catalogo)
+                {
+                    if (!string.IsNullOrWhiteSpace(tag))
+                    {
+                        conhecidos.Add(tag.Trim());
+                    }
+                }
+            }
+
+            HashSet<string> apontados = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string tag in cabosUsados)
+            {
+                if (string.IsNullOrWhiteSpace(tag))
+                {
+                    continue;
+                }
+
+                string limpo = tag.Trim();
+                if (conhecidos.Contains(limpo) || !apontados.Add(limpo))
+                {
+                    continue;
+                }
+
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.CaboSemCatalogo, "Cabos", limpo,
+                    "cabo referenciado não existe no catálogo (Cabos)"));
+            }
+
+            return problemas;
+        }
+
+        /// <summary>
+        /// Borne do desenho cuja régua não resolve no dicionário
+        /// (<c>IndiceRegua</c> fora de <c>REGUAS/MODELOS2</c>) — o original não
+        /// projeta esse borne e a tela de verificação o aponta.
+        /// </summary>
+        public static List<Problema> VerificarBornesSemRegua(
+            IEnumerable<PontoBorne> bornes,
+            ReguasModelo reguas)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (bornes == null)
+            {
+                return problemas;
+            }
+
+            foreach (PontoBorne borne in bornes)
+            {
+                if (borne == null)
+                {
+                    continue;
+                }
+
+                if (reguas != null && reguas.Buscar(borne.IndiceRegua) != null)
+                {
+                    continue;
+                }
+
+                string identificador = string.IsNullOrWhiteSpace(borne.Handle)
+                    ? "régua #" + borne.IndiceRegua
+                    : borne.Handle;
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.BorneSemRegua, "Bornes", identificador,
+                    "borne sem régua no dicionário (índice " + borne.IndiceRegua + ")"));
             }
 
             return problemas;

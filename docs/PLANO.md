@@ -139,7 +139,7 @@ escopo estrutural do recoder.
   desenho. Hoje só o caso `0..2` (layer cru) é projetado, o mesmo do `Bornes4F` e
   do `Interligacao4`.
 
-### Etapa 6 — `VERIF` lendo o desenho · P1
+### Etapa 6 — `VERIF` lendo o desenho · P1 · **parcial**
 
 - **O que:** o verificador original (`frmVerificadorProjetoFiacao`/
   `...Interligacao`, ~3 mil linhas) também pinta erros do **desenho**
@@ -148,6 +148,12 @@ escopo estrutural do recoder.
 - **Pronto quando:** o `VERIF` reporta ao menos os problemas de desenho de maior
   valor (cabo sem catálogo, borne sem régua, página ausente) com teste cobrindo
   a regra pura.
+- **Estado:** duas das três regras entraram — `VerificarCabosSemCatalogo`
+  (`Interligacao4.Tag_Cabo` fora do catálogo `Cabos`) e `VerificarBornesSemRegua`
+  (`IndiceRegua` que não resolve em `REGUAS/MODELOS2`), na área nova
+  `AreaVerificacao.Desenho`; o `VERIF` lê o desenho (réguas/bornes) e o catálogo,
+  e o resumo separa "desenho". 4 testes em `VerificadorDesenhoTests`. Falta a
+  regra de **página ausente**, que depende da matriz de páginas.
 
 ### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (5 de 10 feitas)**
 
@@ -233,7 +239,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 7a — `Dispositivos4F` | 2026-10-09 | ed7222a | gerador puro + gravação idempotente + `FIA` gerando; `plugin:test` **110** aprovados |
 | 7b — `Circuitos4F` | 2026-10-09 | 1afbd7a | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados |
 | 7c — `Aplicacao4F` | 2026-10-09 | 8591b9c | leitor do dicionário `APLICACAO/TIPOS` + gerador puro + gravação idempotente + `FIA` gerando (`FiRUTW6Q6W`); `plugin:test` **118** aprovados |
-| 7d — `Portas4I`/`Bornes4I` | 2026-10-09 | (este commit) | geradores `4I` (reuso com filtro nulo) + gravação idempotente + `INT` gerando (`wrlU180vl0`/`T6NUlT3ghH`); `plugin:test` **122** aprovados; restam `Jumper4`, `Aranha4`, `Atributos`, `Exportados` |
+| 7d — `Portas4I`/`Bornes4I` | 2026-10-09 | bf46e7d | geradores `4I` (reuso com filtro nulo) + gravação idempotente + `INT` gerando (`wrlU180vl0`/`T6NUlT3ghH`); `plugin:test` **122** aprovados; restam `Jumper4`, `Aranha4`, `Atributos`, `Exportados` |
+| 6 — `VERIF` no desenho (parcial) | 2026-10-09 | (este commit) | área `Desenho` + `VerificarCabosSemCatalogo`/`VerificarBornesSemRegua` ligadas ao `VERIF`; `plugin:test` **126** aprovados; falta a regra de página ausente |
 | 1 — Idempotência da projeção | 2026-10-09 | cbadec5 | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
 
 ## 6. Riscos e armadilhas

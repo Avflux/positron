@@ -274,9 +274,29 @@ namespace Positron.Plugin
                 List<Problema> problemas = VerificadorProjeto.Verificar(
                     fiacao, interligacao, portas, bornes, contatos);
 
+                // O verifier original também lê o DESENHO: a régua de cada borne e
+                // o cabo referenciado que não existe no catálogo.
+                ReguasModelo reguas = ReguasDoDesenho.Ler();
+                problemas.AddRange(VerificadorProjeto.VerificarBornesSemRegua(BornesDoDesenho.Ler(reguas), reguas));
+
+                List<string> cabosUsados = new List<string>();
+                foreach (Interligacao4Row trecho in interligacao)
+                {
+                    cabosUsados.Add(trecho.Tag_Cabo);
+                }
+
+                List<string> catalogo = new List<string>();
+                foreach (CabosRow cabo in store.LerCabos())
+                {
+                    catalogo.Add(cabo.Tag);
+                }
+
+                problemas.AddRange(VerificadorProjeto.VerificarCabosSemCatalogo(cabosUsados, catalogo));
+
                 int porFiacao = 0;
                 int porInterligacao = 0;
                 int porModelos = 0;
+                int porDesenho = 0;
                 foreach (Problema problema in problemas)
                 {
                     switch (problema.Area)
@@ -290,6 +310,9 @@ namespace Positron.Plugin
                         case AreaVerificacao.Modelos:
                             porModelos++;
                             break;
+                        case AreaVerificacao.Desenho:
+                            porDesenho++;
+                            break;
                     }
                 }
 
@@ -297,7 +320,8 @@ namespace Positron.Plugin
                     + portas.Count + " porta(s), " + bornes.Count + " borne(s), " + contatos.Count
                     + " contato(s) na revisão.");
                 Plugin.Escrever("VERIF: " + problemas.Count + " problema(s) — fiação: " + porFiacao
-                    + "; interligação: " + porInterligacao + "; modelos: " + porModelos + ".");
+                    + "; interligação: " + porInterligacao + "; modelos: " + porModelos
+                    + "; desenho: " + porDesenho + ".");
             }
             catch (System.Exception erro)
             {

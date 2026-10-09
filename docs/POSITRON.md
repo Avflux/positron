@@ -203,7 +203,7 @@ recorte mínimo:
 
 Implementados: `ELET`, `FIA`, `INT`, `SYNCD` e `VERIF` (sem tela ainda — ver
 `cad-plugin/README.md`). O `SYNCD` é a projeção em lote (fiação + interligação); o
-`VERIF` valida as tabelas **gravadas** — read-only, cobre a fiação, a interligação
+`VERIF` valida as tabelas **gravadas** e o **desenho** — read-only, cobre a fiação, a interligação
 e os modelos (`Portas4F`/`Bornes4F`/`Contatos4F`).
 
 Os nomes vêm do `COMANDOS.txt` do reverso — evitamos inventar comandos novos para
@@ -475,11 +475,14 @@ no `RUNBOOK.md`.
 
 1. **UI WinForms** do plugin (as telas `frmCompilar*`), hoje substituídas por
    comandos que leem variáveis de ambiente.
-2. **`VERIF` no desenho:** as telas originais (`frmVerificadorProjetoFiacao`/
-   `frmVerificadorProjetoInterligacao`, ~3 mil linhas) também pinta erros lidos do
-   **desenho** (geometria, páginas apagadas, cabos referenciados que não existem
-   no catálogo). Hoje o `VERIF` valida as tabelas gravadas (fiação, interligação
-   e modelos), mas não lê o desenho.
+2. **`VERIF` no desenho (parcial):** as telas originais
+   (`frmVerificadorProjetoFiacao`/`frmVerificadorProjetoInterligacao`, ~3 mil
+   linhas) também pintam erros lidos do **desenho**. O `VERIF` já valida as
+   tabelas gravadas **e** duas regras do desenho — o borne cuja régua não resolve
+   no dicionário e o cabo referenciado que não existe no catálogo
+   (`VerificarBornesSemRegua`/`VerificarCabosSemCatalogo`, área `Desenho`).
+   Falta o que depende de **geometria** e da matriz de páginas (páginas apagadas,
+   cruzamento de página).
 3. **Tabelas do contrato §3 ainda não projetadas:** o plugin grava `Fiacao`,
    `Interligacao4`, `Portas4F`, `Bornes4F`, `Contatos4F`, `Dispositivos4F`,
    `Circuitos4F`, `Aplicacao4F`, `Portas4I`, `Bornes4I`, `Cabos4` e `Veias4`.
@@ -506,7 +509,7 @@ no `RUNBOOK.md`.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 122 testes)
+npm run plugin:test       # xunit, net472 (hoje 126 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web
