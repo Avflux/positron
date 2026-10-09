@@ -31,7 +31,8 @@
     "plugin:build:autocad": "dotnet build cad-plugin/Positron.Plugin/Positron.Plugin.csproj -p:CadPlatform=AutoCAD",
     "plugin:build:all": "npm run plugin:build:zwcad && npm run plugin:build:autocad",
     "plugin:test": "dotnet test cad-plugin/Positron.Data.Tests/Positron.Data.Tests.csproj",
-    "cad:smoke": "powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1"
+    "cad:smoke": "powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1",
+    "cad:e2e": "powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Fixture scripts/cad-fixture.lsp -Comandos ELET,FIA,INT,SYNCD,VERIF"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

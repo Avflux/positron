@@ -32,7 +32,10 @@ param(
     [int]      $TimeoutSegundos = 240,
     # Depois que o plugin carrega, os comandos do script (ELET/FIA/...) ainda
     # estao rodando: espera essa folga antes de encerrar o ZWCAD.
-    [int]      $EsperaSegundos = 15
+    [int]      $EsperaSegundos = 15,
+    # Script LISP carregado antes do NETLOAD: monta o desenho do teste
+    # (`scripts/cad-fixture.lsp`). Sem ele o `Drawing1` fica vazio.
+    [string]   $Fixture
 )
 
 $ErrorActionPreference = "Stop"
@@ -84,6 +87,12 @@ $linhas = @(
     # caminho da DLL cai numa linha propria dentro da string do LISP.
     ('(vl-cmdf "_.NETLOAD" "' + ($dll -replace '\\', '/') + '")')
 )
+if (-not [string]::IsNullOrWhiteSpace($Fixture)) {
+    $fixtureFwd = [System.IO.Path]::GetFullPath($Fixture) -replace '\\', '/'
+    # Parenteses de novo: sem eles a virgula do @() quebra o `+` (ver acima).
+    $linhas = @($linhas[0], $linhas[1], ('(load "' + $fixtureFwd + '")')) + $linhas[2..($linhas.Count - 1)]
+}
+
 $linhas += $Comandos
 $linhas += "QUIT"
 Set-Content -Path $scr -Value $linhas -Encoding ASCII

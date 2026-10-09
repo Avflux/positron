@@ -270,8 +270,8 @@ npm run protocol:gen   # gate: falha se os tipos gerados estiverem velhos
 | 2 | Sidecar lê SQLite (métodos do §4) | `projeto_listar_paineis` responde do `.db` real | feito |
 | 3 | UI do app lista painéis/veias/fiação | navegável, typecheck limpo | feito |
 | 4 | Plugin compila e registra comandos | `ELET` e `SYNCD` rodando dentro do ZWCAD | **feito** |
-| 5 | Fiação: XData → `Fiacao` | fios no desenho aparecem no app | parcial |
-| 6 | Interligação: XData → `Interligacao4` | trecho de cabo fecha ponta a ponta | parcial |
+| 5 | Fiação: XData → `Fiacao` | fios no desenho aparecem no app | **feito** |
+| 6 | Interligação: XData → `Interligacao4` | trecho de cabo fecha ponta a ponta | **feito** |
 | 7 | Bornes/terminais: desenho → colunas deferidas | terminal/régua da fiação vêm do desenho | parcial |
 | 8 | Modelos de régua/máscara → `Portas4F` e `Bornes4F` | portas e bornes gerados dos modelos do desenho | parcial |
 | 9 | Modelos de contato → `Contatos4F` | contatos e auxiliares gerados dos modelos do desenho | parcial |
@@ -482,8 +482,13 @@ reler o repositório inteiro.
 ZWCAD 2026 e os comandos respondem — `npm run cad:smoke`, ver `RUNBOOK.md`); as
 fases 5–9 seguem **parciais** (a tabela do §6 diz o que falta em cada uma). O que
 não foi exercitado é um **desenho funcional de verdade** (o smoke roda num
-`Drawing1` vazio). Os ensaios de `FIA`/`INT` no AutoCAD 2020 foram positivos e
-estão no `RUNBOOK.md`.
+`Drawing1` vazio). O laço das fases **5 e 6** está fechado com dados reais: o `npm run cad:e2e` monta
+um desenho funcional mínimo (`scripts/cad-fixture.lsp`, duas `CONEXAO` e uma
+`INTERLIGACAO`) dentro do ZWCAD 2026, roda `FIA`/`INT`/`SYNCD`/`VERIF` e o sidecar
+lê de volta o mesmo conteúdo (`Fiacao` com `Pagina`/`Secao`/`Cor`, `Circuitos4F`
+com `C1`/`C2`, `Interligacao4` com `Painel1`/`Painel2`) — e o `SYNCD` repetido
+**não duplica** linhas, que é a idempotência provada no CAD. Os ensaios de
+`FIA`/`INT` no AutoCAD 2020 seguem no `RUNBOOK.md`.
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 

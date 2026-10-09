@@ -157,6 +157,34 @@ DLL contra a API **real**; o alvo AutoCAD continua no stub.
 5. **Confira pelo leitor do app**, não por SQL cru (mesma receita do item 4 do
    AutoCAD abaixo).
 
+### E2E com dados (`npm run cad:e2e`)
+
+O smoke roda num `Drawing1` vazio, então os comandos só provam que carregam. Para
+exercitar o caminho de dados, `scripts/cad-fixture.lsp` monta um desenho funcional
+mínimo dentro do próprio ZWCAD — duas `LWPOLYLINE` com XData `CONEXAO` e uma com
+`INTERLIGACAO` — e o `cad:e2e` roda `ELET`/`FIA`/`INT`/`SYNCD`/`VERIF` sobre ele:
+
+```bash
+npm run cad:e2e
+```
+
+Log esperado (o `SYNCD` repete `FIA`+`INT`, e a projeção substitui a revisão — as
+contagens **não** dobram, que é a prova da idempotência no CAD de verdade):
+
+```text
+FIA: 2 linha(s) em Fiacao (...); 2 circuito(s) em Circuitos4F; ...
+INT: 1 linha(s) gravada(s) em Interligacao4 (...)
+VERIF: 2 fio(s), 1 trecho(s), 0 porta(s), 0 borne(s), 0 contato(s) na revisão.
+VERIF: 5 problema(s) — fiação: 2; interligação: 2; modelos: 0; desenho: 1.
+```
+
+Confirme no banco com o leitor do app (o `.db` fica no `%TEMP%`, o script imprime o
+caminho): `fiacao_por_painel(1)` traz os dois fios (`Pagina` = layer `12`,
+`Secao`/`Cor` do XData), `circuitos_por_painel(1)` traz `C1`/`C2` e
+`interligacao_por_cabo('CABO1')` traz o trecho com `Painel1`/`Painel2`. A fixture
+não tem blocos: bornes, máscaras e contatos saem vazios — é o que falta para
+exercitar as fases 7–9 num CAD.
+
 ### AutoCAD (evidência histórica; alvo net472)
 
 Os ensaios de `FIA`/`INT` no `accoreconsole` do **AutoCAD 2020** foram feitos pelo
@@ -356,6 +384,10 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run typecheck` — `tsc --noEmit` limpo nos dois workspaces.
 - `npm run build` — gera `apps/web/dist` (51 módulos).
 - `ruff check .` no sidecar — limpo.
+- **Dentro do ZWCAD 2026 com dados** — `npm run cad:e2e` (fixture `scripts/cad-fixture.lsp`):
+  `FIA` grava 2 linhas em `Fiacao` + 2 circuitos, `INT` grava 1 `Interligacao4`, o
+  `SYNCD` repete e **não duplica** (idempotência no CAD) e o sidecar lê as mesmas
+  linhas do `.db`.
 - **Dentro do ZWCAD 2026** — `npm run cad:smoke` carrega a DLL por `NETLOAD` e roda
   os comandos num desenho vazio. O `POSITRON_LOG` traz `Positron carregado.`,
   a resposta do `ELET`, `FIA: nenhuma LWPOLYLINE com XData CONEXAO no desenho.`,
@@ -368,9 +400,10 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `tauri dev` / `tauri build` — o Rust **está** instalado (a lib do desktop
   compila com `cargo build`), mas a feature `vendored` do crate `zmq` ainda
   exigiria CMake + MSVC, que não estão no PATH.
-- **Um desenho funcional de verdade** (`Tipo == "E"`, com XData `CONEXAO`,
-  `INTERLIGACAO`, bornes, máscaras e contatos): o smoke roda num `Drawing1` vazio,
-  então cada comando responde `nenhuma LWPOLYLINE...` e o `VERIF` dá 0 problema.
+- **Blocos dentro do CAD** — a fixture do `cad:e2e` só tem polylines com XData; não
+  tem **bornes, máscaras nem contatos**, então as fases 7–9 (casamento com o
+  borne, `Portas4F`/`Bornes4F`/`Contatos4F`, `Jumper4`) seguem exercitadas só por
+  teste unitário, não dentro do CAD.
 - **AutoCAD** — o AutoCAD 2020 dos ensaios de `FIA`/`INT` (positivos) não está
   instalado aqui; o alvo AutoCAD builda contra o stub (`Positron.CadStub`) e não
   carrega por `NETLOAD`.
