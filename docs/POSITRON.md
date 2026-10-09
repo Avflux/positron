@@ -464,8 +464,10 @@ o subconjunto de colunas das tabelas I.
 - **UI do plugin:** WinForms nativo (escolhido) vs hospedar a UI React em
   WebView2. WinForms reduz partes móveis agora; WebView2 reusa componentes.
 - **Licenciamento:** o original tem Rockey/ElecKey/Nuvem e **credenciais Azure em
-  texto claro**. Não reconstruir isso por acidente — decidir o modelo antes da
-  fase 4.
+  texto claro**. Não reconstruir isso por acidente. **Encaixe pronto:**
+  `Positron.Data.Licenca.ServicoDeLicenca` (com `ILicenca` e o provedor de
+  desenvolvimento como padrão) e o gate `BloqueioDeLicenca` no início dos 6 comandos
+  — plugar o provedor é uma linha na carga do plugin, sem mexer em comando.
 - **Relatórios:** PDF via iTextSharp no original. O `Relatorios*` no app Python
   pode cobrir, mas a decisão não foi tomada.
 - **Multi-usuário:** SQLite hoje; SQL Server quando/se necessário (o caminho já
@@ -542,7 +544,7 @@ com `C1`/`C2`, `Interligacao4` com `Painel1`/`Painel2`) — e o `SYNCD` repetido
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 190 testes)
+npm run plugin:test       # xunit, net472 (hoje 194 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

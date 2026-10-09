@@ -312,18 +312,63 @@ escopo estrutural do recoder.
 
 ### Etapa 9 — Decisões abertas · P2 · **aberta — depende do dono do projeto**
 
-Três decisões que **não** são trabalho técnico pendente: cada uma muda o desenho da
-solução e precisa de escolha de quem conhece o produto. O que já está pronto em cada
-frente:
+Três decisões de produto. **O encaixe de cada uma já existe** — decidir não volta a
+bloquear implementação, e não decidir não trava nada (o recorte roda com SQLite, sem
+licença e com relatório em texto).
 
-| Decisão | O que já existe hoje | O que muda com cada escolha |
+#### 9a. Licenciamento — **encaixe pronto**, falta o provedor
+
+O reverso tinha **três** provedores, todos checados na carga do plugin
+(`myEletron`/`frmCarregaEL`): `cCheckLicRockey` (+`Rockey`, dongle), `cCheckElecKey`
+(+`wElecKey`) e `cCheckNuvem` (+`FormRegNuvem`/`cDadosSQLServerLicenca`). As
+credenciais do reverso **não** foram reconstruídas.
+
+**Feito (rodada 29):** `ServicoDeLicenca` + `ILicenca` (ponto de encaixe) com
+`LicencaDeDesenvolvimento` como padrão, e o gate `BloqueioDeLicenca` no início de
+`FIA`/`JMP`/`INT`/`VERIF`/`ELETREL` — 4 testes cobrem autorizado, negado, provedor
+que estoura e provedor nulo.
+
+**Falta:** escolher o provedor e plugá-lo (uma linha na carga do plugin), mais o teste
+com o hardware/serviço real. Esforço concentrado na carga do plugin.
+
+#### 9b. Relatórios — hoje só o de verificação
+
+O reverso tem **37 telas** `frmRelatorio_*`: Fiação (4 variantes), Interligação (5),
+Potenciais (5), Materiais (2), Veias (2), Jumpers (2), Plaquetas (2), Anilhas (2),
+Aranha, DI (4: ArqNet/Energisa MS/MT/SSE), Elektro, Copel, Eletrosul (2), GIGA,
+Siemens, Furnas, TAF, Diferencial, Distribuição de Potencial, Estatística de Fiação,
+Índice de Páginas e Revisão (2). Hoje o recoder entrega **um**: o de verificação, em
+texto (`ELETREL`).
+
+| Caminho | Custo | Onde brilha |
 |---|---|---|
-| **Licenciamento** (Rockey/ElecKey/Nuvem) | nada implementado; as credenciais Azure do reverso **não** foram reconstruídas (e não devem ser) | um provedor muda o ponto de entrada do plugin (`ELET`/`NETLOAD`) e adiciona um gate de licença por comando |
-| **Relatórios** (PDF/iTextSharp vs. app Python) | o relatório já sai em **texto** (`ELETREL`, `RelatorioCompilacao`), com ou sem tela; o app Python lê o `.db` pelo sidecar | PDF no plugin exige dependência .NET (iTextSharp); no app exige render no servidor — o conteúdo já está separado nos dois casos |
-| **Multi-usuário** (SQLite → SQL Server) | o `ProjectStore` isola o SQL; o `.db` é do sidecar/app, e o plugin é o único escritor das tabelas do diagrama | SQL Server muda a camada de acesso (e o `.db` deixa de ser arquivo único) — a regra "quem desenha, grava" continua valendo |
+| Texto/CSV pelo próprio recoder | baixo (já existe o modelo `RelatorioCompilacao`) | conferência e anexo rápido |
+| PDF no plugin (iTextSharp) | dependência .NET + layout por relatório | entrega ao cliente sem o app |
+| Render no app Python | sem dependência .NET; o app já lê as 13 tabelas | layout iterável, exportação e impressão |
 
-Enquanto não houver decisão, nada disso bloqueia as outras etapas: o recorte atual
-roda com SQLite, sem licença e com relatório em texto.
+**Recomendação:** começar pelos 4 de conteúdo tabular (Fiação, Interligação,
+Materiais, Veias) no app Python — a consulta já existe, o custo está no layout — e
+deixar o PDF como render final. Os relatórios por concessionária (DI/Elektro/Copel/
+Eletrosul/GIGA/Siemens) são variantes de layout sobre os mesmos dados.
+
+#### 9c. Multi-usuário — SQLite hoje, SQL Server como caminho do produto
+
+O reverso convivia com **os dois**: 13 classes `cDadosAccess*` (Access) **e**
+`cDadosSQLServer.cs`. No recoder, o `ProjectStore` (~1.400 linhas) isola o SQL num só
+lugar e o `.db` é do sidecar/app; o plugin é o único escritor das tabelas do diagrama.
+
+**O que mudaria:** fábrica de conexão, dialeto (`IDENTITY` vs `AUTOINCREMENT`, `BIT` vs
+`BOOL`, `DATETIME`), a chave `Indice` (hoje autoincremento por tabela) e a posse do
+banco (deixa de ser arquivo único). A regra **"quem desenha, grava"** e o contrato de
+20 métodos **não** mudam — é por isso que a decisão pode esperar.
+
+#### O que já está pronto nas três frentes
+
+| Frente | Encaixe |
+|---|---|
+| Licença | `ServicoDeLicenca`/`ILicenca` + gate em todos os comandos ✅ |
+| Relatório | `RelatorioCompilacao` (texto) + `ELETREL`/`ELETCMP` + 20 métodos de leitura no app |
+| Banco | `ProjectStore` com o SQL isolado; sidecar dono do `.db`; 31 tabelas em sincronia |
 
 ### Etapa 10 — Expor ao app as tabelas novas · P1 · **concluída**
 
@@ -431,6 +476,7 @@ aberto por **cópia no TEMP**).
 | 26 — A/B contra o banco do produto e correção dos circuitos | 2026-10-09 | 563c78f | o `RCD.mdb` (Access, gerado pelo original) abre por ODBC na cópia e permite comparar no mesmo desenho (`Funcional.dwg` = DWG **63**): `Fiacao` 494=494, `Portas4F` 265=265, `Dispositivos4F` 83=83, `Aplicacao4F` 15=15, `Circuitos4F` 11=**11** (era 7) e as **19 tabelas** batem coluna a coluna; confirma as regras `T`/`B` das portas e dos contatos repetidos; `Circuitos4FGerador` passa a receber as **conexões** (`ConexoesDoDesenho`), não os pontos — 1 teste novo, `plugin:test` **189** |
 | 27 — A/B: contatos e circuitos iguais ao produto | 2026-10-09 | a30ebb0 | `Contatos4F` fecha em **70 = 70** (o `DivideTerminais` do original acumula e dedupa contra a lista; nós concatenávamos duas listas novas) e `Circuitos4F` em **11 = 11**; `Terminais.Acrescentar` + 1 teste, `plugin:test` **190**; resta `Bornes4F` 155 vs 168 com o detalhe por régua documentado |
 | 28 — `Bornes4F` no A/B: cópia local ≠ a compilada | 2026-10-09 | 5b56b3b | investigação fecha sem mudança de código: os bornes extras estão todos na página **1000** e não aparecem em tabela nenhuma do produto (`Bornes4F` com `Pagina='1000'` = 0 linhas, handles ausentes até em `Fiacao`); as réguas 1/2 são `ENTR 1/2` no desenho e `52-X1/X2` no banco do produto em todas as revisões; o mesmo handle tem número de borne diferente. Conclusão: a cópia de `..\Elet\RCD` não é a que o produto compilou (o `DWG` do produto aponta para `J:\…`) |
+| 29 — encaixe de licença e proposta da Etapa 9 | 2026-10-09 | (este commit) | `ServicoDeLicenca`/`ILicenca` + `LicencaDeDesenvolvimento` e o gate nos 6 comandos (4 testes); levantamento do reverso para a Etapa 9: **3 provedores** de licença, **37 telas** `frmRelatorio_*` e **Access + SQL Server** no produto — proposta de cada caminho escrita no plano, com recomendação (licença: plugar provedor; relatórios: 4 tabulares no app Python; banco: SQL Server sem mudar o contrato); `plugin:test` **194** |
 
 ## 6. Riscos e armadilhas
 

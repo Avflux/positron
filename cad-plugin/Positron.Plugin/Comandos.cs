@@ -8,6 +8,7 @@ using Positron.Data.Configuracao;
 using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
 using Positron.Data.Layout;
+using Positron.Data.Licenca;
 using Positron.Data.Modelos;
 using Positron.Data.Relatorios;
 using Positron.Plugin.Bornes;
@@ -106,6 +107,12 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarFiacao()
         {
+            string bloqueio = BloqueioDeLicenca("FIA");
+            if (bloqueio != null)
+            {
+                return bloqueio;
+            }
+
             ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
@@ -217,6 +224,12 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarJumper()
         {
+            string bloqueio = BloqueioDeLicenca("JMP");
+            if (bloqueio != null)
+            {
+                return bloqueio;
+            }
+
             ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
@@ -297,6 +310,12 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarInterligacao()
         {
+            string bloqueio = BloqueioDeLicenca("INT");
+            if (bloqueio != null)
+            {
+                return bloqueio;
+            }
+
             ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
@@ -388,6 +407,13 @@ namespace Positron.Plugin
         [CommandMethod("VERIF")]
         public void Verif()
         {
+            string bloqueio = BloqueioDeLicenca("VERIF");
+            if (bloqueio != null)
+            {
+                Plugin.Escrever(bloqueio);
+                return;
+            }
+
             ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
@@ -481,6 +507,13 @@ namespace Positron.Plugin
         [CommandMethod("ELETREL")]
         public void EletRel()
         {
+            string bloqueio = BloqueioDeLicenca("ELETREL");
+            if (bloqueio != null)
+            {
+                Plugin.Escrever(bloqueio);
+                return;
+            }
+
             ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
@@ -907,6 +940,23 @@ namespace Positron.Plugin
                 PaginasDoDesenho.Ler(),
                 config.IncluirColuna,
                 config.SeparadorCruzamento);
+        }
+
+        /// <summary>
+        /// Gate de licença: devolve a mensagem de bloqueio, ou <c>null</c> quando
+        /// autorizado. O provedor é plugável (ver <c>ServicoDeLicenca</c>); o padrão
+        /// autoriza, então o recorte atual roda sem licença — a decisão de provedor
+        /// (Rockey/ElecKey/Nuvem) não muda nenhum comando.
+        /// </summary>
+        private static string BloqueioDeLicenca(string comando)
+        {
+            ResultadoLicenca licenca = ServicoDeLicenca.Verificar();
+            if (licenca.Autorizado)
+            {
+                return null;
+            }
+
+            return comando + ": comando bloqueado — " + (licenca.Mensagem ?? "licença não autorizada") + ".";
         }
 
         /// <summary>
