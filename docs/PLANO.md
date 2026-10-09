@@ -58,7 +58,7 @@ escopo estrutural do recoder.
 - **Pronto quando:** `docs/PLANO.md` existe, com as etapas e critérios.
 - **Commit:** `docs(plano): ...`
 
-### Etapa 1 — Idempotência da projeção · P0
+### Etapa 1 — Idempotência da projeção · P0 · **concluída**
 
 - **O que:** apagar as linhas da revisão (`DWG`+`Revisao`) antes de inserir em
   `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F`,
@@ -72,7 +72,7 @@ escopo estrutural do recoder.
   `cad-plugin/Positron.Data.Tests/*`, `docs/POSITRON.md` (fases 5–8),
   `docs/RUNBOOK.md` (remover o aviso de "nunca rode duas vezes").
 
-### Etapa 2 — Saneamento documental · P0
+### Etapa 2 — Saneamento documental · P0 · **concluída**
 
 - **O que:** corrigir o que está factualmente errado ou velho:
   - `POSITRON.md` §6 e §9: ZWCAD 2026 **está** instalado; o alvo ZWCAD builda
@@ -203,7 +203,7 @@ escopo estrutural do recoder.
   bornes do desenho com os gravados em `Fiacao` e acusa **193** de 199 no desenho
   real — investigação aberta (casamento restritivo demais ou bornes fora de fio?).
 
-### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (6 de 10 feitas)**
+### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (7 de 10 feitas)**
 
 - **Fora do recorte atual (verificado, não é pendência de execução):** os três
   restantes pertencem a fluxos que o plugin **não** cobre, e o `POSITRON.md` §3 já
@@ -281,11 +281,20 @@ escopo estrutural do recoder.
   na tela) — os comandos fazem o serviço sem tela e o relatório já tem o conteúdo;
   a tela virou um viewer do mesmo `RelatorioCompilacao`.
 
-### Etapa 9 — Decisões abertas · P2
+### Etapa 9 — Decisões abertas · P2 · **aberta — depende do dono do projeto**
 
-- Licenciamento (Rockey/ElecKey/Nuvem — **não** reconstruir as credenciais Azure
-  do reverso), relatórios (PDF/iTextSharp vs. app Python) e multi-usuário
-  (SQLite → SQL Server).
+Três decisões que **não** são trabalho técnico pendente: cada uma muda o desenho da
+solução e precisa de escolha de quem conhece o produto. O que já está pronto em cada
+frente:
+
+| Decisão | O que já existe hoje | O que muda com cada escolha |
+|---|---|---|
+| **Licenciamento** (Rockey/ElecKey/Nuvem) | nada implementado; as credenciais Azure do reverso **não** foram reconstruídas (e não devem ser) | um provedor muda o ponto de entrada do plugin (`ELET`/`NETLOAD`) e adiciona um gate de licença por comando |
+| **Relatórios** (PDF/iTextSharp vs. app Python) | o relatório já sai em **texto** (`ELETREL`, `RelatorioCompilacao`), com ou sem tela; o app Python lê o `.db` pelo sidecar | PDF no plugin exige dependência .NET (iTextSharp); no app exige render no servidor — o conteúdo já está separado nos dois casos |
+| **Multi-usuário** (SQLite → SQL Server) | o `ProjectStore` isola o SQL; o `.db` é do sidecar/app, e o plugin é o único escritor das tabelas do diagrama | SQL Server muda a camada de acesso (e o `.db` deixa de ser arquivo único) — a regra "quem desenha, grava" continua valendo |
+
+Enquanto não houver decisão, nada disso bloqueia as outras etapas: o recorte atual
+roda com SQLite, sem licença e com relatório em texto.
 
 ### Etapa 10 — Expor ao app as tabelas novas · P1 · **concluída**
 
@@ -324,54 +333,63 @@ escopo estrutural do recoder.
 Sempre os mesmos gates, do `RUNBOOK.md`, **todos exit 0**:
 
 ```bash
-npm run plugin:build      # C# do plugin (ZWCAD, API real quando instalada)
-npm run plugin:test       # xunit, net472
-npm run protocol:gen      # contrato Python<->TS e tipos do schema
+npm run plugin:build          # C# do plugin (ZWCAD, API real quando instalada)
+npm run plugin:build:autocad  # C# contra o STUB (gate separado!)
+npm run plugin:test           # xunit, net472
+npm run protocol:gen          # contrato Python<->TS e tipos do schema
 npm run typecheck
 npm run build:web
 npm run test:sidecar
 uv run --directory services/sidecar ruff check .
 ```
 
-Etapas que mexem no host CAD acrescentam a execução dentro do ZWCAD (Etapa 3) e
-a leitura de volta pelo sidecar (Etapa 4).
+**`plugin:build:autocad` é gate separado:** mexer em adapter pode usar um tipo que
+só existe na API real (foi o `Circle`, na rodada 14) — `plugin:build` e
+`plugin:test` passam verdes e o stub quebra. Rodar as duas builds.
+
+Etapas que mexem no host CAD acrescentam a execução dentro do ZWCAD:
+`npm run cad:smoke` (comandos num desenho vazio), `npm run cad:e2e` (fixture
+`scripts/cad-fixture.lsp`) e `npm run cad:smoke -- -Desenho <dwg>` (desenho real,
+aberto por **cópia no TEMP**).
 
 ## 5. Registro de execução
 
 | Etapa | Data | Commit | Evidência |
 |---|---|---|---|
 | 0 — Plano e baseline | 2026-10-09 | 24a7c5b | baseline da seção 2 medido nesta máquina |
+| 1 — Idempotência da projeção | 2026-10-09 | cbadec5 | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
 | 2 — Saneamento documental | 2026-10-09 | 3673d80 | `POSITRON.md` §6/§9, `RUNBOOK.md` (receita ZWCAD + estado de verificação), `README.md` e `cad-plugin/README.md`; contagens 105 testes / 49 módulos |
 | 3 — Harness ZWCAD | 2026-10-09 | f5bc9a5 | `POSITRON_LOG` no `Plugin.Escrever`; `scripts/cad-zwcad-smoke.ps1` + `npm run cad:smoke`; receita no `RUNBOOK.md`; parser do `.ps1` OK e criação do `.db` (31 tabelas) validada — execução no CAD pendente do ZWCAD fechado |
 | 3b — Harness **executado** no ZWCAD | 2026-10-09 | ee042f4 | `npm run cad:smoke` exit 0: `NETLOAD` + `ELET`/`FIA`/`INT`/`SYNCD`/`VERIF` no ZWCAD 2026 (fase 4 fechada); 3 defeitos do harness corrigidos (`-Db`×`-Debug`, `/b` sem `.scr`, precedência da vírgula no `@()`) |
 | 4 — E2E com dados no ZWCAD | 2026-10-09 | 54fdcdf | `scripts/cad-fixture.lsp` + `npm run cad:e2e`: `FIA` 2 linhas + 2 circuitos, `INT` 1 `Interligacao4`, `SYNCD` repete sem duplicar, sidecar lê o mesmo conteúdo; falta fixture com blocos (fases 7–9) |
 | 4b — E2E com **desenho real** | 2026-10-09 | 0bff89d | `-Desenho ..\Elet\RCD\Funcional.dwg`: `FIA` 365 linhas (199 bornes, 191 dispositivos), 265 portas, 88 contatos, 83 dispositivos; `INT` 20 trechos; `SYNCD` sem duplicar; `VERIF` 1.034 problemas. Achou e corrigiu o `FormatException` do `ReguasModelo` (`XDataNumero` + `DescreverErro` + `-Desenho` no harness); `plugin:test` **160** aprovados |
 | 4c — 3 defeitos do desenho real (bornes) | 2026-10-09 | 58183d6 | `ReguasModelo` passa a ler do índice 1 (cabeçalho), `XDataNeutro.Para(Xrecord)` tolera `Xrecord.Data` que lança e os `registro.Data == null` saíram; no `Funcional.dwg` `Bornes4F` 0→**168** e `Bornes4I` 0→**216**; `plugin:test` **161** aprovados |
+| 5 — Pendências de projeção (parcial) | 2026-10-09 | bc59c8d | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; a `Pagina` com cruzamento veio na Etapa 12 (`ColunaPagina`) |
+| 6 — `VERIF` no desenho (parcial) | 2026-10-09 | 50e06b4 | área `Desenho` + `VerificarCabosSemCatalogo`/`VerificarBornesSemRegua` ligadas ao `VERIF`; `plugin:test` **126** aprovados; falta a regra de página ausente |
 | 6b — `VERIF` calibrado no desenho real | 2026-10-09 | d1e07f0 | composição por tipo no log; linha `"T"` de `Portas4F` não exige régua/borne (só a `"B"`) e catálogo de cabos vazio não gera apontamento; no `Funcional.dwg` o `VERIF` caiu de **821** para **273** problemas (548 falsos positivos); `plugin:test` **162** |
+| 7a — `Dispositivos4F` | 2026-10-09 | ed7222a | gerador puro + gravação idempotente + `FIA` gerando; `plugin:test` **110** aprovados |
+| 7b — `Circuitos4F` | 2026-10-09 | 1afbd7a | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados |
+| 7c — `Aplicacao4F` | 2026-10-09 | 8591b9c | leitor do dicionário `APLICACAO/TIPOS` + gerador puro + gravação idempotente + `FIA` gerando (`FiRUTW6Q6W`); `plugin:test` **118** aprovados |
+| 7d — `Portas4I`/`Bornes4I` | 2026-10-09 | bf46e7d | geradores `4I` (reuso com filtro nulo) + gravação idempotente + `INT` gerando (`wrlU180vl0`/`T6NUlT3ghH`); `plugin:test` **122** aprovados; restam `Jumper4`, `Aranha4`, `Atributos`, `Exportados` |
+| 7e — `Jumper4` (`JMP`) | 2026-10-09 | 2a8035c | `JumperDoDesenho` (Tipo 3/4 com `Jumper`/`Disp1`/`Disp2`) + `FiacaoProjetor(store, true)` + `InserirJumper`/`JumperDaRevisao` + comando `JMP`; `plugin:test` **148** aprovados |
+| 10 — Tabelas novas no app | 2026-10-09 | bc65cbf | `circuitos_por_painel`, `dispositivos_por_painel`, `aplicacoes_por_revisao` no contrato (12 métodos, `protocol:gen` verde) + consultas no `ProjectDatabase` + `CircuitosPanel`/`DispositivosPanel` na visão de painel; `pytest` **23** testes, `build:web` 51 módulos |
+| 11 — Matriz de páginas | 2026-10-09 | 16e88c3 | `PaginaMatrix` (LayerValido/BuscaAlternativo) + `PaginasDoDesenho` (LayerTable + XData `Eletron`) + `VerificarPaginasAusentes` no `VERIF`; `plugin:test` **139** aprovados; build ZWCAD e stub 0 avisos |
+| 12 — Coluna `Pagina` (cruzamento) | 2026-10-09 | b14fd51 | `ColunaPagina` (switch `Conf.incluirColuna` 0..6) sobre a `PaginaMatrix`, com `POSITRON_INCLUIR_COLUNA`/`POSITRON_SEPARADOR_CRUZAMENTO`, aplicada na gravação de `Fiacao`, `Bornes4F`, `Dispositivos4F`, `Interligacao4` e `Bornes4I`; `plugin:test` **145** aprovados |
 | 13 — tag ausente e órfãos no `VERIF` | 2026-10-09 | a8a7091 | `SemTag` exige evidência de dispositivo (fiação do desenho real: 223 → **0**); nova regra `BorneSemFiacao` (órfão) acusa 193 de 199 bornes; desenho real em **243** problemas (BorneSemFiacao 193, PontoSemTag 32, TerminalDuplicado 18); `plugin:test` **163** |
 | 14 — pontos de ligação do bloco (círculo) | 2026-10-09 | 01eeb0a | a tabela de deslocamentos passa a incluir os **quatro quadrantes do círculo** (o ramo `Circle` do `frmCompilarFiacao`), com helper puro `PontosDeLigacao` + 3 testes; no `Funcional.dwg` `BorneSemFiacao` 193→**171**, `PontoSemTag` de interligação 32→**0** e o `VERIF` 243→**189**; `plugin:test` **166** |
 | 15 — pontos de fiação nas duas pontas | 2026-10-09 | ff8227e | a leitura passa a criar ponto na **primeira** e/ou **última** ponta da `CONEXAO` conforme `Tipo`/`Disp1`/`Disp2`/`Jumper` (regra do `frmCompilarFiacao`), com `PontosDaConexao` + 6 testes; no `Funcional.dwg` o `FIA` grava **494** linhas (era 365; previsto 494), `Circuitos4F` 11→**7** e os órfãos 171→**107** — o mesmo 107 que a simulação offline previa, fechando o casamento; `plugin:test` **172** |
 | 16 — regras de duplicidade fiéis ao original | 2026-10-09 | 755b374 | sai a regra de "terminal repetido" da fiação (110 falsos positivos) e entra a do original: dois trechos **Tipo 2** com **mesma página e mesmas pontas** (`FiacaoDuplicada` + adapter `TrechosDoDesenho`); mesma coisa nos contatos (18 falsos positivos; o produto grava um contato por `sT1`/`sT2`/`sT3` sem dedup). Desenho real: **107 problemas, todos `BorneSemFiacao`** (a conta fecha com a simulação); `plugin:test` **173** |
 | 17 — configuração do plugin (Etapa 8) | 2026-10-09 | 1feccfb | `ConfiguracaoPositron` (padrão < arquivo < ambiente, tolerante, com 5 testes), comandos e log lendo dela, tela WinForms + comando `ELETCFG`; `Circle` entra no `Positron.CadStub` (a build AutoCAD estava quebrada desde a rodada 14); desenho real segue em **107** problemas e `plugin:test` em **178** |
 | 18 — perfil de XData do desenho | 2026-10-09 | 12b0e68 | os três DWGs reais mapeados por papel (Funcional = diagrama; Interligação = documento com `DINTERLIG`; Fiação = documento/plot) e `FIA`/`INT` passam a responder com o **perfil do desenho** quando não acham o que procuram (`PerfilDoDesenho` puro + `PerfilDoDesenhoDoDesenho`, 5 testes); `cad:e2e` sintético re-rodado (pendente da 17) e `Funcional.dwg` sem regressão (494 linhas / 107 problemas); `plugin:test` **183** |
-| 19 — relatório de verificação (`ELETREL`) | 2026-10-09 | (este commit) | a grid de erros das telas do original vira arquivo: `RelatorioCompilacao` puro (`Texto()`/`Salvar()`, 4 testes) + comando `ELETREL` (chave `relatorio`/`POSITRON_RELATORIO`), com `VERIF` e `ELETREL` compartilhando `VerificarRevisao`; no `Funcional.dwg` saiu um relatório de 116 linhas com os **107** problemas (`Desenho;BorneSemFiacao;Fiacao;…`); `plugin:test` **188** |
-| 5 — Pendências de projeção (parcial) | 2026-10-09 | bc59c8d | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; resta só a `Pagina` com cruzamento (matriz de páginas) |
-| 7a — `Dispositivos4F` | 2026-10-09 | ed7222a | gerador puro + gravação idempotente + `FIA` gerando; `plugin:test` **110** aprovados |
-| 7b — `Circuitos4F` | 2026-10-09 | 1afbd7a | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados |
-| 7c — `Aplicacao4F` | 2026-10-09 | 8591b9c | leitor do dicionário `APLICACAO/TIPOS` + gerador puro + gravação idempotente + `FIA` gerando (`FiRUTW6Q6W`); `plugin:test` **118** aprovados |
-| 7d — `Portas4I`/`Bornes4I` | 2026-10-09 | bf46e7d | geradores `4I` (reuso com filtro nulo) + gravação idempotente + `INT` gerando (`wrlU180vl0`/`T6NUlT3ghH`); `plugin:test` **122** aprovados; restam `Jumper4`, `Aranha4`, `Atributos`, `Exportados` |
-| 6 — `VERIF` no desenho (parcial) | 2026-10-09 | 50e06b4 | área `Desenho` + `VerificarCabosSemCatalogo`/`VerificarBornesSemRegua` ligadas ao `VERIF`; `plugin:test` **126** aprovados; falta a regra de página ausente |
-| 10 — Tabelas novas no app | 2026-10-09 | bc65cbf | `circuitos_por_painel`, `dispositivos_por_painel`, `aplicacoes_por_revisao` no contrato (12 métodos, `protocol:gen` verde) + consultas no `ProjectDatabase` + `CircuitosPanel`/`DispositivosPanel` na visão de painel; `pytest` **23** testes, `build:web` 51 módulos |
-| 11 — Matriz de páginas | 2026-10-09 | 16e88c3 | `PaginaMatrix` (LayerValido/BuscaAlternativo) + `PaginasDoDesenho` (LayerTable + XData `Eletron`) + `VerificarPaginasAusentes` no `VERIF`; `plugin:test` **139** aprovados; build ZWCAD e stub 0 avisos |
-| 12 — Coluna `Pagina` (cruzamento) | 2026-10-09 | b14fd51 | `ColunaPagina` (switch `Conf.incluirColuna` 0..6) sobre a `PaginaMatrix`, com `POSITRON_INCLUIR_COLUNA`/`POSITRON_SEPARADOR_CRUZAMENTO`, aplicada na gravação de `Fiacao`, `Bornes4F`, `Dispositivos4F`, `Interligacao4` e `Bornes4I`; `plugin:test` **145** aprovados |
-| 7e — `Jumper4` (`JMP`) | 2026-10-09 | (este commit) | `JumperDoDesenho` (Tipo 3/4 com `Jumper`/`Disp1`/`Disp2`) + `FiacaoProjetor(store, true)` + `InserirJumper`/`JumperDaRevisao` + comando `JMP`; `plugin:test` **148** aprovados |
-| 1 — Idempotência da projeção | 2026-10-09 | cbadec5 | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
+| 19 — relatório de verificação (`ELETREL`) | 2026-10-09 | 060df46 | a grid de erros das telas do original vira arquivo: `RelatorioCompilacao` puro (`Texto()`/`Salvar()`, 4 testes) + comando `ELETREL` (chave `relatorio`/`POSITRON_RELATORIO`), com `VERIF` e `ELETREL` compartilhando `VerificarRevisao`; no `Funcional.dwg` saiu um relatório de 116 linhas com os **107** problemas (`Desenho;BorneSemFiacao;Fiacao;…`); `plugin:test` **188** |
+| 20 — saneamento do plano | 2026-10-09 | ad17a6f | auditoria do documento inteiro: `(este commit)` zerado (19→`060df46`, 7e→`2a8035c`), tabela de registro reordenada por etapa (26 linhas), status em todas as etapas (1 e 2 estavam sem), Etapa 7 de 6→**7 de 10** (o `Jumper4` entrou na 7e), Etapa 9 virou tabela de decisão (o que existe / o que muda em cada escolha), gates ganham `plugin:build:autocad` com a lição do stub e o risco obsoleto de `FIA`/`INT` acumularem saiu |
 
 ## 6. Riscos e armadilhas
 
 - **ZWCAD é instância única.** Rodar o script com o ZWCAD já aberto entrega para a
   instância existente, que **não** herda `POSITRON_*` — feche antes.
-- **`FIA`/`INT` acumulam** até a Etapa 1 entrar: comece sempre de um `.db` novo.
+- **`FIA`/`INT` acumulavam** até a Etapa 1 — hoje são idempotentes (cada projeção
+  apaga a `(DWG, Revisão)` na mesma transação).
 - **O `.db` não é criado pelo plugin.** `ProjectStore` não aplica o schema;
   quem cria é o sidecar (`ProjectDatabase.create_from_schema`, usado por
   `projeto_abrir`) ou o harness da Etapa 3.
