@@ -205,17 +205,25 @@ escopo estrutural do recoder.
 
 ### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (7 de 10 feitas)**
 
-- **Fora do recorte atual (verificado, não é pendência de execução):** os três
-  restantes pertencem a fluxos que o plugin **não** cobre, e o `POSITRON.md` §3 já
-  diz que só o tipo `"E"` (Eletron) é operado:
-  - `Aranha4` — o mapa cabo→página da **aranha** vem das telas de ArqNet/DI: o
-    `clsDInterlig.carregaTodosCabosDWG` (e as variantes `clsDIEnergisaMT/MS`) varre
-    blocos com nome contendo `CABO` e lê o XData `XDataDIEnergisa.LerXDataCabo`,
-    montando `caboSync { Revisao, Tag_Cabo, Painel, Caderno = Conf.Local,
-    Folha = layer, Coluna = cabo.Coluna }`; o `exportaCabos` só grava esse array.
-    **Não** é derivável do `Interligacao4` (hipótese da rodada 6, descartada aqui).
-  - `Atributos` / `Exportados` — do fluxo de exportação/importação cross-DWG
-    (`cDadosAccessExpImp`), comandos `EXPDWG`/`IMP*`, fora do recorte.
+- **Fora do recorte atual (verificado no reverso, com quem escreve cada uma):** os
+  três restantes pertencem a fluxos que o plugin **não** cobre, e o `POSITRON.md` §3
+  já diz que só o tipo `"E"` (Eletron) é operado.
+
+  | Tabela | Escrita por | Gatilho | Insumo |
+  |---|---|---|---|
+  | `Aranha4` | `exportaCabos` (`cDadosAccessInterligacao2`) | **cinco telas de relatório**: `frmRelatorio_Aranha`, `frmRelatorio_DInterlig`, `frmRelatorio_DICemig`, `frmRelatorio_DIEnergisaMS`, `frmRelatorio_DIEnergisaMT` | `clsDInterlig.carregaTodosCabosDWG` (e as variantes `clsDIEnergisaMT/MS`), que varre o **documento de interligação** — o XData `DINTERLIG`, o mesmo que o `Interligação.dwg` real tem em **530** entidades |
+  | `Atributos` | `cDadosAccessExpImp` / `cDadosAccessImportarProj` | telas de exportar/importar projeto | atributos (handle/nome/valor) do DWG exportado |
+  | `Exportados` | `cDadosAccessExpImp` | idem | `Exportados(Codigo, Tipo, DWG, Caderno, Handle, Pagina, Posicao, Painel, Texto, …)` do DWG exportado |
+
+  Ou seja: `Aranha4` é a **aranha do relatório de cabos** (ArqNet/DI e as variantes
+  por concessionária), não derivável do `Interligacao4` (a hipótese da rodada 6 foi
+  descartada); `Atributos`/`Exportados` são do fluxo de **exportação cross-DWG**.
+  Nenhuma das três é produzida por um dos 6 comandos do recorte — e o insumo de
+  `Aranha4` (o `DINTERLIG`) **existe** nos desenhos reais, então o dia em que o
+  fluxo de relatório entrar no escopo, o dado está mapeado. Vale registrar que
+  `DINTERLIG` é **um app name com cinco layouts** (`XDataDInterlig.GravarXData*`:
+  borne, nome de régua, jumper, cabo e veia) — é a estrutura inteira da aranha do
+  documento de interligação, não um campo só.
 - **~~`Dispositivos4F`~~ — feito:** `Dispositivos4FGerador` (puro) +
   `ProjectStore.InserirDispositivos`/`DispositivosDaRevisao` (substitui a
   revisão) + o `FIA` gerando; 5 testes em `Dispositivos4FTests`.
