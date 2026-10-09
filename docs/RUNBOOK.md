@@ -208,7 +208,26 @@ real isso acusa **193** de 199 bornes lidos, e o `FIA` só gravou 6 linhas com
 `Tipo = 'B'` (as outras 136 casaram com **dispositivo**, não com borne). Fica como
 **investigação aberta**: ou o casamento ponto↔borne está restritivo demais (bounds
 ±0,25, layer igual, painel), ou esses bornes realmente não estão sobre fio nenhum.
-O caminho é instrumentar o `CasamentoBorne` no CAD para contar os vetos por motivo.
+**Investigado na rodada 14** e resolvido em parte: dumpei a geometria do desenho
+(199 bornes, 365 polylines `CONEXAO`, 829 vértices) e a definição dos blocos. O
+borne da biblioteca é um **círculo de raio 1** (`H_B_FECH_CIMA_PNL_REGUA`,`H_B_ABERTO_*`,
+`H_B_BORNE_FECHADO_EQUIP_TXT_DUO`), e a tabela de pontos de ligação do original
+**inclui os quatro quadrantes do círculo** (`centro ± raio` — o ramo `Circle` do
+`frmCompilarFiacao`, linha ~1357). Nosso port só coletava `Line`/`Polyline`, então a
+tabela ficava vazia para esses blocos e o casamento caía no pé de inserção — a
+distância media dava exatamente o **raio** (~1,0). Com o ramo do círculo:
+
+| | antes | agora |
+|---|---|---|
+| `BorneSemFiacao` | 193 | **171** |
+| `PontoSemTag` (interligação) | 32 | **0** |
+| `VERIF` total no desenho real | 243 | **189** |
+
+Sobram 171 bornes. A simulação offline com a tabela corrigida prevê **92** casando
+por proximidade (≤ 0,5), ou seja, o plugin ainda recusa onde a geometria permitiria —
+os suspeitos são o filtro de **bounds ±0,25** e o de **painel** (régua ≠ painel do
+ponto), que a simulação não aplicou. Os outros ~107 não têm vértice de fio a menos
+de 0,5 de nenhum quadrante: podem ser bornes de régua legitimamente fora de fio.
 
 O `SYNCD` repete `FIA`+`INT` e as contagens **não dobram** — idempotência provada
 com dado real. O banco sai com `Fiacao` 365, `Interligacao4` 20 (tags `8-CCE-*`,
@@ -500,7 +519,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
   26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 163 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 166 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge

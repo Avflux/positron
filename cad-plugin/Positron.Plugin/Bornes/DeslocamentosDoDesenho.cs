@@ -21,16 +21,20 @@ namespace Positron.Plugin.Bornes
     /// **Algoritmo recuperado do reverso**, por definição de bloco:
     ///
     /// 1. percorre as entidades e tira a bounding-box (<c>DBPoint</c>/vértices de
-    ///    <c>Line</c> e <c>Polyline</c>);
-    /// 2. coleta os vértices (<c>Line</c> início/fim, <c>Polyline</c>
-    ///    primeiro/último) que caem **sobre a borda** da bounding-box, com
+    ///    <c>Line</c> e <c>Polyline</c>, mais as extensões do <c>Circle</c>);
+    /// 2. coleta os pontos que caem **sobre a borda** da bounding-box, com
     ///    <see cref="FolgaBorda"/> de folga — são os pontos onde o fio encosta no
-    ///    bloco.
+    ///    bloco: início/fim de <c>Line</c>, primeiro/último vértice de
+    ///    <c>Polyline</c> e os **quatro quadrantes do <c>Circle</c>**
+    ///    (<c>centro ± raio</c> nos dois eixos, exatamente como o
+    ///    <c>frmCompilarFiacao</c> do original).
     ///
     /// Esses pontos são o que o casamento soma ao pé de inserção
-    /// (<see cref="CasamentoBorne"/>). Aproximação conhecida: <c>Circle</c>/<c>Arc</c>
-    /// não entram na coleta de borda (os blocos de fiação usam <c>Line</c>/
-    /// <c>Polyline</c>).
+    /// (<see cref="CasamentoBorne"/>). **Regressão medida no desenho real:** os
+    /// bornes da biblioteca são **círculos** de raio 1 — sem o ramo do
+    /// <c>Circle</c> a tabela ficava vazia para eles, o casamento caía no pé de
+    /// inserção e 193 dos 199 bornes não casavam com o fio (distância ~1,0 = o
+    /// raio).
     /// </summary>
     public static class DeslocamentosDoDesenho
     {
@@ -128,6 +132,18 @@ namespace Positron.Plugin.Bornes
             if (ponto != null)
             {
                 Acumular(ponto.Position, ref temBounds, ref minX, ref minY, ref maxX, ref maxY);
+                return;
+            }
+
+            // O símbolo pode ser só um círculo (é o caso dos bornes da biblioteca):
+            // sem isto a definição fica sem bounds e a tabela, sem entrada.
+            Circle circulo = entidade as Circle;
+            if (circulo != null)
+            {
+                double[] extensoes = PontosDeLigacao.ExtensoesDoCirculo(
+                    circulo.Center.X, circulo.Center.Y, circulo.Radius);
+                Acumular(extensoes[0], extensoes[1], ref temBounds, ref minX, ref minY, ref maxX, ref maxY);
+                Acumular(extensoes[2], extensoes[3], ref temBounds, ref minX, ref minY, ref maxX, ref maxY);
             }
         }
 
@@ -155,6 +171,18 @@ namespace Positron.Plugin.Bornes
                 Point2d fim = polilinha.GetPoint2dAt(polilinha.NumberOfVertices - 1);
                 AdicionarSeNaBorda(nomeBloco, inicio.X, inicio.Y, minX, minY, maxX, maxY, destino);
                 AdicionarSeNaBorda(nomeBloco, fim.X, fim.Y, minX, minY, maxX, maxY, destino);
+                return;
+            }
+
+            // Quadrantes do círculo, como no original (centro ± raio).
+            Circle circulo = entidade as Circle;
+            if (circulo != null)
+            {
+                foreach (double[] quadrante in PontosDeLigacao.DoCirculo(
+                    circulo.Center.X, circulo.Center.Y, circulo.Radius))
+                {
+                    AdicionarSeNaBorda(nomeBloco, quadrante[0], quadrante[1], minX, minY, maxX, maxY, destino);
+                }
             }
         }
 
