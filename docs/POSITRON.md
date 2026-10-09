@@ -280,14 +280,28 @@ npm run protocol:gen   # gate: falha se os tipos gerados estiverem velhos
 | 4 | Plugin compila e registra comandos | `ELET` e `SYNCD` rodando dentro do ZWCAD | **feito** |
 | 5 | Fiação: XData → `Fiacao` | fios no desenho aparecem no app | **feito** |
 | 6 | Interligação: XData → `Interligacao4` | trecho de cabo fecha ponta a ponta | **feito** |
-| 7 | Bornes/terminais: desenho → colunas deferidas | terminal/régua da fiação vêm do desenho | parcial |
-| 8 | Modelos de régua/máscara → `Portas4F` e `Bornes4F` | portas e bornes gerados dos modelos do desenho | parcial |
-| 9 | Modelos de contato → `Contatos4F` | contatos e auxiliares gerados dos modelos do desenho | parcial |
+| 7 | Bornes/terminais: desenho → colunas deferidas | terminal/régua da fiação vêm do desenho | **feito** |
+| 8 | Modelos de régua/máscara → `Portas4F` e `Bornes4F` | portas e bornes gerados dos modelos do desenho | **feito** |
+| 9 | Modelos de contato → `Contatos4F` | contatos e auxiliares gerados dos modelos do desenho | **feito** |
 
 Cada fase é verificável sozinha. As fases 2 e 4 não dependem uma da outra — só a
 5 fecha o laço entre os dois frontends.
 
-A fase 4 está **parcial**: o scaffold compila (0 avisos) e registra os comandos
+> **Mapa vigente:** o acompanhamento por etapa (com o que foi implementado,
+> verificado e commitado em cada rodada) está no `PLANO.md` — etapas 0 a 12. A tabela
+> acima é o recorte original do projeto; o texto que segue é o registro de como cada
+> fase foi fechada, com os detalhes que continuam valendo.
+>
+> **Verificação atual (rodada 32):** além dos testes de unidade (**194** xunit + **27**
+> no sidecar), o recorte foi conferido contra o **banco do produto** (`RCD.mdb`) no
+> mesmo desenho (`Funcional.dwg` = DWG 63): `Fiacao` 494, `Portas4F` 265,
+> `Dispositivos4F` 83, `Aplicacao4F` 15, `Circuitos4F` 11 e `Contatos4F` 70 batem
+> **exatamente**; `Cabos4`/`Veias4` batem **hash a hash** com o catálogo do produto
+> (697/2.388); a única diferença restante (`Bornes4F` 168 × 155) vem de a cópia local
+> do desenho não ser a que o produto compilou. Idempotência e isolamento por desenho
+> estão provados por **conteúdo**. Receitas no `RUNBOOK.md`.
+
+A fase 4 está **fechada** (o texto abaixo é o registro de como fechou). Na época: o scaffold compila (0 avisos) e registra os comandos
 (`ELET`, `FIA`, `INT`, `SYNCD`, `VERIF`). O **ZWCAD 2026 está instalado** nesta
 máquina (`C:\Program Files\ZWSOFT\ZWCAD 2026`, com `ZwManaged.dll`/
 `ZwDatabaseMgd.dll` 26.0.26.0 em .NET Framework e o símbolo `cmd_netload`), então
@@ -310,7 +324,7 @@ e ficam registrados no `RUNBOOK.md` como evidência histórica. Atenção: o
 passado à mão, e AutoCAD 2025+/TrueView 2027 (API .NET 8/10) **não** carregam um
 plugin net472.
 
-A fase 5 também está **parcial**. Já existem e são testados: o comando `FIA`, o
+A fase 5 está **fechada** (registro da época: *parcial*). Já existem e são testados: o comando `FIA`, o
 leitor do XData `CONEXAO`, a projeção para `Fiacao` (INSERT canônico) e a leitura
 no app (o sidecar lê o `.db` que o projetor .NET gravou). As colunas que dependem
 do desenho (`Tag`, `Terminal`, `Tipo`, `TipoBorne`, `IndexModelo`, `Alternativo`,
@@ -349,7 +363,7 @@ transação do INSERT (`Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F`,
 não chamava. Rodar `FIA`/`INT` duas vezes no mesmo `.db` deixa o mesmo resultado,
 e a `Ordem` não é mais reembaralhada (`IdempotenciaTests`).
 
-A fase 6 também está **parcial**, pelo mesmo motivo da 5. Já existem e são
+A fase 6 está **fechada** pelo mesmo caminho da 5 (registro da época: *parcial*). Já existem e são
 testados: o comando `INT`, o leitor do XData `INTERLIGACAO`, a mesclagem das
 pontas por `(Tag_Cabo, Num_Veia)` (o `ssqypmV1FI`/`yHoU3hlYPo` do original), a
 **varredura de bornes/terminais das duas pontas** (a mesma da fase 7, aplicada ao
@@ -375,7 +389,7 @@ O `INT` também regrava **`Cabos4`/`Veias4`** como **snapshot do catálogo**
 original (que copiam o catálogo, sem derivar do desenho). A regravação apaga as
 linhas da revisão antes de inserir, para rodar duas vezes não duplicar.
 
-A fase 7 também está **parcial**. Já existem e são testados: o leitor do XData de
+A fase 7 está **fechada** (registro da época: *parcial*). Já existem e são testados: o leitor do XData de
 borne (`Dispositivo` tipo `"B"`), o parser do dicionário de réguas
 do desenho (`REGUAS`/`MODELOS2`), o casamento ponto↔borne com as **duas etapas**
 do original (bounds ±0,25 + tabela de pontos de ligação por nome de bloco) e a
@@ -391,7 +405,7 @@ no AutoCAD 2020: o ponto casado com o borne recebeu da régua do dicionário a
 `Tag`/`NRegua`, e a renumeração de `Ordem` 1..N por `Potencial` saiu ordenada
 (bornes primeiro, `PosicaoNum` decrescente).
 
-A fase 8 também está **parcial**. Já existem e são testados: o parser dos
+A fase 8 está **fechada** (registro da época: *parcial*). Já existem e são testados: o parser dos
 **modelos de máscara** e suas **portas** (`MASCARAS`/`MODELOS2` e
 `MASCARAS/<índice>`), o parser dos **bornes de reserva**
 (`CENG_BORNES/<indexRegua>`), o leitor do XData de **máscara** (tipo `"M"`) e os
@@ -405,7 +419,7 @@ desenho. O `FIA` já rodou no AutoCAD 2020 e gerou `Bornes4F` (2 linhas, com a
 régua e a página resolvidas); `Portas4F` saiu com 0 linhas porque aquele desenho
 não tinha modelo de máscara — esse caminho ainda não foi exercitado num CAD.
 
-A fase 9 também está **parcial**. Já existem e são testados: o parser dos
+A fase 9 está **fechada** (registro da época: *parcial*). Já existem e são testados: o parser dos
 **modelos de contato** e seus **contatos auxiliares** (`CONTATOS`/`MODELOS2` e
 `CONTATOS/<índice>`), o leitor do XData de **dispositivo** (tipo `"P"`), a
 varredura dos blocos de dispositivo (com os terminais de bobina vindos dos
@@ -480,30 +494,57 @@ reler o repositório inteiro.
 
 **Onde as coisas estão**
 
-- Repo: `C:\Users\RNO\Desktop\APP\positron`.
-- Reverso (referência): `C:\Users\RNO\Desktop\APP\Elet\Eletron4_ZWcad` — o código
+- Repo: `C:\Users\rno\Desktop\APPs\positron`.
+- Reverso (referência): `C:\Users\rno\Desktop\APPs\Elet\Eletron4_ZWcad` — o código
   descompilado em `decompiled-cleaned/Eletron4/` (435 `.cs`) e `COMANDOS.txt`.
+- Projeto real do dono (desenhos + banco do produto): `..\Elet\RCD\`
+  (`Funcional.dwg`, `Interligação.dwg`, `Fiação.dwg`, `RCD.mdb`).
 - Dono do contrato de dados: `services/sidecar/src/sidecar/db/schema.sql`
   (gera `packages/protocol/...`). Plugin: `cad-plugin/`.
 - Frontend CAD em `cad-plugin/Positron.Data/` (núcleo puro, testável sem
   CAD) e `cad-plugin/Positron.Plugin/` (adapters do ZWCAD e AutoCAD).
+- **Plano e acompanhamento:** `docs/PLANO.md` (etapas 0–12, com o registro por
+  rodada). **Receitas de verificação:** `docs/RUNBOOK.md`.
 
-**Estado:** fases 0–3 **feitas** e a **4 fechada** (a DLL carrega por `NETLOAD` no
-ZWCAD 2026 e os comandos respondem — `npm run cad:smoke`, ver `RUNBOOK.md`); as
-fases 5–9 seguem **parciais** (a tabela do §6 diz o que falta em cada uma). O que
-não foi exercitado é um **desenho funcional de verdade** (o smoke roda num
-`Drawing1` vazio). O laço das fases **5 e 6** está fechado com dados reais: o `npm run cad:e2e` monta
-um desenho funcional mínimo (`scripts/cad-fixture.lsp`, duas `CONEXAO` e uma
-`INTERLIGACAO`) dentro do ZWCAD 2026, roda `FIA`/`INT`/`SYNCD`/`VERIF` e o sidecar
-lê de volta o mesmo conteúdo (`Fiacao` com `Pagina`/`Secao`/`Cor`, `Circuitos4F`
-com `C1`/`C2`, `Interligacao4` com `Painel1`/`Painel2`) — e o `SYNCD` repetido
-**não duplica** linhas, que é a idempotência provada no CAD. Os ensaios de
-`FIA`/`INT` no AutoCAD 2020 seguem no `RUNBOOK.md`.
+**Estado (rodada 32):** as etapas 0–12 do `PLANO.md` estão **concluídas**, exceto a
+**9** (licenciamento, relatórios e multi-usuário), que é decisão do dono e já tem os
+encaixes prontos. Números de hoje: **194** testes xunit + **27** no sidecar, contrato
+com **20 métodos** e **31 tabelas** em sincronia, **57** módulos no app, **9** comandos
+no CAD. O recorte roda no ZWCAD 2026 sobre o **desenho real** (`Funcional.dwg`):
+`FIA` grava 494 linhas em `Fiacao`, 265 em `Portas4F`, 168 em `Bornes4F`, 70 em
+`Contatos4F`, 83 em `Dispositivos4F`, 11 em `Circuitos4F` e 15 em `Aplicacao4F`; o
+`INT` grava 20 em `Interligacao4`, 265 em `Portas4I` e 216 em `Bornes4I`, mais o
+snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, todos
+`BorneSemFiacao` (bornes de régua fora de fio, genuínos nesse desenho).
+
+**Verificação que sustenta isso** (tudo no `RUNBOOK.md`):
+
+- **A/B contra o banco do produto** (`..\Elet\RCD\RCD.mdb`, Access, aberto por ODBC
+  numa cópia): no mesmo desenho (DWG **63**, revisão 3) `Fiacao` 494, `Portas4F` 265,
+  `Dispositivos4F` 83, `Aplicacao4F` 15, `Circuitos4F` 11 e `Contatos4F` 70 batem
+  **exatamente** com o que o produto gravou; as **19 tabelas** do recorte batem
+  coluna a coluna com o Access; `Cabos4`/`Veias4` batem **hash a hash** com o catálogo
+  (697/2.388). A única diferença restante (`Bornes4F` 168 × 155) está explicada: os
+  bornes a mais estão na página `1000` e não existem em nenhuma tabela do produto — a
+  cópia local do desenho não é a que o produto compilou.
+- **Idempotência e isolamento por conteúdo** (`scripts/cad-dump-tabelas.py`): três
+  passadas de projeção no mesmo `(DWG, Revisão)` deixam o mesmo resultado, mudando só
+  o campo `Data`; rodar outro desenho no mesmo banco deixa o primeiro intacto.
+- **Catálogo real:** `scripts/cad-importa-catalogo.ps1` carrega `Cabos`/`Veias`/
+  `Materiais` do Access (697/2.388/210) e o app passa a devolver esses dados
+  (`cabos4_por_revisao` 697, `catalogo_listar_materiais` 210, …).
+- **Harness:** `npm run cad:smoke` (desenho de verdade, com `-Desenho`), `npm run
+  cad:e2e` (fixture sintético) e os dois builds de plugin (`plugin:build` ZWCAD e
+  `plugin:build:autocad`, contra o stub). Ensaios em **AutoCAD 2020** feitos pelo dono
+  ficam como evidência histórica.
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
-1. **UI WinForms** do plugin (as telas `frmCompilar*`), hoje substituídas por
-   comandos que leem variáveis de ambiente.
+1. **Etapa 9 — decisões do dono** (`PLANO.md` §9): (a) **licença**, com o encaixe
+   `ServicoDeLicenca`/`ILicenca` e o gate nos 6 comandos já prontos, faltando escolher
+   o provedor; (b) **relatórios**, hoje só o de verificação em texto (`ELETREL`), com
+   a recomendação de começar pelos 4 tabulares no app; (c) **banco**, SQLite hoje,
+   SQL Server quando/quando — o SQL está isolado no `ProjectStore`.
 2. **`VERIF` no desenho (parcial):** as telas originais
    (`frmVerificadorProjetoFiacao`/`frmVerificadorProjetoInterligacao`, ~3 mil
    linhas) também pintam erros lidos do **desenho**. O `VERIF` já valida as
@@ -527,7 +568,9 @@ com `C1`/`C2`, `Interligacao4` com `Painel1`/`Painel2`) — e o `SYNCD` repetido
    `Jumper == "JUMPER"`) e usa a mesma máquina de casamento do `FIA`, só trocando a
    tabela. Os três restantes vêm de telas de relatório e de importação/exportação —
    a receita de cada um está no `PLANO.md`.
-4. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
+4. **Pendências menores:** `ModelosCabos` está vazia no Access do projeto (nada a
+   importar); os ensaios de `FIA`/`INT` no AutoCAD 2020 seguem no `RUNBOOK.md` como
+   evidência histórica; o detalhe de cada tabela fora do recorte está no `PLANO.md`.
 
 **Convenções que não podem ser esquecidas**
 
