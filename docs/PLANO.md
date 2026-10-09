@@ -203,7 +203,7 @@ escopo estrutural do recoder.
   bornes do desenho com os gravados em `Fiacao` e acusa **193** de 199 no desenho
   real — investigação aberta (casamento restritivo demais ou bornes fora de fio?).
 
-### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (7 de 10 feitas)**
+### Etapa 7 — Tabelas restantes do contrato · P2 · **concluída no recorte (7 de 10; as 3 restantes têm fluxo próprio, fora do recorte)**
 
 - **Fora do recorte atual (verificado no reverso, com quem escreve cada uma):** os
   três restantes pertencem a fluxos que o plugin **não** cobre, e o `POSITRON.md` §3
@@ -398,7 +398,7 @@ aberto por **cópia no TEMP**).
 | 19 — relatório de verificação (`ELETREL`) | 2026-10-09 | 060df46 | a grid de erros das telas do original vira arquivo: `RelatorioCompilacao` puro (`Texto()`/`Salvar()`, 4 testes) + comando `ELETREL` (chave `relatorio`/`POSITRON_RELATORIO`), com `VERIF` e `ELETREL` compartilhando `VerificarRevisao`; no `Funcional.dwg` saiu um relatório de 116 linhas com os **107** problemas (`Desenho;BorneSemFiacao;Fiacao;…`); `plugin:test` **188** |
 | 20 — saneamento do plano | 2026-10-09 | eaa5bc1 | auditoria do documento inteiro: `(este commit)` zerado (19→`060df46`, 7e→`2a8035c`), tabela de registro reordenada por etapa (26 linhas), status em todas as etapas (1 e 2 estavam sem), Etapa 7 de 6→**7 de 10** (o `Jumper4` entrou na 7e), Etapa 9 virou tabela de decisão (o que existe / o que muda em cada escolha), gates ganham `plugin:build:autocad` com a lição do stub e o risco obsoleto de `FIA`/`INT` acumularem saiu; no follow-up `f6fd0d0` o `README.md` passou a listar os **8 comandos** (faltavam `JMP`, `ELETCFG` e `ELETREL`) e o E2E em desenho real |
 | 21 — evidência das 3 tabelas fora do recorte | 2026-10-09 | dd1c533 | rastreado quem escreve cada uma no reverso: `Aranha4` só por `exportaCabos`, chamado por **cinco telas de relatório** (`frmRelatorio_Aranha`/`DInterlig`/`DICemig`/`DIEnergisaMS`/`MT`), com insumo em `clsDInterlig.carregaTodosCabosDWG` (o XData `DINTERLIG`, **530** entidades no `Interligação.dwg` real); `Atributos`/`Exportados` pelo `cDadosAccessExpImp` (exportar/importar cross-DWG). `DINTERLIG` é um app name com **cinco layouts** (borne, régua, jumper, cabo, veia) |
-| 22 — tela de compilação (`ELETCMP`) | 2026-10-09 | (este commit) | `FormularioCompilacao` (DataGridView + Salvar) sobre `MontarRelatorio`, o mesmo conteúdo do `ELETREL`; verificação: as duas builds com as telas, os **9 comandos** presentes no assembly gerado (`ELET`…`ELETREL`) e o relatório do `Funcional.dwg` idêntico ao da rodada 19 (116 linhas / 107 problemas); Etapa 8 fecha (ressalva: telas modais não clicáveis aqui) |
+| 22 — tela de compilação (`ELETCMP`) | 2026-10-09 | f0f2878 | `FormularioCompilacao` (DataGridView + Salvar) sobre `MontarRelatorio`, o mesmo conteúdo do `ELETREL`; verificação: as duas builds com as telas, os **9 comandos** presentes no assembly gerado (`ELET`…`ELETREL`) e o relatório do `Funcional.dwg` idêntico ao da rodada 19 (116 linhas / 107 problemas); Etapa 8 fecha (ressalva: telas modais não clicáveis aqui) |
 
 ## 6. Riscos e armadilhas
 
