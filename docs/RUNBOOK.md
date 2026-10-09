@@ -620,6 +620,42 @@ mostrada numa `DataGridView` (área, tipo, tabela, identificador, detalhe) com b
 Salvar. Ela é **modal** — como o `ELETCFG`, não entra em script, e é por isso que a
 verificação automatizada usa o `ELETREL`; o conteúdo dos dois é o mesmo objeto.
 
+### O ciclo completo no projeto real (`npm run cad:projeto`)
+
+Um comando roda o caminho inteiro sobre os arquivos do dono — projeta, carrega o
+cadastro, confere o app, o relatório e (com `-Idempotencia`) a repetibilidade:
+
+```powershell
+npm run cad:projeto                       # projeta, importa, consulta, confere a base
+npm run cad:projeto -- -Idempotencia      # + 3a passada e comparacao de conteudo
+```
+
+Passos: banco novo → `ELET,FIA,INT` no `Funcional.dwg` → catálogo e cadastro de painéis
+do `RCD.mdb` → **`INT` de novo** → consultas do app → linha de base do `VERIF` →
+idempotência. Tudo com os caminhos do projeto por padrão (`-Desenho`, `-Mdb`, `-Dwg 63`,
+`-Revisao R0`).
+
+**A segunda passada de `INT` não é redundância — é a ordem certa.** O `INT` carimba
+`Cabos4`/`Veias4` a partir do **catálogo carregado** (é o `RUIU5Sbjhj` do original, que
+copia o catálogo no momento da compilação). Rodar o `INT` antes de o cadastro existir
+grava zero cabo — foi exatamente o que a primeira versão deste script fez, e o passo 5
+denunciou (`cabos4_por_revisao 0`). Na vida real é o mesmo: carregue o projeto (catálogo
+e painéis) **antes** de compilar, ou recompile depois de carregar.
+
+Saída boa (resumida):
+
+```
+FIA: 494 linha(s) em Fiacao (...); 265 porta(s) em Portas4F; 168 borne(s) em Bornes4F;
+     70 contato(s) em Contatos4F; 83 dispositivo(s) em Dispositivos4F; 11 circuito(s);
+     15 tipo(s) em Aplicacao4F
+INT: 20 linha(s) em Interligacao4; 265 porta(s) em Portas4I; 216 borne(s) em Bornes4I;
+     697 cabo(s) em Cabos4; 2388 veia(s) em Veias4
+projeto_listar_paineis   480 | fiacao_por_painel 490 | circuitos_por_painel 11
+cabos4_por_revisao       697 | veias4_por_revisao 2388 | materiais 210
+linha de base confere (238 = 107 + 119 + 10 + 2)
+IDEMPOTENTE: mesmo conteudo (ignorando Data)
+```
+
 ### Linha de base do `VERIF` (regressão do conjunto de regras)
 
 O conjunto de regras do `VERIF` cresceu (são **seis** checagens do desenho além das de
