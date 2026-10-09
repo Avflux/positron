@@ -133,7 +133,10 @@ e testa com `npm run plugin:test`.
 O **ZWCAD 2026 está instalado** nesta máquina, então o build ZWCAD resolve
 `ZWCadDir` sozinho e gera `Positron.Plugin.ZWCAD.dll` contra a API **real**, e o
 `NETLOAD` **já foi executado** dentro do ZWCAD (`npm run cad:smoke`: a DLL carrega
-e `ELET`/`FIA`/`INT`/`SYNCD`/`VERIF` respondem). O **AutoCAD** continua no stub
+e `ELET`/`FIA`/`JMP`/`INT`/`SYNCD`/`VERIF` respondem, mais `ELETCFG` (tela de
+configuração) e `ELETREL` (relatório da verificação em arquivo) — e o ciclo completo
+já foi rodado num **desenho real** (`-Desenho`), ver `docs/RUNBOOK.md`). O
+**AutoCAD** continua no stub
 (`Positron.CadStub`), porque o AutoCAD 2020 dos ensaios originais não está nesta
 máquina. Os ensaios de `FIA`/`INT` no `accoreconsole` do AutoCAD 2020 foram
 positivos (gravaram `Interligacao4`/`Fiacao`) e ficam no `RUNBOOK.md`. O Rust
