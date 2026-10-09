@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import type { Circuitos4F, Dispositivos4F, Fiacao, Interligacao4, Paineis } from "@protocol";
+import type {
+  Aplicacao4F,
+  Cabos4,
+  Circuitos4F,
+  Dispositivos4F,
+  Fiacao,
+  Interligacao4,
+  Jumper4,
+  Paineis,
+  Veias4,
+} from "@protocol";
 import { request } from "@/lib/bridge";
 
 export interface PainelDetalhe {
@@ -7,6 +17,10 @@ export interface PainelDetalhe {
   trechos: Interligacao4[];
   circuitos: Circuitos4F[];
   dispositivos: Dispositivos4F[];
+  jumpers: Jumper4[];
+  aplicacoes: Aplicacao4F[];
+  cabos: Cabos4[];
+  veias: Veias4[];
   carregando: boolean;
   erro: string | null;
 }
@@ -16,16 +30,24 @@ const VAZIO: PainelDetalhe = {
   trechos: [],
   circuitos: [],
   dispositivos: [],
+  jumpers: [],
+  aplicacoes: [],
+  cabos: [],
+  veias: [],
   carregando: false,
   erro: null,
 };
 
 /**
- * Fiação, interligação, circuitos e dispositivos de um painel.
+ * Fiação, interligação, circuitos, dispositivos do painel e as listas da revisão
+ * (jumpers, aplicações, catálogo de cabos e veias).
  *
  * As consultas são independentes, então vão em paralelo. A flag `vivo`
  * evita aplicar o resultado de um painel que já não está selecionado (trocar de
  * painel rápido deixaria a resposta antiga sobrescrever a nova).
+ *
+ * As quatro últimas são **por revisão** (`jumpers` por painel); como o app não tem
+ * seletor de revisão, elas vão sem filtro — o contrato devolve todas as linhas.
  */
 export function usePainelDetalhe(painel: Paineis | null): PainelDetalhe {
   const [state, setState] = useState<PainelDetalhe>(VAZIO);
@@ -41,18 +63,27 @@ export function usePainelDetalhe(painel: Paineis | null): PainelDetalhe {
 
     void (async () => {
       try {
-        const [fiacao, interligacao, circuitos, dispositivos] = await Promise.all([
-          request("fiacao_por_painel", { painel: painel.Indice }),
-          request("interligacao_por_painel", { painel: painel.Indice }),
-          request("circuitos_por_painel", { painel: painel.Indice }),
-          request("dispositivos_por_painel", { painel: painel.Indice }),
-        ]);
+        const [fiacao, interligacao, circuitos, dispositivos, jumpers, aplicacoes, cabos, veias] =
+          await Promise.all([
+            request("fiacao_por_painel", { painel: painel.Indice }),
+            request("interligacao_por_painel", { painel: painel.Indice }),
+            request("circuitos_por_painel", { painel: painel.Indice }),
+            request("dispositivos_por_painel", { painel: painel.Indice }),
+            request("jumper_por_painel", { painel: painel.Indice }),
+            request("aplicacoes_por_revisao", {}),
+            request("cabos4_por_revisao", {}),
+            request("veias4_por_revisao", {}),
+          ]);
         if (vivo) {
           setState({
             fios: fiacao.fios,
             trechos: interligacao.trechos,
             circuitos: circuitos.circuitos,
             dispositivos: dispositivos.dispositivos,
+            jumpers: jumpers.jumpers,
+            aplicacoes: aplicacoes.aplicacoes,
+            cabos: cabos.cabos,
+            veias: veias.veias,
             carregando: false,
             erro: null,
           });
