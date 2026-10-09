@@ -567,6 +567,52 @@ mostrada numa `DataGridView` (área, tipo, tabela, identificador, detalhe) com b
 Salvar. Ela é **modal** — como o `ELETCFG`, não entra em script, e é por isso que a
 verificação automatizada usa o `ELETREL`; o conteúdo dos dois é o mesmo objeto.
 
+### Idempotência e isolamento por desenho
+
+Duas invariantes que o recorte promete, verificáveis com o script do repositório
+`scripts/cad-dump-tabelas.py`:
+
+1. **Idempotência:** rodar `FIA`/`INT` de novo no mesmo `(DWG, Revisão)` não duplica nem
+   muda a projeção — ele apaga `(DWG, Revisão)` e reinsere dentro da mesma transação;
+2. **Isolamento:** projetar outro desenho no mesmo banco não toca nas linhas do
+   primeiro.
+
+Receita (roda no CAD e compara o **conteúdo**, não só a contagem):
+
+```powershell
+# 1. projeta o desenho 63 num banco novo (o ELET ja roda FIA+INT)
+npm run cad:smoke -- -Dwg 63 -Revisao R0 -Comandos ELET,FIA,INT `
+  -Desenho "..\Elet\RCD\Funcional.dwg" -Banco "$env:TEMP\positron-idem.db"
+
+# 2. dump do conteudo (todas as tabelas do DWG 63, menos o autoincremento Indice)
+python scripts/cad-dump-tabelas.py dump $env:TEMP\positron-idem.db 63 $env:TEMP\dump-a.txt
+
+# 3. projeta de novo e compara — o unico campo que pode mudar e Data
+npm run cad:smoke -- -Dwg 63 -Revisao R0 -Comandos FIA,INT -Desenho ... -Banco ...mesmo.db
+python scripts/cad-dump-tabelas.py dump $env:TEMP\positron-idem.db 63 $env:TEMP\dump-b.txt
+python scripts/cad-dump-tabelas.py comparar $env:TEMP\dump-a.txt $env:TEMP\dump-b.txt --ignorar Data
+
+# 4. projeta outro desenho no MESMO banco e confere que o 63 nao mudou (nem o Data)
+npm run cad:smoke -- -Dwg 74 -Revisao R0 -Comandos ELET,INT -Desenho ...\Interligação.dwg -Banco ...mesmo.db
+python scripts/cad-dump-tabelas.py dump $env:TEMP\positron-idem.db 63 $env:TEMP\dump-c.txt
+python scripts/cad-dump-tabelas.py comparar $env:TEMP\dump-b.txt $env:TEMP\dump-c.txt
+```
+
+**Medido (rodada 30, `Funcional.dwg`):** 1.607 linhas no DWG 63 (494 `Fiacao`, 265
+`Portas4F`, 265 `Portas4I`, 216 `Bornes4I`, 168 `Bornes4F`, 83 `Dispositivos4F`, 70
+`Contatos4F`, 20 `Interligacao4`, 15 `Aplicacao4F`, 11 `Circuitos4F`) e três passadas de
+projeção:
+
+| Verificação | Resultado |
+|---|---|
+| 3ª passada sobre o mesmo `(63, R0)`, ignorando `Data` | **idêntico** (hash `7f6db90f…` nos dois lados) |
+| 3ª passada sem ignorar nada | difere **só** em `Data` — as 273 chaves de `Fiacao` e a de `Interligacao4` com `Data` re-carimbado, todo o resto igual |
+| Rodada no desenho 74 no mesmo banco | DWG 63 **idêntico, inclusive o `Data`** (hash `43be69e9…` nos dois) |
+| `INT` no `Interligação.dwg` | recusa corretamente: *"nenhuma LWPOLYLINE com XData INTERLIGACAO"*, perfil `DINTERLIG`=530 — documento de interligação, fora do recorte |
+
+O script falha de propósito quando se compara sem `--ignorar Data`: é o que prova que a
+diferença apontada é exatamente essa, e nada mais.
+
 ### A/B contra o banco do produto (`RCD.mdb`) — a verificação mais forte
 
 O `..\Elet\RCD\RCD.mdb` (19 MB, Access) é o banco **gerado pelo produto original**
