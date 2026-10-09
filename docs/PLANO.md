@@ -122,15 +122,22 @@ escopo estrutural do recoder.
 - **Cobre hoje sem CAD:** os testes unitários já cobrem os parsers/geradores; o
   que falta é a prova ponta a ponta no host real.
 
-### Etapa 5 — Pendências de projeção · P1
+### Etapa 5 — Pendências de projeção · P1 · **parcial (itens 2 e 3 concluídos)**
 
 - **Página com cruzamento** (`Conf.incluirColuna` `3..6`): depende da matriz de
   páginas do projeto — ler do desenho e aplicar `Pagina.BuscaAlternativo` +
   separador + cruzamento.
-- **`ltZUHdAX7R`**: no casamento de dispositivo, exigir terminal não-vazio
-  (`T*`/`B*`) do bloco, como o original.
-- **Tipos `I`/`M`**: manter a decisão atual (`I` entra a pedido do projeto,
-  `M` nunca) documentada e coberta por teste.
+- **~~`ltZUHdAX7R`~~**: já implementado — `CasamentoDispositivo.EscolherTerminal`
+  exige terminal `T*`/`B*` não-vazio e `!= "?"`, com o adapter lendo os
+  atributos do bloco; testes `Sem_terminal_nao_casa`/`Terminal_indefinido_nao_casa`.
+  Esta etapa só corrigiu a documentação, que dizia "fica como próximo passo".
+- **~~Tipos `I`/`M`~~**: decisão já documentada e coberta
+  (`Mascara_M_nunca_da_tag`, `Importado_le_tipo_I_e_painel_do_indice_9`).
+- **Pendente de verdade nesta etapa:** a `Pagina` com **cruzamento** —
+  `Conf.incluirColuna` `3..6` (`Pagina.BuscaAlternativo` + separador +
+  cruzamento), que exige a **matriz de páginas** do projeto, ainda não lida do
+  desenho. Hoje só o caso `0..2` (layer cru) é projetado, o mesmo do `Bornes4F` e
+  do `Interligacao4`.
 
 ### Etapa 6 — `VERIF` lendo o desenho · P1
 
@@ -146,6 +153,18 @@ escopo estrutural do recoder.
 
 - **Faltam projetar:** `Jumper4`, `Bornes4I`, `Portas4I`, `Dispositivos4F`,
   `Aranha4`, `Circuitos4F`, `Aplicacao4F`, `Atributos`, `Exportados`.
+- **Custo real medido no reverso** (cada tabela vem de um fluxo próprio, não é só
+  um `INSERT`):
+  - `Dispositivos4F` — do próprio `frmCompilarFiacao` (linhas 2640–2793): um
+    bloco por dispositivo tipo `P` **e** por máscara tipo `M`, pulando
+    `Complementar` e painel fora de uso; `Pagina` = layer; `BlocoTopografico`/
+    `BlocoLayout` vêm da tabela `mModelo` por `IndexModelo` (ou do XData, quando
+    `indexModelo == 0`); `PosicaoNum`/`Ordem` da `mPosicao` por `(painel, tag)`.
+    **Candidato natural a próxima tabela** — o plugin já tem os insumos.
+  - `Jumper4` — **não** vem do `FIA`: é escrito por `frmCompilarJumperExt`
+    (comando `JMP`/`JPEXT` do reverso), fora do recorte atual.
+  - `Aranha4`, `Circuitos4F`, `Aplicacao4F`, `Atributos`, `Exportados` — cada um
+    com o seu fluxo/tela no reverso.
 - **Pronto quando:** cada tabela projetada tem gerador puro + teste + comando ou
   passo de comando que a produz.
 
@@ -183,7 +202,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 |---|---|---|---|
 | 0 — Plano e baseline | 2026-10-09 | 24a7c5b | baseline da seção 2 medido nesta máquina |
 | 2 — Saneamento documental | 2026-10-09 | 3673d80 | `POSITRON.md` §6/§9, `RUNBOOK.md` (receita ZWCAD + estado de verificação), `README.md` e `cad-plugin/README.md`; contagens 105 testes / 49 módulos |
-| 3 — Harness ZWCAD (parcial) | 2026-10-09 | (este commit) | `POSITRON_LOG` no `Plugin.Escrever`; `scripts/cad-zwcad-smoke.ps1` + `npm run cad:smoke`; receita no `RUNBOOK.md`; parser do `.ps1` OK e criação do `.db` (31 tabelas) validada — execução no CAD pendente do ZWCAD fechado |
+| 3 — Harness ZWCAD (parcial) | 2026-10-09 | f5bc9a5 | `POSITRON_LOG` no `Plugin.Escrever`; `scripts/cad-zwcad-smoke.ps1` + `npm run cad:smoke`; receita no `RUNBOOK.md`; parser do `.ps1` OK e criação do `.db` (31 tabelas) validada — execução no CAD pendente do ZWCAD fechado |
+| 5 — Pendências de projeção (parcial) | 2026-10-09 | (este commit) | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; resta só a `Pagina` com cruzamento (matriz de páginas) |
 | 1 — Idempotência da projeção | 2026-10-09 | cbadec5 | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
 
 ## 6. Riscos e armadilhas

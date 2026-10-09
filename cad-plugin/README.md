@@ -156,7 +156,10 @@ Só então o `mPosicao` casa por `(painel, tag)` e o não-borne ganha
 (`verificaTipoDispositivo`); aqui o `I` entra a pedido do projeto (`M` é máscara,
 nunca entra). E o original só aceita o casamento se o bloco também tirar um
 **terminal** não-vazio (`ltZUHdAX7R`, que lê atributos `T*`/`B*` do bloco) — isso
-depende da entidade e fica como próximo passo; o núcleo valida a geometria.
+**já está no núcleo** (`CasamentoDispositivo.EscolherTerminal`), com o adapter
+lendo os atributos do bloco (`DispositivosDeFiacaoDoDesenho.LerTerminais`) e a
+regra coberta por `DispositivosFiacaoTests` (`Sem_terminal_nao_casa`,
+`Terminal_indefinido_nao_casa`, `Tipo_P_ignora_atributo_B...`).
 
 ### Fluxo de interligação (`INT`)
 
