@@ -189,6 +189,18 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         }
     }
 
+    /// <summary>
+    /// Círculo (centro + raio). O stub só precisa da superfície que o plugin usa —
+    /// os quadrantes e as extensões do símbolo de borne
+    /// (<c>DeslocamentosDoDesenho</c> / <c>PontosDeLigacao</c>).
+    /// </summary>
+    public class Circle : Entity
+    {
+        public Point3d Center { get; set; }
+
+        public double Radius { get; set; }
+    }
+
     public class BlockReference : Entity
     {
         public Point3d Position { get; set; }

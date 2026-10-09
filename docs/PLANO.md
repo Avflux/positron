@@ -261,10 +261,19 @@ escopo estrutural do recoder.
 - **Pronto quando:** cada tabela projetada tem gerador puro + teste + comando ou
   passo de comando que a produz.
 
-### Etapa 8 — UI WinForms do plugin · P2
+### Etapa 8 — UI WinForms do plugin · P2 · **parcial (configuração pronta)**
 
 - **O que:** as telas `frmCompilar*` equivalentes, hoje substituídas por
   variáveis de ambiente (`POSITRON_DB_PATH`, `POSITRON_DWG`, ...).
+- **Feito (rodada 17):** a camada de configuração que as telas do original
+  editavam — `ConfiguracaoPositron` (padrão < arquivo `%APPDATA%\Positron\positron.ini`
+  < ambiente, leitura tolerante, round-trip testado), os comandos e o log lendo
+  dela, e a tela WinForms `FormularioConfiguracao` no comando **`ELETCFG`** (modal,
+  nunca em script). A variável de ambiente continua vencendo, então nenhum E2E
+  depende de arquivo.
+- **Falta:** as telas de **compilação** (`frmCompilarFiacao`/`Interligacao` com
+  grid de erros, seleção de painéis/revisão e botão de salvar) — hoje os comandos
+  fazem o serviço sem tela, pegando painel/revisão da configuração.
 
 ### Etapa 9 — Decisões abertas · P2
 
@@ -336,7 +345,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 13 — tag ausente e órfãos no `VERIF` | 2026-10-09 | a8a7091 | `SemTag` exige evidência de dispositivo (fiação do desenho real: 223 → **0**); nova regra `BorneSemFiacao` (órfão) acusa 193 de 199 bornes; desenho real em **243** problemas (BorneSemFiacao 193, PontoSemTag 32, TerminalDuplicado 18); `plugin:test` **163** |
 | 14 — pontos de ligação do bloco (círculo) | 2026-10-09 | 01eeb0a | a tabela de deslocamentos passa a incluir os **quatro quadrantes do círculo** (o ramo `Circle` do `frmCompilarFiacao`), com helper puro `PontosDeLigacao` + 3 testes; no `Funcional.dwg` `BorneSemFiacao` 193→**171**, `PontoSemTag` de interligação 32→**0** e o `VERIF` 243→**189**; `plugin:test` **166** |
 | 15 — pontos de fiação nas duas pontas | 2026-10-09 | ff8227e | a leitura passa a criar ponto na **primeira** e/ou **última** ponta da `CONEXAO` conforme `Tipo`/`Disp1`/`Disp2`/`Jumper` (regra do `frmCompilarFiacao`), com `PontosDaConexao` + 6 testes; no `Funcional.dwg` o `FIA` grava **494** linhas (era 365; previsto 494), `Circuitos4F` 11→**7** e os órfãos 171→**107** — o mesmo 107 que a simulação offline previa, fechando o casamento; `plugin:test` **172** |
-| 16 — regras de duplicidade fiéis ao original | 2026-10-09 | (este commit) | sai a regra de "terminal repetido" da fiação (110 falsos positivos) e entra a do original: dois trechos **Tipo 2** com **mesma página e mesmas pontas** (`FiacaoDuplicada` + adapter `TrechosDoDesenho`); mesma coisa nos contatos (18 falsos positivos; o produto grava um contato por `sT1`/`sT2`/`sT3` sem dedup). Desenho real: **107 problemas, todos `BorneSemFiacao`** (a conta fecha com a simulação); `plugin:test` **173** |
+| 16 — regras de duplicidade fiéis ao original | 2026-10-09 | 755b374 | sai a regra de "terminal repetido" da fiação (110 falsos positivos) e entra a do original: dois trechos **Tipo 2** com **mesma página e mesmas pontas** (`FiacaoDuplicada` + adapter `TrechosDoDesenho`); mesma coisa nos contatos (18 falsos positivos; o produto grava um contato por `sT1`/`sT2`/`sT3` sem dedup). Desenho real: **107 problemas, todos `BorneSemFiacao`** (a conta fecha com a simulação); `plugin:test` **173** |
+| 17 — configuração do plugin (Etapa 8) | 2026-10-09 | (este commit) | `ConfiguracaoPositron` (padrão < arquivo < ambiente, tolerante, com 5 testes), comandos e log lendo dela, tela WinForms + comando `ELETCFG`; `Circle` entra no `Positron.CadStub` (a build AutoCAD estava quebrada desde a rodada 14); desenho real segue em **107** problemas e `plugin:test` em **178** |
 | 5 — Pendências de projeção (parcial) | 2026-10-09 | bc59c8d | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; resta só a `Pagina` com cruzamento (matriz de páginas) |
 | 7a — `Dispositivos4F` | 2026-10-09 | ed7222a | gerador puro + gravação idempotente + `FIA` gerando; `plugin:test` **110** aprovados |
 | 7b — `Circuitos4F` | 2026-10-09 | 1afbd7a | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados |

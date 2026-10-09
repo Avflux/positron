@@ -72,4 +72,10 @@
     <ProjectReference Include="..\Positron.Data\Positron.Data.csproj" />
   </ItemGroup>
 
+  <!-- A tela de configuracao (comando ELETCFG) usa WinForms, como as frm* do original. -->
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+
 </Project>

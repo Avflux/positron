@@ -483,6 +483,14 @@ Dois detalhes que só apareceram no desenho real e zeravam o `Bornes4F`:
 - `Xrecord.Data` **lança** `InvalidOperationException` em registro vazio; leia pelo
   `XDataNeutro.Para(registro)`, que devolve lista vazia, e não cheque `.Data` antes.
 
+### Rodar **as duas** builds do plugin
+
+`npm run plugin:build` compila contra o ZWCAD real; `npm run plugin:build:autocad`
+compila contra o **stub** (`Positron.CadStub`), que é um gate separado. Usar um tipo
+da API que o stub ainda não tem (foi o `Circle`, na rodada 14) **só aparece nessa
+segunda build** — o `plugin:test` não compila o projeto do plugin, então passa verde
+do mesmo jeito. Rodar as duas depois de mexer em adapter.
+
 ### `entget` sem applist não devolve XData no ZWCAD 2026
 
 `(entget e)` **não** trouxe o grupo `-3` no desenho real (o dump dizia "nenhuma
@@ -525,6 +533,27 @@ script é assíncrono e a `pz-dump` seguinte roda no desenho antigo. Para abrir 
 DWG como desenho ativo, passe o **arquivo na linha de comando** do ZWCAD
 (`ZWCAD.exe <desenho> /nologo /b <script>`).
 
+### Configuração: arquivo + ambiente (comando `ELETCFG`)
+
+O plugin passou a ter o **arquivo de configuração** no lugar da tela do original:
+`%APPDATA%\Positron\positron.ini` (formato `chave=valor`, uma por linha), gravado
+pelo comando **`ELETCFG`** (a tela WinForms) e lido por
+`ConfiguracaoPositron.Carregar()`.
+
+**Precedência: padrão < arquivo < ambiente.** A variável `POSITRON_*` continua
+vencendo, porque é o caminho da automação — o harness e os E2E montam o cenário por
+variável e não podem depender de arquivo. Ou seja: nada do que já funcionava mudou,
+e a tela só acrescenta persistência para quem opera à mão.
+
+Chaves do arquivo: `banco`, `dwg`, `revisao`, `local`, `log`, `incluirColuna`,
+`separadorCruzamento` (o nome da variável também é aceito como chave). Linha
+malformada é ignorada e valor inválido mantém o anterior — dado de terceiro não
+derruba o comando.
+
+**`ELETCFG` é modal e não pode entrar em script**: ninguém clica em OK e o ZWCAD
+fica parado. Por isso nenhum E2E o executa; a lógica testável está em
+`ConfiguracaoPositron`, coberta por `ConfiguracaoPositronTests`.
+
 ### Editar os scripts `.ps1`
 
 `scripts/build-sidecar.ps1` tem acentos e o PowerShell 5.1 **lê arquivo sem BOM
@@ -543,7 +572,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
   26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 173 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 178 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge

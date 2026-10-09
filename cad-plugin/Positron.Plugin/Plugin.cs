@@ -50,14 +50,14 @@ namespace Positron.Plugin
         }
 
         /// <summary>
-        /// Anexa a mensagem em <c>POSITRON_LOG</c> quando a variável existe. A
-        /// linha de comando do CAD não tem stdout: rodando por script
-        /// (<c>ZWCAD.exe /b passo.scr</c>), este arquivo é a evidência de que o
-        /// plugin carregou e o que cada comando gravou.
+        /// Anexa a mensagem no log configurado (variável <c>POSITRON_LOG</c> ou a
+        /// chave <c>log</c> do arquivo de configuração). A linha de comando do CAD
+        /// não tem stdout: rodando por script (<c>ZWCAD.exe /b passo.scr</c>), este
+        /// arquivo é a evidência de que o plugin carregou e o que cada comando gravou.
         /// </summary>
         private static void RegistrarEmArquivo(string mensagem)
         {
-            string caminho = Environment.GetEnvironmentVariable("POSITRON_LOG");
+            string caminho = Positron.Data.Configuracao.ConfiguracaoPositron.Carregar().Log;
             if (string.IsNullOrEmpty(caminho))
             {
                 return;

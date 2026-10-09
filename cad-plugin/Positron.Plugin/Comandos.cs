@@ -4,6 +4,7 @@ using Positron.Contract;
 using Positron.Data;
 using Positron.Data.Cabos;
 using Positron.Data.Bornes;
+using Positron.Data.Configuracao;
 using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
 using Positron.Data.Layout;
@@ -47,6 +48,40 @@ namespace Positron.Plugin
         /// e <c>POSITRON_REVISAO</c> completam a linha (o original pega do
         /// desenho ativo, que ainda não resolvemos).
         /// </summary>
+        /// <summary>
+        /// <c>ELETCFG</c> — abre a tela de configuração (o lugar das variáveis
+        /// <c>POSITRON_*</c>) e grava o arquivo. Modal: **não** rode dentro de
+        /// script, porque ninguém clica em OK.
+        /// </summary>
+        [CommandMethod("ELETCFG")]
+        public void Configurar()
+        {
+#if !POSITRON_SEM_WINFORMS
+            try
+            {
+                ConfiguracaoPositron atual = ConfiguracaoPositron.Carregar();
+                using (Configuracao.FormularioConfiguracao tela = new Configuracao.FormularioConfiguracao(atual))
+                {
+                    if (tela.ShowDialog() != System.Windows.Forms.DialogResult.OK || tela.Resultado == null)
+                    {
+                        Plugin.Escrever("ELETCFG: configuração mantida.");
+                        return;
+                    }
+
+                    tela.Resultado.Salvar();
+                    Plugin.Escrever("ELETCFG: configuração gravada em " + ConfiguracaoPositron.ArquivoPadrao + ".");
+                    Plugin.Escrever("ELETCFG: a variável de ambiente POSITRON_* tem prioridade sobre o arquivo.");
+                }
+            }
+            catch (System.Exception erro)
+            {
+                Plugin.Escrever("ELETCFG: falhou — " + DescreverErro(erro));
+            }
+#else
+            Plugin.Escrever("ELETCFG: compilado sem WinForms; edite " + ConfiguracaoPositron.ArquivoPadrao + " à mão.");
+#endif
+        }
+
         [CommandMethod("FIA")]
         public void Fia()
         {
@@ -70,7 +105,8 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarFiacao()
         {
-            string caminho = Environment.GetEnvironmentVariable("POSITRON_DB_PATH");
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
                 return "FIA: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
@@ -86,8 +122,8 @@ namespace Positron.Plugin
 
                 ContextoProjecao contexto = new ContextoProjecao
                 {
-                    Dwg = LerInteiro("POSITRON_DWG", 0),
-                    Revisao = Environment.GetEnvironmentVariable("POSITRON_REVISAO"),
+                    Dwg = config.Dwg,
+                    Revisao = config.Revisao,
                     Criador = Environment.UserName,
                     Data = DateTime.Now,
                 };
@@ -180,7 +216,8 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarJumper()
         {
-            string caminho = Environment.GetEnvironmentVariable("POSITRON_DB_PATH");
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
                 return "JMP: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
@@ -196,8 +233,8 @@ namespace Positron.Plugin
 
                 ContextoProjecao contexto = new ContextoProjecao
                 {
-                    Dwg = LerInteiro("POSITRON_DWG", 0),
-                    Revisao = Environment.GetEnvironmentVariable("POSITRON_REVISAO"),
+                    Dwg = config.Dwg,
+                    Revisao = config.Revisao,
                     Criador = Environment.UserName,
                     Data = DateTime.Now,
                 };
@@ -259,7 +296,8 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarInterligacao()
         {
-            string caminho = Environment.GetEnvironmentVariable("POSITRON_DB_PATH");
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
                 return "INT: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
@@ -275,9 +313,9 @@ namespace Positron.Plugin
 
                 ContextoInterligacao contexto = new ContextoInterligacao
                 {
-                    Dwg = LerInteiro("POSITRON_DWG", 0),
-                    Documento = Environment.GetEnvironmentVariable("POSITRON_LOCAL"),
-                    Revisao = Environment.GetEnvironmentVariable("POSITRON_REVISAO"),
+                    Dwg = config.Dwg,
+                    Documento = config.Local,
+                    Revisao = config.Revisao,
                     Criador = Environment.UserName,
                     Data = DateTime.Now,
                 };
@@ -349,7 +387,8 @@ namespace Positron.Plugin
         [CommandMethod("VERIF")]
         public void Verif()
         {
-            string caminho = Environment.GetEnvironmentVariable("POSITRON_DB_PATH");
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
                 Plugin.Escrever("VERIF: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).");
@@ -359,8 +398,8 @@ namespace Positron.Plugin
             try
             {
                 ProjectStore store = new ProjectStore(caminho);
-                int dwg = LerInteiro("POSITRON_DWG", 0);
-                string revisao = Environment.GetEnvironmentVariable("POSITRON_REVISAO");
+                int dwg = config.Dwg;
+                string revisao = config.Revisao;
 
                 IReadOnlyList<FiacaoRow> fiacao = store.FiacaoDaRevisao(dwg, revisao);
                 IReadOnlyList<Interligacao4Row> interligacao = store.InterligacaoDaRevisao(dwg, revisao);
@@ -703,16 +742,18 @@ namespace Positron.Plugin
 
         /// <summary>
         /// Como a coluna `Pagina` é montada: `Conf.incluirColuna` (0..6) e o
-        /// `SeparadorCruzamento`, do ambiente — a tela do original
-        /// (`frmConfiguracaoGeral`) ainda não existe aqui. Sem configuração, o
+        /// `SeparadorCruzamento`, que vêm da configuração — arquivo do usuário
+        /// (`%APPDATA%\Positron\positron.ini`, gravado pela tela de configuração) ou
+        /// variável de ambiente, que tem prioridade. Sem configuração, o
         /// comportamento é o caso 0..2 (layer cru). Ver `ColunaPagina`.
         /// </summary>
         private static ColunaPagina LerColunaPagina()
         {
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
             return new ColunaPagina(
                 PaginasDoDesenho.Ler(),
-                LerInteiro("POSITRON_INCLUIR_COLUNA", 0),
-                Environment.GetEnvironmentVariable("POSITRON_SEPARADOR_CRUZAMENTO"));
+                config.IncluirColuna,
+                config.SeparadorCruzamento);
         }
 
         /// <summary>
@@ -740,13 +781,6 @@ namespace Positron.Plugin
             }
 
             return texto.ToString();
-        }
-
-        private static int LerInteiro(string nome, int padrao)
-        {
-            string valor = Environment.GetEnvironmentVariable(nome);
-            int numero;
-            return !string.IsNullOrEmpty(valor) && int.TryParse(valor, out numero) ? numero : padrao;
         }
     }
 }
