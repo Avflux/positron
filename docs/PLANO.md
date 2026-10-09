@@ -19,6 +19,9 @@ Cobrir o máximo do recoder do `Eletron4Z` (reverso em
 
 ## 2. Estado de partida (baseline verificado)
 
+> **Histórico.** Esta seção é a fotografia do **começo** (commit `b37576e`) e fica
+> preservada como tal. O estado **atual** está na §2.2.
+
 Medido em 2026-10-09, árvore limpa, último commit `b37576e`.
 
 | Gate | Resultado |
@@ -46,6 +49,54 @@ uma vez): só `Cabos4`/`Veias4` apagam a revisão antes de regravar
 segunda execução de `FIA`/`INT` duplica linhas e o `ReordenarOrdemFiacao`
 passa a reescrever a `Ordem` das duas cópias (medido no `RUNBOOK.md`: `Fiacao`
 3→6, `Bornes4F` 2→4). **Corrigido na Etapa 1.**
+
+## 2.2 Estado atual (rodada 46)
+
+O recorte do plano — **9 comandos, 13 tabelas do diagrama, app lendo tudo** — está
+implementado, verificado e documentado. Os números de hoje:
+
+| Gate | Resultado |
+|---|---|
+| `npm run plugin:build` (ZWCAD) / `:autocad` | exit 0, 0 avisos / 0 erros |
+| `npm run plugin:test` | **209** aprovados |
+| `npm run protocol:gen` | contrato OK (**20 métodos**; 31 tabelas) |
+| `npm run typecheck` / `build:web` | limpo / **57** módulos |
+| `npm run test:sidecar` / `ruff check` | 27 testes / limpo |
+| `npm run cad:projeto` (`-Idempotencia`) | verde nos 7 passos — projeção, cadastro, app, relatório, idempotência |
+
+**Projeção — matriz do A/B contra o banco do produto** (`Funcional.dwg`, DWG 63;
+receita no `RUNBOOK.md`):
+
+| Tabela | Produto | Recoder | Veredito |
+|---|---|---|---|
+| `Fiacao` | 494 | 494 | diferenças por coluna, todas dado do desenho |
+| `Portas4F` | 265 | 265 | **idêntico** |
+| `Contatos4F` | 70 | 70 | **idêntico** |
+| `Circuitos4F` | 11 | 11 | **idêntico** (era 7; bug corrigido) |
+| `Aplicacao4F` | 15 | 15 | **idêntico** |
+| `Bornes4F` | 155 | 168 | diferenças por coluna, todas dado do desenho |
+| `Dispositivos4F` | 83 | 83 | 2 linhas (`BlocoLayout`), dado do desenho |
+| `Interligacao4` | 20 | 20 | **conteúdo idêntico** (hash) |
+| `Portas4I` | 265 | 265 | **conteúdo idêntico** (hash) |
+| `Bornes4I` | 216 | 216 | **conteúdo idêntico** (hash) |
+| `Cabos4` / `Veias4` | 697 / 2.388 | 697 / 2.388 | **hash igual** ao catálogo do produto |
+| `Jumper4` | 0 | 0 | idêntico (o desenho não tem jumper) |
+
+**Verificação (o que sustenta a tabela acima):** A/B de conteúdo com
+`scripts/cad-ab-tabelas.ps1`+`.py` (resumo e detalhe por coluna); idempotência e
+isolamento por desenho com `scripts/cad-dump-tabelas.py`; catálogo e cadastro com
+`scripts/cad-importa-catalogo.ps1`; app com `scripts/app-consultas.py`; `VERIF` com
+`scripts/cad-verif-baseline.py` (linha de base **238** = 107+119+10+2).
+
+**`VERIF`:** regras de tabela + **sete** checagens do desenho (régua do borne, cabo fora
+do catálogo, página ausente, régua vazia, borne sem LM, conexão órfã e painel fora do
+cadastro), no desenho real: **238** problemas — 107 `BorneSemFiacao`, 119 `BorneSemLm`,
+10 `ReguaVazia`, 2 `SobreposicaoAusente`.
+
+**Único item aberto:** a **Etapa 9** (licença, relatórios, banco), que é decisão do dono
+e tem os três encaixes prontos — `ServicoDeLicenca`/`ILicenca` com gate nos comandos,
+o relatório em texto (`ELETREL`/`ELETCMP`) como base dos 37 relatórios, e o SQL isolado
+no `ProjectStore` para o dia do SQL Server.
 
 ## 3. Etapas
 
@@ -500,6 +551,7 @@ aberto por **cópia no TEMP**).
 | 43 — `NRegua` fica vazia (e `TipoBorne` é dado) | 2026-10-09 | b41b64a | o `ltZUHdAX7R` do original só preenche `NRegua` no caminho da porta (`E`): em `B`/`P`/`A` a coluna sai vazia, e o nome da régua fica na `Tag` — corrigido em `AplicarBorne`/`AplicarDispositivo`, a `Fiacao` caiu de **988** para **238** linhas divergentes no A/B; o `TipoBorne` (79 linhas, 0 × 1) foi investigado até o XData e é **dado**: os dois lados leem o índice 14 e o desenho local tem 199/199 bornes com `tipo = 0` (o produto tem 79 com 1). |
 | 44 — A/B fecha com veredito por coluna | 2026-10-09 | 61bee12 | `cad-ab-tabelas.py --detalhe` casa as linhas por `Handle` e mostra as divergências **por coluna**: as 4 tabelas idênticas não têm nenhuma; `Fiacao` (`TipoBorne` 79, `Ordem` 29, `Potencial`/`Terminal` 19, `Tag` 6), `Bornes4F` (`Tipo` 79, `Ordem` 53, `Borne` 10, `Regua` 6) e `Dispositivos4F` (2) têm **todas as diferenças com causa identificada** — dado do desenho, com o XData conferido onde a dúvida era regra × dado |
 | 45 — regra `PainelSemCadastro` (painéis fora do cadastro) | 2026-10-09 | b90c435 | o `lPnAoagado` do verificador: o dicionário de painéis do original mora no **banco** (`cDadosAccess.carregaPainelDicionario`), não no desenho — a regra lê a tabela `Paineis` (o `LerIndicesDePaineis` novo) e aponta painel usado no desenho sem cadastro; provada dos dois lados: sem cadastro **240** problemas (`PainelSemCadastro: 2`), com os 480 painéis importados **238** (a linha de base); +2 testes (`plugin:test` **209**) |
+| 46 — estado atual do recorte no topo do plano (§2.2) | 2026-10-09 | (este commit) | a §2 ("Estado de partida") fica marcada como **histórica** e entra a §2.2 com o estado de hoje: gates (209 testes, 20 métodos, 57 módulos), a **matriz do A/B** tabela a tabela com o veredito, as ferramentas de verificação e o único item aberto (Etapa 9) — quem abrir o plano vê o estado sem ler 52 linhas de registro |
 
 ## 6. Riscos e armadilhas
 
