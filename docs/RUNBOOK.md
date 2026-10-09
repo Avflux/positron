@@ -368,14 +368,22 @@ por `_.INSERT`. O mesmo `entmod` com `-3` funciona em `LWPOLYLINE` (é assim que
 fixture monta `CONEXAO`/`INTERLIGACAO`). Ou seja: a fixture com blocos não sai por
 LISP.
 
-Alternativas para as fases 7–9 num CAD (nenhuma feita ainda):
-- montar o DWG a partir da **biblioteca de simbologia** do produto — há DWGs com
-  XData real em `..\Elet\libs\Simbologia` (`H_P_B1_VCC++.dwg` tem `CONEXAO`;
-  vários `H_B_*`/`H_P_*` têm `Dispositivo`) —, inserindo e explodindo o símbolo
-  para trazer o bloco com XData ao ModelSpace;
-- **abrir um DWG de símbolo** como desenho ativo e rodar o plugin sobre ele;
-- carimbar pelo próprio plugin (um comando de teste), o que enfraquece o E2E
-  (testaria o nosso gravador contra o nosso leitor).
+A **biblioteca de simbologia** (`..\Elet\libs\Simbologia`) parecia a saída, mas
+a varredura dos 2.265 DWGs e o dump de um símbolo mostram que os nomes `CONEXAO`/
+`DISPOSITIVO` que aparecem nos bytes são **registros de app name legados**: as
+entidades do `H_P_B1_VCC++.dwg` (ATTDEF/LINE/CIRCLE/HATCH) **não têm XData**. Ou
+seja, também não há DWG de símbolo que sirva de fonte.
+
+O que sobra para as fases 7–9 num CAD:
+- um **desenho de projeto real** (do dono do produto), que é o único artefato com
+  bornes/máscaras/dispositivos com XData;
+- carimbar pelo próprio plugin, com um comando **só de Debug** (fica fora do
+  assembly de release).
+
+Armadilha vizinha, medida na mesma investigação: `(command "_.OPEN" ...)` num
+script é assíncrono e a `pz-dump` seguinte roda no desenho antigo. Para abrir um
+DWG como desenho ativo, passe o **arquivo na linha de comando** do ZWCAD
+(`ZWCAD.exe <desenho> /nologo /b <script>`).
 
 ### Editar os scripts `.ps1`
 

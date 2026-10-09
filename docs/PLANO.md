@@ -129,13 +129,14 @@ escopo estrutural do recoder.
 - **Falta:** uma fixture com **blocos** (borne com XData `Dispositivo`/`B`, máscara
   `M`, contatos) para exercitar as fases 7–9 dentro do CAD — hoje elas só têm
   cobertura unitária.
-- **Obstáculo medido (rodada 9):** carimbar XData num `INSERT` pelo LISP **não
+- **Obstáculo medido (rodadas 9–10):** carimbar XData num `INSERT` pelo LISP **não
   funciona** no ZWCAD 2026 (`incorrect type - nil` em `entmake`/`entmakex` com o
   grupo `-3` e em `entmod` com a lista completa ou mínima), embora funcione em
-  `LWPOLYLINE`. Caminhos para a próxima rodada: montar o desenho a partir da
-  **biblioteca de simbologia** (`..\Elet\libs\Simbologia`, que tem DWGs com
-  `CONEXAO` e `Dispositivo` reais), ou abrir um desses DWGs como desenho ativo e
-  rodar o plugin sobre ele. Detalhes no `RUNBOOK.md`.
+  `LWPOLYLINE`. E a **biblioteca de simbologia** (`..\Elet\libs\Simbologia`) não
+  resolve: os `CONEXAO`/`DISPOSITIVO` que aparecem nos bytes são **app names
+  legados**; as entidades do símbolo (`H_P_B1_VCC++.dwg`) não têm XData. Sobram
+  duas saídas: um **desenho de projeto real** ou um comando de fixture **só de
+  Debug** no plugin. Detalhes no `RUNBOOK.md`.
 
 ### Etapa 5 — Pendências de projeção · P1 · **concluída**
 
