@@ -100,15 +100,25 @@ namespace Positron.Data.Modelos
             // Começa em 1 e lê até +6.
             for (int i = 1; i + 6 < valores.Count; i += ValoresPorAuxiliar)
             {
+                string t1 = Texto(valores[i + 1].Valor);
+                string t2 = Texto(valores[i + 2].Valor);
+                string t3 = Texto(valores[i + 3].Valor);
+
+                // A orientação é ajustada ao número de terminais preenchidos
+                // (VerificaOrientacaoContato do original).
+                string orientacao = OrientacaoContato.Verificar(
+                    t1 + ";" + t2 + ";" + t3 + ";",
+                    Texto(valores[i + 6].Valor));
+
                 auxiliares.Add(new ContatoAuxiliar
                 {
                     Indice = Inteiro(valores[i + 0].Valor),
-                    T1 = Texto(valores[i + 1].Valor),
-                    T2 = Texto(valores[i + 2].Valor),
-                    T3 = Texto(valores[i + 3].Valor),
+                    T1 = t1,
+                    T2 = t2,
+                    T3 = t3,
                     Tipo = TipoDoContato(Inteiro(valores[i + 4].Valor)),
                     Comportamento = Texto(valores[i + 5].Valor),
-                    Orientacao = Texto(valores[i + 6].Valor),
+                    Orientacao = orientacao,
                 });
             }
 

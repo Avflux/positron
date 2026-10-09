@@ -123,17 +123,106 @@ namespace Positron.Data.Tests
                 MaxX = 11.0,
                 MaxY = 6.0,
             };
+            dispositivo.Terminais.Add(new TerminalDispositivo { Atributo = "T1", Texto = "5", X = 10.0, Y = 5.0 });
             TabelaDeslocamentoBlocos tabela = TabelaDeslocamentoBlocos.Ler(new[]
             {
                 new DeslocamentoBloco { Nome = "BLK", X = 10.0, Y = 5.0 },
             });
 
+            string terminal;
             DispositivoFiacao casado = CasamentoDispositivo.Proximo(
                 10.1, 5.0, "PAG1", 2, new List<DispositivoFiacao> { dispositivo },
-                CasamentoDispositivo.Tolerancia, tabela);
+                CasamentoDispositivo.Tolerancia, tabela, out terminal);
 
             Assert.Same(dispositivo, casado);
             Assert.Equal("DEV1", casado.Tag);
+            Assert.Equal("5", terminal);
+        }
+
+        [Fact]
+        public void Sem_terminal_nao_casa()
+        {
+            // Bloco de dispositivo sem atributo T*/B*: o ltZUHdAX7R o rejeita.
+            DispositivoFiacao dispositivo = new DispositivoFiacao
+            {
+                Tipo = "P", Nome1 = "DEV1", Painel = 2, Layer = "PAG1", X = 0.0, Y = 0.0,
+            };
+
+            DispositivoFiacao casado = CasamentoDispositivo.Proximo(
+                0.0, 0.0, "PAG1", 2, new List<DispositivoFiacao> { dispositivo },
+                CasamentoDispositivo.Tolerancia, null);
+
+            Assert.Null(casado);
+        }
+
+        [Fact]
+        public void Terminal_indefinido_nao_casa()
+        {
+            DispositivoFiacao dispositivo = new DispositivoFiacao
+            {
+                Tipo = "P", Nome1 = "DEV1", Painel = 2, Layer = "PAG1", X = 0.0, Y = 0.0,
+            };
+            dispositivo.Terminais.Add(new TerminalDispositivo { Atributo = "T1", Texto = "?", X = 0.0, Y = 0.0 });
+
+            DispositivoFiacao casado = CasamentoDispositivo.Proximo(
+                0.0, 0.0, "PAG1", 2, new List<DispositivoFiacao> { dispositivo },
+                CasamentoDispositivo.Tolerancia, null);
+
+            Assert.Null(casado);
+        }
+
+        [Fact]
+        public void Escolhe_o_terminal_mais_proximo_do_ponto()
+        {
+            DispositivoFiacao dispositivo = new DispositivoFiacao
+            {
+                Tipo = "P", Nome1 = "DEV1", Painel = 2, Layer = "PAG1", X = 0.0, Y = 0.0,
+            };
+            dispositivo.Terminais.Add(new TerminalDispositivo { Atributo = "T1", Texto = "1", X = 5.0, Y = 0.0 });
+            dispositivo.Terminais.Add(new TerminalDispositivo { Atributo = "T2", Texto = "2", X = 0.1, Y = 0.0 });
+
+            string terminal;
+            DispositivoFiacao casado = CasamentoDispositivo.Proximo(
+                0.0, 0.0, "PAG1", 2, new List<DispositivoFiacao> { dispositivo },
+                CasamentoDispositivo.Tolerancia, null, out terminal);
+
+            Assert.Same(dispositivo, casado);
+            Assert.Equal("2", terminal);
+        }
+
+        [Fact]
+        public void Tipo_P_ignora_atributo_B_para_o_terminal()
+        {
+            // No original, só o E lê B*; um P que só tenha B1 não casa.
+            DispositivoFiacao dispositivo = new DispositivoFiacao
+            {
+                Tipo = "P", Nome1 = "DEV1", Painel = 2, Layer = "PAG1", X = 0.0, Y = 0.0,
+            };
+            dispositivo.Terminais.Add(new TerminalDispositivo { Atributo = "B1", Texto = "5", X = 0.0, Y = 0.0 });
+
+            DispositivoFiacao casado = CasamentoDispositivo.Proximo(
+                0.0, 0.0, "PAG1", 2, new List<DispositivoFiacao> { dispositivo },
+                CasamentoDispositivo.Tolerancia, null);
+
+            Assert.Null(casado);
+        }
+
+        [Fact]
+        public void Tipo_E_aceita_atributo_B_para_o_terminal()
+        {
+            DispositivoFiacao dispositivo = new DispositivoFiacao
+            {
+                Tipo = "E", Nome1 = "PRT", Painel = 2, Layer = "PAG1", X = 0.0, Y = 0.0,
+            };
+            dispositivo.Terminais.Add(new TerminalDispositivo { Atributo = "B2", Texto = "7", X = 0.0, Y = 0.0 });
+
+            string terminal;
+            DispositivoFiacao casado = CasamentoDispositivo.Proximo(
+                0.0, 0.0, "PAG1", 2, new List<DispositivoFiacao> { dispositivo },
+                CasamentoDispositivo.Tolerancia, null, out terminal);
+
+            Assert.Same(dispositivo, casado);
+            Assert.Equal("7", terminal);
         }
 
         [Fact]
@@ -188,10 +277,12 @@ namespace Positron.Data.Tests
             {
                 Tipo = "P", Nome1 = "LONGE", Painel = 1, Layer = "PAG1", X = 0.4, Y = 0.0,
             };
+            longo.Terminais.Add(new TerminalDispositivo { Atributo = "T1", Texto = "1", X = 0.4, Y = 0.0 });
             DispositivoFiacao perto = new DispositivoFiacao
             {
                 Tipo = "P", Nome1 = "PERTO", Painel = 1, Layer = "PAG1", X = 0.05, Y = 0.0,
             };
+            perto.Terminais.Add(new TerminalDispositivo { Atributo = "T1", Texto = "2", X = 0.05, Y = 0.0 });
 
             DispositivoFiacao casado = CasamentoDispositivo.Proximo(
                 0.0, 0.0, "PAG1", 1, new List<DispositivoFiacao> { longo, perto },
@@ -215,13 +306,13 @@ namespace Positron.Data.Tests
                     new PontoFiacao { Painel = 1, Potencial = 4, X = 0.0, Y = 0.0, Layer = "PAG1" },
                 };
 
-                List<DispositivoFiacao> dispositivos = new List<DispositivoFiacao>
+                DispositivoFiacao dispositivo = new DispositivoFiacao
                 {
-                    new DispositivoFiacao
-                    {
-                        Tipo = "P", Nome1 = "D1", Painel = 1, Layer = "PAG1", X = 0.1, Y = 0.0,
-                    },
+                    Tipo = "P", Nome1 = "D1", Painel = 1, Layer = "PAG1", X = 0.1, Y = 0.0,
                 };
+                // O bloco dá o terminal (o ltZUHdAX7R exige terminal não-vazio).
+                dispositivo.Terminais.Add(new TerminalDispositivo { Atributo = "T1", Texto = "5", X = 0.1, Y = 0.0 });
+                List<DispositivoFiacao> dispositivos = new List<DispositivoFiacao> { dispositivo };
 
                 // O layout casa por (painel, tag) — só funciona depois que o
                 // dispositivo deu a tag ao ponto.
@@ -244,8 +335,9 @@ namespace Positron.Data.Tests
                 Assert.Equal("P", linha.Tipo);
                 Assert.Equal(3L, linha.PosicaoNum ?? 0);
                 Assert.Equal(-1L, linha.TipoBorne ?? 0);
-                // O dispositivo não traz terminal (isso fica no adapter).
-                Assert.Equal(0.0, linha.TerminalNum ?? -1.0);
+                // O terminal vem do atributo escolhido no dispositivo.
+                Assert.Equal("5", linha.Terminal);
+                Assert.Equal(5.0, linha.TerminalNum ?? -1.0);
             }
             finally
             {

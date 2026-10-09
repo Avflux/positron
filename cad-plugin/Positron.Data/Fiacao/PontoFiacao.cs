@@ -1,6 +1,7 @@
 using System;
 using Positron.Data.Bornes;
 using Positron.Data.Layout;
+using Positron.Data.Modelos;
 
 namespace Positron.Data.Fiacao
 {
@@ -138,11 +139,14 @@ namespace Positron.Data.Fiacao
         /// <summary>
         /// Completa um ponto **não-borne** com o dispositivo casado
         /// (<see cref="CasamentoDispositivo"/>): a <c>Tag</c> vira
-        /// <c>Nome1[/Nome2]</c> e o <c>Tipo</c> vira o do dispositivo. É o trecho do
-        /// original que faz <c>pont.tag = sRegua</c> e zera <c>PosicaoNum</c>/<c>dOrdem</c>
-        /// (o layout ainda pode sobrescrever depois, em <see cref="AplicarPosicao"/>).
+        /// <c>Nome1[/Nome2]</c>, o <c>Tipo</c> vira o do dispositivo e o
+        /// <c>Terminal</c> (mais o <c>TerminalNum</c>) vem do atributo escolhido
+        /// no casamento. É o trecho do original que faz <c>pont.tag = sRegua</c>,
+        /// preenche <c>terminal</c>/<c>terminalNum</c> e zera
+        /// <c>PosicaoNum</c>/<c>dOrdem</c> (o layout ainda pode sobrescrever depois,
+        /// em <see cref="AplicarPosicao"/>).
         /// </summary>
-        public void AplicarDispositivo(DispositivoFiacao dispositivo)
+        public void AplicarDispositivo(DispositivoFiacao dispositivo, string terminal = null)
         {
             if (dispositivo == null)
             {
@@ -151,6 +155,8 @@ namespace Positron.Data.Fiacao
 
             Tag = dispositivo.Tag;
             Alternativo = dispositivo.Alternativo;
+            Terminal = terminal;
+            TerminalNum = TerminalNumerico.Calcular(terminal);
             Tipo = dispositivo.Tipo;
             TipoBorne = -1;
             IndexModelo = (short)dispositivo.IndexModelo;

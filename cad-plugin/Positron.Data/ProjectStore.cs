@@ -100,6 +100,38 @@ namespace Positron.Data
         }
 
         /// <summary>
+        /// Lê a fiação de uma revisão (todos os painéis de um DWG), já nas linhas
+        /// do contrato gerado. É a leitura do <c>VERIF</c>: a validação olha o que
+        /// foi projetado, não um painel só.
+        /// </summary>
+        public IReadOnlyList<FiacaoRow> FiacaoDaRevisao(int dwg, string revisao)
+        {
+            List<FiacaoRow> linhas = new List<FiacaoRow>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, DWG, Painel, Potencial, Ordem, Pagina, Tag, Alternativo, NRegua, " +
+                    "Terminal, TerminalNum, Tipo, Secao, Cor, PosicaoNum, TipoBorne, BLink, Handle, IndexModelo, " +
+                    "Criador FROM Fiacao " +
+                    "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') " +
+                    "ORDER BY Painel, Potencial, Ordem";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(LerFiacao(leitor));
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
+        /// <summary>
         /// Grava as linhas de fiação. A lista de colunas é a do INSERT do original
         /// (<c>cDadosAccessFiacao.AdicionaItemPotencial</c>); <c>Indice</c> fica de
         /// fora de propósito — o SQLite atribui o rowid.

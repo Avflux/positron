@@ -172,6 +172,15 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         public string Tag { get; set; }
 
         public string TextString { get; set; }
+
+        /// <summary>Justificação horizontal do texto do atributo (o original compara com 10).</summary>
+        public int Justify { get; set; }
+
+        /// <summary>Ponto de alinhamento — usado quando <see cref="Justify"/> não é 10.</summary>
+        public Point3d AlignmentPoint { get; set; }
+
+        /// <summary>Ponto de inserção do texto.</summary>
+        public Point3d Position { get; set; }
     }
 
     public class Xrecord : DBObject

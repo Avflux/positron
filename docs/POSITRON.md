@@ -201,8 +201,9 @@ recorte mínimo:
 | `SYNCD` | projeta XData → tabelas do banco (o "quem desenha, grava") |
 | `VERIF` | valida o projeto (espelho de `frmVerificadorProjetoFiacao`) |
 
-Implementados: `ELET`, `FIA` e `INT` (sem tela ainda — ver
-`cad-plugin/README.md`). `SYNCD` e `VERIF` ficam para depois.
+Implementados: `ELET`, `FIA`, `INT`, `SYNCD` e `VERIF` (sem tela ainda — ver
+`cad-plugin/README.md`). O `SYNCD` é a projeção em lote (fiação + interligação); o
+`VERIF` é uma primeira fatia da validação — read-only, só a fiação gravada.
 
 Os nomes vêm do `COMANDOS.txt` do reverso — evitamos inventar comandos novos para
 o usuário não reaprender.
@@ -267,9 +268,9 @@ npm run protocol:gen   # gate: falha se os tipos gerados estiverem velhos
 Cada fase é verificável sozinha. As fases 2 e 4 não dependem uma da outra — só a
 5 fecha o laço entre os dois frontends.
 
-A fase 4 está **parcial**: o scaffold compila (0 avisos) e registra o `ELET`, mas
-(a) não foi carregado dentro do ZWCAD — ele não está instalado nesta máquina,
-então não há `ZwManaged.dll` — e (b) o `SYNCD` ainda não existe. Neste ambiente o
+A fase 4 está **parcial**: o scaffold compila (0 avisos) e registra os comandos
+(`ELET`, `FIA`, `INT`, `SYNCD`, `VERIF`), mas não foi carregado dentro do ZWCAD —
+ele não está instalado nesta máquina, então não há `ZwManaged.dll`. Neste ambiente o
 plugin builda contra o stub (`Positron.CadStub`), que é só gate de compilação e
 **não** produz um assembly carregável por NETLOAD.
 
@@ -292,9 +293,12 @@ etapas dos bornes (bounds ±0,25 + tabela de deslocamento), exigindo
 `painel == painel do ponto` e `painel > 0`. O `E`/`A` tem o painel lido do bloco
 da máscara. Com a `tag`, o `dOrdem` do **não-borne** passa a ser a ordem da tabela
 `mPosicao` (dicionário `CENG_LAYOUT`). O `I`/`M` são pulados no original; aqui o
-`I` entra a pedido do projeto (`M` nunca — é máscara). Falta, para o casamento,
-reproduzir o `ltZUHdAX7R` no que ele lê de terminal não-vazio do bloco. E, como o
-ZWCAD não está instalado, o `FIA` ainda não rodou dentro do desenho.
+`I` entra a pedido do projeto (`M` nunca — é máscara). O casamento reproduz também
+a segunda checagem do `ltZUHdAX7R`: o bloco só é aceito se tirar um terminal
+**não-vazio** do atributo `T*` (ou `B*`, no `E`) mais próximo do ponto — o adapter
+lê os atributos do bloco e o núcleo exige o terminal, que vira `Terminal`/
+`TerminalNum` do ponto. E, como o ZWCAD não está instalado, o `FIA` ainda não
+rodou dentro do desenho.
 
 A fase 6 também está **parcial**, pelo mesmo motivo da 5. Já existem e são
 testados: o comando `INT`, o leitor do XData `INTERLIGACAO`, a mesclagem das
@@ -401,16 +405,12 @@ instalado.
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
-1. **Terminal do dispositivo no casamento do não-borne** — o `ltZUHdAX7R` do
-   original só aceita o bloco se ele tirar um terminal não-vazio dos atributos
-   `T*`/`B*`; hoje o `CasamentoDispositivo` valida só a geometria (o `FIA` aceita
-   o bloco pela posição).
-2. **`TerminalNumerico`** com as formas `:` e `-` (`VerificaOrientacaoContato`
-   também, para os contatos).
-3. **`SYNCD` e `VERIF`** — comandos restantes do recorte do plugin.
-4. **UI WinForms** do plugin (as telas `frmCompilar*`), hoje substituídas por
+1. **UI WinForms** do plugin (as telas `frmCompilar*`), hoje substituídas por
    comandos que leem variáveis de ambiente.
-5. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
+2. **`VERIF` mais fundo:** a tela original (`frmVerificadorProjetoFiacao`, 2173
+   linhas) também pinta erros lidos do **desenho** (geometria, páginas apagadas);
+   hoje o `VERIF` só valida a fiação gravada.
+3. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
 
 **Convenções que não podem ser esquecidas**
 
@@ -427,7 +427,7 @@ instalado.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 74 testes)
+npm run plugin:test       # xunit, net472 (hoje 92 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

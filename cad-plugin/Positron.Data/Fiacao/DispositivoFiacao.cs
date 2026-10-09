@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Positron.Data.Fiacao
 {
     /// <summary>
@@ -53,6 +55,15 @@ namespace Positron.Data.Fiacao
 
         /// <summary>Nome da definição do bloco (o <c>BlockReference.Name</c>) — chave da tabela de deslocamento.</summary>
         public string NomeBloco { get; set; }
+
+        /// <summary>
+        /// Atributos de terminal do bloco (<c>T*</c>/<c>B*</c>), com a posição de
+        /// cada um. O adapter lê do desenho; o núcleo
+        /// (<see cref="CasamentoDispositivo"/>) escolhe o mais próximo do ponto e
+        /// só aceita o casamento se o terminal for não-vazio — o <c>ltZUHdAX7R</c>
+        /// do original.
+        /// </summary>
+        public IList<TerminalDispositivo> Terminais { get; } = new List<TerminalDispositivo>();
 
         public bool TemBounds { get; set; }
 

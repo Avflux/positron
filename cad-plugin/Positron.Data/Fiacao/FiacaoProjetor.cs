@@ -109,9 +109,11 @@ namespace Positron.Data.Fiacao
                     }
                 }
 
-                // Não-borne: o dispositivo mais próximo dá a tag (Nome1[/Nome2]).
+                // Não-borne: o dispositivo mais próximo dá a tag (Nome1[/Nome2]) e
+                // o terminal (ltZUHdAX7R). Só casa o bloco que tira terminal não-vazio.
                 if (dispositivos != null && dispositivos.Count > 0)
                 {
+                    string terminal;
                     DispositivoFiacao dispositivo = CasamentoDispositivo.Proximo(
                         ponto.X,
                         ponto.Y,
@@ -119,10 +121,11 @@ namespace Positron.Data.Fiacao
                         ponto.Painel,
                         dispositivos,
                         CasamentoDispositivo.Tolerancia,
-                        deslocamentos);
+                        deslocamentos,
+                        out terminal);
                     if (dispositivo != null)
                     {
-                        ponto.AplicarDispositivo(dispositivo);
+                        ponto.AplicarDispositivo(dispositivo, terminal);
                     }
                 }
 

@@ -67,6 +67,10 @@ namespace Positron.Plugin.Fiacao
                     dispositivo.Y = bloco.Position.Y;
                     dispositivo.NomeBloco = bloco.Name;
 
+                    // Atributos de terminal (T*/B*): o núcleo só casa o bloco
+                    // que tira um terminal não-vazio (ltZUHdAX7R).
+                    LerTerminais(transacao, bloco, dispositivo);
+
                     Extents3d? bounds = ((Drawable)bloco).Bounds;
                     if (bounds.HasValue)
                     {
@@ -114,6 +118,36 @@ namespace Positron.Plugin.Fiacao
             }
 
             return DispositivoFiacaoXData.LerImportado(XDataNeutro.Para(importado), out dispositivo);
+        }
+
+        /// <summary>
+        /// Lê os atributos de terminal do bloco (<c>T*</c>/<c>B*</c>) para o campo
+        /// <see cref="DispositivoFiacao.Terminais"/>. O adapter só lê o atributo
+        /// cru (tag, texto e posição); a escolha do mais próximo e a exigência de
+        /// terminal não-vazio ficam no núcleo (<see cref="CasamentoDispositivo"/>).
+        ///
+        /// A posição segue o original: o <c>AlignmentPoint</c> quando o texto não
+        /// está no modo de justificação padrão, senão o <c>Position</c>.
+        /// </summary>
+        private static void LerTerminais(Transaction transacao, BlockReference bloco, DispositivoFiacao dispositivo)
+        {
+            foreach (ObjectId idAtributo in bloco.AttributeCollection)
+            {
+                AttributeReference atributo = transacao.GetObject(idAtributo, OpenMode.ForRead) as AttributeReference;
+                if (atributo == null)
+                {
+                    continue;
+                }
+
+                Point3d posicao = (int)atributo.Justify != 10 ? atributo.AlignmentPoint : atributo.Position;
+                dispositivo.Terminais.Add(new TerminalDispositivo
+                {
+                    Atributo = atributo.Tag,
+                    Texto = atributo.TextString,
+                    X = posicao.X,
+                    Y = posicao.Y,
+                });
+            }
         }
 
         /// <summary>

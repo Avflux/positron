@@ -76,7 +76,8 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 | `ELET` | **implementado** — mensagem de entrada do plugin |
 | `FIA` | **implementado** — projeta a fiação do desenho para `Fiacao` |
 | `INT` | **implementado** — projeta a interligação do desenho para `Interligacao4` |
-| `SYNCD`, `VERIF` | ainda não (ver `../docs/POSITRON.md`) |
+| `SYNCD` | **implementado** — projeta o desenho para o banco (fiação + interligação) |
+| `VERIF` | **implementado** — valida a fiação gravada (`Fiacao`) |
 
 ### Fluxo de fiação (`FIA`)
 

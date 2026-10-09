@@ -25,7 +25,8 @@ namespace Positron.Plugin
     /// Comandos registrados por atributo, no mesmo padrão do assembly original
     /// (216 x <c>[CommandMethod]</c>). Fachada fina: valida e delega.
     ///
-    /// <c>SYNCD</c> e <c>VERIF</c> entram depois (ver docs/POSITRON.md).
+    /// Recorte atual: <c>ELET</c>, <c>FIA</c>, <c>INT</c>, <c>SYNCD</c> e
+    /// <c>VERIF</c> — os nomes vêm do <c>COMANDOS.txt</c> do reverso.
     /// </summary>
     public sealed class Comandos
     {
@@ -49,11 +50,20 @@ namespace Positron.Plugin
         [CommandMethod("FIA")]
         public void Fia()
         {
+            Plugin.Escrever(ExecutarFiacao());
+        }
+
+        /// <summary>
+        /// Projeta a fiação do desenho e devolve a linha de resumo — usada tanto
+        /// pelo <c>FIA</c> quanto pelo <c>SYNCD</c>. Nunca lança: um comando que
+        /// estoura derruba a linha de comando do ZWCAD.
+        /// </summary>
+        internal static string ExecutarFiacao()
+        {
             string caminho = Environment.GetEnvironmentVariable("POSITRON_DB_PATH");
             if (string.IsNullOrEmpty(caminho))
             {
-                Plugin.Escrever("FIA: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).");
-                return;
+                return "FIA: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
             }
 
             try
@@ -61,8 +71,7 @@ namespace Positron.Plugin
                 IReadOnlyList<PontoFiacao> pontos = FiacaoDoDesenho.Ler();
                 if (pontos.Count == 0)
                 {
-                    Plugin.Escrever("FIA: nenhuma LWPOLYLINE com XData CONEXAO no desenho.");
-                    return;
+                    return "FIA: nenhuma LWPOLYLINE com XData CONEXAO no desenho.";
                 }
 
                 ContextoProjecao contexto = new ContextoProjecao
@@ -122,17 +131,16 @@ namespace Positron.Plugin
                 int reservas = GerarBornes(store, contexto, reguas, bornes, paineis);
                 int contatos = GerarContatos(store, contexto, dispositivos);
 
-                Plugin.Escrever("FIA: " + gravados + " linha(s) em Fiacao (" + bornes.Count + " borne(s), "
+                return "FIA: " + gravados + " linha(s) em Fiacao (" + bornes.Count + " borne(s), "
                     + dispositivosDeFiacao.Count + " dispositivo(s), "
                     + reordenados + " reordenada(s), " + posicoes.NumPosicoes + " posicao(oes), "
                     + deslocamentos.NumPontos + " ponto(s) de bloco); "
                     + portas + " porta(s) em Portas4F; " + reservas + " borne(s) em Bornes4F; "
-                    + contatos + " contato(s) em Contatos4F.");
+                    + contatos + " contato(s) em Contatos4F.";
             }
             catch (Exception erro)
             {
-                // Um comando que estoura derruba a linha de comando do ZWCAD.
-                Plugin.Escrever("FIA: falhou — " + erro.Message);
+                return "FIA: falhou — " + erro.Message;
             }
         }
 
@@ -147,11 +155,19 @@ namespace Positron.Plugin
         [CommandMethod("INT")]
         public void Int()
         {
+            Plugin.Escrever(ExecutarInterligacao());
+        }
+
+        /// <summary>
+        /// Projeta a interligação do desenho e devolve a linha de resumo — usada
+        /// tanto pelo <c>INT</c> quanto pelo <c>SYNCD</c>. Nunca lança.
+        /// </summary>
+        internal static string ExecutarInterligacao()
+        {
             string caminho = Environment.GetEnvironmentVariable("POSITRON_DB_PATH");
             if (string.IsNullOrEmpty(caminho))
             {
-                Plugin.Escrever("INT: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).");
-                return;
+                return "INT: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
             }
 
             try
@@ -159,8 +175,7 @@ namespace Positron.Plugin
                 IReadOnlyList<PontoInterligacao> pontos = InterligacaoDoDesenho.Ler();
                 if (pontos.Count == 0)
                 {
-                    Plugin.Escrever("INT: nenhuma LWPOLYLINE com XData INTERLIGACAO no desenho.");
-                    return;
+                    return "INT: nenhuma LWPOLYLINE com XData INTERLIGACAO no desenho.";
                 }
 
                 ContextoInterligacao contexto = new ContextoInterligacao
@@ -189,14 +204,83 @@ namespace Positron.Plugin
                 int cabos = RegravarCabos4(store, contexto);
                 int veias = RegravarVeias4(store, contexto);
 
-                Plugin.Escrever("INT: " + gravados + " linha(s) gravada(s) em Interligacao4 ("
+                return "INT: " + gravados + " linha(s) gravada(s) em Interligacao4 ("
                     + bornes.Count + " borne(s)); " + cabos + " cabo(s) em Cabos4; "
-                    + veias + " veia(s) em Veias4.");
+                    + veias + " veia(s) em Veias4.";
             }
             catch (Exception erro)
             {
-                // Um comando que estoura derruba a linha de comando do ZWCAD.
-                Plugin.Escrever("INT: falhou — " + erro.Message);
+                return "INT: falhou — " + erro.Message;
+            }
+        }
+
+        /// <summary>
+        /// <c>SYNCD</c> — projeta o **desenho inteiro** para o banco do projeto
+        /// (fiação + interligação) num passo só: a regra "quem desenha, grava". O
+        /// original sincroniza tabelas de apoio numa UI; aqui cada projetor já
+        /// deriva o que precisa, então o sincronizar é <c>FIA</c> + <c>INT</c>.
+        /// </summary>
+        [CommandMethod("SYNCD")]
+        public void SincD()
+        {
+            Plugin.Escrever(ExecutarFiacao());
+            Plugin.Escrever(ExecutarInterligacao());
+        }
+
+        /// <summary>
+        /// <c>VERIF</c> — valida a fiação gravada (ver
+        /// <see cref="VerificadorProjetoFiacao"/>). Read-only: lê a revisão de
+        /// <c>POSITRON_DWG</c>/<c>POSITRON_REVISAO</c> e resume os problemas.
+        /// </summary>
+        [CommandMethod("VERIF")]
+        public void Verif()
+        {
+            string caminho = Environment.GetEnvironmentVariable("POSITRON_DB_PATH");
+            if (string.IsNullOrEmpty(caminho))
+            {
+                Plugin.Escrever("VERIF: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).");
+                return;
+            }
+
+            try
+            {
+                ProjectStore store = new ProjectStore(caminho);
+                int dwg = LerInteiro("POSITRON_DWG", 0);
+                string revisao = Environment.GetEnvironmentVariable("POSITRON_REVISAO");
+
+                IReadOnlyList<FiacaoRow> linhas = store.FiacaoDaRevisao(dwg, revisao);
+                List<ProblemaFiacao> problemas = VerificadorProjetoFiacao.Verificar(linhas);
+
+                int semTag = 0;
+                int indefinido = 0;
+                int potencial = 0;
+                int duplicado = 0;
+                foreach (ProblemaFiacao problema in problemas)
+                {
+                    switch (problema.Tipo)
+                    {
+                        case TipoProblemaFiacao.SemTag:
+                            semTag++;
+                            break;
+                        case TipoProblemaFiacao.TerminalIndefinido:
+                            indefinido++;
+                            break;
+                        case TipoProblemaFiacao.PotencialInvalido:
+                            potencial++;
+                            break;
+                        case TipoProblemaFiacao.TerminalDuplicado:
+                            duplicado++;
+                            break;
+                    }
+                }
+
+                Plugin.Escrever("VERIF: " + linhas.Count + " linha(s) em Fiacao (" + problemas.Count
+                    + " problema(s)): " + semTag + " sem tag; " + indefinido + " terminal indefinido; "
+                    + potencial + " potencial invalido; " + duplicado + " terminal duplicado.");
+            }
+            catch (Exception erro)
+            {
+                Plugin.Escrever("VERIF: falhou — " + erro.Message);
             }
         }
 

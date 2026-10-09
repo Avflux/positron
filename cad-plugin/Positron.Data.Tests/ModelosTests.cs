@@ -14,10 +14,26 @@ namespace Positron.Data.Tests
         [InlineData("1.5", 1.0005)]
         [InlineData("A", 65000.0)]
         [InlineData("A5", 65005.0)]
+        [InlineData("12A", 12.65)]
+        [InlineData("1A2", 1065.02)]
+        [InlineData("A1:2", 65001.002)]
+        [InlineData("A1-2", 65001.002)]
+        [InlineData("12+", 12.1)]
+        [InlineData("12-", 12.0)]
         [InlineData("ABC", 1000000.0)]
         public void Calcula_o_numero_do_terminal(string terminal, double esperado)
         {
             Assert.Equal(esperado, TerminalNumerico.Calcular(terminal), 6);
+        }
+
+        [Theory]
+        [InlineData("A1;A2;;", "NN;SS", "N;S")]
+        [InlineData("A1;A2;;", "NS;SN", "N;S")]
+        [InlineData("A1;;;", "NN;SS", "N;")]
+        [InlineData("A1;A2;;", "", "")]
+        public void Ajusta_a_orientacao_do_contato_ao_numero_de_terminais(string terminais, string orientacao, string esperado)
+        {
+            Assert.Equal(esperado, OrientacaoContato.Verificar(terminais, orientacao));
         }
 
         [Fact]
