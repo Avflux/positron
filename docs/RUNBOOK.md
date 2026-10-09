@@ -178,8 +178,8 @@ FIA: 494 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 83 posicao(oes),
 INT: 20 linha(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I;
      216 borne(s) em Bornes4I
 VERIF: 494 fio(s), 20 trecho(s), 265 porta(s), 168 borne(s), 88 contato(s);
-       235 problema(s) — fiação: 110; interligação: 0; modelos: 18; desenho: 107
-VERIF: por tipo — TerminalDuplicado: 128; BorneSemFiacao: 107
+       107 problema(s) — fiação: 0; interligação: 0; modelos: 0; desenho: 107
+VERIF: por tipo — BorneSemFiacao: 107
 ```
 
 O `VERIF` saiu com **821** problemas na primeira medição; **548 deles eram falsos
@@ -239,6 +239,19 @@ E aí fecha a conta: a simulação offline previa **107** bornes sem vértice de
 menos de 0,5 de nenhum ponto de ligação — o mesmo número que o `VERIF` reporta. Ou
 seja, **não há mais folga de casamento**: esses 107 bornes de régua não estão sobre
 fio nenhum no desenho, e o `VERIF` está certo ao apontá-los.
+
+**Rodada 16 — as duas últimas regras ruidosas saíram.** O `TerminalDuplicado` da
+fiação apontava 110 linhas que são dado normal (bornes diferentes numerados `11`,
+`A2`, `X2` no mesmo potencial). O original não tem essa regra: ele verifica
+**fiação desenhada em duplicidade** (`LFiacaoTTDuplicada`, `ClsVerificadorProjetoFiacao`
+linha ~961) — dois trechos **`Tipo == 2`**, na **mesma página**, com **as duas pontas
+iguais** e handles diferentes; nesse caso aponta o handle do **menor potencial**.
+Isso é lido do desenho (geometria), não da tabela, e entrou como `FiacaoDuplicada`
+com o adapter `TrechosDoDesenho`. Mesma coisa nos contatos: o original grava um
+contato por `sT1`/`sT2`/`sT3` do modelo **sem dedup** (um fusível com o mesmo
+terminal nos dois lados é normal), então a regra de "terminal repetido no modelo"
+também saiu (18 apontamentos de ruído). O desenho real fecha em **107 problemas, e
+todos são `BorneSemFiacao`** — o mesmo número da simulação offline.
 
 O `SYNCD` repete `FIA`+`INT` e as contagens **não dobram** — idempotência provada
 com dado real. O banco sai com `Fiacao` 365, `Interligacao4` 20 (tags `8-CCE-*`,
@@ -530,7 +543,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
   26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 172 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 173 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge

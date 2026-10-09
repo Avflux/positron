@@ -53,20 +53,46 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
-        public void Fiacao_aponta_terminal_duplicado_no_mesmo_potencial()
+        public void Fiacao_nao_aponta_terminal_repetido_de_bornes_diferentes()
         {
+            // Dois bornes distintos numerados "5" no mesmo potencial são normais
+            // (o desenho real tinha 110 desses, todos falsos positivos): o original
+            // só aponta fiação DESENHADA EM DUPLICIDADE (dois trechos Tipo 2 com as
+            // mesmas pontas).
             List<FiacaoRow> linhas = new List<FiacaoRow>
             {
                 new FiacaoRow { Painel = 1, Potencial = 3, Tag = "D1", Terminal = "5", Handle = "H1" },
                 new FiacaoRow { Painel = 1, Potencial = 3, Tag = "D2", Terminal = "5", Handle = "H2" },
-                new FiacaoRow { Painel = 2, Potencial = 3, Tag = "D3", Terminal = "5", Handle = "H3" },  // outro painel: ok
+                new FiacaoRow { Painel = 2, Potencial = 3, Tag = "D3", Terminal = "5", Handle = "H3" },
             };
 
-            List<Problema> problemas = VerificadorProjeto.VerificarFiacao(linhas);
+            Assert.Empty(VerificadorProjeto.VerificarFiacao(linhas));
+        }
 
+        [Fact]
+        public void Fiacao_duplicada_aponta_trecho_tipo_2_com_as_mesmas_pontas()
+        {
+            List<TrechoFiacao> trechos = new List<TrechoFiacao>
+            {
+                // Mesma página e mesmas pontas, handles diferentes, Tipo 2 → duplicado.
+                new TrechoFiacao { Handle = "H1", Pagina = "12", Potencial = 7, Tipo = 2, IniX = 0, IniY = 0, FimX = 10, FimY = 0 },
+                new TrechoFiacao { Handle = "H2", Pagina = "12", Potencial = 5, Tipo = 2, IniX = 0, IniY = 0, FimX = 10, FimY = 0 },
+                // Página diferente: não é duplicata.
+                new TrechoFiacao { Handle = "H3", Pagina = "13", Potencial = 5, Tipo = 2, IniX = 0, IniY = 0, FimX = 10, FimY = 0 },
+                // Pontas diferentes: não.
+                new TrechoFiacao { Handle = "H4", Pagina = "12", Potencial = 5, Tipo = 2, IniX = 0, IniY = 0, FimX = 10, FimY = 1 },
+                // Tipo 1: fora da regra.
+                new TrechoFiacao { Handle = "H5", Pagina = "12", Potencial = 5, Tipo = 1, IniX = 0, IniY = 0, FimX = 10, FimY = 0 },
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarFiacaoDuplicada(trechos);
+
+            // O original aponta o handle do trecho de MENOR potencial.
             Problema problema = Assert.Single(problemas);
-            Assert.Equal(TipoProblema.TerminalDuplicado, problema.Tipo);
+            Assert.Equal(TipoProblema.FiacaoDuplicada, problema.Tipo);
+            Assert.Equal(AreaVerificacao.Desenho, problema.Area);
             Assert.Equal("H2", problema.Identificador);
+            Assert.Contains("12", problema.Detalhe);
         }
 
         [Fact]
@@ -107,8 +133,9 @@ namespace Positron.Data.Tests
             List<Contatos4FRow> contatos = new List<Contatos4FRow>
             {
                 new Contatos4FRow { IndexModelo = 7, NomeModelo = "C7", Terminal = "1" },
-                new Contatos4FRow { IndexModelo = 7, NomeModelo = "C7", Terminal = "1" },  // duplicado
-                new Contatos4FRow { IndexModelo = 7, NomeModelo = "C7", Terminal = "0" },  // indefinido
+                // Repetir terminal no mesmo modelo é NORMAL (sT1/sT2 do modelo) — não aponta.
+                new Contatos4FRow { IndexModelo = 7, NomeModelo = "C7", Terminal = "1" },
+                new Contatos4FRow { IndexModelo = 7, NomeModelo = "C7", Terminal = "0" }  // indefinido
             };
 
             List<Problema> problemas = VerificadorProjeto.VerificarModelos(portas, bornes, contatos);
@@ -119,7 +146,8 @@ namespace Positron.Data.Tests
             Assert.DoesNotContain(problemas, p => p.Identificador != null && p.Identificador.Contains("CONT9"));
             Assert.Contains(problemas, p => p.Tipo == TipoProblema.SemBorne && p.Tabela == "Bornes4F");
             Assert.Contains(problemas, p => p.Tipo == TipoProblema.TerminalIndefinido && p.Tabela == "Contatos4F");
-            Assert.Contains(problemas, p => p.Tipo == TipoProblema.TerminalDuplicado && p.Tabela == "Contatos4F");
+            // Terminal repetido no mesmo modelo não é problema (dado normal do modelo).
+            Assert.DoesNotContain(problemas, p => p.Tipo == TipoProblema.TerminalDuplicado && p.Tabela == "Contatos4F");
         }
 
         [Fact]

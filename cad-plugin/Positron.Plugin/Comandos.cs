@@ -392,6 +392,10 @@ namespace Positron.Plugin
 
                 problemas.AddRange(VerificadorProjeto.VerificarBornesSemFiacao(handlesDoDesenho, handlesNaFiacao));
 
+                // Fiação desenhada em duplicidade: dois trechos Tipo 2 com as mesmas
+                // pontas na mesma página (o `LFiacaoTTDuplicada` do original).
+                problemas.AddRange(VerificadorProjeto.VerificarFiacaoDuplicada(TrechosDoDesenho.Ler()));
+
                 List<string> cabosUsados = new List<string>();
                 foreach (Interligacao4Row trecho in interligacao)
                 {

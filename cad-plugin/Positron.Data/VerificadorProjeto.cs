@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Positron.Contract;
 using Positron.Data.Bornes;
+using Positron.Data.Fiacao;
 using Positron.Data.Layout;
 
 namespace Positron.Data
@@ -58,6 +59,9 @@ namespace Positron.Data
 
         /// <summary>Borne do desenho que não virou nenhum ponto de <c>Fiacao</c> (órfão).</summary>
         BorneSemFiacao,
+
+        /// <summary>Mesmo fio desenhado duas vezes (dois trechos Tipo 2 com as mesmas pontas).</summary>
+        FiacaoDuplicada,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -148,7 +152,6 @@ namespace Positron.Data
                 return problemas;
             }
 
-            Dictionary<string, bool> vistos = new Dictionary<string, bool>(StringComparer.Ordinal);
             foreach (FiacaoRow linha in linhas)
             {
                 if (linha == null)
@@ -185,19 +188,12 @@ namespace Positron.Data
                     problemas.Add(Novo(AreaVerificacao.Fiacao, TipoProblema.TerminalIndefinido, "Fiacao", id, "terminal indefinido"));
                 }
 
-                string terminal = TerminalLimpo(linha.Terminal);
-                if (terminal != null)
-                {
-                    string chave = (linha.Painel ?? 0) + "|" + (linha.Potencial ?? 0) + "|" + terminal;
-                    if (vistos.ContainsKey(chave))
-                    {
-                        problemas.Add(Novo(AreaVerificacao.Fiacao, TipoProblema.TerminalDuplicado, "Fiacao", id, "terminal repetido no mesmo potencial"));
-                    }
-                    else
-                    {
-                        vistos[chave] = true;
-                    }
-                }
+                // Não existe regra de "terminal repetido no mesmo potencial": dois
+                // bornes diferentes numerados 11 no mesmo potencial são normais (era o
+                // que esta regra apontava, 110 vezes no desenho real). O que o original
+                // verifica é **fiação desenhada em duplicidade** — dois trechos Tipo 2
+                // com as mesmas pontas —, e isso vive em `VerificarFiacaoDuplicada`
+                // porque depende da geometria do desenho, não da tabela.
             }
 
             return problemas;
@@ -332,7 +328,6 @@ namespace Positron.Data
 
             if (contatos != null)
             {
-                Dictionary<string, bool> vistos = new Dictionary<string, bool>(StringComparer.Ordinal);
                 foreach (Contatos4FRow contato in contatos)
                 {
                     if (contato == null)
@@ -340,21 +335,14 @@ namespace Positron.Data
                         continue;
                     }
 
-                    string id = Modelo(contato.NomeModelo, contato.IndexModelo);
+                    // Sem regra de "terminal repetido no mesmo modelo": o original
+                    // grava um contato por campo `sT1`/`sT2`/`sT3` do modelo, **sem
+                    // dedup** (frmCompilarFiacao linha ~2279) — um fusível com o mesmo
+                    // terminal nos dois lados é dado normal (18 apontamentos de ruído no
+                    // desenho real).
                     if (TerminalEhIndefinido(contato.Terminal))
                     {
-                        problemas.Add(Novo(AreaVerificacao.Modelos, TipoProblema.TerminalIndefinido, "Contatos4F", id, "terminal indefinido"));
-                        continue;
-                    }
-
-                    string chave = (contato.IndexModelo ?? 0) + "|" + TerminalLimpo(contato.Terminal);
-                    if (vistos.ContainsKey(chave))
-                    {
-                        problemas.Add(Novo(AreaVerificacao.Modelos, TipoProblema.TerminalDuplicado, "Contatos4F", id, "terminal repetido no mesmo modelo"));
-                    }
-                    else
-                    {
-                        vistos[chave] = true;
+                        problemas.Add(Novo(AreaVerificacao.Modelos, TipoProblema.TerminalIndefinido, "Contatos4F", Modelo(contato.NomeModelo, contato.IndexModelo), "terminal indefinido"));
                     }
                 }
             }
@@ -473,6 +461,28 @@ namespace Positron.Data
         /// borne do desenho com os <c>Handle</c> gravados em <c>Fiacao</c>: se nenhum
         /// ponto casou com o borne, ele ficou fora da projeção.
         /// </summary>
+        /// <summary>
+        /// Fiação desenhada em duplicidade — dois trechos <c>Tipo 2</c> com a mesma
+        /// página e as mesmas pontas (o <c>LFiacaoTTDuplicada</c> do original).
+        /// Depende da geometria do desenho, por isso compara os trechos lidos e não
+        /// as linhas da tabela.
+        /// </summary>
+        public static List<Problema> VerificarFiacaoDuplicada(IEnumerable<TrechoFiacao> trechos)
+        {
+            List<Problema> problemas = new List<Problema>();
+            foreach (ProblemaFiacaoDuplicada duplicado in FiacaoDuplicada.Verificar(trechos))
+            {
+                problemas.Add(Novo(
+                    AreaVerificacao.Desenho,
+                    TipoProblema.FiacaoDuplicada,
+                    "Fiacao",
+                    duplicado.Handle,
+                    "mesmo fio desenhado duas vezes na página " + duplicado.Pagina));
+            }
+
+            return problemas;
+        }
+
         public static List<Problema> VerificarBornesSemFiacao(
             IEnumerable<string> handlesDoDesenho,
             IEnumerable<string> handlesNaFiacao)
