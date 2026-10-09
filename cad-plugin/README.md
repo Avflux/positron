@@ -77,7 +77,7 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 | `FIA` | **implementado** — projeta a fiação do desenho para `Fiacao` |
 | `INT` | **implementado** — projeta a interligação do desenho para `Interligacao4` |
 | `SYNCD` | **implementado** — projeta o desenho para o banco (fiação + interligação) |
-| `VERIF` | **implementado** — valida a fiação gravada (`Fiacao`) |
+| `VERIF` | **implementado** — valida as tabelas gravadas (fiação, interligação e modelos) |
 
 ### Fluxo de fiação (`FIA`)
 

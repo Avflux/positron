@@ -228,9 +228,10 @@ namespace Positron.Plugin
         }
 
         /// <summary>
-        /// <c>VERIF</c> — valida a fiação gravada (ver
-        /// <see cref="VerificadorProjetoFiacao"/>). Read-only: lê a revisão de
-        /// <c>POSITRON_DWG</c>/<c>POSITRON_REVISAO</c> e resume os problemas.
+        /// <c>VERIF</c> — valida as tabelas derivadas gravadas (ver
+        /// <see cref="VerificadorProjeto"/>): fiação, interligação e modelos.
+        /// Read-only: lê a revisão de <c>POSITRON_DWG</c>/<c>POSITRON_REVISAO</c> e
+        /// resume os problemas por área.
         /// </summary>
         [CommandMethod("VERIF")]
         public void Verif()
@@ -248,35 +249,39 @@ namespace Positron.Plugin
                 int dwg = LerInteiro("POSITRON_DWG", 0);
                 string revisao = Environment.GetEnvironmentVariable("POSITRON_REVISAO");
 
-                IReadOnlyList<FiacaoRow> linhas = store.FiacaoDaRevisao(dwg, revisao);
-                List<ProblemaFiacao> problemas = VerificadorProjetoFiacao.Verificar(linhas);
+                IReadOnlyList<FiacaoRow> fiacao = store.FiacaoDaRevisao(dwg, revisao);
+                IReadOnlyList<Interligacao4Row> interligacao = store.InterligacaoDaRevisao(dwg, revisao);
+                IReadOnlyList<Portas4FRow> portas = store.PortasDaRevisao(dwg, revisao);
+                IReadOnlyList<Bornes4FRow> bornes = store.BornesDaRevisao(dwg, revisao);
+                IReadOnlyList<Contatos4FRow> contatos = store.ContatosDaRevisao(dwg, revisao);
 
-                int semTag = 0;
-                int indefinido = 0;
-                int potencial = 0;
-                int duplicado = 0;
-                foreach (ProblemaFiacao problema in problemas)
+                List<Problema> problemas = VerificadorProjeto.Verificar(
+                    fiacao, interligacao, portas, bornes, contatos);
+
+                int porFiacao = 0;
+                int porInterligacao = 0;
+                int porModelos = 0;
+                foreach (Problema problema in problemas)
                 {
-                    switch (problema.Tipo)
+                    switch (problema.Area)
                     {
-                        case TipoProblemaFiacao.SemTag:
-                            semTag++;
+                        case AreaVerificacao.Fiacao:
+                            porFiacao++;
                             break;
-                        case TipoProblemaFiacao.TerminalIndefinido:
-                            indefinido++;
+                        case AreaVerificacao.Interligacao:
+                            porInterligacao++;
                             break;
-                        case TipoProblemaFiacao.PotencialInvalido:
-                            potencial++;
-                            break;
-                        case TipoProblemaFiacao.TerminalDuplicado:
-                            duplicado++;
+                        case AreaVerificacao.Modelos:
+                            porModelos++;
                             break;
                     }
                 }
 
-                Plugin.Escrever("VERIF: " + linhas.Count + " linha(s) em Fiacao (" + problemas.Count
-                    + " problema(s)): " + semTag + " sem tag; " + indefinido + " terminal indefinido; "
-                    + potencial + " potencial invalido; " + duplicado + " terminal duplicado.");
+                Plugin.Escrever("VERIF: " + fiacao.Count + " fio(s), " + interligacao.Count + " trecho(s), "
+                    + portas.Count + " porta(s), " + bornes.Count + " borne(s), " + contatos.Count
+                    + " contato(s) na revisão.");
+                Plugin.Escrever("VERIF: " + problemas.Count + " problema(s) — fiação: " + porFiacao
+                    + "; interligação: " + porInterligacao + "; modelos: " + porModelos + ".");
             }
             catch (Exception erro)
             {

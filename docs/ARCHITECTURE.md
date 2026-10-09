@@ -135,8 +135,10 @@ Todo evento também entra no `EventBus` em processo, que alimenta o SSE.
 ### Projeção e Gravação CAD (`cad-plugin`)
 
 1. O projetista carrega o plugin no ZWCAD ou AutoCAD via `NETLOAD`.
-2. Ao disparar comandos como `FIA` (fiação) ou `INT` (interligação), o plugin varre as
-   entidades gráficas e lê os registros XData (`CONEXAO`, `Dispositivo`, etc.).
+2. Ao disparar os comandos de projeção — `FIA` (fiação), `INT` (interligação) ou
+   `SYNCD` (o desenho inteiro) —, o plugin varre as entidades gráficas e lê os
+   registros XData (`CONEXAO`, `Dispositivo`, etc.). O `VERIF` é read-only: valida
+   as tabelas já gravadas (fiação, interligação e modelos).
 3. O núcleo puro (`Positron.Data`) calcula as conexões, resolve regras/modelos e grava
    diretamente no `.db` apontado por `POSITRON_DB_PATH`.
 4. A transação usa WAL: operações de leitura no Positron Desktop continuam operando

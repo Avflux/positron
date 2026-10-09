@@ -422,35 +422,156 @@ namespace Positron.Data
                 {
                     while (leitor.Read())
                     {
-                        linhas.Add(new Interligacao4Row
+                        linhas.Add(LerInterligacao(leitor));
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
+        /// <summary>
+        /// Lê a interligação de uma revisão (todos os cabos de um DWG) — a leitura
+        /// do <c>VERIF</c> para os trechos.
+        /// </summary>
+        public IReadOnlyList<Interligacao4Row> InterligacaoDaRevisao(int dwg, string revisao)
+        {
+            List<Interligacao4Row> linhas = new List<Interligacao4Row>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, DWG, Tag_Cabo, Num_Veia, Nome_Veia, Painel1, Pagina1, Tag1, " +
+                    "Alternativo1, NRegua1, Terminal1, TerminalNum1, TipoBorne1, Handle1, IndexModelo1, Painel2, " +
+                    "Pagina2, Tag2, Alternativo2, NRegua2, Terminal2, TerminalNum2, TipoBorne2, Handle2, IndexModelo2, " +
+                    "Criador FROM Interligacao4 " +
+                    "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') ORDER BY Tag_Cabo, Num_Veia, Indice";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(LerInterligacao(leitor));
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
+        /// <summary>Lê as portas de uma revisão (<c>Portas4F</c>).</summary>
+        public IReadOnlyList<Portas4FRow> PortasDaRevisao(int dwg, string revisao)
+        {
+            List<Portas4FRow> linhas = new List<Portas4FRow>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, DWG, IndexModelo, NomeModelo, Regua, Borne, Terminal, TerminalNum, " +
+                    "Tipo, Orientacao FROM Portas4F " +
+                    "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') ORDER BY IndexModelo, Indice";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new Portas4FRow
                         {
                             Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
                             Revisao = Texto(leitor, "Revisao"),
                             DWG = Inteiro(leitor, "DWG"),
-                            Tag_Cabo = Texto(leitor, "Tag_Cabo"),
-                            Num_Veia = Inteiro(leitor, "Num_Veia"),
-                            Nome_Veia = Texto(leitor, "Nome_Veia"),
-                            Painel1 = Inteiro(leitor, "Painel1"),
-                            Pagina1 = Texto(leitor, "Pagina1"),
-                            Tag1 = Texto(leitor, "Tag1"),
-                            Alternativo1 = Texto(leitor, "Alternativo1"),
-                            NRegua1 = Texto(leitor, "NRegua1"),
-                            Terminal1 = Texto(leitor, "Terminal1"),
-                            TerminalNum1 = Real(leitor, "TerminalNum1"),
-                            TipoBorne1 = Inteiro(leitor, "TipoBorne1"),
-                            Handle1 = Texto(leitor, "Handle1"),
-                            IndexModelo1 = Inteiro(leitor, "IndexModelo1"),
-                            Painel2 = Inteiro(leitor, "Painel2"),
-                            Pagina2 = Texto(leitor, "Pagina2"),
-                            Tag2 = Texto(leitor, "Tag2"),
-                            Alternativo2 = Texto(leitor, "Alternativo2"),
-                            NRegua2 = Texto(leitor, "NRegua2"),
-                            Terminal2 = Texto(leitor, "Terminal2"),
-                            TerminalNum2 = Real(leitor, "TerminalNum2"),
-                            TipoBorne2 = Inteiro(leitor, "TipoBorne2"),
-                            Handle2 = Texto(leitor, "Handle2"),
-                            IndexModelo2 = Inteiro(leitor, "IndexModelo2"),
-                            Criador = Texto(leitor, "Criador"),
+                            IndexModelo = Inteiro(leitor, "IndexModelo"),
+                            NomeModelo = Texto(leitor, "NomeModelo"),
+                            Regua = Texto(leitor, "Regua"),
+                            Borne = Texto(leitor, "Borne"),
+                            Terminal = Texto(leitor, "Terminal"),
+                            TerminalNum = Real(leitor, "TerminalNum"),
+                            Tipo = Texto(leitor, "Tipo"),
+                            Orientacao = Texto(leitor, "Orientacao"),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
+        /// <summary>Lê os bornes de uma revisão (<c>Bornes4F</c>).</summary>
+        public IReadOnlyList<Bornes4FRow> BornesDaRevisao(int dwg, string revisao)
+        {
+            List<Bornes4FRow> linhas = new List<Bornes4FRow>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, DWG, Painel, IndexRegua, Regua, Alternativo, Handle, Borne, Ordem, " +
+                    "Tipo, Pagina, bReserva, LM, Orientacao, BlocoLayout FROM Bornes4F " +
+                    "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') ORDER BY Painel, IndexRegua, Ordem";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new Bornes4FRow
+                        {
+                            Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
+                            Revisao = Texto(leitor, "Revisao"),
+                            DWG = Inteiro(leitor, "DWG"),
+                            Painel = Inteiro(leitor, "Painel"),
+                            IndexRegua = Inteiro(leitor, "IndexRegua"),
+                            Regua = Texto(leitor, "Regua"),
+                            Alternativo = Texto(leitor, "Alternativo"),
+                            Handle = Texto(leitor, "Handle"),
+                            Borne = Texto(leitor, "Borne"),
+                            Ordem = Real(leitor, "Ordem"),
+                            Tipo = Inteiro(leitor, "Tipo"),
+                            Pagina = Texto(leitor, "Pagina"),
+                            bReserva = Logico(leitor, "bReserva"),
+                            LM = Inteiro(leitor, "LM"),
+                            Orientacao = Texto(leitor, "Orientacao"),
+                            BlocoLayout = Texto(leitor, "BlocoLayout"),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
+        /// <summary>Lê os contatos de uma revisão (<c>Contatos4F</c>).</summary>
+        public IReadOnlyList<Contatos4FRow> ContatosDaRevisao(int dwg, string revisao)
+        {
+            List<Contatos4FRow> linhas = new List<Contatos4FRow>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, DWG, IndexModelo, NomeModelo, Terminal, TerminalNum, Orientacao " +
+                    "FROM Contatos4F " +
+                    "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') ORDER BY IndexModelo, Indice";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new Contatos4FRow
+                        {
+                            Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
+                            Revisao = Texto(leitor, "Revisao"),
+                            DWG = Inteiro(leitor, "DWG"),
+                            IndexModelo = Inteiro(leitor, "IndexModelo"),
+                            NomeModelo = Texto(leitor, "NomeModelo"),
+                            Terminal = Texto(leitor, "Terminal"),
+                            TerminalNum = Real(leitor, "TerminalNum"),
+                            Orientacao = Texto(leitor, "Orientacao"),
                         });
                     }
                 }
@@ -933,6 +1054,40 @@ namespace Positron.Data
         private static object Falta(long? valor)
         {
             return valor.HasValue ? (object)valor.Value : DBNull.Value;
+        }
+
+        private static Interligacao4Row LerInterligacao(SQLiteDataReader leitor)
+        {
+            return new Interligacao4Row
+            {
+                Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
+                Revisao = Texto(leitor, "Revisao"),
+                DWG = Inteiro(leitor, "DWG"),
+                Tag_Cabo = Texto(leitor, "Tag_Cabo"),
+                Num_Veia = Inteiro(leitor, "Num_Veia"),
+                Nome_Veia = Texto(leitor, "Nome_Veia"),
+                Painel1 = Inteiro(leitor, "Painel1"),
+                Pagina1 = Texto(leitor, "Pagina1"),
+                Tag1 = Texto(leitor, "Tag1"),
+                Alternativo1 = Texto(leitor, "Alternativo1"),
+                NRegua1 = Texto(leitor, "NRegua1"),
+                Terminal1 = Texto(leitor, "Terminal1"),
+                TerminalNum1 = Real(leitor, "TerminalNum1"),
+                TipoBorne1 = Inteiro(leitor, "TipoBorne1"),
+                Handle1 = Texto(leitor, "Handle1"),
+                IndexModelo1 = Inteiro(leitor, "IndexModelo1"),
+                Painel2 = Inteiro(leitor, "Painel2"),
+                Pagina2 = Texto(leitor, "Pagina2"),
+                Tag2 = Texto(leitor, "Tag2"),
+                Alternativo2 = Texto(leitor, "Alternativo2"),
+                NRegua2 = Texto(leitor, "NRegua2"),
+                Terminal2 = Texto(leitor, "Terminal2"),
+                TerminalNum2 = Real(leitor, "TerminalNum2"),
+                TipoBorne2 = Inteiro(leitor, "TipoBorne2"),
+                Handle2 = Texto(leitor, "Handle2"),
+                IndexModelo2 = Inteiro(leitor, "IndexModelo2"),
+                Criador = Texto(leitor, "Criador"),
+            };
         }
 
         private static FiacaoRow LerFiacao(SQLiteDataReader leitor)

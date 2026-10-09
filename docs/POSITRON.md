@@ -203,7 +203,8 @@ recorte mínimo:
 
 Implementados: `ELET`, `FIA`, `INT`, `SYNCD` e `VERIF` (sem tela ainda — ver
 `cad-plugin/README.md`). O `SYNCD` é a projeção em lote (fiação + interligação); o
-`VERIF` é uma primeira fatia da validação — read-only, só a fiação gravada.
+`VERIF` valida as tabelas **gravadas** — read-only, cobre a fiação, a interligação
+e os modelos (`Portas4F`/`Bornes4F`/`Contatos4F`).
 
 Os nomes vêm do `COMANDOS.txt` do reverso — evitamos inventar comandos novos para
 o usuário não reaprender.
@@ -407,9 +408,11 @@ instalado.
 
 1. **UI WinForms** do plugin (as telas `frmCompilar*`), hoje substituídas por
    comandos que leem variáveis de ambiente.
-2. **`VERIF` mais fundo:** a tela original (`frmVerificadorProjetoFiacao`, 2173
-   linhas) também pinta erros lidos do **desenho** (geometria, páginas apagadas);
-   hoje o `VERIF` só valida a fiação gravada.
+2. **`VERIF` no desenho:** as telas originais (`frmVerificadorProjetoFiacao`/
+   `frmVerificadorProjetoInterligacao`, ~3 mil linhas) também pinta erros lidos do
+   **desenho** (geometria, páginas apagadas, cabos referenciados que não existem
+   no catálogo). Hoje o `VERIF` valida as tabelas gravadas (fiação, interligação
+   e modelos), mas não lê o desenho.
 3. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
 
 **Convenções que não podem ser esquecidas**
@@ -427,7 +430,7 @@ instalado.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 92 testes)
+npm run plugin:test       # xunit, net472 (hoje 95 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

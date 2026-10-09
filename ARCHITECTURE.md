@@ -54,8 +54,9 @@ Sidecar publica `{topic, payload}` → SUB do Rust → `emit("zmq://" + topic, p
 
 ### Projeção CAD (`cad-plugin`)
 
-Comandos `FIA`/`INT` no CAD → lê entidades e XData do DWG → `Positron.Data` grava
-direto no SQLite (`POSITRON_DB_PATH`) em WAL → App Desktop lê concorrentemente sem lock.
+Comandos `FIA`/`INT`/`SYNCD` (projeção) e `VERIF` (validação read-only) no CAD →
+lê entidades e XData do DWG → `Positron.Data` grava direto no SQLite
+(`POSITRON_DB_PATH`) em WAL → App Desktop lê concorrentemente sem lock.
 
 ## Portas e ambiente
 
