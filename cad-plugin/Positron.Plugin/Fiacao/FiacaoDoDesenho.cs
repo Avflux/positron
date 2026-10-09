@@ -64,22 +64,35 @@ namespace Positron.Plugin.Fiacao
                         continue;
                     }
 
-                    PontoFiacao ponto = PontoFiacao.DeConexao(conexao);
+                    // A posição vem da geometria (não do XData), e **quais** pontas
+                    // geram ponto é o switch Tipo/Disp1/Disp2/Jumper do original.
+                    string layer = ((Entity)linha).Layer;
 
-                    // A posição do ponto vem da geometria (não do XData): o
-                    // primeiro vértice da linha, como o original casa o borne.
-                    Point2d inicio = linha.GetPoint2dAt(0);
-                    ponto.X = inicio.X;
-                    ponto.Y = inicio.Y;
-                    ponto.Layer = ((Entity)linha).Layer;
+                    if (PontosDaConexao.UsaPrimeiroVertice(conexao))
+                    {
+                        Adicionar(pontos, conexao, linha.GetPoint2dAt(0), layer);
+                    }
 
-                    pontos.Add(ponto);
+                    if (PontosDaConexao.UsaUltimoVertice(conexao))
+                    {
+                        Adicionar(pontos, conexao, linha.GetPoint2dAt(linha.NumberOfVertices - 1), layer);
+                    }
                 }
 
                 transacao.Commit();
             }
 
             return pontos;
+        }
+
+        /// <summary>Um ponto de fiação na ponta indicada (cada ponta é um objeto novo).</summary>
+        private static void Adicionar(List<PontoFiacao> pontos, ConexaoXData conexao, Point2d vertice, string layer)
+        {
+            PontoFiacao ponto = PontoFiacao.DeConexao(conexao);
+            ponto.X = vertice.X;
+            ponto.Y = vertice.Y;
+            ponto.Layer = layer;
+            pontos.Add(ponto);
         }
     }
 }
