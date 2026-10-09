@@ -103,13 +103,16 @@ namespace Positron.Plugin
                     }
                 }
 
+                // Blocos de dispositivo (P/E/A/I): dão a tag ao ponto não-borne.
+                IReadOnlyList<DispositivoFiacao> dispositivosDeFiacao = DispositivosDeFiacaoDoDesenho.Ler();
+
                 // Posições do layout (CENG_LAYOUT) — dão o PosicaoNum/ordem do
-                // ponto não-borne.
+                // ponto não-borne, casadas por (painel, tag).
                 LayoutPosicoes posicoes = LayoutDoDesenho.Ler(paineis);
 
                 ProjectStore store = new ProjectStore(caminho);
                 FiacaoProjetor projetor = new FiacaoProjetor(store);
-                int gravados = projetor.Projetar(pontos, contexto, bornes, posicoes, deslocamentos);
+                int gravados = projetor.Projetar(pontos, contexto, bornes, posicoes, deslocamentos, dispositivosDeFiacao);
 
                 // Renumera Ordem 1..N por potencial (ReordenaOrdemPotenciais do
                 // original). No-op quando a projeção já inseriu ordenada.
@@ -120,6 +123,7 @@ namespace Positron.Plugin
                 int contatos = GerarContatos(store, contexto, dispositivos);
 
                 Plugin.Escrever("FIA: " + gravados + " linha(s) em Fiacao (" + bornes.Count + " borne(s), "
+                    + dispositivosDeFiacao.Count + " dispositivo(s), "
                     + reordenados + " reordenada(s), " + posicoes.NumPosicoes + " posicao(oes), "
                     + deslocamentos.NumPontos + " ponto(s) de bloco); "
                     + portas + " porta(s) em Portas4F; " + reservas + " borne(s) em Bornes4F; "

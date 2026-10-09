@@ -120,10 +120,21 @@ bloco** (`mknUzyUVsW`), montados por `DeslocamentosDoDesenho`.
 tabela `mPosicao`, lida do dicionário `CENG_LAYOUT` (`LayoutDoDesenho`), que casa
 por `(painel, tag)`.
 
-**O que ainda sai vazio:** a `tag` do ponto **não-borne** — ela vem da varredura
-de dispositivos (blocos tipo `I`/`E`/`P`), ainda não implementada; sem ela o
-`mPosicao` não casa e o não-borne ordena com `dOrdem = 0`. Dado ausente é melhor
-que dado inventado.
+**Varredura de dispositivos (backlog 1).** O ponto que **não** casa com um borne
+é casado com o **bloco de dispositivo** mais próximo (`CasamentoDispositivo`), que
+lhe dá a `tag` (`Nome1[/Nome2]`) e o `Tipo`. A varredura `DispositivosDeFiacaoDoDesenho`
+percorre o ModelSpace lendo o XData de dispositivo (`DISPOSITIVO`/`Dispositivo`:
+tipos `P`/`E`/`A`; `IMPORTADO`: tipo `I`) e o `PontoFiacao` recebe
+`Tag`/`Alternativo`/`Tipo`/`IndexModelo`/`Handle`/`NRegua`, com `TipoBorne = -1`.
+Só então o `mPosicao` casa por `(painel, tag)` e o não-borne ganha
+`PosicaoNum`/`dOrdem`. O `E`/`A` tem o painel lido do bloco da máscara
+(`array[4]`), como no original.
+
+**Diferenças assumidas:** o original **pula** os tipos `I` e `M` nesse casamento
+(`verificaTipoDispositivo`); aqui o `I` entra a pedido do projeto (`M` é máscara,
+nunca entra). E o original só aceita o casamento se o bloco também tirar um
+**terminal** não-vazio (`ltZUHdAX7R`, que lê atributos `T*`/`B*` do bloco) — isso
+depende da entidade e fica como próximo passo; o núcleo valida a geometria.
 
 ### Fluxo de interligação (`INT`)
 

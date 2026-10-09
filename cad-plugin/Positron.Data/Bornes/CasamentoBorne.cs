@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Positron.Data.Bornes
@@ -74,7 +73,7 @@ namespace Positron.Data.Bornes
                     continue;
                 }
 
-                if (!MesmoLayer(layer, borne.Layer))
+                if (!GeometriaBloco.MesmoLayer(layer, borne.Layer))
                 {
                     continue;
                 }
@@ -86,12 +85,14 @@ namespace Positron.Data.Bornes
                     continue;
                 }
 
-                if (!DentroDosBounds(x, y, borne))
+                if (!GeometriaBloco.DentroDosBounds(
+                        x, y, borne.TemBounds, borne.MinX, borne.MinY, borne.MaxX, borne.MaxY))
                 {
                     continue;
                 }
 
-                double distancia = DistanciaMinima(x, y, borne, deslocamentos);
+                double distancia = GeometriaBloco.DistanciaMinima(
+                    x, y, borne.X, borne.Y, borne.NomeBloco, deslocamentos);
                 if (distancia <= menor)
                 {
                     menor = distancia;
@@ -102,61 +103,5 @@ namespace Positron.Data.Bornes
             return melhor;
         }
 
-        private static bool DentroDosBounds(double x, double y, PontoBorne borne)
-        {
-            if (!borne.TemBounds)
-            {
-                return true;
-            }
-
-            return x >= borne.MinX - MargemBounds
-                && x <= borne.MaxX + MargemBounds
-                && y >= borne.MinY - MargemBounds
-                && y <= borne.MaxY + MargemBounds;
-        }
-
-        /// <summary>
-        /// Menor distância do ponto aos pontos de ligação do bloco
-        /// (<c>inserção + deslocamento</c>). Sem deslocamento conhecido, usa o pé
-        /// de inserção.
-        /// </summary>
-        private static double DistanciaMinima(double x, double y, PontoBorne borne, TabelaDeslocamentoBlocos deslocamentos)
-        {
-            IReadOnlyList<DeslocamentoBloco> pontos = deslocamentos == null
-                ? null
-                : deslocamentos.Buscar(borne.NomeBloco);
-
-            if (pontos == null || pontos.Count == 0)
-            {
-                return Distancia(borne.X, borne.Y, x, y);
-            }
-
-            double menor = double.MaxValue;
-            foreach (DeslocamentoBloco ponto in pontos)
-            {
-                double distancia = Distancia(borne.X + ponto.X, borne.Y + ponto.Y, x, y);
-                if (distancia < menor)
-                {
-                    menor = distancia;
-                }
-            }
-
-            return menor;
-        }
-
-        private static double Distancia(double ax, double ay, double bx, double by)
-        {
-            return Math.Sqrt(Math.Pow(ax - bx, 2.0) + Math.Pow(ay - by, 2.0));
-        }
-
-        private static bool MesmoLayer(string a, string b)
-        {
-            if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b))
-            {
-                return true;
-            }
-
-            return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
-        }
     }
 }

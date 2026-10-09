@@ -68,6 +68,23 @@ namespace Positron.Data.Fiacao
             LayoutPosicoes posicoes,
             TabelaDeslocamentoBlocos deslocamentos)
         {
+            return Projetar(pontos, contexto, bornes, posicoes, deslocamentos, null);
+        }
+
+        /// <summary>
+        /// Versão mais completa: o ponto que **não** casa com um borne é casado
+        /// com o **dispositivo** mais próximo (<see cref="CasamentoDispositivo"/>),
+        /// que lhe dá a tag; só então a posição do layout é aplicada, casada por
+        /// <c>(painel, tag)</c>.
+        /// </summary>
+        public int Projetar(
+            IEnumerable<PontoFiacao> pontos,
+            ContextoProjecao contexto,
+            IReadOnlyList<PontoBorne> bornes,
+            LayoutPosicoes posicoes,
+            TabelaDeslocamentoBlocos deslocamentos,
+            IReadOnlyList<DispositivoFiacao> dispositivos)
+        {
             if (pontos == null)
             {
                 throw new ArgumentNullException("pontos");
@@ -92,7 +109,25 @@ namespace Positron.Data.Fiacao
                     }
                 }
 
-                // Não-borne: a posição do layout (se houver) dá o PosicaoNum/ordem.
+                // Não-borne: o dispositivo mais próximo dá a tag (Nome1[/Nome2]).
+                if (dispositivos != null && dispositivos.Count > 0)
+                {
+                    DispositivoFiacao dispositivo = CasamentoDispositivo.Proximo(
+                        ponto.X,
+                        ponto.Y,
+                        ponto.Layer,
+                        ponto.Painel,
+                        dispositivos,
+                        CasamentoDispositivo.Tolerancia,
+                        deslocamentos);
+                    if (dispositivo != null)
+                    {
+                        ponto.AplicarDispositivo(dispositivo);
+                    }
+                }
+
+                // A posição do layout (se houver) casa por (painel, tag) e
+                // sobrescreve PosicaoNum/ordem — por isso vem depois da tag.
                 if (posicoes != null && !posicoes.EstaVazia && ponto.PosicaoNum != 1)
                 {
                     PosicaoLayout posicao = posicoes.Buscar(ponto.Painel, ponto.Tag);
@@ -115,8 +150,8 @@ namespace Positron.Data.Fiacao
         ///
         /// **Chave de ordenação** (a mesma do original): <c>Potencial</c>,
         /// <c>PosicaoNum</c> decrescente (bornes primeiro), <c>dOrdem</c> — o índice
-        /// da régua no borne; no não-borne é 0, a aproximação sem a tabela
-        /// <c>mPosicao</c> (que no original vem da tela de posições) —,
+        /// da régua no borne; no não-borne é a ordem da posição de layout
+        /// (<c>mPosicao</c>) quando há, senão −1 (dispositivo) ou 0 —,
         /// <c>TerminalNum</c> e <c>Terminal</c>. Só entram pontos com
         /// <c>Potencial &gt; 0</c>, como o filtro do original.
         ///

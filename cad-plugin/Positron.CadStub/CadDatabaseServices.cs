@@ -269,5 +269,12 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         {
             get { return default(ObjectId); }
         }
+
+        /// <summary>Sem desenho de verdade todo handle é inválido — caminho "não achou" do chamador.</summary>
+        public bool TryGetObjectId(Handle handle, out ObjectId id)
+        {
+            id = default(ObjectId);
+            return false;
+        }
     }
 }

@@ -136,6 +136,32 @@ namespace Positron.Data.Fiacao
         }
 
         /// <summary>
+        /// Completa um ponto **não-borne** com o dispositivo casado
+        /// (<see cref="CasamentoDispositivo"/>): a <c>Tag</c> vira
+        /// <c>Nome1[/Nome2]</c> e o <c>Tipo</c> vira o do dispositivo. É o trecho do
+        /// original que faz <c>pont.tag = sRegua</c> e zera <c>PosicaoNum</c>/<c>dOrdem</c>
+        /// (o layout ainda pode sobrescrever depois, em <see cref="AplicarPosicao"/>).
+        /// </summary>
+        public void AplicarDispositivo(DispositivoFiacao dispositivo)
+        {
+            if (dispositivo == null)
+            {
+                throw new ArgumentNullException("dispositivo");
+            }
+
+            Tag = dispositivo.Tag;
+            Alternativo = dispositivo.Alternativo;
+            Tipo = dispositivo.Tipo;
+            TipoBorne = -1;
+            IndexModelo = (short)dispositivo.IndexModelo;
+            NRegua = dispositivo.Nome1;
+            Handle = dispositivo.Handle;
+            PosicaoNum = 0;
+            OrdemChave = -1;
+            BLink = false;
+        }
+
+        /// <summary>
         /// Completa um ponto **não-borne** com a posição do layout
         /// (<see cref="LayoutPosicoes"/>) casada por <c>(painel, tag)</c> — o
         /// <c>mPosicao</c> do <c>frmCompilarFiacao</c>. Dá o <c>PosicaoNum</c> e a

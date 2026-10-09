@@ -284,10 +284,16 @@ nome de bloco** (`mknUzyUVsW`) — o ponto de referência é `inserção + deslo
 não o pé de inserção. A `Ordem` segue a **chave do original** — `Potencial`,
 `PosicaoNum` decrescente (bornes primeiro), `dOrdem`, `TerminalNum`, `Terminal` —
 e o comando roda o `ReordenaOrdemPotenciais` (renumera `Ordem` 1..N por potencial).
-O `dOrdem` do **não-borne** vem da tabela `mPosicao`, lida do dicionário
-`CENG_LAYOUT` do desenho — o que **falta** é a varredura de **dispositivos**
-(blocos tipo `I`/`E`/`P`) que dá a `tag` do ponto não-borne: sem ela o casamento
-por `(painel, tag)` não dispara e o não-borne ordena com `dOrdem = 0`. E, como o
+O ponto que **não** casa com um borne ganha a `tag` da **varredura de
+dispositivos**: o `DispositivosDeFiacaoDoDesenho` varre os blocos de dispositivo do
+ModelSpace (XData `DISPOSITIVO`/`Dispositivo` tipos `P`/`E`/`A` e `IMPORTADO` tipo
+`I`) e o `CasamentoDispositivo` liga o ponto ao mais próximo com as mesmas duas
+etapas dos bornes (bounds ±0,25 + tabela de deslocamento), exigindo
+`painel == painel do ponto` e `painel > 0`. O `E`/`A` tem o painel lido do bloco
+da máscara. Com a `tag`, o `dOrdem` do **não-borne** passa a ser a ordem da tabela
+`mPosicao` (dicionário `CENG_LAYOUT`). O `I`/`M` são pulados no original; aqui o
+`I` entra a pedido do projeto (`M` nunca — é máscara). Falta, para o casamento,
+reproduzir o `ltZUHdAX7R` no que ele lê de terminal não-vazio do bloco. E, como o
 ZWCAD não está instalado, o `FIA` ainda não rodou dentro do desenho.
 
 A fase 6 também está **parcial**, pelo mesmo motivo da 5. Já existem e são
@@ -311,16 +317,14 @@ linhas da revisão antes de inserir, para rodar duas vezes não duplicar.
 
 A fase 7 também está **parcial**. Já existem e são testados: o leitor do XData de
 borne (`Dispositivo` tipo `"B"`), o parser do dicionário de réguas
-do desenho (`REGUAS`/`MODELOS2`) e o casamento ponto↔borne por proximidade
-(o `ltZUHdAX7R` do original, tolerância 0,5). Com eles, o `FIA` passa a preencher
-`Terminal`, `TerminalNum`, `Tipo`, `TipoBorne`, `IndexModelo`, `Tag`,
-`Alternativo` e `Handle` — verificado ponta a ponta (o projetor .NET grava e o
-sidecar lê). O que **falta**: a passada de reordenação de `Ordem`, o casamento
-pelas **bounds** do bloco (o original usa `Bounds ±0,25`, que exige a geometria do
-bloco e a tabela de deslocamento por nome de bloco), e a varredura de bornes do
-lado da **interligação**. A geração de `Portas4F`/`Bornes4F` que constava aqui foi
-feita na fase 8. O ZWCAD não está instalado, então nada disso rodou dentro do
-desenho.
+do desenho (`REGUAS`/`MODELOS2`), o casamento ponto↔borne com as **duas etapas**
+do original (bounds ±0,25 + tabela de pontos de ligação por nome de bloco) e a
+reordenação de `Ordem` (`ReordenaOrdemPotenciais`), aplicados a `FIA` e `INT`. Com
+eles, o `FIA` passa a preencher `Terminal`, `TerminalNum`, `Tipo`, `TipoBorne`,
+`IndexModelo`, `Tag`, `Alternativo` e `Handle` — verificado ponta a ponta (o
+projetor .NET grava e o sidecar lê). A geração de `Portas4F`/`Bornes4F` que
+constava aqui foi feita na fase 8; a varredura de bornes do lado da interligação,
+na fase 6. O ZWCAD não está instalado, então nada disso rodou dentro do desenho.
 
 A fase 8 também está **parcial**. Já existem e são testados: o parser dos
 **modelos de máscara** e suas **portas** (`MASCARAS`/`MODELOS2` e
@@ -397,9 +401,10 @@ instalado.
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
-1. **Varredura de dispositivos** (blocos tipo `I`/`E`/`P`, o `ltZUHdAX7R` nos
-   tipos não-`B`): dá a `tag` ao ponto não-borne, sem a qual a tabela `mPosicao`
-   (já lida do `CENG_LAYOUT`) não casa.
+1. **Terminal do dispositivo no casamento do não-borne** — o `ltZUHdAX7R` do
+   original só aceita o bloco se ele tirar um terminal não-vazio dos atributos
+   `T*`/`B*`; hoje o `CasamentoDispositivo` valida só a geometria (o `FIA` aceita
+   o bloco pela posição).
 2. **`TerminalNumerico`** com as formas `:` e `-` (`VerificaOrientacaoContato`
    também, para os contatos).
 3. **`SYNCD` e `VERIF`** — comandos restantes do recorte do plugin.
@@ -422,7 +427,7 @@ instalado.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 63 testes)
+npm run plugin:test       # xunit, net472 (hoje 74 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web
