@@ -178,8 +178,22 @@ FIA: 365 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 83 posicao(oes),
 INT: 20 linha(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I;
      216 borne(s) em Bornes4I
 VERIF: 365 fio(s), 20 trecho(s), 265 porta(s), 168 borne(s), 88 contato(s);
-       821 problema(s) — fiação: 223; interligação: 32; modelos: 548; desenho: 18
+       273 problema(s) — fiação: 223; interligação: 32; modelos: 18; desenho: 0
+VERIF: por tipo — SemTag: 223; PontoSemTag: 32; TerminalDuplicado: 18
 ```
+
+O `VERIF` saiu com **821** problemas na primeira medição; **548 deles eram falsos
+positivos sistemáticos**, corrigidos com evidência do próprio desenho:
+
+1. **`Portas4F` tem dois tipos de linha** (o `AdicionaItemPortas` do
+   `frmCompilarFiacao`): `"B"` = borne declarado pela máscara (`Regua`/`Borne`
+   preenchidos, `Terminal` vazio) e `"T"` = terminal da máscara (`Terminal`
+   preenchido e `Regua`/`Borne` **vazios por construção**). O verificador exigia
+   régua/borne de **toda** linha — 265+265 apontamentos só porque as linhas eram
+   "T". Agora a exigência vale para a linha "B" e o terminal é conferido na "T".
+2. **Catálogo de cabos vazio não é "nenhum cabo existe"**: `CaboSemCatalogo`
+   apontava todo cabo do desenho (18). Sem catálogo carregado a regra não roda —
+   no projeto real o catálogo vive no `RCD.mdb` (Access), que não está no nosso banco.
 
 O `SYNCD` repete `FIA`+`INT` e as contagens **não dobram** — idempotência provada
 com dado real. O banco sai com `Fiacao` 365, `Interligacao4` 20 (tags `8-CCE-*`,
@@ -470,7 +484,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
   26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 161 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 162 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge

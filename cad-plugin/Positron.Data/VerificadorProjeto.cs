@@ -259,17 +259,30 @@ namespace Positron.Data
                     }
 
                     string id = Modelo(porta.NomeModelo, porta.IndexModelo);
-                    if (string.IsNullOrWhiteSpace(porta.Regua))
-                    {
-                        problemas.Add(Novo(AreaVerificacao.Modelos, TipoProblema.ReguaAusente, "Portas4F", id, "porta sem régua"));
-                    }
 
-                    if (string.IsNullOrWhiteSpace(porta.Borne))
-                    {
-                        problemas.Add(Novo(AreaVerificacao.Modelos, TipoProblema.SemBorne, "Portas4F", id, "porta sem borne"));
-                    }
+                    // O produto grava DOIS tipos de linha em Portas4F
+                    // (frmCompilarFiacao, NNYXzPbSi2):
+                    //   "B" = borne declarado pela máscara → Regua/Borne preenchidos,
+                    //         Terminal vazio;
+                    //   "T" = terminal da máscara → Terminal preenchido e Regua/Borne
+                    //         VAZIOS por construção.
+                    // Exigir régua/borne de toda linha marcava 100% das linhas "T"
+                    // como problema (medido: 265+265 no desenho real).
+                    bool ehBorne = string.Equals(porta.Tipo, "B", System.StringComparison.OrdinalIgnoreCase);
 
-                    if (TerminalEhIndefinido(porta.Terminal))
+                    if (ehBorne)
+                    {
+                        if (string.IsNullOrWhiteSpace(porta.Regua))
+                        {
+                            problemas.Add(Novo(AreaVerificacao.Modelos, TipoProblema.ReguaAusente, "Portas4F", id, "borne sem régua"));
+                        }
+
+                        if (string.IsNullOrWhiteSpace(porta.Borne))
+                        {
+                            problemas.Add(Novo(AreaVerificacao.Modelos, TipoProblema.SemBorne, "Portas4F", id, "borne sem número"));
+                        }
+                    }
+                    else if (TerminalEhIndefinido(porta.Terminal))
                     {
                         problemas.Add(Novo(AreaVerificacao.Modelos, TipoProblema.TerminalIndefinido, "Portas4F", id, "terminal indefinido"));
                     }
@@ -364,6 +377,15 @@ namespace Positron.Data
                         conhecidos.Add(tag.Trim());
                     }
                 }
+            }
+
+            // Catálogo VAZIO não é "nenhum cabo existe": é ausência de dados (no
+            // projeto real o catálogo vem do banco Access, que não está carregado
+            // aqui). Sem esta guarda, todo cabo do desenho vira problema — medido:
+            // 18 apontamentos de ruído num desenho real.
+            if (conhecidos.Count == 0)
+            {
+                return problemas;
             }
 
             HashSet<string> apontados = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

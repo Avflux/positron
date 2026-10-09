@@ -442,9 +442,36 @@ namespace Positron.Plugin
                 Plugin.Escrever("VERIF: " + fiacao.Count + " fio(s), " + interligacao.Count + " trecho(s), "
                     + portas.Count + " porta(s), " + bornes.Count + " borne(s), " + contatos.Count
                     + " contato(s) na revisão.");
+                // Composição por TIPO: sem isso, "548 problemas de modelos" não diz
+                // se é regra estrita demais ou dado ruim. Só os tipos que aparecem.
+                System.Collections.Generic.Dictionary<TipoProblema, int> porTipo =
+                    new System.Collections.Generic.Dictionary<TipoProblema, int>();
+                foreach (Problema problema in problemas)
+                {
+                    int quantos;
+                    porTipo.TryGetValue(problema.Tipo, out quantos);
+                    porTipo[problema.Tipo] = quantos + 1;
+                }
+
+                List<System.Collections.Generic.KeyValuePair<TipoProblema, int>> ranking =
+                    new List<System.Collections.Generic.KeyValuePair<TipoProblema, int>>(porTipo);
+                ranking.Sort((a, b) => b.Value.CompareTo(a.Value));
+
+                System.Text.StringBuilder tipos = new System.Text.StringBuilder();
+                for (int i = 0; i < ranking.Count && i < 6; i++)
+                {
+                    if (i > 0)
+                    {
+                        tipos.Append("; ");
+                    }
+
+                    tipos.Append(ranking[i].Key).Append(": ").Append(ranking[i].Value);
+                }
+
                 Plugin.Escrever("VERIF: " + problemas.Count + " problema(s) — fiação: " + porFiacao
                     + "; interligação: " + porInterligacao + "; modelos: " + porModelos
                     + "; desenho: " + porDesenho + ".");
+                Plugin.Escrever("VERIF: por tipo — " + tipos + ".");
             }
             catch (System.Exception erro)
             {

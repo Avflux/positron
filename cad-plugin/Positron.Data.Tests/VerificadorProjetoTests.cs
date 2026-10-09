@@ -71,8 +71,11 @@ namespace Positron.Data.Tests
         {
             List<Portas4FRow> portas = new List<Portas4FRow>
             {
-                new Portas4FRow { IndexModelo = 7, NomeModelo = "CONT7", Regua = "R1", Borne = "1", Terminal = "2" },
-                new Portas4FRow { IndexModelo = 8, NomeModelo = "CONT8", Regua = null, Borne = null, Terminal = "3" },
+                // Linha "B" (borne da máscara): exige régua e borne.
+                new Portas4FRow { IndexModelo = 7, NomeModelo = "CONT7", Tipo = "B", Regua = "R1", Borne = "1" },
+                new Portas4FRow { IndexModelo = 8, NomeModelo = "CONT8", Tipo = "B", Regua = null, Borne = null },
+                // Linha "T" (terminal da máscara): nasce SEM régua e SEM borne.
+                new Portas4FRow { IndexModelo = 9, NomeModelo = "CONT9", Tipo = "T", Regua = null, Borne = null, Terminal = "3" },
             };
             List<Bornes4FRow> bornes = new List<Bornes4FRow>
             {
@@ -88,10 +91,31 @@ namespace Positron.Data.Tests
 
             List<Problema> problemas = VerificadorProjeto.VerificarModelos(portas, bornes, contatos);
 
-            Assert.Contains(problemas, p => p.Tipo == TipoProblema.ReguaAusente && p.Tabela == "Portas4F");
+            // A linha "B" sem régua/borne acusa; a "T" sem régua/borne NÃO acusa.
+            Assert.Contains(problemas, p => p.Tipo == TipoProblema.ReguaAusente && p.Tabela == "Portas4F" && p.Detalhe.Contains("borne sem régua"));
+            Assert.Contains(problemas, p => p.Tipo == TipoProblema.SemBorne && p.Tabela == "Portas4F" && p.Detalhe.Contains("borne sem número"));
+            Assert.DoesNotContain(problemas, p => p.Identificador != null && p.Identificador.Contains("CONT9"));
             Assert.Contains(problemas, p => p.Tipo == TipoProblema.SemBorne && p.Tabela == "Bornes4F");
             Assert.Contains(problemas, p => p.Tipo == TipoProblema.TerminalIndefinido && p.Tabela == "Contatos4F");
             Assert.Contains(problemas, p => p.Tipo == TipoProblema.TerminalDuplicado && p.Tabela == "Contatos4F");
+        }
+
+        [Fact]
+        public void Catalogo_vazio_nao_aponta_cabo()
+        {
+            // Catálogo vazio é ausência de dado (o projeto real usa o banco Access),
+            // não "nenhum cabo existe" — senão todo cabo do desenho vira ruído.
+            Assert.Empty(VerificadorProjeto.VerificarCabosSemCatalogo(
+                new[] { "8-CCE-001" },
+                new string[0]));
+
+            // Com catálogo carregado, o cabo de fora aparece uma única vez.
+            List<Problema> problemas = VerificadorProjeto.VerificarCabosSemCatalogo(
+                new[] { "8-CCE-001", "X-1", "x-1" },
+                new[] { "8-CCE-001" });
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal("X-1", problema.Identificador);
         }
 
         [Fact]

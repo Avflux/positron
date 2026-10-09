@@ -169,7 +169,7 @@ escopo estrutural do recoder.
   montada; `PaginaMatrixTests`/`ColunaPaginaTests` cobrem a matriz, o switch e a
   gravação.
 
-### Etapa 6 — `VERIF` lendo o desenho · P1 · **parcial**
+### Etapa 6 — `VERIF` lendo o desenho · P1 · **concluída (regras) + calibrada no desenho real**
 
 - **O que:** o verificador original (`frmVerificadorProjetoFiacao`/
   `...Interligacao`, ~3 mil linhas) também pinta erros do **desenho**
@@ -185,6 +185,16 @@ escopo estrutural do recoder.
   e o resumo separa "desenho". A terceira regra entrou na Etapa 11
   (`VerificarPaginasAusentes`, com a matriz de páginas). Testes em
   `VerificadorDesenhoTests` e `PaginaMatrixTests`.
+- **Calibração no desenho real (rodada 12):** o `VERIF` saiu com **821** problemas
+  no `Funcional.dwg`, e **548 eram falsos positivos sistemáticos** —
+  (1) o verificador exigia régua/borne de **toda** linha de `Portas4F`, mas o
+  produto grava dois tipos: `"B"` (borne da máscara, com régua/borne e terminal
+  vazio) e `"T"` (terminal da máscara, **sem** régua/borne por construção);
+  (2) `CaboSemCatalogo` acusava todo cabo com o **catálogo vazio** (ausência de
+  dado, não "cabo inexistente" — o catálogo real vive no `RCD.mdb`). Com as duas
+  correções o desenho real fecha em **273** problemas (SemTag 223, PontoSemTag 32,
+  TerminalDuplicado 18, desenho 0) e o `VERIF` passou a imprimir a composição por
+  tipo no log.
 
 ### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (6 de 10 feitas)**
 
@@ -314,7 +324,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 3b — Harness **executado** no ZWCAD | 2026-10-09 | ee042f4 | `npm run cad:smoke` exit 0: `NETLOAD` + `ELET`/`FIA`/`INT`/`SYNCD`/`VERIF` no ZWCAD 2026 (fase 4 fechada); 3 defeitos do harness corrigidos (`-Db`×`-Debug`, `/b` sem `.scr`, precedência da vírgula no `@()`) |
 | 4 — E2E com dados no ZWCAD | 2026-10-09 | 54fdcdf | `scripts/cad-fixture.lsp` + `npm run cad:e2e`: `FIA` 2 linhas + 2 circuitos, `INT` 1 `Interligacao4`, `SYNCD` repete sem duplicar, sidecar lê o mesmo conteúdo; falta fixture com blocos (fases 7–9) |
 | 4b — E2E com **desenho real** | 2026-10-09 | 0bff89d | `-Desenho ..\Elet\RCD\Funcional.dwg`: `FIA` 365 linhas (199 bornes, 191 dispositivos), 265 portas, 88 contatos, 83 dispositivos; `INT` 20 trechos; `SYNCD` sem duplicar; `VERIF` 1.034 problemas. Achou e corrigiu o `FormatException` do `ReguasModelo` (`XDataNumero` + `DescreverErro` + `-Desenho` no harness); `plugin:test` **160** aprovados |
-| 4c — 3 defeitos do desenho real (bornes) | 2026-10-09 | (este commit) | `ReguasModelo` passa a ler do índice 1 (cabeçalho), `XDataNeutro.Para(Xrecord)` tolera `Xrecord.Data` que lança e os `registro.Data == null` saíram; no `Funcional.dwg` `Bornes4F` 0→**168** e `Bornes4I` 0→**216**; `plugin:test` **161** aprovados |
+| 4c — 3 defeitos do desenho real (bornes) | 2026-10-09 | 58183d6 | `ReguasModelo` passa a ler do índice 1 (cabeçalho), `XDataNeutro.Para(Xrecord)` tolera `Xrecord.Data` que lança e os `registro.Data == null` saíram; no `Funcional.dwg` `Bornes4F` 0→**168** e `Bornes4I` 0→**216**; `plugin:test` **161** aprovados |
+| 6b — `VERIF` calibrado no desenho real | 2026-10-09 | (este commit) | composição por tipo no log; linha `"T"` de `Portas4F` não exige régua/borne (só a `"B"`) e catálogo de cabos vazio não gera apontamento; no `Funcional.dwg` o `VERIF` caiu de **821** para **273** problemas (548 falsos positivos); `plugin:test` **162** |
 | 5 — Pendências de projeção (parcial) | 2026-10-09 | bc59c8d | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; resta só a `Pagina` com cruzamento (matriz de páginas) |
 | 7a — `Dispositivos4F` | 2026-10-09 | ed7222a | gerador puro + gravação idempotente + `FIA` gerando; `plugin:test` **110** aprovados |
 | 7b — `Circuitos4F` | 2026-10-09 | 1afbd7a | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados |
