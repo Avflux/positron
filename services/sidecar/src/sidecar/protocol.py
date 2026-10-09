@@ -137,6 +137,27 @@ class AplicacoesPorRevisaoParams(BaseModel):
     revisao: str | None = None
 
 
+class JumperPorPainelParams(BaseModel):
+    painel: int
+    revisao: str | None = None
+
+
+class Portas4IPorModeloParams(BaseModel):
+    index_modelo: int
+
+
+class Bornes4IPorReguaParams(BaseModel):
+    index_regua: int
+
+
+class Cabos4PorRevisaoParams(BaseModel):
+    revisao: str | None = None
+
+
+class Veias4PorRevisaoParams(BaseModel):
+    revisao: str | None = None
+
+
 #: Erros do domínio do sidecar. `code` é o que a UI usa para decidir o que mostrar.
 class SidecarError(Exception):
     def __init__(self, code: str, message: str, detail: Any | None = None) -> None:

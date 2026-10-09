@@ -181,6 +181,11 @@ ferramenta.
 | `circuitos_por_painel` | `{ painel, revisao? }` | `{ circuitos: Circuitos4F[] }` |
 | `dispositivos_por_painel` | `{ painel, revisao? }` | `{ dispositivos: Dispositivos4F[] }` |
 | `aplicacoes_por_revisao` | `{ revisao? }` | `{ aplicacoes: Aplicacao4F[] }` |
+| `jumper_por_painel` | `{ painel, revisao? }` | `{ jumpers: Jumper4[] }` |
+| `portas4i_por_modelo` | `{ index_modelo }` | `{ portas: Portas4I[] }` |
+| `bornes4i_por_regua` | `{ index_regua }` | `{ bornes: Bornes4I[] }` |
+| `cabos4_por_revisao` | `{ revisao? }` | `{ cabos: Cabos4[] }` |
+| `veias4_por_revisao` | `{ revisao? }` | `{ veias: Veias4[] }` |
 
 O tipo de cada linha (`Paineis`, `Fiacao`, …) vem de `schema.generated.ts`, não de
 modelos escritos à mão. `relatorio_gerar` fica para a fase de relatórios.

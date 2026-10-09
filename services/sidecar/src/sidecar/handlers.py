@@ -19,6 +19,8 @@ from .db import ProjectDatabase
 from .protocol import (
     AplicacoesPorRevisaoParams,
     BadParams,
+    Bornes4IPorReguaParams,
+    Cabos4PorRevisaoParams,
     CatalogoListarMateriaisParams,
     CircuitosPorPainelParams,
     DatabaseNotOpen,
@@ -28,10 +30,13 @@ from .protocol import (
     FiacaoPorPainelParams,
     InterligacaoPorCaboParams,
     InterligacaoPorPainelParams,
+    JumperPorPainelParams,
     PingResult,
+    Portas4IPorModeloParams,
     ProjetoAbrirParams,
     SidecarError,
     UnknownMethod,
+    Veias4PorRevisaoParams,
 )
 
 Handler = Callable[[dict[str, Any]], Awaitable[Any]]
@@ -57,6 +62,11 @@ class Handlers:
             "circuitos_por_painel": self._circuitos_por_painel,
             "dispositivos_por_painel": self._dispositivos_por_painel,
             "aplicacoes_por_revisao": self._aplicacoes_por_revisao,
+            "jumper_por_painel": self._jumper_por_painel,
+            "portas4i_por_modelo": self._portas4i_por_modelo,
+            "bornes4i_por_regua": self._bornes4i_por_regua,
+            "cabos4_por_revisao": self._cabos4_por_revisao,
+            "veias4_por_revisao": self._veias4_por_revisao,
         }
 
     @property
@@ -124,6 +134,29 @@ class Handlers:
     async def _aplicacoes_por_revisao(self, params: dict[str, Any]) -> dict[str, Any]:
         parsed = _validate("aplicacoes_por_revisao", AplicacoesPorRevisaoParams, params)
         return {"aplicacoes": await self._require_db().aplicacoes_por_revisao(parsed.revisao)}
+
+    async def _jumper_por_painel(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("jumper_por_painel", JumperPorPainelParams, params)
+        jumpers = await self._require_db().jumper_por_painel(parsed.painel, parsed.revisao)
+        return {"jumpers": jumpers}
+
+    async def _portas4i_por_modelo(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("portas4i_por_modelo", Portas4IPorModeloParams, params)
+        portas = await self._require_db().portas4i_por_modelo(parsed.index_modelo)
+        return {"portas": portas}
+
+    async def _bornes4i_por_regua(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("bornes4i_por_regua", Bornes4IPorReguaParams, params)
+        bornes = await self._require_db().bornes4i_por_regua(parsed.index_regua)
+        return {"bornes": bornes}
+
+    async def _cabos4_por_revisao(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("cabos4_por_revisao", Cabos4PorRevisaoParams, params)
+        return {"cabos": await self._require_db().cabos4_por_revisao(parsed.revisao)}
+
+    async def _veias4_por_revisao(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("veias4_por_revisao", Veias4PorRevisaoParams, params)
+        return {"veias": await self._require_db().veias4_por_revisao(parsed.revisao)}
 
     def _require_db(self) -> ProjectDatabase:
         if self._db is None:

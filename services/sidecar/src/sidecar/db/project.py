@@ -190,3 +190,42 @@ class ProjectDatabase:
                 (revisao,),
             )
         return await self.query("SELECT * FROM Aplicacao4F ORDER BY Numero, Indice")
+
+    async def jumper_por_painel(
+        self, painel: int, revisao: str | None = None
+    ) -> list[dict[str, Any]]:
+        # Mesma ordenação da Fiacao: a Ordem reinicia a cada potencial.
+        if revisao:
+            return await self.query(
+                "SELECT * FROM Jumper4 WHERE Painel = ? AND Revisao = ? "
+                "ORDER BY Potencial, Ordem",
+                (painel, revisao),
+            )
+        return await self.query(
+            "SELECT * FROM Jumper4 WHERE Painel = ? ORDER BY Potencial, Ordem", (painel,)
+        )
+
+    async def portas4i_por_modelo(self, index_modelo: int) -> list[dict[str, Any]]:
+        return await self.query(
+            "SELECT * FROM Portas4I WHERE IndexModelo = ? ORDER BY Indice", (index_modelo,)
+        )
+
+    async def bornes4i_por_regua(self, index_regua: int) -> list[dict[str, Any]]:
+        return await self.query(
+            "SELECT * FROM Bornes4I WHERE IndexRegua = ? ORDER BY Ordem, Indice", (index_regua,)
+        )
+
+    async def cabos4_por_revisao(self, revisao: str | None = None) -> list[dict[str, Any]]:
+        # Snapshot do catálogo que o INT carimba com a revisão.
+        if revisao:
+            return await self.query(
+                "SELECT * FROM Cabos4 WHERE Revisao = ? ORDER BY Tag", (revisao,)
+            )
+        return await self.query("SELECT * FROM Cabos4 ORDER BY Tag")
+
+    async def veias4_por_revisao(self, revisao: str | None = None) -> list[dict[str, Any]]:
+        if revisao:
+            return await self.query(
+                "SELECT * FROM Veias4 WHERE Revisao = ? ORDER BY Tag, Num_Veia", (revisao,)
+            )
+        return await self.query("SELECT * FROM Veias4 ORDER BY Tag, Num_Veia")

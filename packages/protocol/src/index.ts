@@ -12,13 +12,18 @@
 
 import type {
   Aplicacao4F,
+  Bornes4I,
+  Cabos4,
   Circuitos4F,
   Dispositivos4F,
   Fiacao,
   Interligacao4,
+  Jumper4,
   Materiais,
   ModelosCabos,
   Paineis,
+  Portas4I,
+  Veias4,
 } from "./schema.generated";
 
 // Os tipos das linhas do banco fazem parte do contrato público: a UI importa
@@ -120,6 +125,27 @@ export interface AplicacoesPorRevisaoParams {
   revisao?: string | null;
 }
 
+export interface JumperPorPainelParams {
+  painel: number;
+  revisao?: string | null;
+}
+
+export interface Portas4IPorModeloParams {
+  index_modelo: number;
+}
+
+export interface Bornes4IPorReguaParams {
+  index_regua: number;
+}
+
+export interface Cabos4PorRevisaoParams {
+  revisao?: string | null;
+}
+
+export interface Veias4PorRevisaoParams {
+  revisao?: string | null;
+}
+
 /** Mapa método -> assinatura. É a única fonte de tipos para `request()`. */
 export interface MethodMap {
   ping: { params: Record<string, never>; result: PingResult };
@@ -154,6 +180,26 @@ export interface MethodMap {
   aplicacoes_por_revisao: {
     params: AplicacoesPorRevisaoParams;
     result: { aplicacoes: Aplicacao4F[] };
+  };
+  jumper_por_painel: {
+    params: JumperPorPainelParams;
+    result: { jumpers: Jumper4[] };
+  };
+  portas4i_por_modelo: {
+    params: Portas4IPorModeloParams;
+    result: { portas: Portas4I[] };
+  };
+  bornes4i_por_regua: {
+    params: Bornes4IPorReguaParams;
+    result: { bornes: Bornes4I[] };
+  };
+  cabos4_por_revisao: {
+    params: Cabos4PorRevisaoParams;
+    result: { cabos: Cabos4[] };
+  };
+  veias4_por_revisao: {
+    params: Veias4PorRevisaoParams;
+    result: { veias: Veias4[] };
   };
 }
 

@@ -398,7 +398,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 
 **Executado e verificado nesta máquina (Windows, Python 3.14, Node 24):**
 
-- `pytest` — 23 testes passando, com DEALER/ROUTER e SUB/PUB reais e leitura do
+- `pytest` — 26 testes passando, com DEALER/ROUTER e SUB/PUB reais e leitura do
   SQLite do projeto.
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`

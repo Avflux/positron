@@ -62,6 +62,24 @@ def make_project_db(target: Path) -> Path:
         INSERT INTO Aplicacao4F(Indice, Revisao, DWG, Numero, Nome, Secao)
             VALUES (50, 'R0', 1, 2, 'AP2', '4'),
                    (51, 'R0', 1, 1, 'AP1', '2,5');
+
+        INSERT INTO Jumper4(Indice, Revisao, DWG, Painel, Potencial, Ordem, Tag, BJumper, BLink)
+            VALUES (60, 'R0', 1, 1, 7, 2, 'J2', 1, 0),
+                   (61, 'R0', 1, 1, 7, 1, 'J1', 1, 0),
+                   (62, 'R0', 1, 2, 3, 1, 'J3', 1, 0);
+
+        INSERT INTO Portas4I(Indice, Revisao, DWG, IndexModelo, NomeModelo, Regua, Borne, Tipo)
+            VALUES (70, 'R0', 1, 8, 'M8', 'R1', '11', 'B');
+
+        INSERT INTO Bornes4I(Indice, Painel, IndexRegua, Regua, Borne, Ordem, bReserva)
+            VALUES (80, 1, 5, 'R1', '12', 2.0, 0),
+                   (81, 1, 5, 'R1', '11', 1.0, 0);
+
+        INSERT INTO Cabos4(Indice, Revisao, Tag, Blindagem)
+            VALUES (90, 'R0', 'C-100', 0);
+
+        INSERT INTO Veias4(Indice, Revisao, Tag, Num_Veia, Uso)
+            VALUES (95, 'R0', 'C-100', 1, 0);
         """
     )
     connection.commit()
@@ -168,6 +186,44 @@ async def test_aplicacoes_por_revisao_ordenadas_por_numero(project_db: Path):
 
     filtrado = await handlers.dispatch("aplicacoes_por_revisao", {"revisao": "R9"})
     assert filtrado["aplicacoes"] == []
+
+
+async def test_jumper_por_painel_ordenado_por_potencial_e_ordem(project_db: Path):
+    handlers = Handlers(str(project_db))
+    painel1 = await handlers.dispatch("jumper_por_painel", {"painel": 1})
+    assert [j["Tag"] for j in painel1["jumpers"]] == ["J1", "J2"]
+    assert painel1["jumpers"][0]["BJumper"] is True
+
+    painel2 = await handlers.dispatch("jumper_por_painel", {"painel": 2})
+    assert [j["Tag"] for j in painel2["jumpers"]] == ["J3"]
+
+    vazio = await handlers.dispatch("jumper_por_painel", {"painel": 1, "revisao": "R9"})
+    assert vazio["jumpers"] == []
+
+
+async def test_portas4i_e_bornes4i_por_chave(project_db: Path):
+    handlers = Handlers(str(project_db))
+
+    portas = await handlers.dispatch("portas4i_por_modelo", {"index_modelo": 8})
+    assert [p["Borne"] for p in portas["portas"]] == ["11"]
+
+    bornes = await handlers.dispatch("bornes4i_por_regua", {"index_regua": 5})
+    # Ordem crescente: 11 (1.0) antes de 12 (2.0).
+    assert [b["Borne"] for b in bornes["bornes"]] == ["11", "12"]
+
+
+async def test_cabos4_e_veias4_por_revisao(project_db: Path):
+    handlers = Handlers(str(project_db))
+
+    cabos = await handlers.dispatch("cabos4_por_revisao", {})
+    assert [c["Tag"] for c in cabos["cabos"]] == ["C-100"]
+    assert cabos["cabos"][0]["Blindagem"] is False
+
+    veias = await handlers.dispatch("veias4_por_revisao", {"revisao": "R0"})
+    assert [v["Num_Veia"] for v in veias["veias"]] == [1]
+
+    vazio = await handlers.dispatch("veias4_por_revisao", {"revisao": "R9"})
+    assert vazio["veias"] == []
 
 
 async def test_catalogo_materiais_com_e_sem_filtro(project_db: Path):
