@@ -499,7 +499,7 @@ no `RUNBOOK.md`.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 114 testes)
+npm run plugin:test       # xunit, net472 (hoje 118 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

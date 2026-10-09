@@ -144,6 +144,12 @@ conexões `CONEXAO` com `Tipo == 1` e `Nome` não-vazio, de painel em uso,
 deduplicando por `Potencial` (o primeiro vence) — o `t6yXrlfi5w` do original. A
 coluna `Circuito` recebe o `Nome` cru da conexão (o `Trim` só decide se entra).
 
+**Aplicações (`Aplicacao4F`).** O `FIA` copia **todos** os tipos de aplicação do
+dicionário do desenho — `NamedObjectsDictionary → "APLICACAO" → "TIPOS"`
+(`Xrecord`), o `FiRUTW6Q6W` do original. A lista é plana, com **10 valores por
+aplicação**, e o original começa no índice **1**: `Indice`, `Nome`, `Secao`,
+`Cor`, `TipoCabo`, `Isolacao` (+4 reservados). Não há filtro por painel ou uso.
+
 **Casamento por bounds + deslocamento.** O casamento ponto↔borne usa as duas
 etapas do original: o ponto tem que cair dentro da **bounding-box** do bloco com
 0,25 de folga (`Bounds ±0,25`), e o ponto de referência é

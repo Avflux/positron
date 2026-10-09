@@ -605,6 +605,43 @@ namespace Positron.Data
             return linhas;
         }
 
+        /// <summary>Lê os tipos de aplicação de uma revisão (<c>Aplicacao4F</c>).</summary>
+        public IReadOnlyList<Aplicacao4FRow> AplicacoesDaRevisao(int dwg, string revisao)
+        {
+            List<Aplicacao4FRow> linhas = new List<Aplicacao4FRow>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, DWG, Numero, Nome, Secao, Cor, TipoCabo, Isolacao " +
+                    "FROM Aplicacao4F " +
+                    "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') ORDER BY Numero, Indice";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new Aplicacao4FRow
+                        {
+                            Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
+                            Revisao = Texto(leitor, "Revisao"),
+                            DWG = Inteiro(leitor, "DWG"),
+                            Numero = Inteiro(leitor, "Numero"),
+                            Nome = Texto(leitor, "Nome"),
+                            Secao = Texto(leitor, "Secao"),
+                            Cor = Texto(leitor, "Cor"),
+                            TipoCabo = Texto(leitor, "TipoCabo"),
+                            Isolacao = Texto(leitor, "Isolacao"),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
         /// <summary>Lê os circuitos de uma revisão (<c>Circuitos4F</c>).</summary>
         public IReadOnlyList<Circuitos4FRow> CircuitosDaRevisao(int dwg, string revisao)
         {
@@ -1106,6 +1143,53 @@ namespace Positron.Data
                     parametros[4].Value = Nulo(contato.Terminal);
                     parametros[5].Value = contato.TerminalNum;
                     parametros[6].Value = Nulo(contato.Orientacao);
+                    comando.ExecuteNonQuery();
+                }
+
+                transacao.Commit();
+            }
+        }
+
+        /// <summary>Grava os tipos de aplicação (<c>Aplicacao4F</c>) — ver <see cref="Aplicacao4FGerador"/>.</summary>
+        public void InserirAplicacoes(IEnumerable<Aplicacao4F> aplicacoes, string revisao, int dwg)
+        {
+            List<Aplicacao4F> lista = aplicacoes == null
+                ? new List<Aplicacao4F>()
+                : new List<Aplicacao4F>(aplicacoes);
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                // Substitui a revisão (RemoveRevisaoTabelaParaDWG do original).
+                RemoverRevisaoDaTabela(conexao, "Aplicacao4F", dwg, revisao);
+
+                comando.CommandText =
+                    "INSERT INTO Aplicacao4F(Revisao, DWG, Numero, Nome, Secao, Cor, TipoCabo, Isolacao) " +
+                    "VALUES(@revisao, @dwg, @numero, @nome, @secao, @cor, @tipoCabo, @isolacao)";
+
+                SQLiteParameter[] parametros =
+                {
+                    comando.Parameters.Add("@revisao", System.Data.DbType.String),
+                    comando.Parameters.Add("@dwg", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@numero", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@nome", System.Data.DbType.String),
+                    comando.Parameters.Add("@secao", System.Data.DbType.String),
+                    comando.Parameters.Add("@cor", System.Data.DbType.String),
+                    comando.Parameters.Add("@tipoCabo", System.Data.DbType.String),
+                    comando.Parameters.Add("@isolacao", System.Data.DbType.String),
+                };
+
+                foreach (Aplicacao4F aplicacao in lista)
+                {
+                    parametros[0].Value = Nulo(revisao);
+                    parametros[1].Value = dwg;
+                    parametros[2].Value = aplicacao.Numero;
+                    parametros[3].Value = Nulo(aplicacao.Nome);
+                    parametros[4].Value = Nulo(aplicacao.Secao);
+                    parametros[5].Value = Nulo(aplicacao.Cor);
+                    parametros[6].Value = Nulo(aplicacao.TipoCabo);
+                    parametros[7].Value = Nulo(aplicacao.Isolacao);
                     comando.ExecuteNonQuery();
                 }
 

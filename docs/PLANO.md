@@ -149,10 +149,10 @@ escopo estrutural do recoder.
   valor (cabo sem catálogo, borne sem régua, página ausente) com teste cobrindo
   a regra pura.
 
-### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (2 de 10 feitas)**
+### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (3 de 10 feitas)**
 
 - **Faltam projetar:** `Jumper4`, `Bornes4I`, `Portas4I`, `Aranha4`,
-  `Aplicacao4F`, `Atributos`, `Exportados`.
+  `Atributos`, `Exportados`.
 - **~~`Dispositivos4F`~~ — feito:** `Dispositivos4FGerador` (puro) +
   `ProjectStore.InserirDispositivos`/`DispositivosDaRevisao` (substitui a
   revisão) + o `FIA` gerando; 5 testes em `Dispositivos4FTests`.
@@ -161,6 +161,11 @@ escopo estrutural do recoder.
   original: `Tipo == 1`, nome não-vazio, painel em uso, dedup por `Potencial`);
   `PontoFiacao` passou a carregar `Nome`/`Tipo` da conexão; 4 testes em
   `Circuitos4FTests`.
+- **~~`Aplicacao4F`~~ — feito:** `Aplicacao4FGerador` (puro: lê o `Xrecord`
+  `APLICACAO/TIPOS` — 10 valores por tipo, a partir do índice 1 — e mapeia para as
+  linhas) + `AplicacoesDoDesenho` (adapter do dicionário) +
+  `InserirAplicacoes`/`AplicacoesDaRevisao` + o `FIA` gerando (o `FiRUTW6Q6W` do
+  original: copia todos os tipos, sem filtro); 4 testes em `Aplicacao4FTests`.
 - **Custo real medido no reverso** (cada tabela vem de um fluxo próprio, não é só
   um `INSERT`):
   - (feito) `Dispositivos4F` — do próprio `frmCompilarFiacao` (linhas 2640–2793): um
@@ -218,7 +223,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 3 — Harness ZWCAD (parcial) | 2026-10-09 | f5bc9a5 | `POSITRON_LOG` no `Plugin.Escrever`; `scripts/cad-zwcad-smoke.ps1` + `npm run cad:smoke`; receita no `RUNBOOK.md`; parser do `.ps1` OK e criação do `.db` (31 tabelas) validada — execução no CAD pendente do ZWCAD fechado |
 | 5 — Pendências de projeção (parcial) | 2026-10-09 | bc59c8d | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; resta só a `Pagina` com cruzamento (matriz de páginas) |
 | 7a — `Dispositivos4F` | 2026-10-09 | ed7222a | gerador puro + gravação idempotente + `FIA` gerando; `plugin:test` **110** aprovados |
-| 7b — `Circuitos4F` | 2026-10-09 | (este commit) | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados; restam `Jumper4`, `Bornes4I`, `Portas4I`, `Aranha4`, `Aplicacao4F`, `Atributos`, `Exportados` |
+| 7b — `Circuitos4F` | 2026-10-09 | 1afbd7a | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados |
+| 7c — `Aplicacao4F` | 2026-10-09 | (este commit) | leitor do dicionário `APLICACAO/TIPOS` + gerador puro + gravação idempotente + `FIA` gerando (`FiRUTW6Q6W`); `plugin:test` **118** aprovados; restam `Jumper4`, `Bornes4I`, `Portas4I`, `Aranha4`, `Atributos`, `Exportados` |
 | 1 — Idempotência da projeção | 2026-10-09 | cbadec5 | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
 
 ## 6. Riscos e armadilhas

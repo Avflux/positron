@@ -115,7 +115,7 @@ npm run build:all        # protocol:gen → build:web → build:desktop (tudo)
 | `npm run protocol:gen` | Falha se o contrato divergir: métodos Python↔TS **ou** os tipos gerados do schema |
 | `npm run schema:sync` | Regrava os tipos TS/C# a partir de `services/sidecar/src/sidecar/db/schema.sql` |
 | `npm run plugin:build` | Compila o plugin CAD (ZWCAD padrão, ou AutoCAD via `plugin:build:autocad`) |
-| `npm run plugin:test` | Roda os 114 testes xunit do plugin |
+| `npm run plugin:test` | Roda os 118 testes xunit do plugin |
 
 ## Estado atual
 
@@ -126,7 +126,7 @@ processo ponta a ponta, `typecheck` limpo e build do web gerando `dist`.
 A reconstrução do Eletron4Z sobre este esqueleto (dois frontends, contrato de
 dados) está em `docs/POSITRON.md`.
 
-O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (114 testes xunit; veja
+O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (118 testes xunit; veja
 `cad-plugin/README.md` e `docs/POSITRON.md`). Ele builda com `npm run plugin:build`
 e testa com `npm run plugin:test`.
 

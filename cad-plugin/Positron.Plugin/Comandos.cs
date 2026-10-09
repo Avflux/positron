@@ -132,6 +132,7 @@ namespace Positron.Plugin
                 int contatos = GerarContatos(store, contexto, dispositivos);
                 int dispositivos4F = GerarDispositivos(store, contexto, paineis, dispositivosDeFiacao, posicoes);
                 int circuitos = GerarCircuitos(store, contexto, paineis, pontos);
+                int aplicacoes = GerarAplicacoes(store, contexto);
 
                 return "FIA: " + gravados + " linha(s) em Fiacao (" + bornes.Count + " borne(s), "
                     + dispositivosDeFiacao.Count + " dispositivo(s), "
@@ -140,7 +141,8 @@ namespace Positron.Plugin
                     + portas + " porta(s) em Portas4F; " + reservas + " borne(s) em Bornes4F; "
                     + contatos + " contato(s) em Contatos4F; "
                     + dispositivos4F + " dispositivo(s) em Dispositivos4F; "
-                    + circuitos + " circuito(s) em Circuitos4F.";
+                    + circuitos + " circuito(s) em Circuitos4F; "
+                    + aplicacoes + " tipo(s) em Aplicacao4F.";
             }
             catch (System.Exception erro)
             {
@@ -347,6 +349,18 @@ namespace Positron.Plugin
                 auxiliaresPorModelo,
                 dispositivos.TerminaisBobinas);
             store.InserirContatos(linhas, contexto.Revisao, contexto.Dwg);
+            return linhas.Count;
+        }
+
+        /// <summary>
+        /// Gera <c>Aplicacao4F</c> a partir do dicionário <c>APLICACAO</c> do
+        /// desenho (o <c>FiRUTW6Q6W</c> do original: copia todos os tipos, sem
+        /// filtro). Ver <see cref="Aplicacao4FGerador"/>.
+        /// </summary>
+        private static int GerarAplicacoes(ProjectStore store, ContextoProjecao contexto)
+        {
+            List<Aplicacao4F> linhas = Aplicacao4FGerador.Gerar(AplicacoesDoDesenho.Ler());
+            store.InserirAplicacoes(linhas, contexto.Revisao, contexto.Dwg);
             return linhas.Count;
         }
 
