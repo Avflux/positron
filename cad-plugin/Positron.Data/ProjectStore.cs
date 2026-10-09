@@ -187,7 +187,12 @@ namespace Positron.Data
                     parametros[2].Value = (int)ponto.Painel;
                     parametros[3].Value = ponto.Potencial;
                     parametros[4].Value = ponto.Ordem;
-                    parametros[5].Value = DBNull.Value; // Pagina: depende da paginação (não projetada)
+                    // Pagina: o original grava `pot.layer` (código cru do layer — o caso
+                    // identidade do switch `Conf.incluirColuna` do frmCompilarFiacao).
+                    // As variantes com cruzamento de página (`Pagina.BuscaAlternativo`,
+                    // incluirColuna 3..6) não são projetadas. Mesma convenção do
+                    // Bornes4F e do Interligacao4, que também gravam o layer cru.
+                    parametros[5].Value = Nulo(ponto.Layer);
                     parametros[6].Value = Nulo(ponto.Tag);
                     parametros[7].Value = Nulo(ponto.Alternativo);
                     parametros[8].Value = Nulo(ponto.NRegua);

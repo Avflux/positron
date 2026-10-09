@@ -286,7 +286,13 @@ leitor do XData `CONEXAO`, a projeção para `Fiacao` (INSERT canônico) e a lei
 no app (o sidecar lê o `.db` que o projetor .NET gravou). As colunas que dependem
 do desenho (`Tag`, `Terminal`, `Tipo`, `TipoBorne`, `IndexModelo`, `Alternativo`,
 `Handle`, `NRegua`, `PosicaoNum`, `BLink`) são preenchidas pela varredura de
-**bornes/terminais** da fase 7. O casamento ponto↔borne já usa as **duas etapas
+**bornes/terminais** da fase 7. A `Pagina` vem do **layer** da conexão: o
+`AdicionaItemPotencial` grava `pot.layer` nessa coluna, e o `frmCompilarFiacao`
+monta esse valor a partir do layer pelo switch `Conf.incluirColuna` (`0..2` =
+código cru, `3..5` = `Pagina.BuscaAlternativo`, `6` = `(layer)` + separador +
+cruzamento). Projetamos o caso `0..2` — o mesmo do `Bornes4F` e do `Interligacao4`,
+que também gravam o layer cru; as variantes com o **cruzamento de página**
+dependem da matriz de páginas do projeto, que ainda não é lida. O casamento ponto↔borne já usa as **duas etapas
 do original**: o filtro de **bounds ±0,25** e a **tabela de pontos de ligação por
 nome de bloco** (`mknUzyUVsW`) — o ponto de referência é `inserção + deslocamento`,
 não o pé de inserção. A `Ordem` segue a **chave do original** — `Potencial`,

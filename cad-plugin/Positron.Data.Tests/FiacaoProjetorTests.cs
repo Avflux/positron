@@ -121,6 +121,40 @@ namespace Positron.Data.Tests
                 FiacaoRow linha = Assert.Single(linhas);
                 Assert.Equal("R1/ALT1", linha.Tag);
                 Assert.Equal("12A", linha.Terminal);
+                // Pagina é o layer da conexão (o `pot.layer` do AdicionaItemPotencial).
+                Assert.Equal("PAG1", linha.Pagina);
+            }
+            finally
+            {
+                BancoDeTeste.Limpar(caminho);
+            }
+        }
+
+        [Fact]
+        public void Pagina_vem_do_layer_da_conexao_sem_depender_do_borne()
+        {
+            string caminho = BancoDeTeste.Criar();
+            try
+            {
+                ProjectStore store = new ProjectStore(caminho);
+                FiacaoProjetor projetor = new FiacaoProjetor(store);
+
+                // O original grava `pot.layer` em `Pagina` para todo ponto — o
+                // ponto que não casa com borne também recebe a sua página.
+                List<PontoFiacao> pontos = new List<PontoFiacao>
+                {
+                    new PontoFiacao { Painel = 1, Potencial = 1, Layer = "PAG-A" },
+                    new PontoFiacao { Painel = 1, Potencial = 1, Layer = "PAG-B" },
+                };
+
+                int gravados = projetor.Projetar(pontos, new ContextoProjecao { Dwg = 1, Criador = "ana", Data = DateTime.Now });
+                Assert.Equal(2, gravados);
+
+                IReadOnlyList<FiacaoRow> linhas = store.FiacaoDoPainel(1);
+                Assert.Equal(2, linhas.Count);
+                Assert.Equal("PAG-A", linhas[0].Pagina);
+                Assert.Equal("PAG-B", linhas[1].Pagina);
+                Assert.Null(linhas[0].Tag);
             }
             finally
             {

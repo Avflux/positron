@@ -98,6 +98,14 @@ do original. Configuração por variável de ambiente:
 (`Positron.Data/Bornes/`). Isso preenche `Terminal`, `TerminalNum`, `Tipo`,
 `TipoBorne`, `IndexModelo`, `Tag`, `Alternativo` e `Handle`.
 
+**`Pagina` vem do layer.** A coluna `Pagina` recebe o layer da conexão — é o que
+o `AdicionaItemPotencial` grava (`pot.layer`). O `frmCompilarFiacao` monta esse
+valor do layer pelo switch `Conf.incluirColuna` (`0..2` = código cru, `3..5` =
+`Pagina.BuscaAlternativo`, `6` = `(layer)` + separador + cruzamento); aqui se
+projeta o caso `0..2`, como no `Bornes4F` e no `Interligacao4`. As variantes com o
+**cruzamento de página** exigem a matriz de páginas do projeto, que ainda não é
+lida do desenho.
+
 **Modelos (fases 8 e 9).** O `FIA` também gera **`Portas4F`**, **`Bornes4F`** e
 **`Contatos4F`** a partir dos modelos do desenho: as portas vêm de
 `MASCARAS`/`MODELOS2` (modelos de máscara) e `MASCARAS/<índice>` (portas); os
