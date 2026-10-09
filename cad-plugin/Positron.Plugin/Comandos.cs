@@ -149,8 +149,9 @@ namespace Positron.Plugin
         /// <c>Interligacao4</c> no banco do projeto. Equivale ao <c>INT</c> do
         /// original (<c>frmCompilarInterligacao</c>), sem a tela ainda.
         ///
-        /// O caminho do banco vem de <c>POSITRON_DB_PATH</c>; <c>POSITRON_DWG</c>
-        /// e <c>POSITRON_REVISAO</c> completam a linha.
+        /// O caminho do banco vem de <c>POSITRON_DB_PATH</c>; <c>POSITRON_DWG</c>,
+        /// <c>POSITRON_REVISAO</c> e <c>POSITRON_LOCAL</c> (o <c>Conf.Local</c> do
+        /// original, que vira <c>Documento1</c>/<c>Documento2</c>) completam a linha.
         /// </summary>
         [CommandMethod("INT")]
         public void Int()
@@ -181,6 +182,7 @@ namespace Positron.Plugin
                 ContextoInterligacao contexto = new ContextoInterligacao
                 {
                     Dwg = LerInteiro("POSITRON_DWG", 0),
+                    Documento = Environment.GetEnvironmentVariable("POSITRON_LOCAL"),
                     Revisao = Environment.GetEnvironmentVariable("POSITRON_REVISAO"),
                     Criador = Environment.UserName,
                     Data = DateTime.Now,

@@ -20,6 +20,10 @@ namespace Positron.Data.Interligacao
     ///   usa o vértice 0 (ponta 1); caso contrário, o último vértice (ponta 2).
     /// - <c>Tipo == 3</c>: só a ponta 2 (último vértice); a ponta 1 fica vazia.
     ///
+    /// No original, <c>Tipo == 1</c> e <c>Tipo == 3</c> **sempre** anexam uma
+    /// linha nova; só o <c>Tipo == 2</c> procura a linha do cabo/veia para
+    /// mesclar a outra ponta (<c>yHoU3hlYPo</c>).
+    ///
     /// A posição de cada ponta é o que casa com o borne (<see cref="CasamentoBorne"/>).
     /// </summary>
     public sealed class PontoInterligacao
@@ -97,6 +101,12 @@ namespace Positron.Data.Interligacao
     {
         public int Dwg { get; set; }
 
+        /// <summary>
+        /// Documento local do projeto — o <c>Conf.Local</c> do original. Vai para
+        /// <c>Documento1</c>/<c>Documento2</c> da ponta que casar com um borne.
+        /// </summary>
+        public string Documento { get; set; }
+
         public string Revisao { get; set; }
 
         public string Criador { get; set; }
@@ -110,9 +120,11 @@ namespace Positron.Data.Interligacao
     ///
     /// As colunas que a varredura de bornes preenche (tag, alternativo, nRegua,
     /// terminal, terminalNum, tipoBorne, handle, indexModelo) são o que se aplica
-    /// por ponta. As que **não** vêm do XData nem do borne — <c>Documento</c>,
-    /// <c>Posicao</c> e <c>DWG1</c>/<c>DWG2</c> — não são expostas: saem nulas de
-    /// propósito (config e por-ponta, não projetadas).
+    /// por ponta. O mesmo vale para <c>DWG1</c>/<c>Documento1</c> (e 2): o
+    /// original carimba o **DWG ativo** e o <c>Conf.Local</c> quando a ponta casa
+    /// com um borne. Sem borne, saem nulas — o original grava 0/`""`, e aqui dado
+    /// ausente continua melhor que dado inventado. <c>Posicao1</c>/<c>Posicao2</c>
+    /// são a exceção: o original **sempre** grava `""`, então é o que gravamos.
     /// </summary>
     public sealed class TrechoInterligacao
     {
@@ -188,12 +200,34 @@ namespace Positron.Data.Interligacao
 
         public int? IndexModelo2 { get; set; }
 
+        // ── DWG/documento/posição de cada ponta (o original carimba na varredura
+        //    de bornes; posicao é sempre vazio) ─────────────────────────────────
+
+        /// <summary>DWG da ponta 1 — o DWG ativo quando a ponta casa com um borne.</summary>
+        public int? Dwg1 { get; set; }
+
+        public string Documento1 { get; set; }
+
+        /// <summary>Posição da ponta 1 no caderno — o original sempre grava vazio.</summary>
+        public string Posicao1 { get; set; }
+
+        /// <summary>DWG da ponta 2 — espelho de <see cref="Dwg1"/>.</summary>
+        public int? Dwg2 { get; set; }
+
+        public string Documento2 { get; set; }
+
+        /// <summary>Posição da ponta 2 no caderno — o original sempre grava vazio.</summary>
+        public string Posicao2 { get; set; }
+
         /// <summary>
         /// Completa a ponta 1 com o borne casado — as mesmas colunas que a fase 7
         /// preenche na <c>Fiacao</c> (ver <c>PontoFiacao.AplicarBorne</c>).
         /// <c>Tag</c> recebe o nome da régua (com "/alternativo" quando há).
+        /// <paramref name="dwg"/>/<paramref name="documento"/> são o DWG e o
+        /// documento local do desenho (o <c>arqAtivo.Indice</c>/<c>Conf.Local</c>
+        /// do original).
         /// </summary>
-        public void AplicarBornePonta1(PontoBorne borne)
+        public void AplicarBornePonta1(PontoBorne borne, int dwg, string documento)
         {
             Tag1 = MontarTag(borne);
             Alternativo1 = borne.Alternativo;
@@ -203,10 +237,12 @@ namespace Positron.Data.Interligacao
             TipoBorne1 = borne.Tipo;
             IndexModelo1 = borne.IndiceRegua;
             Handle1 = borne.Handle;
+            Dwg1 = dwg;
+            Documento1 = documento;
         }
 
         /// <summary>Completa a ponta 2 com o borne casado (espelho da ponta 1).</summary>
-        public void AplicarBornePonta2(PontoBorne borne)
+        public void AplicarBornePonta2(PontoBorne borne, int dwg, string documento)
         {
             Tag2 = MontarTag(borne);
             Alternativo2 = borne.Alternativo;
@@ -216,6 +252,8 @@ namespace Positron.Data.Interligacao
             TipoBorne2 = borne.Tipo;
             IndexModelo2 = borne.IndiceRegua;
             Handle2 = borne.Handle;
+            Dwg2 = dwg;
+            Documento2 = documento;
         }
 
         private static string MontarTag(PontoBorne borne)

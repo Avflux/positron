@@ -90,6 +90,7 @@ do original. Configuração por variável de ambiente:
 | `POSITRON_DB_PATH` | caminho do `.db` do projeto (obrigatória) |
 | `POSITRON_DWG` | índice do desenho (`DWG`), padrão `0` |
 | `POSITRON_REVISAO` | revisão da linha (`Revisao`), padrão vazio |
+| `POSITRON_LOCAL` | documento local (`Documento1`/`Documento2`), padrão vazio |
 
 **Bornes/terminais (fase 7).** O `FIA` varre os blocos de borne do desenho
 (XData `Dispositivo` tipo `"B"`) e as réguas do dicionário
@@ -143,7 +144,8 @@ Lê as `LWPOLYLINE` do ModelSpace com XData **`INTERLIGACAO`** (layout recuperad
 em `Positron.Data/Interligacao/InterligacaoXData.cs`), mescla as pontas por
 `(Tag_Cabo, Num_Veia)` e grava em `Interligacao4` pelo INSERT canônico do
 original. Usa as mesmas variáveis de ambiente do `FIA` (`POSITRON_DB_PATH`,
-`POSITRON_DWG`, `POSITRON_REVISAO`).
+`POSITRON_DWG`, `POSITRON_REVISAO`) mais `POSITRON_LOCAL` (o `Conf.Local` do
+original).
 
 **Bornes/terminais das duas pontas (backlog 1).** O `INT` varre os blocos de
 borne do desenho (XData `Dispositivo` tipo `"B"`) e as réguas do dicionário
@@ -158,9 +160,17 @@ revisão — o `RUIU5Sbjhj`/`v1TU0cEjWd` do original. Não é derivado do desenh
 catálogo por revisão. As linhas da revisão são apagadas antes de inserir, para
 rodar duas vezes não duplicar.
 
-**O que ainda sai vazio:** `Documento`/`Posicao`/`DWG1`/`DWG2` (configuração e
-por-ponta, não projetadas). Ficam nulas de propósito. A semântica fina do
-`Tipo == 3` também ficou aproximada (ver `../docs/POSITRON.md`).
+**Por ponta, além do borne.** O mesmo casamento carimba `DWG1`/`DWG2` (o DWG
+ativo) e `Documento1`/`Documento2` (o `Conf.Local`, hoje via `POSITRON_LOCAL`);
+`Posicao1`/`Posicao2` saem vazias, como no original. Sem borne, `DWG`/`Documento`
+saem nulos — o original grava `0`/`""` (dado ausente é melhor que dado
+inventado).
+
+**Criação de linha, tipo a tipo.** Reproduz o `frmCompilarInterligacao`: o
+`Tipo == 1` (polyline com as duas pontas) e o `Tipo == 3` (só a ponta de destino)
+**sempre** anexam uma linha nova; só o `Tipo == 2` procura a linha do mesmo
+`(Tag_Cabo, Num_Veia)` para completar a outra ponta — e compara o cabo ignorando
+caixa, como o `yHoU3hlYPo` do original (ver `../docs/POSITRON.md`).
 
 O leitor e o projetor são puros (não dependem do CAD) e têm teste real contra
 um SQLite montado do `schema.sql`:

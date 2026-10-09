@@ -14,6 +14,7 @@ namespace Positron.Data.Tests
             return new ContextoInterligacao
             {
                 Dwg = 1,
+                Documento = "LOCAL-A",
                 Revisao = "R0",
                 Criador = "ana",
                 Data = new DateTime(2026, 10, 7, 12, 0, 0),
@@ -56,6 +57,111 @@ namespace Positron.Data.Tests
             Assert.Equal((short)5, linhas[0].Painel2);
             Assert.Equal("PAG-X", linhas[0].Pagina1);
             Assert.Equal("PAG-X", linhas[0].Pagina2);
+        }
+
+        [Fact]
+        public void Tipo_tres_anexa_linha_so_de_destino()
+        {
+            // Tipo == 3: a polyline só traz a ponta de destino; a ponta 1 fica
+            // sem painel nem página (o original a inicializa como sentinela).
+            List<PontoInterligacao> pontos = new List<PontoInterligacao>
+            {
+                new PontoInterligacao
+                {
+                    Tipo = 3, Tag_Cabo = "CABO3", NumVeia = 1, NomeVeia = "V1",
+                    Painel2 = 4, Pagina = "PAG-DEST",
+                    TemPonta2 = true, X2 = 20.0, Y2 = 20.0,
+                },
+            };
+
+            List<TrechoInterligacao> linhas = InterligacaoProjetor.Mesclar(pontos, Contexto());
+
+            Assert.Single(linhas);
+            Assert.False(linhas[0].TemPonta1);
+            Assert.Equal((short)0, linhas[0].Painel1);
+            Assert.Null(linhas[0].Pagina1);
+            Assert.True(linhas[0].TemPonta2);
+            Assert.Equal((short)4, linhas[0].Painel2);
+            Assert.Equal("PAG-DEST", linhas[0].Pagina2);
+        }
+
+        [Fact]
+        public void Tipo_tres_e_um_nao_mesclam_com_o_mesmo_cabo_veia()
+        {
+            // Só o Tipo == 2 mescla pela chave (Tag_Cabo, Num_Veia); Tipo 1 e 3
+            // sempre anexam uma linha nova, como no original.
+            List<PontoInterligacao> pontos = new List<PontoInterligacao>
+            {
+                new PontoInterligacao { Tipo = 1, Tag_Cabo = "CABO-A", NumVeia = 1, Painel1 = 2, Painel2 = 3, Pagina = "PAG-A", TemPonta1 = true, X1 = 1.0, Y1 = 1.0, TemPonta2 = true, X2 = 2.0, Y2 = 2.0 },
+                new PontoInterligacao { Tipo = 1, Tag_Cabo = "CABO-A", NumVeia = 1, Painel1 = 4, Painel2 = 5, Pagina = "PAG-B", TemPonta1 = true, X1 = 3.0, Y1 = 3.0, TemPonta2 = true, X2 = 4.0, Y2 = 4.0 },
+                new PontoInterligacao { Tipo = 2, Tag_Cabo = "CABO-B", NumVeia = 1, Painel1 = 6, Pagina = "PAG-C", TemPonta1 = true, X1 = 5.0, Y1 = 5.0 },
+                new PontoInterligacao { Tipo = 3, Tag_Cabo = "CABO-B", NumVeia = 1, Painel2 = 7, Pagina = "PAG-D", TemPonta2 = true, X2 = 6.0, Y2 = 6.0 },
+            };
+
+            List<TrechoInterligacao> linhas = InterligacaoProjetor.Mesclar(pontos, Contexto());
+
+            Assert.Equal(4, linhas.Count);
+            // As duas Tipo 1 ficaram separadas.
+            Assert.Equal((short)2, linhas[0].Painel1);
+            Assert.Equal((short)3, linhas[0].Painel2);
+            Assert.Equal((short)4, linhas[1].Painel1);
+            Assert.Equal((short)5, linhas[1].Painel2);
+            // O Tipo 2 anexou a sua própria linha (nada a mesclar antes dele).
+            Assert.Equal((short)6, linhas[2].Painel1);
+            Assert.False(linhas[2].TemPonta2);
+            // O Tipo 3 veio depois e também é linha própria, só de destino.
+            Assert.Equal((short)7, linhas[3].Painel2);
+            Assert.False(linhas[3].TemPonta1);
+            Assert.Equal((short)0, linhas[3].Painel1);
+        }
+
+        [Fact]
+        public void Tipo_dois_mescla_ignorando_a_caixa_do_cabo()
+        {
+            // O yHoU3hlYPo do original compara o Tag_Cabo com TextCompare (ignora
+            // caixa): "cabo1" completa a linha aberta por "CABO1".
+            List<PontoInterligacao> pontos = new List<PontoInterligacao>
+            {
+                new PontoInterligacao { Tipo = 2, Tag_Cabo = "CABO1", NumVeia = 1, Painel1 = 2, Pagina = "PAG-ORIG", TemPonta1 = true, X1 = 10.0, Y1 = 10.0 },
+                new PontoInterligacao { Tipo = 2, Tag_Cabo = "cabo1", NumVeia = 1, Painel2 = 4, Pagina = "PAG-DEST", TemPonta2 = true, X2 = 20.0, Y2 = 20.0 },
+            };
+
+            List<TrechoInterligacao> linhas = InterligacaoProjetor.Mesclar(pontos, Contexto());
+
+            Assert.Single(linhas);
+            Assert.Equal((short)2, linhas[0].Painel1);
+            Assert.Equal((short)4, linhas[0].Painel2);
+        }
+
+        [Fact]
+        public void Tipo_tres_grava_ponta_um_vazia_no_banco()
+        {
+            string caminho = BancoDeTeste.Criar();
+            try
+            {
+                ProjectStore store = new ProjectStore(caminho);
+                List<PontoInterligacao> pontos = new List<PontoInterligacao>
+                {
+                    new PontoInterligacao
+                    {
+                        Tipo = 3, Tag_Cabo = "CABO3", NumVeia = 1, Painel2 = 4, Pagina = "PAG-DEST",
+                        TemPonta2 = true, X2 = 20.0, Y2 = 20.0,
+                    },
+                };
+
+                int gravados = new InterligacaoProjetor(store).Projetar(pontos, Contexto());
+                Assert.Equal(1, gravados);
+
+                Interligacao4Row linha = store.InterligacaoPorCabo("CABO3")[0];
+                Assert.Null(linha.Painel1);
+                Assert.Null(linha.Pagina1);
+                Assert.Equal((short)4, (short)linha.Painel2.Value);
+                Assert.Equal("PAG-DEST", linha.Pagina2);
+            }
+            finally
+            {
+                BancoDeTeste.Limpar(caminho);
+            }
         }
 
         [Fact]
@@ -107,6 +213,10 @@ namespace Positron.Data.Tests
                 Assert.Equal(0L, linha.TipoBorne1.Value);
                 Assert.Equal(7L, linha.IndexModelo1.Value);
                 Assert.Equal("AA", linha.Handle1);
+                // O casamento carimba o DWG ativo e o documento local na ponta.
+                Assert.Equal(1L, linha.DWG1.Value);
+                Assert.Equal("LOCAL-A", linha.Documento1);
+                Assert.Equal(string.Empty, linha.Posicao1);
 
                 Assert.Equal("R2/ALT", linha.Tag2);
                 Assert.Equal("ALT", linha.Alternativo2);
@@ -115,6 +225,9 @@ namespace Positron.Data.Tests
                 Assert.Equal(2.0, linha.TerminalNum2.Value);
                 Assert.Equal(8L, linha.IndexModelo2.Value);
                 Assert.Equal("BB", linha.Handle2);
+                Assert.Equal(1L, linha.DWG2.Value);
+                Assert.Equal("LOCAL-A", linha.Documento2);
+                Assert.Equal(string.Empty, linha.Posicao2);
             }
             finally
             {
@@ -147,6 +260,14 @@ namespace Positron.Data.Tests
                 Assert.Null(linha.TerminalNum1);
                 Assert.Null(linha.Tag2);
                 Assert.Null(linha.Handle2);
+                // Sem borne, o DWG/documento da ponta saem nulos (dado ausente é
+                // melhor que dado inventado); a posição é vazia, como no original.
+                Assert.Null(linha.DWG1);
+                Assert.Null(linha.Documento1);
+                Assert.Null(linha.DWG2);
+                Assert.Null(linha.Documento2);
+                Assert.Equal(string.Empty, linha.Posicao1);
+                Assert.Equal(string.Empty, linha.Posicao2);
             }
             finally
             {

@@ -365,8 +365,8 @@ namespace Positron.Data
                     parametros[2].Value = Nulo(trecho.Tag_Cabo);
                     parametros[3].Value = trecho.NumVeia;
                     parametros[4].Value = Nulo(trecho.NomeVeia);
-                    parametros[5].Value = DBNull.Value; // DWG1: por ponta, ainda não resolvido
-                    parametros[6].Value = DBNull.Value; // Documento1: conf. local, não projetada
+                    parametros[5].Value = Falta(trecho.Dwg1); // DWG1: carimbado no casamento com o borne
+                    parametros[6].Value = Nulo(trecho.Documento1);
                     parametros[7].Value = trecho.Painel1 > 0 ? (object)(int)trecho.Painel1 : DBNull.Value;
                     parametros[8].Value = Nulo(trecho.Tag1);
                     parametros[9].Value = Nulo(trecho.Alternativo1);
@@ -376,10 +376,10 @@ namespace Positron.Data
                     parametros[13].Value = Falta(trecho.TipoBorne1);
                     parametros[14].Value = Nulo(trecho.Handle1);
                     parametros[15].Value = Nulo(trecho.Pagina1);
-                    parametros[16].Value = DBNull.Value; // Posicao1: o original grava ""
+                    parametros[16].Value = trecho.Posicao1 ?? string.Empty; // Posicao1: o original grava ""
                     parametros[17].Value = Falta(trecho.IndexModelo1);
-                    parametros[18].Value = DBNull.Value; // DWG2
-                    parametros[19].Value = DBNull.Value; // Documento2
+                    parametros[18].Value = Falta(trecho.Dwg2); // DWG2
+                    parametros[19].Value = Nulo(trecho.Documento2); // Documento2
                     parametros[20].Value = trecho.Painel2 > 0 ? (object)(int)trecho.Painel2 : DBNull.Value;
                     parametros[21].Value = Nulo(trecho.Tag2);
                     parametros[22].Value = Nulo(trecho.Alternativo2);
@@ -389,7 +389,7 @@ namespace Positron.Data
                     parametros[26].Value = Falta(trecho.TipoBorne2);
                     parametros[27].Value = Nulo(trecho.Handle2);
                     parametros[28].Value = Nulo(trecho.Pagina2);
-                    parametros[29].Value = DBNull.Value; // Posicao2
+                    parametros[29].Value = trecho.Posicao2 ?? string.Empty; // Posicao2
                     parametros[30].Value = Falta(trecho.IndexModelo2);
                     parametros[31].Value = Nulo(trecho.Criador);
                     parametros[32].Value = trecho.Data;
@@ -412,9 +412,10 @@ namespace Positron.Data
             using (SQLiteCommand comando = conexao.CreateCommand())
             {
                 comando.CommandText =
-                    "SELECT Indice, Revisao, DWG, Tag_Cabo, Num_Veia, Nome_Veia, Painel1, Pagina1, Tag1, " +
-                    "Alternativo1, NRegua1, Terminal1, TerminalNum1, TipoBorne1, Handle1, IndexModelo1, Painel2, " +
-                    "Pagina2, Tag2, Alternativo2, NRegua2, Terminal2, TerminalNum2, TipoBorne2, Handle2, IndexModelo2, " +
+                    "SELECT Indice, Revisao, DWG, Tag_Cabo, Num_Veia, Nome_Veia, DWG1, Documento1, Painel1, " +
+                    "Pagina1, Posicao1, Tag1, Alternativo1, NRegua1, Terminal1, TerminalNum1, TipoBorne1, " +
+                    "Handle1, IndexModelo1, DWG2, Documento2, Painel2, Pagina2, Posicao2, Tag2, Alternativo2, " +
+                    "NRegua2, Terminal2, TerminalNum2, TipoBorne2, Handle2, IndexModelo2, " +
                     "Criador FROM Interligacao4 WHERE Tag_Cabo = @tagCabo ORDER BY Num_Veia, Indice";
                 comando.Parameters.AddWithValue("@tagCabo", tagCabo);
 
@@ -441,9 +442,10 @@ namespace Positron.Data
             using (SQLiteCommand comando = conexao.CreateCommand())
             {
                 comando.CommandText =
-                    "SELECT Indice, Revisao, DWG, Tag_Cabo, Num_Veia, Nome_Veia, Painel1, Pagina1, Tag1, " +
-                    "Alternativo1, NRegua1, Terminal1, TerminalNum1, TipoBorne1, Handle1, IndexModelo1, Painel2, " +
-                    "Pagina2, Tag2, Alternativo2, NRegua2, Terminal2, TerminalNum2, TipoBorne2, Handle2, IndexModelo2, " +
+                    "SELECT Indice, Revisao, DWG, Tag_Cabo, Num_Veia, Nome_Veia, DWG1, Documento1, Painel1, " +
+                    "Pagina1, Posicao1, Tag1, Alternativo1, NRegua1, Terminal1, TerminalNum1, TipoBorne1, " +
+                    "Handle1, IndexModelo1, DWG2, Documento2, Painel2, Pagina2, Posicao2, Tag2, Alternativo2, " +
+                    "NRegua2, Terminal2, TerminalNum2, TipoBorne2, Handle2, IndexModelo2, " +
                     "Criador FROM Interligacao4 " +
                     "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') ORDER BY Tag_Cabo, Num_Veia, Indice";
                 comando.Parameters.AddWithValue("@dwg", dwg);
@@ -1066,8 +1068,11 @@ namespace Positron.Data
                 Tag_Cabo = Texto(leitor, "Tag_Cabo"),
                 Num_Veia = Inteiro(leitor, "Num_Veia"),
                 Nome_Veia = Texto(leitor, "Nome_Veia"),
+                DWG1 = Inteiro(leitor, "DWG1"),
+                Documento1 = Texto(leitor, "Documento1"),
                 Painel1 = Inteiro(leitor, "Painel1"),
                 Pagina1 = Texto(leitor, "Pagina1"),
+                Posicao1 = Texto(leitor, "Posicao1"),
                 Tag1 = Texto(leitor, "Tag1"),
                 Alternativo1 = Texto(leitor, "Alternativo1"),
                 NRegua1 = Texto(leitor, "NRegua1"),
@@ -1076,8 +1081,11 @@ namespace Positron.Data
                 TipoBorne1 = Inteiro(leitor, "TipoBorne1"),
                 Handle1 = Texto(leitor, "Handle1"),
                 IndexModelo1 = Inteiro(leitor, "IndexModelo1"),
+                DWG2 = Inteiro(leitor, "DWG2"),
+                Documento2 = Texto(leitor, "Documento2"),
                 Painel2 = Inteiro(leitor, "Painel2"),
                 Pagina2 = Texto(leitor, "Pagina2"),
+                Posicao2 = Texto(leitor, "Posicao2"),
                 Tag2 = Texto(leitor, "Tag2"),
                 Alternativo2 = Texto(leitor, "Alternativo2"),
                 NRegua2 = Texto(leitor, "NRegua2"),

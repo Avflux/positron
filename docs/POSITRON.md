@@ -309,11 +309,14 @@ pontas por `(Tag_Cabo, Num_Veia)` (o `ssqypmV1FI`/`yHoU3hlYPo` do original), a
 verificado ponta a ponta (o projetor .NET grava e o sidecar lê
 `interligacao_por_cabo`/`interligacao_por_painel`). A varredura preenche `Tag`,
 `Alternativo`, `Terminal`, `TerminalNum`, `TipoBorne`, `Handle` e `IndexModelo` de
-cada ponta. Ficam nulas de propósito: `Documento`/`Posicao`/`DWG1`/`DWG2`
-(configuração e por-ponta, não projetadas) — dado ausente é melhor que dado
-inventado. Continua aproximada a semântica fina do
-`Tipo == 3` (o original anexa uma linha só de destino, em vez de mesclar); como o
-ZWCAD não está instalado, nada disso rodou dentro do desenho.
+cada ponta, e carimba `DWG1`/`DWG2` (o DWG ativo) e `Documento1`/`Documento2` (o
+`Conf.Local`, hoje via `POSITRON_LOCAL`); `Posicao1`/`Posicao2` saem vazias, como
+no original. Sem borne casado, `DWG`/`Documento` saem nulos — o original grava
+`0`/`""`; dado ausente é melhor que dado inventado. A criação de linha segue o
+original tipo a tipo: o `Tipo == 1` (duas pontas) e o `Tipo == 3` (só a ponta de
+destino) **sempre** anexam uma linha nova; só o `Tipo == 2` mescla pela chave,
+comparando o cabo ignorando caixa (o `yHoU3hlYPo`). Como o ZWCAD não está
+instalado, nada disso rodou dentro do desenho.
 
 O `INT` também regrava **`Cabos4`/`Veias4`** como **snapshot do catálogo**
 (`Cabos`/`Veias`) carimbado com a revisão — o `RUIU5Sbjhj`/`v1TU0cEjWd` do
@@ -438,7 +441,7 @@ instalado.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 95 testes)
+npm run plugin:test       # xunit, net472 (hoje 99 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

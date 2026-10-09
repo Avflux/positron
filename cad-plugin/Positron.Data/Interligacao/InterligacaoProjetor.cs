@@ -9,14 +9,16 @@ namespace Positron.Data.Interligacao
     /// equivalente ao <c>ssqypmV1FI</c> + <c>AdicionaItemInterligacao</c> do
     /// original, mas em lote.
     ///
-    /// **Regra de mesclagem** (recuperada de <c>frmCompilarInterligacao</c>): a
-    /// chave é <c>(Tag_Cabo, Num_Veia)</c> — <c>yHoU3hlYPo</c> procura uma linha
-    /// já existente com esse par. Um cabo/veia pode ter mais de uma
-    /// <c>LWPOLYLINE</c> (uma por ponta):
+    /// **Criação de linha** (recuperada de <c>frmCompilarInterligacao</c>): um
+    /// cabo/veia pode ter mais de uma <c>LWPOLYLINE</c>, e o tipo do XData decide
+    /// se a polyline completa uma linha existente ou anexa uma nova. A chave é
+    /// <c>(Tag_Cabo, Num_Veia)</c> — o <c>yHoU3hlYPo</c> do original, que compara
+    /// o cabo ignorando caixa:
     ///
+    /// - <c>Tipo == 1</c>: a polyline traz as duas pontas — sempre uma linha nova.
     /// - <c>Tipo == 2</c>: cada polyline contribui com **uma** ponta, decidida
     ///   por <c>Painel1 &gt; 0</c> (ponta 1) ou <c>Painel1 &lt;= 0</c> (ponta 2).
-    /// - Outros tipos: a polyline traz as duas pontas e preenche as duas.
+    /// - <c>Tipo == 3</c>: só a ponta 2 — sempre uma linha nova (não mescla).
     ///
     /// O layer da entidade vira a página da ponta (<c>Pagina1</c>/<c>Pagina2</c>),
     /// como em <c>montaCruzamentoPagina</c> no original.
@@ -74,7 +76,7 @@ namespace Positron.Data.Interligacao
             }
 
             List<TrechoInterligacao> linhas = Mesclar(pontos, contexto);
-            AplicarBornes(linhas, bornes, deslocamentos);
+            AplicarBornes(linhas, bornes, deslocamentos, contexto.Dwg, contexto.Documento);
             _store.InserirInterligacao(linhas);
             return linhas.Count;
         }
@@ -84,7 +86,12 @@ namespace Positron.Data.Interligacao
         /// colunas da ponta. Ponta sem borne dentro da tolerância fica com as
         /// colunas nulas — dado ausente é melhor que dado inventado.
         /// </summary>
-        internal static void AplicarBornes(IEnumerable<TrechoInterligacao> linhas, IReadOnlyList<PontoBorne> bornes, TabelaDeslocamentoBlocos deslocamentos)
+        internal static void AplicarBornes(
+            IEnumerable<TrechoInterligacao> linhas,
+            IReadOnlyList<PontoBorne> bornes,
+            TabelaDeslocamentoBlocos deslocamentos,
+            int dwg,
+            string documento)
         {
             if (linhas == null || bornes == null || bornes.Count == 0)
             {
@@ -99,7 +106,9 @@ namespace Positron.Data.Interligacao
                         linha.X1, linha.Y1, linha.Pagina1, linha.Painel1, bornes, CasamentoBorne.Tolerancia, deslocamentos);
                     if (borne != null)
                     {
-                        linha.AplicarBornePonta1(borne);
+                        // O original carimba dwg/documento junto com o resto da
+                        // ponta (só quando o bloco casa): arqAtivo.Indice + Conf.Local.
+                        linha.AplicarBornePonta1(borne, dwg, documento);
                     }
                 }
 
@@ -109,87 +118,80 @@ namespace Positron.Data.Interligacao
                         linha.X2, linha.Y2, linha.Pagina2, linha.Painel2, bornes, CasamentoBorne.Tolerancia, deslocamentos);
                     if (borne != null)
                     {
-                        linha.AplicarBornePonta2(borne);
+                        linha.AplicarBornePonta2(borne, dwg, documento);
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Mescla os pontos por <c>(Tag_Cabo, Num_Veia)</c> preservando a ordem de
-        /// primeira aparição, e completa o contexto em todas as linhas.
+        /// Mescla os pontos e completa o contexto em todas as linhas. Reproduz a
+        /// regra de criação de linhas do original:
+        ///
+        /// - <c>Tipo == 1</c>: a polyline traz as duas pontas — **sempre** uma
+        ///   linha nova (não mescla).
+        /// - <c>Tipo == 3</c>: só a ponta 2 (a linha de destino) — **sempre** uma
+        ///   linha nova; a ponta 1 fica sem painel/página.
+        /// - <c>Tipo == 2</c>: cada polyline traz uma ponta; procura a primeira
+        ///   linha do mesmo <c>(Tag_Cabo, Num_Veia)</c> (o <c>yHoU3hlYPo</c>, que
+        ///   compara o cabo ignorando caixa) e completa a ponta 1
+        ///   (<c>Painel1 &gt; 0</c>) ou a 2. Sem linha, cria uma nova com painel
+        ///   <c>-1</c> nas duas pontas.
+        /// - Outros tipos: ignorados, como no original.
         /// </summary>
         internal static List<TrechoInterligacao> Mesclar(IEnumerable<PontoInterligacao> pontos, ContextoInterligacao contexto)
         {
             List<TrechoInterligacao> linhas = new List<TrechoInterligacao>();
-            Dictionary<string, TrechoInterligacao> porChave = new Dictionary<string, TrechoInterligacao>();
 
             foreach (PontoInterligacao ponto in pontos)
             {
-                string chave = Chave(ponto);
-
-                TrechoInterligacao linha;
-                if (!porChave.TryGetValue(chave, out linha))
+                switch (ponto.Tipo)
                 {
-                    linha = new TrechoInterligacao
-                    {
-                        Tag_Cabo = ponto.Tag_Cabo,
-                        NumVeia = ponto.NumVeia,
-                        NomeVeia = ponto.NomeVeia,
-                    };
-                    porChave.Add(chave, linha);
-                    linhas.Add(linha);
-                }
+                    case 1:
+                        TrechoInterligacao tipo1 = NovoTrecho(ponto);
+                        tipo1.Painel1 = ponto.Painel1;
+                        tipo1.Pagina1 = ponto.Pagina;
+                        tipo1.Painel2 = ponto.Painel2;
+                        tipo1.Pagina2 = ponto.Pagina;
+                        linhas.Add(tipo1);
+                        break;
 
-                if (string.IsNullOrEmpty(linha.NomeVeia))
-                {
-                    linha.NomeVeia = ponto.NomeVeia;
-                }
+                    case 3:
+                        TrechoInterligacao tipo3 = NovoTrecho(ponto);
+                        tipo3.Painel2 = ponto.Painel2;
+                        tipo3.Pagina2 = ponto.Pagina;
+                        linhas.Add(tipo3);
+                        break;
 
-                if (ponto.Tipo == 2)
-                {
-                    // Cada polyline traz uma ponta: Painel1 > 0 é a ponta 1.
-                    if (ponto.Painel1 > 0)
-                    {
-                        linha.Painel1 = ponto.Painel1;
-                        linha.Pagina1 = ponto.Pagina;
-                    }
-                    else
-                    {
-                        linha.Painel2 = ponto.Painel2;
-                        linha.Pagina2 = ponto.Pagina;
-                    }
-                }
-                else
-                {
-                    // Um trecho só com as duas pontas conhecidas de uma polyline.
-                    if (ponto.Painel1 > 0)
-                    {
-                        linha.Painel1 = ponto.Painel1;
-                        linha.Pagina1 = ponto.Pagina;
-                    }
+                    case 2:
+                        TrechoInterligacao trecho = Procurar(linhas, ponto);
+                        if (trecho == null)
+                        {
+                            trecho = NovoTrecho(ponto);
+                            trecho.Painel1 = -1;
+                            trecho.Painel2 = -1;
+                            linhas.Add(trecho);
+                        }
 
-                    if (ponto.Painel2 > 0)
-                    {
-                        linha.Painel2 = ponto.Painel2;
-                        linha.Pagina2 = ponto.Pagina;
-                    }
-                }
+                        trecho.NomeVeia = ponto.NomeVeia;
 
-                // Geometria das pontas: independe do painel (o original a guarda
-                // mesmo quando o painel é 0). É o que casa com o borne depois.
-                if (ponto.TemPonta1)
-                {
-                    linha.TemPonta1 = true;
-                    linha.X1 = ponto.X1;
-                    linha.Y1 = ponto.Y1;
-                }
+                        // A geometria é da polyline que chegou agora, mesmo quando
+                        // a linha já existia (a outra ponta veio de outro trecho).
+                        AplicarGeometria(trecho, ponto);
 
-                if (ponto.TemPonta2)
-                {
-                    linha.TemPonta2 = true;
-                    linha.X2 = ponto.X2;
-                    linha.Y2 = ponto.Y2;
+                        // Cada polyline traz uma ponta: Painel1 > 0 é a ponta 1.
+                        if (ponto.Painel1 <= 0)
+                        {
+                            trecho.Painel2 = ponto.Painel2;
+                            trecho.Pagina2 = ponto.Pagina;
+                        }
+                        else
+                        {
+                            trecho.Painel1 = ponto.Painel1;
+                            trecho.Pagina1 = ponto.Pagina;
+                        }
+
+                        break;
                 }
             }
 
@@ -198,6 +200,8 @@ namespace Positron.Data.Interligacao
                 linha.Revisao = contexto.Revisao;
                 linha.Dwg = contexto.Dwg;
                 linha.Data = contexto.Data;
+                linha.Posicao1 = string.Empty;
+                linha.Posicao2 = string.Empty;
                 if (string.IsNullOrWhiteSpace(linha.Criador))
                 {
                     linha.Criador = contexto.Criador;
@@ -207,10 +211,62 @@ namespace Positron.Data.Interligacao
             return linhas;
         }
 
-        private static string Chave(PontoInterligacao ponto)
+        /// <summary>
+        /// Linha nova com o que vem do ponto bruto: cabo/veia e a geometria das
+        /// pontas (que independe do painel — o original a guarda mesmo quando o
+        /// painel é 0). É o que casa com o borne depois.
+        /// </summary>
+        private static TrechoInterligacao NovoTrecho(PontoInterligacao ponto)
         {
-            // Num_Veia -1000 marca veia indefinida; o original descarta esses trechos.
-            return (ponto.Tag_Cabo ?? string.Empty) + "\u0000" + ponto.NumVeia;
+            TrechoInterligacao linha = new TrechoInterligacao
+            {
+                Tag_Cabo = ponto.Tag_Cabo,
+                NumVeia = ponto.NumVeia,
+                NomeVeia = ponto.NomeVeia,
+            };
+
+            AplicarGeometria(linha, ponto);
+            return linha;
+        }
+
+        /// <summary>
+        /// Copia a posição da(s) ponta(s) que esta polyline fornece. Vale também
+        /// para uma linha Tipo 2 já existente: a ponta que faltava chega agora.
+        /// </summary>
+        private static void AplicarGeometria(TrechoInterligacao linha, PontoInterligacao ponto)
+        {
+            if (ponto.TemPonta1)
+            {
+                linha.TemPonta1 = true;
+                linha.X1 = ponto.X1;
+                linha.Y1 = ponto.Y1;
+            }
+
+            if (ponto.TemPonta2)
+            {
+                linha.TemPonta2 = true;
+                linha.X2 = ponto.X2;
+                linha.Y2 = ponto.Y2;
+            }
+        }
+
+        /// <summary>
+        /// Primeira linha do mesmo <c>(Tag_Cabo, Num_Veia)</c> — o
+        /// <c>yHoU3hlYPo</c> do original (cabo comparado ignorando caixa, a partir
+        /// da primeira linha).
+        /// </summary>
+        private static TrechoInterligacao Procurar(List<TrechoInterligacao> linhas, PontoInterligacao ponto)
+        {
+            foreach (TrechoInterligacao linha in linhas)
+            {
+                if (linha.NumVeia == ponto.NumVeia
+                    && string.Equals(linha.Tag_Cabo, ponto.Tag_Cabo, StringComparison.OrdinalIgnoreCase))
+                {
+                    return linha;
+                }
+            }
+
+            return null;
         }
     }
 }
