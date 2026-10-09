@@ -613,6 +613,39 @@ projeção:
 O script falha de propósito quando se compara sem `--ignorar Data`: é o que prova que a
 diferença apontada é exatamente essa, e nada mais.
 
+### Catalogo do produto → banco do projeto (e o snapshot de cabos/veias)
+
+O catalogo (`Cabos`, `Veias`, `Materiais`, `ModelosCabos`) vive no Access do produto;
+o positron guarda o seu no SQLite. `scripts/cad-importa-catalogo.ps1` (com o carregador
+`scripts/cad-importa-catalogo.py`) le a **copia** do `.mdb`, casa as colunas **por nome**,
+converte `BOOL` para 0/1 e recarrega as tabelas:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/cad-importa-catalogo.ps1 `
+  -Banco "$env:TEMP\positron-idem.db" -Mdb "..\Elet\RCD\RCD.mdb"
+```
+
+Rodar duas vezes da o mesmo resultado (697 cabos, 2.388 veias, 210 materiais;
+`ModelosCabos` esta vazia no Access e e pulada).
+
+Com o catalogo carregado, o `INT` passa a carimbar o **snapshot por revisao**
+(`Cabos4`/`Veias4`), que antes saia 0 — e o resultado bate com o produto:
+
+| Comparacao | Resultado |
+|---|---|
+| `INT` com catalogo carregado | **697 cabos** e **2.388 veias** em `Cabos4`/`Veias4` |
+| `Veias4` do recoder x `Veias4` do produto (revisao `00A-4`) | **hash igual** (`5bb6de59…`), 2.388 linhas |
+| `Cabos4` do recoder x **catalogo vivo** do produto (`Cabos`) | **hash igual** (`3073d268…`), 697 linhas |
+| `Cabos4` do recoder x snapshot do produto (`00A-4`) | 25 de 697 linhas diferem — `Formacao` de cabos que o produto **editou depois** daquela revisao (o catalogo vivo e que confere) |
+
+Ou seja: o `Cabos4` e mesmo um **retrato do catalogo corrente** (nao dos cabos usados no
+desenho) — que era a regra lida no `RUIU5Sbjhj`, agora provada com dado real.
+
+Efeito no `VERIF`: com o catalogo carregado a regra `CaboSemCatalogo` deixa de ser
+pulada e **passa a rodar** — e continua limpa, porque os **18** `Tag_Cabo` que a
+interligacao do `Funcional.dwg` cita (`8-CCE-001`…`8-GGE-018`) estao todos no catalogo
+importado. O total segue **107 problemas, todos `BorneSemFiacao`**.
+
 ### A/B contra o banco do produto (`RCD.mdb`) — a verificação mais forte
 
 O `..\Elet\RCD\RCD.mdb` (19 MB, Access) é o banco **gerado pelo produto original**
