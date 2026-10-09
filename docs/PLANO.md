@@ -156,11 +156,16 @@ escopo estrutural do recoder.
 - **Custo real medido no reverso** (cada tabela vem de um fluxo próprio, não é só
   um `INSERT`):
   - `Dispositivos4F` — do próprio `frmCompilarFiacao` (linhas 2640–2793): um
-    bloco por dispositivo tipo `P` **e** por máscara tipo `M`, pulando
-    `Complementar` e painel fora de uso; `Pagina` = layer; `BlocoTopografico`/
-    `BlocoLayout` vêm da tabela `mModelo` por `IndexModelo` (ou do XData, quando
-    `indexModelo == 0`); `PosicaoNum`/`Ordem` da `mPosicao` por `(painel, tag)`.
-    **Candidato natural a próxima tabela** — o plugin já tem os insumos.
+    bloco por dispositivo tipo `P` **e** por máscara tipo `M` (`Tipo` = `"P"`/
+    `"M"`), pulando `Complementar` e painel fora de uso. `Tag` = `Nome1[/Nome2]`;
+    `Pagina` = layer (caso `0..2`); `PosicaoNum`/`Ordem` da `mPosicao` por
+    `(painel, tag)`. No `P`, `BlocoTopografico`/`BlocoLayout` vêm do **dicionário
+    de modelos de contato** (`DicionarioContatos` = nosso `ModelosContato`, que já
+    tem os dois campos) por `IndexModelo`; quando `indexModelo == 0`, do próprio
+    XData (`Topografico`/`Layout`). No `M`, vêm do **dicionário de máscaras**
+    (`DicionarioMascaras` = nosso `ModelosMascara`). **Candidato natural a próxima
+    tabela**: os insumos existem; falta o scan dos blocos `M` com entidade
+    (layer/handle/painel) — hoje `MascarasDoDesenho` só devolve índices e painéis.
   - `Jumper4` — **não** vem do `FIA`: é escrito por `frmCompilarJumperExt`
     (comando `JMP`/`JPEXT` do reverso), fora do recorte atual.
   - `Aranha4`, `Circuitos4F`, `Aplicacao4F`, `Atributos`, `Exportados` — cada um
