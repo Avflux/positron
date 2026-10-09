@@ -648,6 +648,10 @@ namespace Positron.Plugin
             IReadOnlyList<PontoBorne> bornesDoDesenho = BornesDoDesenho.Ler(reguas);
             problemas.AddRange(VerificadorProjeto.VerificarBornesSemRegua(bornesDoDesenho, reguas));
 
+            // Réguas do dicionário que ficaram sem borne no caderno (o
+            // `buscaReguasVazias` da tela de verificação).
+            problemas.AddRange(VerificadorProjeto.VerificarReguasVazias(reguas, bornesDoDesenho));
+
             List<string> handlesDoDesenho = new List<string>();
             foreach (PontoBorne borne in bornesDoDesenho)
             {

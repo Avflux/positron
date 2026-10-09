@@ -56,6 +56,54 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void Aponta_regua_do_dicionario_sem_borne()
+        {
+            // O `buscaReguasVazias` do reverso: para cada régua do dicionário, se o
+            // par (painel, régua) não está entre as usadas pelos bornes, ela está vazia.
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+
+            // Sem nenhum borne no desenho, a única régua do dicionário (painel 3,
+            // régua 5) está vazia.
+            List<Problema> problemas = VerificadorProjeto.VerificarReguasVazias(reguas, new List<PontoBorne>());
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(TipoProblema.ReguaVazia, problema.Tipo);
+            Assert.Equal("painel 3, régua #5", problema.Identificador);
+            Assert.Contains("R1", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Regua_usada_nao_e_apontada()
+        {
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            List<PontoBorne> bornes = new List<PontoBorne>();
+            foreach (ReguaInfo regua in reguas.Ordenadas)
+            {
+                bornes.Add(new PontoBorne { Handle = "H" + regua.Indice, IndiceRegua = regua.Indice, Painel = regua.Painel });
+            }
+
+            Assert.Empty(VerificadorProjeto.VerificarReguasVazias(reguas, bornes));
+        }
+
+        [Fact]
+        public void Borne_de_outro_painel_nao_usa_a_regua()
+        {
+            // A chave é o par (painel, régua), como o `"painel,régua"` do original:
+            // um borne de outro painel com o mesmo índice não usa esta régua.
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            int indice = reguas.Ordenadas[0].Indice;
+            int painel = reguas.Ordenadas[0].Painel;
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                new PontoBorne { Handle = "H1", IndiceRegua = indice, Painel = (short)(painel + 1) },
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarReguasVazias(reguas, bornes);
+
+            Assert.Contains(problemas, p => p.Identificador == "painel " + painel + ", régua #" + indice);
+        }
+
+        [Fact]
         public void Borne_com_regua_resolvida_nao_aponta()
         {
             ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());

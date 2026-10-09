@@ -551,12 +551,28 @@ ELETREL: 107 problema(s) em C:\Users\rno\AppData\Local\Temp\positron-relatorio-e
 # 2026-10-09 11:50:24
 VERIF: 494 fio(s), 20 trecho(s), 265 porta(s), 168 borne(s), 88 contato(s) na revisão.
 # banco=...\positron-zwcad-20261009-115009.db
-# problemas=107
+# problemas=117
 # area;tipo;tabela;identificador;detalhe
 Desenho;BorneSemFiacao;Fiacao;4DD53;borne do desenho sem ponto de fiação
 ...
-# 107 linha(s)
+# 117 linha(s)
 ```
+
+O total mudou de 107 para **117** na rodada 33, quando entrou a regra das **réguas
+vazias** (`ReguaVazia`, 10 no desenho real): o `buscaReguasVazias` do
+`ClsVerificadorProjetoFiacao` (linha 1815 do reverso) varre o **dicionário de réguas**
+do desenho e aponta toda régua cujo par `(painel, régua)` não aparece nos bornes —
+ou seja, régua declarada e nunca usada no caderno. O original guarda as usadas como
+texto `"painel,régua"`; aqui a chave é o par de inteiros.
+
+O verificador do produto é bem maior que as regras de tabela: a tela tem **14
+checagens** (`bt1Fiacao` … `bt14PortasDiscrepantes`, rótulos em
+`DeclaracoesGeral.mMensagem[1, id]`) e o motor fica em
+`ClsVerificadorProjetoFiacao.cs` (2.173 linhas), com uma análise própria do desenho
+(`buscaDadosDeFiacaoDWG`, linha 430) que alimenta `carregaOrfao` (1311), `carregaTree`
+(1159) e companhia. O que ainda **não** está portado é justamente o que depende dessa
+análise — o órfão por `HandleSup`, intervalos de borne, bornes de LM, painéis, itens
+feitos à mão, régua da máscara e discrepantes principal/auxiliar.
 
 O conteúdo é puro (`RelatorioCompilacao`: `Texto()`/`Salvar()`, testado) e o `VERIF`
 passou a compartilhar a mesma montagem (`VerificarRevisao`), então os dois não podem

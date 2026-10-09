@@ -233,6 +233,13 @@ escopo estrutural do recoder.
   Ou seja: `Aranha4` é a **aranha do relatório de cabos** (ArqNet/DI e as variantes
   por concessionária), não derivável do `Interligacao4` (a hipótese da rodada 6 foi
   descartada); `Atributos`/`Exportados` são do fluxo de **exportação cross-DWG**.
+  **Confirmado com o dado do produto (rodada 33):** as colunas de `Aranha4` são a
+  **paginação do relatório**, não do desenho — para o cabo `8-CCE-001` as linhas de
+  `Interligacao4` estão no documento `RCD-8-GGE-04`, páginas 8 e 1000, enquanto a
+  linha de `Aranha4` é `Caderno=RCD-8-GGE-02` (o documento em que o relatório foi
+  rodado), `Folha=10`, `Coluna=0`; as **910** linhas da revisão `CORR` têm
+  `Coluna=0`, e 42 delas são do caderno `RCD-8-GGE-02`. Reproduzir isso exige o
+  **motor de relatório** (a etapa 9b), não um comando de projeção.
   Nenhuma das três é produzida por um dos 6 comandos do recorte — e o insumo de
   `Aranha4` (o `DINTERLIG`) **existe** nos desenhos reais, então o dia em que o
   fluxo de relatório entrar no escopo, o dado está mapeado. Vale registrar que
@@ -480,6 +487,7 @@ aberto por **cópia no TEMP**).
 | 30 — idempotência e isolamento verificados por conteúdo | 2026-10-09 | 2a10c1b | terceira passada de projeção no mesmo `(DWG, Revisão)`: **1.607 linhas** idênticas, mudando **só `Data`** (re-carimbo esperado); rodada no desenho 74 no mesmo banco deixa o DWG 63 **byte-identico, inclusive `Data`**; `INT` no `Interligação.dwg` recusa com o perfil `DINTERLIG`; a verificação virou script do repositório (`scripts/cad-dump-tabelas.py` + receita no RUNBOOK) |
 | 31 — catálogo importado e snapshot de cabos/veias verificado | 2026-10-09 | 97f4696 | `scripts/cad-importa-catalogo.ps1`+`.py` carregam o catálogo do Access por nome de coluna (697 cabos, 2.388 veias, 210 materiais; idempotente); com o catálogo, o `INT` carimba `Cabos4`/`Veias4` — **697** e **2.388** — e o `Veias4` bate **hash a hash** com o produto; o `Cabos4` bate com o **catálogo vivo** do produto (hash `3073d268…`), com as 25 diferenças contra o snapshot `00A-4` explicadas por edição do catálogo depois daquela revisão; `VERIF` com catálogo: regra `CaboSemCatalogo` ativa e limpa (os 18 `Tag_Cabo` do desenho estão no catálogo), 107 problemas seguem todos `BorneSemFiacao` |
 | 32 — saneamento do POSITRON (fases e retomada) | 2026-10-09 | 0edcf39 | §6 passa a marcar as fases 4–9 como **fechadas** (com o texto histórico preservado) e ganha o mapa vigente no `PLANO.md` + o resumo da verificação atual; §9 (retomada) reescrita: caminho do repo corrigido, estado real (194+27 testes, 20 métodos, 31 tabelas, desenho real com 494 linhas/107 problemas), evidências (A/B, idempotência, catálogo) e backlog reduzido à Etapa 9 e às pendências menores; app conferido com o catálogo real (697 cabos, 2.388 veias, 210 materiais) |
+| 33 — regra `ReguaVazia` no VERIF e `Aranha4` explicada | 2026-10-09 | @HASH@ | porta o `buscaReguasVazias` do `ClsVerificadorProjetoFiacao` (linha 1815): régua do dicionário cujo par `(painel, régua)` não aparece nos bornes — **10** réguas vazias no desenho real, `VERIF` de 107 para **117** problemas; +3 testes (`plugin:test` **197**); documentado também que `Aranha4` é paginação de relatório (`Folha`=10 contra páginas 8/1000 do desenho), logo depende da etapa 9b |
 
 ## 6. Riscos e armadilhas
 

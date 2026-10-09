@@ -545,7 +545,13 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
    o provedor; (b) **relatórios**, hoje só o de verificação em texto (`ELETREL`), com
    a recomendação de começar pelos 4 tabulares no app; (c) **banco**, SQLite hoje,
    SQL Server quando/quando — o SQL está isolado no `ProjectStore`.
-2. **`VERIF` no desenho (parcial):** as telas originais
+2. **`VERIF` no desenho (parcial):** já portadas as regras de tabela e **quatro** do
+   desenho (régua do borne, cabo fora do catálogo, página ausente e, na rodada 33,
+   **régua vazia** — `buscaReguasVazias`, 10 no desenho real), o `VERIF` fecha em
+   **117** problemas. O que falta é o que depende da análise geométrica do
+   `ClsVerificadorProjetoFiacao` (`buscaDadosDeFiacaoDWG`, 2.173 linhas no total):
+   órfão por `HandleSup`, intervalos, bornes de LM, painéis, à mão, régua da máscara e
+   discrepantes principal/auxiliar. As telas originais
    (`frmVerificadorProjetoFiacao`/`frmVerificadorProjetoInterligacao`, ~3 mil
    linhas) também pintam erros lidos do **desenho**. O `VERIF` já valida as
    tabelas gravadas **e** três regras do desenho — o borne cuja régua não resolve

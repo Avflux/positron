@@ -62,6 +62,9 @@ namespace Positron.Data
 
         /// <summary>Mesmo fio desenhado duas vezes (dois trechos Tipo 2 com as mesmas pontas).</summary>
         FiacaoDuplicada,
+
+        /// <summary>Régua do dicionário do desenho sem nenhum borne no caderno.</summary>
+        ReguaVazia,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -418,6 +421,53 @@ namespace Positron.Data
         /// (<c>IndiceRegua</c> fora de <c>REGUAS/MODELOS2</c>) — o original não
         /// projeta esse borne e a tela de verificação o aponta.
         /// </summary>
+        /// <summary>
+        /// Régua declarada no dicionário do desenho que **não tem borne** no
+        /// caderno — o <c>buscaReguasVazias</c> do
+        /// <c>ClsVerificadorProjetoFiacao</c> (linha 1815 do reverso): para cada
+        /// modelo de régua do dicionário, se o par <c>(painel, régua)</c> não está
+        /// entre as réguas usadas pelos bornes do desenho, a régua está vazia. O
+        /// original guarda as usadas em `"painel,régua"`
+        /// (<c>clsReguasDeBornes.EncontraReguasUsadasNoCaderno</c>); aqui a chave é
+        /// o par de inteiros, que é a mesma coisa sem depender de formatação.
+        /// </summary>
+        public static List<Problema> VerificarReguasVazias(
+            ReguasModelo reguas,
+            IEnumerable<PontoBorne> bornes)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (reguas == null)
+            {
+                return problemas;
+            }
+
+            HashSet<string> usadas = new HashSet<string>();
+            if (bornes != null)
+            {
+                foreach (PontoBorne borne in bornes)
+                {
+                    if (borne != null)
+                    {
+                        usadas.Add(borne.Painel + "," + borne.IndiceRegua);
+                    }
+                }
+            }
+
+            foreach (ReguaInfo regua in reguas.Ordenadas)
+            {
+                if (regua == null || usadas.Contains(regua.Painel + "," + regua.Indice))
+                {
+                    continue;
+                }
+
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.ReguaVazia, "Reguas",
+                    "painel " + regua.Painel + ", régua #" + regua.Indice,
+                    "régua \"" + (regua.Nome ?? string.Empty) + "\" sem nenhum borne no desenho"));
+            }
+
+            return problemas;
+        }
+
         public static List<Problema> VerificarBornesSemRegua(
             IEnumerable<PontoBorne> bornes,
             ReguasModelo reguas)
