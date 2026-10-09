@@ -17,7 +17,11 @@ namespace Positron.Data.Tests
             List<FiacaoRow> linhas = new List<FiacaoRow>
             {
                 new FiacaoRow { Painel = 1, Potencial = 3, Tag = "D1", Terminal = "5" },
-                new FiacaoRow { Painel = 1, Potencial = 3, Tag = null, Terminal = "6" },   // sem tag
+                // Com dispositivo (handle de borne) e sem tag → órfão de verdade.
+                new FiacaoRow { Painel = 1, Potencial = 3, Tag = null, Terminal = "6", Handle = "H9" },
+                // Sem NENHUM campo de dispositivo: é vértice/cruzamento do fio,
+                // nasce sem tag por construção — não é problema (desenho real: 223).
+                new FiacaoRow { Painel = 1, Potencial = 3, Tag = null, Terminal = null },
                 new FiacaoRow { Painel = 1, Potencial = 4, Tag = "D2", Terminal = "?" },   // indefinido
                 new FiacaoRow { Painel = 1, Potencial = 5, Tag = "D3", Terminal = "0" },   // "0" também é indefinido
                 new FiacaoRow { Painel = 1, Potencial = 0, Tag = "D4", Terminal = "7" },   // potencial 0
@@ -25,9 +29,27 @@ namespace Positron.Data.Tests
 
             List<Problema> problemas = VerificadorProjeto.VerificarFiacao(linhas);
 
-            Assert.Contains(problemas, p => p.Tipo == TipoProblema.SemTag);
+            Problema semTag = Assert.Single(problemas.FindAll(p => p.Tipo == TipoProblema.SemTag));
+            Assert.Contains("H9", semTag.Identificador);
             Assert.Contains(problemas, p => p.Tipo == TipoProblema.PotencialInvalido);
             Assert.Equal(2, problemas.FindAll(p => p.Tipo == TipoProblema.TerminalIndefinido).Count);
+        }
+
+        [Fact]
+        public void Borne_do_desenho_sem_ponto_de_fiacao_e_orfaо()
+        {
+            // Dois bornes no desenho, só um virou ponto de fiação.
+            List<Problema> problemas = VerificadorProjeto.VerificarBornesSemFiacao(
+                new[] { "A1", "A2", "A2" },
+                new[] { "A1" });
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(TipoProblema.BorneSemFiacao, problema.Tipo);
+            Assert.Equal(AreaVerificacao.Desenho, problema.Area);
+            Assert.Equal("A2", problema.Identificador);
+
+            // Sem nenhum ponto de fiação a projeção não rodou: não acusa nada.
+            Assert.Empty(VerificadorProjeto.VerificarBornesSemFiacao(new[] { "A1" }, new string[0]));
         }
 
         [Fact]

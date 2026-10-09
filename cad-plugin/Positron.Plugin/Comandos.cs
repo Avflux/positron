@@ -374,7 +374,23 @@ namespace Positron.Plugin
                 // O verifier original também lê o DESENHO: a régua de cada borne e
                 // o cabo referenciado que não existe no catálogo.
                 ReguasModelo reguas = ReguasDoDesenho.Ler();
-                problemas.AddRange(VerificadorProjeto.VerificarBornesSemRegua(BornesDoDesenho.Ler(reguas), reguas));
+                IReadOnlyList<PontoBorne> bornesDoDesenho = BornesDoDesenho.Ler(reguas);
+                problemas.AddRange(VerificadorProjeto.VerificarBornesSemRegua(bornesDoDesenho, reguas));
+
+                // Borne do desenho que não casou com nenhum ponto de fiação (órfão).
+                List<string> handlesDoDesenho = new List<string>();
+                foreach (PontoBorne borne in bornesDoDesenho)
+                {
+                    handlesDoDesenho.Add(borne.Handle);
+                }
+
+                List<string> handlesNaFiacao = new List<string>();
+                foreach (FiacaoRow fio in fiacao)
+                {
+                    handlesNaFiacao.Add(fio.Handle);
+                }
+
+                problemas.AddRange(VerificadorProjeto.VerificarBornesSemFiacao(handlesDoDesenho, handlesNaFiacao));
 
                 List<string> cabosUsados = new List<string>();
                 foreach (Interligacao4Row trecho in interligacao)

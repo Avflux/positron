@@ -195,6 +195,13 @@ escopo estrutural do recoder.
   correções o desenho real fecha em **273** problemas (SemTag 223, PontoSemTag 32,
   TerminalDuplicado 18, desenho 0) e o `VERIF` passou a imprimir a composição por
   tipo no log.
+- **Segunda calibração (rodada 13):** a área "fiação" apontava **223** pontos sem
+  tag — eram vértices/cruzamentos de fio, **todos** sem nenhum campo de dispositivo
+  (`Handle`, `NRegua`, `IndexModelo`, `TipoBorne`, `Aplicacao`). A regra passou a
+  exigir evidência de dispositivo e a área fechou em **0**. Em troca entrou a regra
+  de **órfão** do original (`carregaOrfao`): `BorneSemFiacao` compara o `Handle` dos
+  bornes do desenho com os gravados em `Fiacao` e acusa **193** de 199 no desenho
+  real — investigação aberta (casamento restritivo demais ou bornes fora de fio?).
 
 ### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (6 de 10 feitas)**
 
@@ -325,7 +332,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 4 — E2E com dados no ZWCAD | 2026-10-09 | 54fdcdf | `scripts/cad-fixture.lsp` + `npm run cad:e2e`: `FIA` 2 linhas + 2 circuitos, `INT` 1 `Interligacao4`, `SYNCD` repete sem duplicar, sidecar lê o mesmo conteúdo; falta fixture com blocos (fases 7–9) |
 | 4b — E2E com **desenho real** | 2026-10-09 | 0bff89d | `-Desenho ..\Elet\RCD\Funcional.dwg`: `FIA` 365 linhas (199 bornes, 191 dispositivos), 265 portas, 88 contatos, 83 dispositivos; `INT` 20 trechos; `SYNCD` sem duplicar; `VERIF` 1.034 problemas. Achou e corrigiu o `FormatException` do `ReguasModelo` (`XDataNumero` + `DescreverErro` + `-Desenho` no harness); `plugin:test` **160** aprovados |
 | 4c — 3 defeitos do desenho real (bornes) | 2026-10-09 | 58183d6 | `ReguasModelo` passa a ler do índice 1 (cabeçalho), `XDataNeutro.Para(Xrecord)` tolera `Xrecord.Data` que lança e os `registro.Data == null` saíram; no `Funcional.dwg` `Bornes4F` 0→**168** e `Bornes4I` 0→**216**; `plugin:test` **161** aprovados |
-| 6b — `VERIF` calibrado no desenho real | 2026-10-09 | (este commit) | composição por tipo no log; linha `"T"` de `Portas4F` não exige régua/borne (só a `"B"`) e catálogo de cabos vazio não gera apontamento; no `Funcional.dwg` o `VERIF` caiu de **821** para **273** problemas (548 falsos positivos); `plugin:test` **162** |
+| 6b — `VERIF` calibrado no desenho real | 2026-10-09 | d1e07f0 | composição por tipo no log; linha `"T"` de `Portas4F` não exige régua/borne (só a `"B"`) e catálogo de cabos vazio não gera apontamento; no `Funcional.dwg` o `VERIF` caiu de **821** para **273** problemas (548 falsos positivos); `plugin:test` **162** |
+| 13 — tag ausente e órfãos no `VERIF` | 2026-10-09 | (este commit) | `SemTag` exige evidência de dispositivo (fiação do desenho real: 223 → **0**); nova regra `BorneSemFiacao` (órfão) acusa 193 de 199 bornes; desenho real em **243** problemas (BorneSemFiacao 193, PontoSemTag 32, TerminalDuplicado 18); `plugin:test` **163** |
 | 5 — Pendências de projeção (parcial) | 2026-10-09 | bc59c8d | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; resta só a `Pagina` com cruzamento (matriz de páginas) |
 | 7a — `Dispositivos4F` | 2026-10-09 | ed7222a | gerador puro + gravação idempotente + `FIA` gerando; `plugin:test` **110** aprovados |
 | 7b — `Circuitos4F` | 2026-10-09 | 1afbd7a | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados |

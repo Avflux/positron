@@ -178,8 +178,8 @@ FIA: 365 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 83 posicao(oes),
 INT: 20 linha(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I;
      216 borne(s) em Bornes4I
 VERIF: 365 fio(s), 20 trecho(s), 265 porta(s), 168 borne(s), 88 contato(s);
-       273 problema(s) — fiação: 223; interligação: 32; modelos: 18; desenho: 0
-VERIF: por tipo — SemTag: 223; PontoSemTag: 32; TerminalDuplicado: 18
+       243 problema(s) — fiação: 0; interligação: 32; modelos: 18; desenho: 193
+VERIF: por tipo — BorneSemFiacao: 193; PontoSemTag: 32; TerminalDuplicado: 18
 ```
 
 O `VERIF` saiu com **821** problemas na primeira medição; **548 deles eram falsos
@@ -194,6 +194,21 @@ positivos sistemáticos**, corrigidos com evidência do próprio desenho:
 2. **Catálogo de cabos vazio não é "nenhum cabo existe"**: `CaboSemCatalogo`
    apontava todo cabo do desenho (18). Sem catálogo carregado a regra não roda —
    no projeto real o catálogo vive no `RCD.mdb` (Access), que não está no nosso banco.
+3. **Ponto de fiação sem tag não é problema** quando o ponto não tem NADA de
+   dispositivo (nem `Handle`, nem `NRegua`, nem `IndexModelo`, nem `TipoBorne`,
+   nem `Aplicacao`): são vértices e cruzamentos do fio, que nascem sem tag por
+   construção — 223 das 365 linhas no desenho real, **todas** sem nenhum campo de
+   dispositivo. A regra passou a exigir evidência de dispositivo; a área "fiação"
+   do desenho real fechou em **0**.
+
+Em troca desses falsos positivos entrou uma regra que o original também tem (o
+`carregaOrfao`): **`BorneSemFiacao`** — borne do desenho que não virou nenhum ponto
+de `Fiacao`, comparando o `Handle` dos blocos com os `Handle`s gravados. No desenho
+real isso acusa **193** de 199 bornes lidos, e o `FIA` só gravou 6 linhas com
+`Tipo = 'B'` (as outras 136 casaram com **dispositivo**, não com borne). Fica como
+**investigação aberta**: ou o casamento ponto↔borne está restritivo demais (bounds
+±0,25, layer igual, painel), ou esses bornes realmente não estão sobre fio nenhum.
+O caminho é instrumentar o `CasamentoBorne` no CAD para contar os vetos por motivo.
 
 O `SYNCD` repete `FIA`+`INT` e as contagens **não dobram** — idempotência provada
 com dado real. O banco sai com `Fiacao` 365, `Interligacao4` 20 (tags `8-CCE-*`,
@@ -485,7 +500,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
   26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 162 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 163 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge

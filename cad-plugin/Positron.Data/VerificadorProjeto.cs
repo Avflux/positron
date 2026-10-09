@@ -55,6 +55,9 @@ namespace Positron.Data
 
         /// <summary>Página gravada que não existe na <c>LayerTable</c> do desenho.</summary>
         PaginaAusente,
+
+        /// <summary>Borne do desenho que não virou nenhum ponto de <c>Fiacao</c> (órfão).</summary>
+        BorneSemFiacao,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -160,11 +163,24 @@ namespace Positron.Data
                     problemas.Add(Novo(AreaVerificacao.Fiacao, TipoProblema.PotencialInvalido, "Fiacao", id, "potencial ausente ou <= 0"));
                 }
 
-                if (string.IsNullOrWhiteSpace(linha.Tag))
+                // Nem todo ponto de fiação tem dispositivo: os vértices e cruzamentos
+                // do fio nascem sem Tag, sem Handle e sem régua (medido no desenho
+                // real: 223 de 365 linhas, TODAS sem nenhum campo de dispositivo).
+                // O que interessa é o ponto que TEM dispositivo e ficou sem Tag —
+                // esse é o órfão que o original mostra em `carregaOrfao`.
+                bool temDispositivo = !string.IsNullOrWhiteSpace(linha.Handle)
+                    || !string.IsNullOrWhiteSpace(linha.NRegua)
+                    || !string.IsNullOrWhiteSpace(linha.Alternativo)
+                    || (linha.IndexModelo.HasValue && linha.IndexModelo.Value > 0)
+                    || (linha.TipoBorne.HasValue && linha.TipoBorne.Value != 0)
+                    || (linha.Aplicacao.HasValue && linha.Aplicacao.Value != 0);
+
+                bool temTag = !string.IsNullOrWhiteSpace(linha.Tag);
+                if (temDispositivo && !temTag)
                 {
-                    problemas.Add(Novo(AreaVerificacao.Fiacao, TipoProblema.SemTag, "Fiacao", id, "ponto sem tag"));
+                    problemas.Add(Novo(AreaVerificacao.Fiacao, TipoProblema.SemTag, "Fiacao", id, "ponto com dispositivo sem tag"));
                 }
-                else if (TerminalEhIndefinido(linha.Terminal))
+                else if (temTag && TerminalEhIndefinido(linha.Terminal))
                 {
                     problemas.Add(Novo(AreaVerificacao.Fiacao, TipoProblema.TerminalIndefinido, "Fiacao", id, "terminal indefinido"));
                 }
@@ -451,6 +467,60 @@ namespace Positron.Data
         /// matriz de páginas é montada dos layers (o <c>Pagina.CarregaPaginas</c>),
         /// então uma página fora dela é página apagada/renomeada.
         /// </summary>
+        /// <summary>
+        /// Borne do desenho que não virou nenhum ponto de fiação — o "órfão" do
+        /// <c>carregaOrfao</c> do original. Compara os <c>Handle</c> dos blocos de
+        /// borne do desenho com os <c>Handle</c> gravados em <c>Fiacao</c>: se nenhum
+        /// ponto casou com o borne, ele ficou fora da projeção.
+        /// </summary>
+        public static List<Problema> VerificarBornesSemFiacao(
+            IEnumerable<string> handlesDoDesenho,
+            IEnumerable<string> handlesNaFiacao)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (handlesDoDesenho == null)
+            {
+                return problemas;
+            }
+
+            HashSet<string> naFiacao = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (handlesNaFiacao != null)
+            {
+                foreach (string handle in handlesNaFiacao)
+                {
+                    if (!string.IsNullOrWhiteSpace(handle))
+                    {
+                        naFiacao.Add(handle.Trim());
+                    }
+                }
+            }
+
+            // Sem nenhum ponto de fiação não há o que comparar: a projeção não rodou.
+            if (naFiacao.Count == 0)
+            {
+                return problemas;
+            }
+
+            HashSet<string> apontados = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string handle in handlesDoDesenho)
+            {
+                if (string.IsNullOrWhiteSpace(handle))
+                {
+                    continue;
+                }
+
+                string limpo = handle.Trim();
+                if (naFiacao.Contains(limpo) || !apontados.Add(limpo))
+                {
+                    continue;
+                }
+
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.BorneSemFiacao, "Fiacao", limpo, "borne do desenho sem ponto de fiação"));
+            }
+
+            return problemas;
+        }
+
         public static List<Problema> VerificarPaginasAusentes(
             IEnumerable<string> paginas,
             PaginaMatrix matriz)
