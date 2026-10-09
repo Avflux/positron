@@ -8,24 +8,26 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-
 #if AUTOCAD
-namespace Autodesk.AutoCAD.DatabaseServices
+using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.GraphicsInterface;
 #else
-namespace ZwSoft.ZwCAD.DatabaseServices
+using ZwSoft.ZwCAD.DatabaseServices;
+using ZwSoft.ZwCAD.Geometry;
+using ZwSoft.ZwCAD.GraphicsInterface;
+#endif
+
+// Os tipos de geometria vivem em `*.Geometry` na API real (é de lá que o
+// código reverso os importa). O stub precisa espelhar isso: com Point2d,
+// Point3d e Extents3d dentro de `*.DatabaseServices`, ele aceitava código que
+// só ele compilava — e o build contra a API de verdade quebrava.
+#if AUTOCAD
+namespace Autodesk.AutoCAD.Geometry
+#else
+namespace ZwSoft.ZwCAD.Geometry
 #endif
 {
-    public enum OpenMode
-    {
-        ForRead = 0,
-        ForWrite = 1,
-        ForNotify = 2,
-    }
-
-    public struct ObjectId
-    {
-    }
-
     public struct Point2d
     {
         public double X;
@@ -44,19 +46,60 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         public Point3d MinPoint;
         public Point3d MaxPoint;
     }
+}
 
+// `Drawable` também não é de `*.DatabaseServices`: é de `*.GraphicsInterface`
+// (o código reverso importa `ZwSoft.ZwCAD.GraphicsInterface` para usá-lo).
+#if AUTOCAD
+namespace Autodesk.AutoCAD.GraphicsInterface
+#else
+namespace ZwSoft.ZwCAD.GraphicsInterface
+#endif
+{
+    /// <summary>Base do que tem geometria; <c>Bounds</c> pode não existir (desenho vazio).</summary>
+    public class Drawable : DBObject
+    {
+        public Extents3d? Bounds
+        {
+            get { return null; }
+        }
+    }
+}
+
+#if AUTOCAD
+namespace Autodesk.AutoCAD.DatabaseServices
+#else
+namespace ZwSoft.ZwCAD.DatabaseServices
+#endif
+{
+    public enum OpenMode
+    {
+        ForRead = 0,
+        ForWrite = 1,
+        ForNotify = 2,
+    }
+
+    public struct ObjectId
+    {
+    }
+
+    /// <summary>
+    /// Handle da entidade. A API real expõe só o construtor por <c>long</c>
+    /// (handles são hexadecimais convertidos): o stub segue a mesma forma, senão
+    /// aceitaria código que não compila de verdade.
+    /// </summary>
     public struct Handle
     {
-        private readonly string _valor;
+        private readonly long _valor;
 
-        public Handle(string valor)
+        public Handle(long valor)
         {
             _valor = valor;
         }
 
         public override string ToString()
         {
-            return _valor ?? string.Empty;
+            return _valor.ToString("X");
         }
     }
 
@@ -113,15 +156,6 @@ namespace ZwSoft.ZwCAD.DatabaseServices
 
         public virtual void UpgradeOpen()
         {
-        }
-    }
-
-    /// <summary>Base do que tem geometria; <c>Bounds</c> pode não existir (desenho vazio).</summary>
-    public class Drawable : DBObject
-    {
-        public Extents3d? Bounds
-        {
-            get { return null; }
         }
     }
 

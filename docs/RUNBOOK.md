@@ -92,6 +92,66 @@ npm run fmt:rust --workspace @app/desktop     # cargo fmt
 `cargo fmt --check` **não** é gate de CI de propósito: formatação vermelha junto
 com um erro de compilação vermelho só atrapalha. `cargo check` é o gate.
 
+## Rodar o plugin dentro de um CAD de verdade
+
+O `plugin:build` compila contra o **stub** quando não acha o CAD — isso valida a
+sintaxe, mas **não** prova que o plugin carrega. Para rodar de fato (foi assim que
+o `INT` foi conferido, no AutoCAD 2020):
+
+1. **Compile contra a API real.** Sem `AutoCadDir` o `csproj` procura
+   AutoCAD 2026/2025/2024; numa máquina com outra versão, passe o caminho:
+
+   ```bash
+   npm run plugin:build:autocad -- -p:AutoCadDir="C:\\Program Files\\Autodesk\\AutoCAD 2020"
+   ```
+
+   Se esse build falhar onde o build contra o stub passava, é o **stub que está
+   errado** (namespace/assinatura fora da API real) — conserte o stub, não o
+   código do plugin.
+
+2. **Defina o contexto por variável de ambiente** (o mesmo do plugin):
+
+   ```bash
+   export POSITRON_DB_PATH="C:/caminho/projeto.db"   # .db criado do schema.sql
+   export POSITRON_DWG=1 POSITRON_REVISAO=R0 POSITRON_LOCAL=LOCAL-A
+   ```
+
+3. **Rode num `accoreconsole` com um script** (`/i desenho.dwg /s passo.scr`).
+   Duas armadilhas que custam tempo:
+
+   - **`SECURELOAD`.** Com o padrão `1`, o `NETLOAD` responde
+     `Unable to load ... assembly.nil` e não diz o porquê. Ponha
+     `(setvar "SECURELOAD" 0)` ou o caminho do plugin em `TRUSTEDPATHS`.
+   - **`FILEDIA`.** Sem `(setvar "FILEDIA" 0)` o `NETLOAD` abre diálogo e trava
+     um console headless.
+
+   ```lisp
+   (setvar "FILEDIA" 0)
+   (setvar "SECURELOAD" 0)
+   (vl-cmdf "_.NETLOAD" "C:/.../Positron.Plugin.AutoCAD.dll")
+   INT
+   ```
+
+   A saída do `accoreconsole` é **UTF-16LE**: leia com
+   `iconv -f UTF-16LE -t UTF-8 log.txt`.
+
+4. **Confira o que foi gravado pelo leitor do app**, não por SQL cru — é a
+   interface que o Positron Desktop usa:
+
+   ```bash
+   services/sidecar/.venv/Scripts/python.exe -c "
+   import asyncio, sys; sys.path.insert(0, r'<repo>/services/sidecar/src')
+   from sidecar.db.project import ProjectDatabase
+   db = ProjectDatabase(r'<caminho>/projeto.db')
+   print(asyncio.run(db.interligacao_por_cabo('CABO1')))"
+   ```
+
+**`INT` acumula linhas.** Rodar o `INT` duas vezes na mesma revisão duplica as
+linhas de `Interligacao4` — não há limpeza da revisão antes do `INSERT`. O
+original tem `RemoveRevisaoTabelaParaDWG`/`...ParaTodosDWG` para isso, mas
+nenhum chamador no código reverso; `Cabos4`/`Veias4` **são** apagados antes de
+regravar. Ao conferir à mão, comece de um `.db` novo.
+
 ## Empacotar
 
 ```bash

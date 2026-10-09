@@ -1,11 +1,16 @@
+using System;
 using System.Collections.Generic;
 using Positron.Data.Fiacao;
 #if AUTOCAD
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.GraphicsInterface;
 #else
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
+using ZwSoft.ZwCAD.Geometry;
+using ZwSoft.ZwCAD.GraphicsInterface;
 #endif
 
 namespace Positron.Plugin.Fiacao
@@ -163,7 +168,8 @@ namespace Positron.Plugin.Fiacao
             }
 
             ObjectId id;
-            if (!banco.TryGetObjectId(new Handle(dispositivo.HandleMascara), out id))
+            // O handle é hexadecimal no XData; a API real só aceita o número.
+            if (!banco.TryGetObjectId(new Handle(Convert.ToInt64(dispositivo.HandleMascara, 16)), out id))
             {
                 return;
             }

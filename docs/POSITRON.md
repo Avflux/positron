@@ -270,10 +270,16 @@ Cada fase é verificável sozinha. As fases 2 e 4 não dependem uma da outra —
 5 fecha o laço entre os dois frontends.
 
 A fase 4 está **parcial**: o scaffold compila (0 avisos) e registra os comandos
-(`ELET`, `FIA`, `INT`, `SYNCD`, `VERIF`), mas não foi carregado dentro do ZWCAD —
-ele não está instalado nesta máquina, então não há `ZwManaged.dll`. Neste ambiente o
-plugin builda contra o stub (`Positron.CadStub`), que é só gate de compilação e
-**não** produz um assembly carregável por NETLOAD.
+(`ELET`, `FIA`, `INT`, `SYNCD`, `VERIF`). O **ZWCAD** não está instalado nesta
+máquina (não há `ZwManaged.dll`), então o alvo ZWCAD ainda builda contra o stub
+(`Positron.CadStub`) — que é gate de compilação e **não** produz um assembly
+carregável por `NETLOAD`.
+
+O **AutoCAD 2020 está instalado**, porém, e o alvo AutoCAD builda contra a API
+**real** (`-p:AutoCadDir=...`): o plugin foi carregado por `NETLOAD` dentro do
+`accoreconsole` 2020 e o `INT` rodou de verdade, gravando `Interligacao4` — a
+receita está no `RUNBOOK.md`. Atenção: o `csproj` procura 2026/2025/2024, então
+numa máquina com 2020 o caminho precisa ser passado à mão.
 
 A fase 5 também está **parcial**. Já existem e são testados: o comando `FIA`, o
 leitor do XData `CONEXAO`, a projeção para `Fiacao` (INSERT canônico) e a leitura
@@ -298,8 +304,8 @@ da máscara. Com a `tag`, o `dOrdem` do **não-borne** passa a ser a ordem da ta
 a segunda checagem do `ltZUHdAX7R`: o bloco só é aceito se tirar um terminal
 **não-vazio** do atributo `T*` (ou `B*`, no `E`) mais próximo do ponto — o adapter
 lê os atributos do bloco e o núcleo exige o terminal, que vira `Terminal`/
-`TerminalNum` do ponto. E, como o ZWCAD não está instalado, o `FIA` ainda não
-rodou dentro do desenho.
+`TerminalNum` do ponto. O `FIA` ainda não rodou dentro do desenho (quem já rodou
+foi o `INT`, no AutoCAD 2020).
 
 A fase 6 também está **parcial**, pelo mesmo motivo da 5. Já existem e são
 testados: o comando `INT`, o leitor do XData `INTERLIGACAO`, a mesclagem das
@@ -315,8 +321,12 @@ no original. Sem borne casado, `DWG`/`Documento` saem nulos — o original grava
 `0`/`""`; dado ausente é melhor que dado inventado. A criação de linha segue o
 original tipo a tipo: o `Tipo == 1` (duas pontas) e o `Tipo == 3` (só a ponta de
 destino) **sempre** anexam uma linha nova; só o `Tipo == 2` mescla pela chave,
-comparando o cabo ignorando caixa (o `yHoU3hlYPo`). Como o ZWCAD não está
-instalado, nada disso rodou dentro do desenho.
+comparando o cabo ignorando caixa (o `yHoU3hlYPo`). Tudo isso foi conferido
+**dentro do AutoCAD 2020** (ver `RUNBOOK.md`): num desenho com duas polylines
+de `CABO1`, uma de `CABO2` (`Tipo == 3`) e uma de `CABO3` (`Tipo == 1`), mais
+dois blocos de borne, o `INT` gravou 3 linhas — a do `CABO1` com as duas pontas
+mescladas (cada uma casada com o seu borne: `Terminal`/`Handle`/`DWG1`/
+`Documento1` preenchidos) e as outras duas com a ponta que não tem borne nula.
 
 O `INT` também regrava **`Cabos4`/`Veias4`** como **snapshot do catálogo**
 (`Cabos`/`Veias`) carimbado com a revisão — o `RUIU5Sbjhj`/`v1TU0cEjWd` do

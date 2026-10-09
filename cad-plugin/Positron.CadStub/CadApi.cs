@@ -46,6 +46,16 @@ namespace ZwSoft.ZwCAD.Runtime
 
         public string Nome { get; private set; }
     }
+
+    /// <summary>
+    /// A API real tem um <c>Exception</c> próprio neste namespace, que colide com
+    /// <c>System.Exception</c> em quem importa os dois (o `catch (Exception)` do
+    /// <c>Comandos</c>). Declará-lo aqui força o mesmo erro no build do stub —
+    /// que é o ponto do stub: reprovar antes de o CAD reprovar.
+    /// </summary>
+    public class Exception : System.Exception
+    {
+    }
 }
 
 #if AUTOCAD

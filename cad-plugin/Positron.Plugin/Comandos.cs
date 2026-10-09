@@ -138,7 +138,7 @@ namespace Positron.Plugin
                     + portas + " porta(s) em Portas4F; " + reservas + " borne(s) em Bornes4F; "
                     + contatos + " contato(s) em Contatos4F.";
             }
-            catch (Exception erro)
+            catch (System.Exception erro)
             {
                 return "FIA: falhou — " + erro.Message;
             }
@@ -210,7 +210,7 @@ namespace Positron.Plugin
                     + bornes.Count + " borne(s)); " + cabos + " cabo(s) em Cabos4; "
                     + veias + " veia(s) em Veias4.";
             }
-            catch (Exception erro)
+            catch (System.Exception erro)
             {
                 return "INT: falhou — " + erro.Message;
             }
@@ -285,7 +285,7 @@ namespace Positron.Plugin
                 Plugin.Escrever("VERIF: " + problemas.Count + " problema(s) — fiação: " + porFiacao
                     + "; interligação: " + porInterligacao + "; modelos: " + porModelos + ".");
             }
-            catch (Exception erro)
+            catch (System.Exception erro)
             {
                 Plugin.Escrever("VERIF: falhou — " + erro.Message);
             }

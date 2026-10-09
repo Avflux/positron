@@ -3,9 +3,13 @@ using Positron.Data.Bornes;
 #if AUTOCAD
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.GraphicsInterface;
 #else
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
+using ZwSoft.ZwCAD.Geometry;
+using ZwSoft.ZwCAD.GraphicsInterface;
 #endif
 
 namespace Positron.Plugin.Bornes
