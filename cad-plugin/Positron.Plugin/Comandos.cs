@@ -117,7 +117,7 @@ namespace Positron.Plugin
                 IReadOnlyList<PontoFiacao> pontos = FiacaoDoDesenho.Ler();
                 if (pontos.Count == 0)
                 {
-                    return "FIA: nenhuma LWPOLYLINE com XData CONEXAO no desenho.";
+                    return "FIA: nenhuma LWPOLYLINE com XData CONEXAO no desenho. " + PerfilDoDesenhoDoDesenho.Ler().Explicacao();
                 }
 
                 ContextoProjecao contexto = new ContextoProjecao
@@ -308,7 +308,7 @@ namespace Positron.Plugin
                 IReadOnlyList<PontoInterligacao> pontos = InterligacaoDoDesenho.Ler();
                 if (pontos.Count == 0)
                 {
-                    return "INT: nenhuma LWPOLYLINE com XData INTERLIGACAO no desenho.";
+                    return "INT: nenhuma LWPOLYLINE com XData INTERLIGACAO no desenho. " + PerfilDoDesenhoDoDesenho.Ler().Explicacao();
                 }
 
                 ContextoInterligacao contexto = new ContextoInterligacao

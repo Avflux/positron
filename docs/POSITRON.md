@@ -539,7 +539,7 @@ com `C1`/`C2`, `Interligacao4` com `Painel1`/`Painel2`) — e o `SYNCD` repetido
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 178 testes)
+npm run plugin:test       # xunit, net472 (hoje 183 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

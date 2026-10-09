@@ -533,6 +533,31 @@ script é assíncrono e a `pz-dump` seguinte roda no desenho antigo. Para abrir 
 DWG como desenho ativo, passe o **arquivo na linha de comando** do ZWCAD
 (`ZWCAD.exe <desenho> /nologo /b <script>`).
 
+### Os três desenhos do projeto (e o perfil de XData)
+
+Os DWGs reais do projeto têm papéis diferentes, e rodar o comando no desenho errado
+não é erro do plugin. Medido no ZWCAD, com a contagem de XData por app name:
+
+| Desenho | XData | Papel |
+|---|---|---|
+| `Funcional.dwg` | `CONEXAO`, `INTERLIGACAO`, `AUXINTERLIG`, `Dispositivo` | **diagrama funcional** — é o insumo de `FIA`/`INT`/`JMP`/`VERIF` |
+| `Interligação.dwg` | `DINTERLIG` (530), `Eletron`, `DiagLog` | **documento** de interligação — o `DINTERLIG` marca o borne do trecho (`XDataDInterlig`, fluxo ArqNet/DI), fora do recorte dos 6 comandos |
+| `Fiação.dwg` | `Eletron` (2487), `TOPOGRAFICO`, `LAYOUT`, `DiagLog` | **documento** de fiação (plot), sem os XData do diagrama |
+
+Para isso não virar silêncio, `FIA`/`INT` passaram a responder com o **perfil do
+desenho** quando não acham o que procuram:
+
+```text
+INT: nenhuma LWPOLYLINE com XData INTERLIGACAO no desenho. perfil do desenho:
+     ACAD=130, DiagLog=87, DINTERLIG=530, Eletron=185 — documento de interligação
+     (DINTERLIG; o fluxo ArqNet/DI está fora do recorte destes comandos)
+```
+
+A classificação é pura (`PerfilDoDesenho`: `DiagramaFuncional` /
+`DocumentoInterligacao` / `Documento` / `Desconhecido`), coberta por
+`PerfilDoDesenhoTests`; o adapter (`PerfilDoDesenhoDoDesenho`) só conta os `1001` de
+cada `Entity.XData`, sem depender de app name conhecido.
+
 ### Configuração: arquivo + ambiente (comando `ELETCFG`)
 
 O plugin passou a ter o **arquivo de configuração** no lugar da tela do original:
@@ -572,7 +597,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
   26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 178 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 183 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge
