@@ -24,6 +24,7 @@ from .protocol import (
     Cabos4PorRevisaoParams,
     CatalogoListarMateriaisParams,
     CircuitosPorPainelParams,
+    Contatos4FPorRevisaoParams,
     DatabaseNotOpen,
     DispositivosPorPainelParams,
     EchoParams,
@@ -71,6 +72,7 @@ class Handlers:
             "veias4_por_revisao": self._veias4_por_revisao,
             "portas4f_por_revisao": self._portas4f_por_revisao,
             "bornes4f_por_revisao": self._bornes4f_por_revisao,
+            "contatos4f_por_revisao": self._contatos4f_por_revisao,
         }
 
     @property
@@ -169,6 +171,10 @@ class Handlers:
     async def _bornes4f_por_revisao(self, params: dict[str, Any]) -> dict[str, Any]:
         parsed = _validate("bornes4f_por_revisao", Bornes4FPorRevisaoParams, params)
         return {"bornes": await self._require_db().bornes4f_por_revisao(parsed.revisao)}
+
+    async def _contatos4f_por_revisao(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("contatos4f_por_revisao", Contatos4FPorRevisaoParams, params)
+        return {"contatos": await self._require_db().contatos4f_por_revisao(parsed.revisao)}
 
     def _require_db(self) -> ProjectDatabase:
         if self._db is None:

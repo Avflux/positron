@@ -78,6 +78,9 @@ def make_project_db(target: Path) -> Path:
         INSERT INTO Cabos4(Indice, Revisao, Tag, Blindagem)
             VALUES (90, 'R0', 'C-100', 0);
 
+        INSERT INTO Contatos4F(Indice, Revisao, DWG, IndexModelo, NomeModelo, Terminal)
+            VALUES (120, 'R0', 1, 7, 'FUSIVEL', '1');
+
         INSERT INTO Portas4F(Indice, Revisao, DWG, IndexModelo, NomeModelo, Tipo, Terminal)
             VALUES (100, 'R0', 1, 7, 'FUSIVEL', 'T', '1'),
                    (101, 'R0', 1, 7, 'FUSIVEL', 'T', '2');
@@ -245,6 +248,9 @@ async def test_portas4f_e_bornes4f_por_revisao(project_db: Path):
 
     vazio = await handlers.dispatch("portas4f_por_revisao", {"revisao": "R9"})
     assert vazio["portas"] == []
+
+    contatos = await handlers.dispatch("contatos4f_por_revisao", {})
+    assert [c["Terminal"] for c in contatos["contatos"]] == ["1"]
 
 
 async def test_catalogo_materiais_com_e_sem_filtro(project_db: Path):

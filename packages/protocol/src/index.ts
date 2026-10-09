@@ -23,6 +23,7 @@ import type {
   ModelosCabos,
   Paineis,
   Bornes4F,
+  Contatos4F,
   Portas4F,
   Portas4I,
   Veias4,
@@ -156,6 +157,10 @@ export interface Bornes4FPorRevisaoParams {
   revisao?: string | null;
 }
 
+export interface Contatos4FPorRevisaoParams {
+  revisao?: string | null;
+}
+
 /** Mapa método -> assinatura. É a única fonte de tipos para `request()`. */
 export interface MethodMap {
   ping: { params: Record<string, never>; result: PingResult };
@@ -218,6 +223,10 @@ export interface MethodMap {
   bornes4f_por_revisao: {
     params: Bornes4FPorRevisaoParams;
     result: { bornes: Bornes4F[] };
+  };
+  contatos4f_por_revisao: {
+    params: Contatos4FPorRevisaoParams;
+    result: { contatos: Contatos4F[] };
   };
 }
 

@@ -3,6 +3,7 @@ import type {
   Aplicacao4F,
   Bornes4F,
   Cabos4,
+  Contatos4F,
   Circuitos4F,
   Dispositivos4F,
   Fiacao,
@@ -29,6 +30,7 @@ export interface PainelDetalhe {
   modelosCabo: ModelosCabos[];
   portas: Portas4F[];
   bornes: Bornes4F[];
+  contatos: Contatos4F[];
   carregando: boolean;
   erro: string | null;
 }
@@ -46,6 +48,7 @@ const VAZIO: PainelDetalhe = {
   modelosCabo: [],
   portas: [],
   bornes: [],
+  contatos: [],
   carregando: false,
   erro: null,
 };
@@ -88,6 +91,7 @@ export function usePainelDetalhe(painel: Paineis | null): PainelDetalhe {
           modelos,
           portas,
           bornes,
+          contatos,
         ] = await Promise.all([
             request("fiacao_por_painel", { painel: painel.Indice }),
             request("interligacao_por_painel", { painel: painel.Indice }),
@@ -101,6 +105,7 @@ export function usePainelDetalhe(painel: Paineis | null): PainelDetalhe {
             request("catalogo_listar_modelos_cabo", {}),
             request("portas4f_por_revisao", {}),
             request("bornes4f_por_revisao", {}),
+            request("contatos4f_por_revisao", {}),
           ]);
         if (vivo) {
           setState({
@@ -116,6 +121,7 @@ export function usePainelDetalhe(painel: Paineis | null): PainelDetalhe {
             modelosCabo: modelos.modelos,
             portas: portas.portas,
             bornes: bornes.bornes,
+            contatos: contatos.contatos,
             carregando: false,
             erro: null,
           });

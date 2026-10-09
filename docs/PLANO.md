@@ -325,10 +325,12 @@ roda com SQLite, sem licença e com relatório em texto.
   `CatalogoPanel` (`cabos4_por_revisao`, `veias4_por_revisao`,
   `catalogo_listar_materiais`, `catalogo_listar_modelos_cabo`), a **busca por cabo**
   no `InterligacaoPanel` (`interligacao_por_cabo`) e o **drill-down do modelo/régua**
-  (`PortasPanel` → `portas4i_por_modelo`, `BornesPanel` → `bornes4i_por_regua`).
-  Para isso entraram no contrato `portas4f_por_revisao` e `bornes4f_por_revisao`
-  (as duas tabelas do diagrama que o app ainda não lia): **19 métodos**, todos
-  sincronizados por `protocol:gen`.
+  (`PortasPanel` → `portas4i_por_modelo`, `BornesPanel` → `bornes4i_por_regua`) e
+  `ContatosPanel` (`contatos4f_por_revisao`). Para isso entraram no contrato
+  `portas4f_por_revisao`, `bornes4f_por_revisao` e `contatos4f_por_revisao` — as
+  três tabelas do diagrama que o app ainda não lia: **20 métodos**, e agora **todas
+  as 13 tabelas** que o plugin grava têm leitura no app, sincronizadas por
+  `protocol:gen`.
 - **Pronto quando:** `protocol:gen` verde (12 métodos **na época**; o contrato está em 17 depois das rodadas 10 e 12), `typecheck` limpo,
   `pytest` cobrindo os métodos novos e `build:web` OK.
 
@@ -410,7 +412,7 @@ aberto por **cópia no TEMP**).
 | 22 — tela de compilação (`ELETCMP`) | 2026-10-09 | f0f2878 | `FormularioCompilacao` (DataGridView + Salvar) sobre `MontarRelatorio`, o mesmo conteúdo do `ELETREL`; verificação: as duas builds com as telas, os **9 comandos** presentes no assembly gerado (`ELET`…`ELETREL`) e o relatório do `Funcional.dwg` idêntico ao da rodada 19 (116 linhas / 107 problemas); Etapa 8 fecha (ressalva: telas modais não clicáveis aqui) |
 | 23 — painéis das consultas novas no app | 2026-10-09 | 3816651 | `JumpersPanel`, `AplicacoesPanel` e `CatalogoPanel` (cabos+veias) entram na `PainelView` via `usePainelDetalhe` (5 chamadas novas em paralelo), fechando a UI dos métodos expostos na rodada 10; verificado com as consultas contra o `.db` do `Funcional.dwg` — `aplicacoes_por_revisao` 15 linhas, `portas4i_por_modelo(1)` 17, `bornes4i_por_regua(5)` 4 (jumpers/catálogo 0, coerente: sem `JMP` e sem catálogo) — e `typecheck` + `build:web` (**54** módulos) |
 | 24 — busca por cabo e catálogo completo no app | 2026-10-09 | e5a7954 | `InterligacaoPanel` ganha busca por `Tag_Cabo` (`interligacao_por_cabo`, com o resultado substituindo a lista) e o `CatalogoPanel` passa a mostrar `Materiais` e `ModelosCabos` além de cabos/veias; verificado com as consultas no `.db` real (`interligacao_por_cabo('8-CCE-001')` → 1 trecho; catálogo 0, coerente com o `RCD.mdb` não carregado) e `typecheck` + `build:web` (**54** módulos); UI fecha **15 dos 17 métodos** |
-| 25 — Portas4F/Bornes4F no contrato e drill-down do modelo | 2026-10-09 | 0444254 | dois métodos novos (`portas4f_por_revisao`, `bornes4f_por_revisao`) levam o contrato a **19** e fecham a leitura das 13 tabelas do diagrama; na UI, `PortasPanel` e `BornesPanel` listam as portas/bornes do diagrama e abrem `portas4i_por_modelo`/`bornes4i_por_regua` no mesmo painel; verificado com o `.db` real (`portas4f` **265** e `bornes4f` **168**, batendo com o log do `FIA`; drill-downs 17 e 4) e `pytest` **27** / `build:web` **56** módulos |
+| 25 — Portas4F/Bornes4F no contrato e drill-down do modelo | 2026-10-09 | 0444254 | dois métodos novos (`portas4f_por_revisao`, `bornes4f_por_revisao`) levam o contrato a **19** e fecham a leitura das 13 tabelas do diagrama; na UI, `PortasPanel` e `BornesPanel` listam as portas/bornes do diagrama e abrem `portas4i_por_modelo`/`bornes4i_por_regua` no mesmo painel; verificado com o `.db` real (`portas4f` **265** e `bornes4f` **168**, batendo com o log do `FIA`; drill-downs 17 e 4) e `pytest` **27** / `build:web` **57** módulos; follow-up fechou o `Contatos4F` (20 métodos, **88** contatos no desenho real, batendo com o `FIA`) |
 
 ## 6. Riscos e armadilhas
 

@@ -248,3 +248,12 @@ class ProjectDatabase:
                 (revisao,),
             )
         return await self.query("SELECT * FROM Bornes4F ORDER BY IndexRegua, Ordem, Indice")
+
+    async def contatos4f_por_revisao(self, revisao: str | None = None) -> list[dict[str, Any]]:
+        # Contatos do diagrama: um por terminal declarado pelo modelo (`sT1`/`sT2`/`sT3`).
+        if revisao:
+            return await self.query(
+                "SELECT * FROM Contatos4F WHERE Revisao = ? ORDER BY IndexModelo, Indice",
+                (revisao,),
+            )
+        return await self.query("SELECT * FROM Contatos4F ORDER BY IndexModelo, Indice")

@@ -4,6 +4,7 @@ import { AplicacoesPanel } from "@/features/aplicacoes/AplicacoesPanel";
 import { BornesPanel } from "@/features/bornes/BornesPanel";
 import { CatalogoPanel } from "@/features/catalogo/CatalogoPanel";
 import { CircuitosPanel } from "@/features/circuitos/CircuitosPanel";
+import { ContatosPanel } from "@/features/contatos/ContatosPanel";
 import { DispositivosPanel } from "@/features/dispositivos/DispositivosPanel";
 import { FiacaoPanel } from "@/features/fiacao/FiacaoPanel";
 import { InterligacaoPanel } from "@/features/interligacao/InterligacaoPanel";
@@ -24,6 +25,7 @@ export function PainelView({ painel }: { painel: Paineis }) {
     modelosCabo,
     portas,
     bornes,
+    contatos,
     carregando,
     erro,
   } = usePainelDetalhe(painel);
@@ -42,6 +44,7 @@ export function PainelView({ painel }: { painel: Paineis }) {
           <JumpersPanel jumpers={jumpers} />
           <PortasPanel portas={portas} />
           <BornesPanel bornes={bornes} />
+          <ContatosPanel contatos={contatos} />
           <AplicacoesPanel aplicacoes={aplicacoes} />
           <CatalogoPanel
             cabos={cabos}
