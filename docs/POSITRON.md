@@ -315,6 +315,12 @@ num desenho com 4 conexões e 2 bornes, gravou 3 linhas em `Fiacao` — a conex�
 `Potencial == 0` foi descartada, como no original. O caminho do **dispositivo**
 não foi exercitado (o desenho não tinha blocos de dispositivo).
 
+A projeção é **idempotente**: `ProjectStore` apaga `(DWG, Revisão)` na mesma
+transação do INSERT (`Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F`,
+`Contatos4F`) — o `RemoveRevisaoTabelaParaDWG` do original, que o reverso tem mas
+não chamava. Rodar `FIA`/`INT` duas vezes no mesmo `.db` deixa o mesmo resultado,
+e a `Ordem` não é mais reembaralhada (`IdempotenciaTests`).
+
 A fase 6 também está **parcial**, pelo mesmo motivo da 5. Já existem e são
 testados: o comando `INT`, o leitor do XData `INTERLIGACAO`, a mesclagem das
 pontas por `(Tag_Cabo, Num_Veia)` (o `ssqypmV1FI`/`yHoU3hlYPo` do original), a

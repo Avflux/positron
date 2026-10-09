@@ -45,7 +45,7 @@ uma vez): só `Cabos4`/`Veias4` apagam a revisão antes de regravar
 `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` **acumulam** — a
 segunda execução de `FIA`/`INT` duplica linhas e o `ReordenarOrdemFiacao`
 passa a reescrever a `Ordem` das duas cópias (medido no `RUNBOOK.md`: `Fiacao`
-3→6, `Bornes4F` 2→4).
+3→6, `Bornes4F` 2→4). **Corrigido na Etapa 1.**
 
 ## 3. Etapas
 
@@ -175,7 +175,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 
 | Etapa | Data | Commit | Evidência |
 |---|---|---|---|
-| 0 — Plano e baseline | 2026-10-09 | (este commit) | baseline da seção 2 medido nesta máquina |
+| 0 — Plano e baseline | 2026-10-09 | 24a7c5b | baseline da seção 2 medido nesta máquina |
+| 1 — Idempotência da projeção | 2026-10-09 | (este commit) | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
 
 ## 6. Riscos e armadilhas
 

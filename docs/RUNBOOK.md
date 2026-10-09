@@ -146,17 +146,16 @@ o `INT` foi conferido, no AutoCAD 2020):
    print(asyncio.run(db.interligacao_por_cabo('CABO1')))"
    ```
 
-**`INT` e `FIA` acumulam linhas — e o `FIA` corrompe a `Ordem` ao repetir.**
-Nenhum dos dois apaga a revisão antes do `INSERT`, então rodar duas vezes duplica
-as linhas (medido: `Fiacao` 3→6, `Bornes4F` 2→4). Pior no `FIA`: o
-`ReordenarOrdemFiacao`, que roda no fim do comando, renumera `Ordem` 1..N por
-`Potencial` sobre **todas** as linhas da revisão — com as duas cópias na tabela
-ele reescreve também a `Ordem` da primeira rodada, e as duas passam a se
-intercalar (`1,3 / 2,4` em vez de `1,2` em cada cópia). O original tem
-`RemoveRevisaoTabelaParaDWG`/`...ParaTodosDWG` para isso, mas nenhum chamador no
-código reverso; `Cabos4`/`Veias4` **são** apagados antes de regravar. Ao conferir
-à mão, comece sempre de um `.db` novo — e nunca leia a `Ordem` depois de mais de
-uma rodada.
+**`FIA`/`INT`/modelos agora SUBSTITUEM a revisão (idempotente).** Era um defeito
+conhecido: nenhum INSERT apagava a revisão antes, então rodar duas vezes duplicava
+as linhas (medido: `Fiacao` 3→6, `Bornes4F` 2→4) e o `ReordenarOrdemFiacao`,
+que renumera `Ordem` 1..N por `Potencial` sobre **todas** as linhas da revisão,
+passava a intercalar as duas cópias (`1,3 / 2,4` em vez de `1,2`). Agora
+`ProjectStore` apaga `(DWG, Revisão)` na mesma transação do INSERT — o
+`RemoveRevisaoTabelaParaDWG` do original — em `Fiacao`, `Interligacao4`,
+`Portas4F`, `Bornes4F` e `Contatos4F`; `Cabos4`/`Veias4` já faziam isso. Pode
+rodar o comando mais de uma vez no mesmo `.db` sem medo. Coberto por
+`cad-plugin/Positron.Data.Tests/IdempotenciaTests.cs`.
 
 ## Empacotar
 

@@ -141,10 +141,20 @@ namespace Positron.Data
         /// </summary>
         public void InserirFiacao(IEnumerable<PontoFiacao> pontos)
         {
+            List<PontoFiacao> lista = pontos == null
+                ? new List<PontoFiacao>()
+                : new List<PontoFiacao>(pontos);
+
             using (SQLiteConnection conexao = Abrir())
             using (SQLiteTransaction transacao = conexao.BeginTransaction())
             using (SQLiteCommand comando = conexao.CreateCommand())
             {
+                // A projeção SUBSTITUI a revisão, como o RemoveRevisaoTabelaParaDWG
+                // do original: rodar o FIA duas vezes não duplica linha nem
+                // embaralha a Ordem. Lote vazio não tem (DWG, Revisão) para apagar
+                // — e o comando já sai antes disso quando não há conexão.
+                RemoverRevisoesDoLote(conexao, "Fiacao", lista, ponto => ponto.Dwg, ponto => ponto.Revisao);
+
                 comando.CommandText =
                     "INSERT INTO Fiacao(Revisao, DWG, Painel, Potencial, Ordem, Pagina, Tag, Alternativo, NRegua, " +
                     "Terminal, TerminalNum, Tipo, Secao, Cor, PosicaoNum, TipoBorne, BJumper, BLink, Handle, " +
@@ -180,7 +190,7 @@ namespace Positron.Data
                     comando.Parameters.Add("@data", System.Data.DbType.DateTime),
                 };
 
-                foreach (PontoFiacao ponto in pontos)
+                foreach (PontoFiacao ponto in lista)
                 {
                     parametros[0].Value = Nulo(ponto.Revisao);
                     parametros[1].Value = ponto.Dwg;
@@ -306,10 +316,18 @@ namespace Positron.Data
         /// <summary>Grava as linhas de interligação já mescladas (ver <see cref="InterligacaoProjetor"/>).</summary>
         public void InserirInterligacao(IEnumerable<TrechoInterligacao> trechos)
         {
+            List<TrechoInterligacao> lista = trechos == null
+                ? new List<TrechoInterligacao>()
+                : new List<TrechoInterligacao>(trechos);
+
             using (SQLiteConnection conexao = Abrir())
             using (SQLiteTransaction transacao = conexao.BeginTransaction())
             using (SQLiteCommand comando = conexao.CreateCommand())
             {
+                // Mesma regra da fiação: a revisão é substituída, não acumulada
+                // (RemoveRevisaoTabelaParaDWG do original).
+                RemoverRevisoesDoLote(conexao, "Interligacao4", lista, trecho => trecho.Dwg, trecho => trecho.Revisao);
+
                 // Colunas do INSERT canônico do original (cDadosAccessInterligacao2.
                 // AdicionaItemInterligacao); Indice fica de fora — o SQLite atribui
                 // o rowid. As colunas que a varredura de bornes preenche vêm do
@@ -363,7 +381,7 @@ namespace Positron.Data
                     comando.Parameters.Add("@data", System.Data.DbType.DateTime),
                 };
 
-                foreach (TrechoInterligacao trecho in trechos)
+                foreach (TrechoInterligacao trecho in lista)
                 {
                     parametros[0].Value = Nulo(trecho.Revisao);
                     parametros[1].Value = trecho.Dwg;
@@ -871,6 +889,11 @@ namespace Positron.Data
             using (SQLiteTransaction transacao = conexao.BeginTransaction())
             using (SQLiteCommand comando = conexao.CreateCommand())
             {
+                // Substitui a revisão (RemoveRevisaoTabelaParaDWG do original):
+                // mesmo com lote vazio, o desenho é a verdade — o que sumiu do
+                // desenho não pode ficar no banco.
+                RemoverRevisaoDaTabela(conexao, "Portas4F", dwg, revisao);
+
                 comando.CommandText =
                     "INSERT INTO Portas4F(Revisao, DWG, IndexModelo, NomeModelo, Regua, Borne, Terminal, " +
                     "TerminalNum, Tipo, Orientacao) " +
@@ -917,6 +940,11 @@ namespace Positron.Data
             using (SQLiteTransaction transacao = conexao.BeginTransaction())
             using (SQLiteCommand comando = conexao.CreateCommand())
             {
+                // Substitui a revisão (RemoveRevisaoTabelaParaDWG do original):
+                // mesmo com lote vazio, o desenho é a verdade — o que sumiu do
+                // desenho não pode ficar no banco.
+                RemoverRevisaoDaTabela(conexao, "Bornes4F", dwg, revisao);
+
                 comando.CommandText =
                     "INSERT INTO Bornes4F(Revisao, DWG, Painel, IndexRegua, Regua, Alternativo, Handle, Borne, " +
                     "Ordem, Tipo, Pagina, bReserva, LM, Orientacao, BlocoLayout) " +
@@ -973,6 +1001,11 @@ namespace Positron.Data
             using (SQLiteTransaction transacao = conexao.BeginTransaction())
             using (SQLiteCommand comando = conexao.CreateCommand())
             {
+                // Substitui a revisão (RemoveRevisaoTabelaParaDWG do original):
+                // mesmo com lote vazio, o desenho é a verdade — o que sumiu do
+                // desenho não pode ficar no banco.
+                RemoverRevisaoDaTabela(conexao, "Contatos4F", dwg, revisao);
+
                 comando.CommandText =
                     "INSERT INTO Contatos4F(Revisao, DWG, IndexModelo, NomeModelo, Terminal, TerminalNum, Orientacao) " +
                     "VALUES(@revisao, @dwg, @indexModelo, @nomeModelo, @terminal, @terminalNum, @orientacao)";
@@ -1153,6 +1186,48 @@ namespace Positron.Data
         {
             int indice = leitor.GetOrdinal(coluna);
             return !leitor.IsDBNull(indice) && leitor.GetBoolean(indice);
+        }
+
+        /// <summary>
+        /// Apaga as linhas de uma revisão de um desenho — o
+        /// <c>RemoveRevisaoTabelaParaDWG</c> do original. Roda DENTRO da transação
+        /// do INSERT: a projeção substitui a revisão em vez de acumular.
+        /// </summary>
+        private static void RemoverRevisaoDaTabela(SQLiteConnection conexao, string tabela, int dwg, string revisao)
+        {
+            using (SQLiteCommand remover = conexao.CreateCommand())
+            {
+                // `tabela` é literal deste arquivo — nunca vem de entrada do usuário.
+                remover.CommandText = "DELETE FROM " + tabela +
+                    " WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '')";
+                remover.Parameters.AddWithValue("@dwg", dwg);
+                remover.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+                remover.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Apaga a revisão de cada par (DWG, Revisão) presente no lote — para as
+        /// origens que trazem o par por linha (fiação e interligação). Lote vazio
+        /// não apaga nada: sem par não há o que substituir.
+        /// </summary>
+        private static void RemoverRevisoesDoLote<T>(
+            SQLiteConnection conexao,
+            string tabela,
+            IEnumerable<T> itens,
+            Func<T, int> obterDwg,
+            Func<T, string> obterRevisao)
+        {
+            HashSet<Tuple<int, string>> pares = new HashSet<Tuple<int, string>>();
+            foreach (T item in itens)
+            {
+                pares.Add(Tuple.Create(obterDwg(item), obterRevisao(item)));
+            }
+
+            foreach (Tuple<int, string> par in pares)
+            {
+                RemoverRevisaoDaTabela(conexao, tabela, par.Item1, par.Item2);
+            }
         }
     }
 }
