@@ -44,6 +44,32 @@ namespace Positron.Data.Modelos
         }
 
         /// <summary>
+        /// Acrescenta os itens de <paramref name="texto"/> a uma lista **já em
+        /// construção**, sem repetir o que já está lá — é o comportamento do
+        /// <c>Geral.DivideTerminais(ref List, texto)</c> do original, que recebe a
+        /// lista por referência e faz `if (!lTerminais.Contains(item))`. Sem isso, o
+        /// gerador de contatos juntava os terminais do dispositivo com os das bobinas
+        /// e repetia os comuns (medido: `Contatos4F` 88 contra 70 do produto).
+        /// </summary>
+        public static void Acrescentar(List<string> destino, string texto, bool repete = false)
+        {
+            if (destino == null)
+            {
+                return;
+            }
+
+            foreach (string item in Dividir(texto, false))
+            {
+                if (!repete && destino.Contains(item))
+                {
+                    continue;
+                }
+
+                destino.Add(item);
+            }
+        }
+
+        /// <summary>
         /// Divide uma lista de orientações, **mantendo vazias** (ao contrário de
         /// <see cref="Dividir(string)"/>) — é o que o original espera, para casar
         /// orientação e terminal pela posição.

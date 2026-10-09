@@ -62,6 +62,25 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void Terminais_da_bobina_nao_repetem_os_do_dispositivo()
+        {
+            // O `DivideTerminais(ref List, ...)` do original acumula e **dedupa contra
+            // a lista**: os terminais das bobinas só acrescentam o que ainda não está lá.
+            // Regressão do banco do produto: o modelo 52 tem 15 terminais, e o recoder
+            // gravava 18 (repetia 1, 2 e B1).
+            List<ModeloContato> modelos = new List<ModeloContato>
+            {
+                new ModeloContato { Indice = 52, Nome = "BF-4", TerminaisDoDispositivo = "1;2;3" },
+            };
+
+            Dictionary<int, string> bobinas = new Dictionary<int, string> { [52] = "1;2;4" };
+
+            List<Contato4F> linhas = Contatos4FGerador.Gerar(modelos, new List<int> { 52 }, null, bobinas);
+
+            Assert.Equal(new[] { "1", "2", "3", "4" }, linhas.ConvertAll(l => l.Terminal).ToArray());
+        }
+
+        [Fact]
         public void Gera_contatos_do_dispositivo_e_dos_auxiliares()
         {
             List<ModeloContato> modelos = new List<ModeloContato>

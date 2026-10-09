@@ -597,8 +597,8 @@ Comparação para o **DWG 63, revisão 3**:
 | `Aplicacao4F` | 15 | **15** | ✅ |
 | `Circuitos4F` | 11 | **11** | ✅ (era 7 — ver abaixo) |
 | `Jumper4` | 0 | 0 | ✅ (o desenho não tem `Tipo 4` nem `Jumper` preenchido) |
-| `Bornes4F` | 155 | 168 | +13 a investigar |
-| `Contatos4F` | 70 | 88 | +18 a investigar |
+| `Contatos4F` | 70 | **70** | ✅ (era 88 — ver abaixo) |
+| `Bornes4F` | 155 | 168 | +13 a investigar (detalhe abaixo) |
 | `Interligacao4` | 0 (o trecho vive no DWG 74) | 20 | recorte diferente |
 
 **Esquema:** as **19 tabelas** que o recoder implementa batem **coluna a coluna** com
@@ -619,6 +619,35 @@ o Access (mesmos nomes e mesma ordem) — `Fiacao` 25, `Interligacao4` 34, `Jump
   `Disp1`/`Disp2` não gera ponto — mas o `t6yXrlfi5w` varre as **conexões** do desenho.
   Corrigido (`ConexoesDoDesenho` + `Circuitos4FGerador` sobre conexões): **11**. É o
   tipo de defeito que só essa comparação pega.
+- **`Contatos4F`**: o produto tinha **70** e o recoder gravava **88** — repetia terminais
+  nos 7 modelos. Causa: o `Geral.DivideTerminais` do original recebe a lista **por
+  referência** e só acrescenta o que ainda não está nela; nós dividíamos os terminais do
+  dispositivo e os das bobinas em **duas listas novas** e concatenávamos, repetindo os
+  comuns (modelo 52: 18 linhas com `1`, `2` e `B1` duplicados, contra 15 do produto).
+  Entrou `Terminais.Acrescentar` (acumula e dedupa) — o desenho real agora fecha em
+  **70 = 70**. Outra regressão que só o A/B pega.
+
+**O que ainda difere — `Bornes4F` (155 do produto contra 168 do recoder)**, por
+`(bReserva, IndexRegua)`:
+
+| régua | produto | recoder | observação |
+|---|---|---|---|
+| 478 `R6` | 57 + 6 reservas | 57 + 6 | ✅ |
+| 37 `R6` | 46 | 48 | +2 |
+| 44 `RA1` | 8 + 4 | 8 + 4 | ✅ |
+| 46 `RA2` | 8 + 4 | 8 + 4 | ✅ |
+| 5 `BARRA` | 6 | 4 | −2 |
+| 39 `R9` | 4 + 2 | 4 + 2 | ✅ |
+| 1 | 3, nome **`52-X1`** | 8, nome **`ENTR 1`** | +5 e **nome diferente** |
+| 2 | 3, nome **`52-X2`** | 8, nome **`ENTR 2`** | +5 e **nome diferente** |
+| 482 `R8` | 2 + 2 | 3 + 1 | +1 / −1 |
+| 487 `R8` | — | 3 | só no recoder |
+
+Duas pistas fortes para a próxima rodada: (a) os índices 1 e 2 têm **nome diferente** no
+dicionário do desenho de hoje (`ENTR 1`/`ENTR 2`) do que no banco do produto (`52-X1`/
+`52-X2`) — pode ser o desenho ter sido editado depois daquela compilação, ou o nome da
+coluna vir de outro dicionário; (b) o recoder casa bornes a mais nas réguas 1/2 e tem uma
+régua (487) que o produto não tem.
 
 Os DWGs reais do projeto têm papéis diferentes, e rodar o comando no desenho errado
 não é erro do plugin. Medido no ZWCAD, com a contagem de XData por app name:
@@ -682,7 +711,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
   26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 189 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 190 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge

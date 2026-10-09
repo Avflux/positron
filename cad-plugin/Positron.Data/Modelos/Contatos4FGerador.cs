@@ -64,11 +64,10 @@ namespace Positron.Data.Modelos
             List<string> terminais = new List<string>();
             List<string> orientacoes = new List<string>();
 
-            string doDispositivo = Limpo(modelo.TerminaisDoDispositivo);
-            if (doDispositivo.Length > 0)
-            {
-                Acrescenta(terminais, Terminais.Dividir(doDispositivo));
-            }
+            // Acumula **sem repetir** (o `DivideTerminais(ref List, ...)` do original):
+            // os terminais das bobinas acrescentam ao que veio do modelo, e o que já
+            // estava lá não entra de novo.
+            Terminais.Acrescentar(terminais, modelo.TerminaisDoDispositivo);
 
             string orientacao = Limpo(modelo.Orientacao);
             if (orientacao.Length > 0)
@@ -78,10 +77,9 @@ namespace Positron.Data.Modelos
 
             string bobinas;
             if (terminaisBobinasPorModelo != null
-                && terminaisBobinasPorModelo.TryGetValue(modelo.Indice, out bobinas)
-                && !string.IsNullOrEmpty(bobinas))
+                && terminaisBobinasPorModelo.TryGetValue(modelo.Indice, out bobinas))
             {
-                Acrescenta(terminais, Terminais.Dividir(bobinas));
+                Terminais.Acrescentar(terminais, bobinas);
             }
 
             for (int i = 0; i < terminais.Count; i++)
