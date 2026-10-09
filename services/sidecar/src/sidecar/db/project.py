@@ -229,3 +229,22 @@ class ProjectDatabase:
                 "SELECT * FROM Veias4 WHERE Revisao = ? ORDER BY Tag, Num_Veia", (revisao,)
             )
         return await self.query("SELECT * FROM Veias4 ORDER BY Tag, Num_Veia")
+
+    async def portas4f_por_revisao(self, revisao: str | None = None) -> list[dict[str, Any]]:
+        # Portas do diagrama: uma linha por terminal (Tipo T) ou borne (Tipo B)
+        # declarado pela máscara; `IndexModelo` é a chave do drill-down (Portas4I).
+        if revisao:
+            return await self.query(
+                "SELECT * FROM Portas4F WHERE Revisao = ? ORDER BY IndexModelo, Indice",
+                (revisao,),
+            )
+        return await self.query("SELECT * FROM Portas4F ORDER BY IndexModelo, Indice")
+
+    async def bornes4f_por_revisao(self, revisao: str | None = None) -> list[dict[str, Any]]:
+        # Bornes do diagrama; `IndexRegua` é a chave do drill-down (Bornes4I).
+        if revisao:
+            return await self.query(
+                "SELECT * FROM Bornes4F WHERE Revisao = ? ORDER BY IndexRegua, Ordem, Indice",
+                (revisao,),
+            )
+        return await self.query("SELECT * FROM Bornes4F ORDER BY IndexRegua, Ordem, Indice")

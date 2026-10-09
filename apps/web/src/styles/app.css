@@ -141,6 +141,14 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
 }
 .busca button:disabled { opacity: .6; cursor: default; }
 
+/* Drill-down do modelo/régua (PortasPanel/BornesPanel) */
+.drill {
+  margin-top: 12px; padding: 12px;
+  border: 1px solid var(--panel-border); border-radius: 8px;
+  background: var(--panel);
+}
+.drill h4 { margin: 0 0 8px; font-size: 13px; }
+
 /* Tabela */
 table.data { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 table.data th, table.data td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--panel-border); }

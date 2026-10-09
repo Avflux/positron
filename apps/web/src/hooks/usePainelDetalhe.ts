@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type {
   Aplicacao4F,
+  Bornes4F,
   Cabos4,
   Circuitos4F,
   Dispositivos4F,
@@ -10,6 +11,7 @@ import type {
   Materiais,
   ModelosCabos,
   Paineis,
+  Portas4F,
   Veias4,
 } from "@protocol";
 import { request } from "@/lib/bridge";
@@ -25,6 +27,8 @@ export interface PainelDetalhe {
   veias: Veias4[];
   materiais: Materiais[];
   modelosCabo: ModelosCabos[];
+  portas: Portas4F[];
+  bornes: Bornes4F[];
   carregando: boolean;
   erro: string | null;
 }
@@ -40,6 +44,8 @@ const VAZIO: PainelDetalhe = {
   veias: [],
   materiais: [],
   modelosCabo: [],
+  portas: [],
+  bornes: [],
   carregando: false,
   erro: null,
 };
@@ -69,8 +75,20 @@ export function usePainelDetalhe(painel: Paineis | null): PainelDetalhe {
 
     void (async () => {
       try {
-        const [fiacao, interligacao, circuitos, dispositivos, jumpers, aplicacoes, cabos, veias, materiais, modelos] =
-          await Promise.all([
+        const [
+          fiacao,
+          interligacao,
+          circuitos,
+          dispositivos,
+          jumpers,
+          aplicacoes,
+          cabos,
+          veias,
+          materiais,
+          modelos,
+          portas,
+          bornes,
+        ] = await Promise.all([
             request("fiacao_por_painel", { painel: painel.Indice }),
             request("interligacao_por_painel", { painel: painel.Indice }),
             request("circuitos_por_painel", { painel: painel.Indice }),
@@ -81,6 +99,8 @@ export function usePainelDetalhe(painel: Paineis | null): PainelDetalhe {
             request("veias4_por_revisao", {}),
             request("catalogo_listar_materiais", {}),
             request("catalogo_listar_modelos_cabo", {}),
+            request("portas4f_por_revisao", {}),
+            request("bornes4f_por_revisao", {}),
           ]);
         if (vivo) {
           setState({
@@ -94,6 +114,8 @@ export function usePainelDetalhe(painel: Paineis | null): PainelDetalhe {
             veias: veias.veias,
             materiais: materiais.materiais,
             modelosCabo: modelos.modelos,
+            portas: portas.portas,
+            bornes: bornes.bornes,
             carregando: false,
             erro: null,
           });

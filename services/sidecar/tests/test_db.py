@@ -78,6 +78,13 @@ def make_project_db(target: Path) -> Path:
         INSERT INTO Cabos4(Indice, Revisao, Tag, Blindagem)
             VALUES (90, 'R0', 'C-100', 0);
 
+        INSERT INTO Portas4F(Indice, Revisao, DWG, IndexModelo, NomeModelo, Tipo, Terminal)
+            VALUES (100, 'R0', 1, 7, 'FUSIVEL', 'T', '1'),
+                   (101, 'R0', 1, 7, 'FUSIVEL', 'T', '2');
+
+        INSERT INTO Bornes4F(Indice, Revisao, DWG, Painel, IndexRegua, Regua, Borne, Ordem, Pagina, bReserva)
+            VALUES (110, 'R0', 1, 503, 5, 'R1', '11', 1.0, '12', 0);
+
         INSERT INTO Veias4(Indice, Revisao, Tag, Num_Veia, Uso)
             VALUES (95, 'R0', 'C-100', 1, 0);
         """
@@ -224,6 +231,20 @@ async def test_cabos4_e_veias4_por_revisao(project_db: Path):
 
     vazio = await handlers.dispatch("veias4_por_revisao", {"revisao": "R9"})
     assert vazio["veias"] == []
+
+
+async def test_portas4f_e_bornes4f_por_revisao(project_db: Path):
+    handlers = Handlers(str(project_db))
+
+    portas = await handlers.dispatch("portas4f_por_revisao", {"revisao": "R0"})
+    assert [p["Terminal"] for p in portas["portas"]] == ["1", "2"]
+    assert portas["portas"][0]["IndexModelo"] == 7
+
+    bornes = await handlers.dispatch("bornes4f_por_revisao", {})
+    assert [b["IndexRegua"] for b in bornes["bornes"]] == [5]
+
+    vazio = await handlers.dispatch("portas4f_por_revisao", {"revisao": "R9"})
+    assert vazio["portas"] == []
 
 
 async def test_catalogo_materiais_com_e_sem_filtro(project_db: Path):

@@ -1,12 +1,14 @@
 import type { Paineis } from "@protocol";
 import { usePainelDetalhe } from "@/hooks/usePainelDetalhe";
 import { AplicacoesPanel } from "@/features/aplicacoes/AplicacoesPanel";
+import { BornesPanel } from "@/features/bornes/BornesPanel";
 import { CatalogoPanel } from "@/features/catalogo/CatalogoPanel";
 import { CircuitosPanel } from "@/features/circuitos/CircuitosPanel";
 import { DispositivosPanel } from "@/features/dispositivos/DispositivosPanel";
 import { FiacaoPanel } from "@/features/fiacao/FiacaoPanel";
 import { InterligacaoPanel } from "@/features/interligacao/InterligacaoPanel";
 import { JumpersPanel } from "@/features/jumpers/JumpersPanel";
+import { PortasPanel } from "@/features/portas/PortasPanel";
 
 export function PainelView({ painel }: { painel: Paineis }) {
   const {
@@ -20,6 +22,8 @@ export function PainelView({ painel }: { painel: Paineis }) {
     veias,
     materiais,
     modelosCabo,
+    portas,
+    bornes,
     carregando,
     erro,
   } = usePainelDetalhe(painel);
@@ -36,6 +40,8 @@ export function PainelView({ painel }: { painel: Paineis }) {
           <CircuitosPanel circuitos={circuitos} />
           <DispositivosPanel dispositivos={dispositivos} />
           <JumpersPanel jumpers={jumpers} />
+          <PortasPanel portas={portas} />
+          <BornesPanel bornes={bornes} />
           <AplicacoesPanel aplicacoes={aplicacoes} />
           <CatalogoPanel
             cabos={cabos}

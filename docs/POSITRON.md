@@ -186,6 +186,8 @@ ferramenta.
 | `bornes4i_por_regua` | `{ index_regua }` | `{ bornes: Bornes4I[] }` |
 | `cabos4_por_revisao` | `{ revisao? }` | `{ cabos: Cabos4[] }` |
 | `veias4_por_revisao` | `{ revisao? }` | `{ veias: Veias4[] }` |
+| `portas4f_por_revisao` | `{ revisao? }` | `{ portas: Portas4F[] }` |
+| `bornes4f_por_revisao` | `{ revisao? }` | `{ bornes: Bornes4F[] }` |
 
 O tipo de cada linha (`Paineis`, `Fiacao`, …) vem de `schema.generated.ts`, não de
 modelos escritos à mão. `relatorio_gerar` fica para a fase de relatórios.
