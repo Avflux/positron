@@ -134,8 +134,12 @@ DLL contra a API **real**; o alvo AutoCAD continua no stub.
    ```
 
    ```bash
-   "C:/Program Files/ZWSOFT/ZWCAD 2026/ZWCAD.exe" /nologo /b passo.scr
+   "C:/Program Files/ZWSOFT/ZWCAD 2026/ZWCAD.exe" /nologo /b passo
    ```
+
+   **`/b` espera o caminho SEM a extensão `.scr`** — com ela o ZWCAD ignora o
+   script em silêncio (verificado: sem arquivo de log nenhum). É o `passo.scr` no
+   disco, `passo` na linha de comando.
 
    O harness faz isso inteiro — confere o ambiente, recusa rodar com o ZWCAD
    aberto, cria o `.db` pelo `schema.sql`, escreve o `.scr`, roda e imprime o
@@ -352,15 +356,21 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run typecheck` — `tsc --noEmit` limpo nos dois workspaces.
 - `npm run build` — gera `apps/web/dist` (51 módulos).
 - `ruff check .` no sidecar — limpo.
+- **Dentro do ZWCAD 2026** — `npm run cad:smoke` carrega a DLL por `NETLOAD` e roda
+  os comandos num desenho vazio. O `POSITRON_LOG` traz `Positron carregado.`,
+  a resposta do `ELET`, `FIA: nenhuma LWPOLYLINE com XData CONEXAO no desenho.`,
+  `INT: nenhuma LWPOLYLINE com XData INTERLIGACAO no desenho.`, o `SYNCD` (as
+  duas de novo) e `VERIF: 0 problema(s) — fiação: 0; interligação: 0; modelos: 0;
+  desenho: 0.` — a **fase 4 fechada** e o caminho `XData → tabelas` exercitado
 
 **Não executado (por falta de ferramenta no ambiente, não por escolha):**
 
 - `tauri dev` / `tauri build` — o Rust **está** instalado (a lib do desktop
   compila com `cargo build`), mas a feature `vendored` do crate `zmq` ainda
   exigiria CMake + MSVC, que não estão no PATH.
-- **`NETLOAD` no ZWCAD 2026** — a DLL é gerada contra a API real e é carregável,
-  mas o carregamento dentro do ZWCAD (passo 3 do `docs/PLANO.md`) ainda não foi
-  executado nesta máquina.
+- **Um desenho funcional de verdade** (`Tipo == "E"`, com XData `CONEXAO`,
+  `INTERLIGACAO`, bornes, máscaras e contatos): o smoke roda num `Drawing1` vazio,
+  então cada comando responde `nenhuma LWPOLYLINE...` e o `VERIF` dá 0 problema.
 - **AutoCAD** — o AutoCAD 2020 dos ensaios de `FIA`/`INT` (positivos) não está
   instalado aqui; o alvo AutoCAD builda contra o stub (`Positron.CadStub`) e não
   carrega por `NETLOAD`.

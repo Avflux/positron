@@ -88,7 +88,7 @@ escopo estrutural do recoder.
   máquina".
 - **Commit:** `docs: ...`
 
-### Etapa 3 — Harness ZWCAD 2026 (fase 4 fecha) · P0 · **harness pronto**
+### Etapa 3 — Harness ZWCAD 2026 (fase 4 fecha) · P0 · **concluída**
 
 - **O que:**
   1. `Plugin.Escrever` também anexa a mensagem num arquivo quando
@@ -103,14 +103,16 @@ escopo estrutural do recoder.
   `POSITRON_LOG` a partir de uma execução real do ZWCAD 2026. Requer o ZWCAD
   **fechado** (a segunda instância entrega para a primeira e não herda as
   variáveis de ambiente).
-- **Estado:** o harness (`npm run cad:smoke`) está pronto e validado nas partes
-  que não exigem o CAD (sintaxe do `.ps1`, criação do `.db` pelo `schema.sql`,
-  `plugin:build` 0 avisos). **A execução dentro do ZWCAD segue pendente** — nesta
-  máquina o ZWCAD estava aberto durante o trabalho, e o script recusa rodar
-  assim de propósito (fechar um CAD aberto pode descartar trabalho não salvo).
-  É o único passo manual do plano.
+- **Estado: concluída.** `npm run cad:smoke` carrega a DLL por `NETLOAD` no ZWCAD
+  2026 e roda `ELET`/`FIA`/`INT`/`SYNCD`/`VERIF` num `Drawing1` vazio; o
+  `POSITRON_LOG` traz `Positron carregado.` e as respostas de cada comando.
+  Três defeitos do próprio harness apareceram e foram corrigidos: o `-Db` do
+  script colidia com o alias de `-Debug` (virou `-Banco`); o `/b` do ZWCAD espera
+  o caminho **sem** `.scr`; e dentro de `@()` a vírgula do PowerShell tem
+  precedência sobre o `+`, então a concatenação do caminho da DLL virava três
+  elementos (uma linha cada) e o `NETLOAD` recebia um caminho quebrado.
 
-### Etapa 4 — E2E das fases 5–9 dentro do ZWCAD · P1
+### Etapa 4 — E2E das fases 5–9 dentro do ZWCAD · P1 · **parcial (comandos rodam)**
 
 - **O que:** um DWG de teste com XData (`CONEXAO`, `INTERLIGACAO`, bornes,
   máscara e contatos), montado por script, e o ciclo
@@ -119,8 +121,10 @@ escopo estrutural do recoder.
 - **Pronto quando:** o número de linhas gravado por comando confere com o
   esperado do desenho e o sidecar lê o mesmo conteúdo; resultado registrado no
   `RUNBOOK.md`.
-- **Cobre hoje sem CAD:** os testes unitários já cobrem os parsers/geradores; o
-  que falta é a prova ponta a ponta no host real.
+- **Estado:** os comandos **já rodam** no ZWCAD 2026 (`cad:smoke` com
+  `-Comandos ELET,FIA,INT,SYNCD,VERIF`): cada um responde o esperado num desenho
+  vazio. Falta um **DWG funcional** com XData para o caminho de dados de verdade —
+  é o próximo passo natural.
 
 ### Etapa 5 — Pendências de projeção · P1 · **concluída**
 
@@ -159,9 +163,17 @@ escopo estrutural do recoder.
 
 ### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (6 de 10 feitas)**
 
-- **Faltam projetar:** `Aranha4`, `Atributos`, `Exportados` (`Aranha4` vem de
-  `exportaCabos`, só chamado pelas telas de relatório; `Atributos`/`Exportados`
-  são da importação/exportação cross-DWG — fora do recorte atual).
+- **Fora do recorte atual (verificado, não é pendência de execução):** os três
+  restantes pertencem a fluxos que o plugin **não** cobre, e o `POSITRON.md` §3 já
+  diz que só o tipo `"E"` (Eletron) é operado:
+  - `Aranha4` — o mapa cabo→página da **aranha** vem das telas de ArqNet/DI: o
+    `clsDInterlig.carregaTodosCabosDWG` (e as variantes `clsDIEnergisaMT/MS`) varre
+    blocos com nome contendo `CABO` e lê o XData `XDataDIEnergisa.LerXDataCabo`,
+    montando `caboSync { Revisao, Tag_Cabo, Painel, Caderno = Conf.Local,
+    Folha = layer, Coluna = cabo.Coluna }`; o `exportaCabos` só grava esse array.
+    **Não** é derivável do `Interligacao4` (hipótese da rodada 6, descartada aqui).
+  - `Atributos` / `Exportados` — do fluxo de exportação/importação cross-DWG
+    (`cDadosAccessExpImp`), comandos `EXPDWG`/`IMP*`, fora do recorte.
 - **~~`Dispositivos4F`~~ — feito:** `Dispositivos4FGerador` (puro) +
   `ProjectStore.InserirDispositivos`/`DispositivosDaRevisao` (substitui a
   revisão) + o `FIA` gerando; 5 testes em `Dispositivos4FTests`.
@@ -273,7 +285,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 |---|---|---|---|
 | 0 — Plano e baseline | 2026-10-09 | 24a7c5b | baseline da seção 2 medido nesta máquina |
 | 2 — Saneamento documental | 2026-10-09 | 3673d80 | `POSITRON.md` §6/§9, `RUNBOOK.md` (receita ZWCAD + estado de verificação), `README.md` e `cad-plugin/README.md`; contagens 105 testes / 49 módulos |
-| 3 — Harness ZWCAD (parcial) | 2026-10-09 | f5bc9a5 | `POSITRON_LOG` no `Plugin.Escrever`; `scripts/cad-zwcad-smoke.ps1` + `npm run cad:smoke`; receita no `RUNBOOK.md`; parser do `.ps1` OK e criação do `.db` (31 tabelas) validada — execução no CAD pendente do ZWCAD fechado |
+| 3 — Harness ZWCAD | 2026-10-09 | f5bc9a5 | `POSITRON_LOG` no `Plugin.Escrever`; `scripts/cad-zwcad-smoke.ps1` + `npm run cad:smoke`; receita no `RUNBOOK.md`; parser do `.ps1` OK e criação do `.db` (31 tabelas) validada — execução no CAD pendente do ZWCAD fechado |
+| 3b — Harness **executado** no ZWCAD | 2026-10-09 | (este commit) | `npm run cad:smoke` exit 0: `NETLOAD` + `ELET`/`FIA`/`INT`/`SYNCD`/`VERIF` no ZWCAD 2026 (fase 4 fechada); 3 defeitos do harness corrigidos (`-Db`×`-Debug`, `/b` sem `.scr`, precedência da vírgula no `@()`) |
 | 5 — Pendências de projeção (parcial) | 2026-10-09 | bc59c8d | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; resta só a `Pagina` com cruzamento (matriz de páginas) |
 | 7a — `Dispositivos4F` | 2026-10-09 | ed7222a | gerador puro + gravação idempotente + `FIA` gerando; `plugin:test` **110** aprovados |
 | 7b — `Circuitos4F` | 2026-10-09 | 1afbd7a | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados |

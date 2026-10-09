@@ -269,7 +269,7 @@ npm run protocol:gen   # gate: falha se os tipos gerados estiverem velhos
 | 1 | Schema + gerador de contrato | `protocol:gen` falha se os tipos gerados divergirem | feito |
 | 2 | Sidecar lê SQLite (métodos do §4) | `projeto_listar_paineis` responde do `.db` real | feito |
 | 3 | UI do app lista painéis/veias/fiação | navegável, typecheck limpo | feito |
-| 4 | Plugin compila e registra comandos | `ELET` e `SYNCD` rodando dentro do ZWCAD | parcial |
+| 4 | Plugin compila e registra comandos | `ELET` e `SYNCD` rodando dentro do ZWCAD | **feito** |
 | 5 | Fiação: XData → `Fiacao` | fios no desenho aparecem no app | parcial |
 | 6 | Interligação: XData → `Interligacao4` | trecho de cabo fecha ponta a ponta | parcial |
 | 7 | Bornes/terminais: desenho → colunas deferidas | terminal/régua da fiação vêm do desenho | parcial |
@@ -285,8 +285,12 @@ máquina (`C:\Program Files\ZWSOFT\ZWCAD 2026`, com `ZwManaged.dll`/
 `ZwDatabaseMgd.dll` 26.0.26.0 em .NET Framework e o símbolo `cmd_netload`), então
 `npm run plugin:build` resolve o `ZWCadDir` sozinho e gera
 `Positron.Plugin.ZWCAD.dll` contra a API **real** `ZwSoft.ZwCAD.*` — não é mais o
-stub. O que falta para fechar a fase é **carregar por `NETLOAD` dentro do ZWCAD**
-(a receita está no `RUNBOOK.md`; é o passo 3 do `PLANO.md`).
+stub. A fase **fechou**: `npm run cad:smoke` carrega a DLL por `NETLOAD` no ZWCAD
+2026 e roda `ELET`/`FIA`/`INT`/`SYNCD`/`VERIF` num `Drawing1` vazio — o
+`POSITRON_LOG` traz `Positron carregado.` e as respostas de cada comando. Dois
+detalhes do harness que custaram tempo e ficaram documentados no `RUNBOOK.md`: o
+`/b` do ZWCAD espera o caminho **sem** a extensão `.scr`, e o `-Db` do script
+colide com o alias de `-Debug` (é `-Banco`).
 
 Os alvos **AutoCAD** continuam buildando contra o stub nesta máquina: o
 `AutoCAD 2020` usado nos ensaios originais **não está instalado aqui** (há
@@ -474,11 +478,12 @@ reler o repositório inteiro.
 - Frontend CAD em `cad-plugin/Positron.Data/` (núcleo puro, testável sem
   CAD) e `cad-plugin/Positron.Plugin/` (adapters do ZWCAD e AutoCAD).
 
-**Estado:** fases 0–3 **feitas**; fases 4–9 **parciais** (a tabela do §6 diz o
-que falta em cada uma). Nesta máquina o **ZWCAD 2026 está instalado** e a DLL do
-ZWCAD é carregável por `NETLOAD` — falta executar o carregamento (passo 3 do
-`PLANO.md`). Os ensaios de `FIA`/`INT` no AutoCAD 2020 foram positivos e estão
-no `RUNBOOK.md`.
+**Estado:** fases 0–3 **feitas** e a **4 fechada** (a DLL carrega por `NETLOAD` no
+ZWCAD 2026 e os comandos respondem — `npm run cad:smoke`, ver `RUNBOOK.md`); as
+fases 5–9 seguem **parciais** (a tabela do §6 diz o que falta em cada uma). O que
+não foi exercitado é um **desenho funcional de verdade** (o smoke roda num
+`Drawing1` vazio). Os ensaios de `FIA`/`INT` no AutoCAD 2020 foram positivos e
+estão no `RUNBOOK.md`.
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
