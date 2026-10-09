@@ -192,10 +192,13 @@ namespace Positron.Data.Tests
                 IReadOnlyList<FiacaoRow> linhas = store.FiacaoDoPainel(1);
                 Assert.Equal(2, linhas.Count);
 
-                // Ordem 1 = o borne (PosicaoNum 1), com NRegua/terminal preenchidos.
+                // Ordem 1 = o borne (PosicaoNum 1), com terminal preenchido e
+                // **NRegua vazio** — no original essa coluna so sai do casamento da
+                // porta (E); o nome da regua vai na `Tag`.
                 Assert.Equal(1L, linhas[0].Ordem ?? 0);
                 Assert.Equal(1L, linhas[0].PosicaoNum ?? 0);
-                Assert.Equal("R1", linhas[0].NRegua);
+                Assert.Equal("R1", linhas[0].Tag);
+                Assert.True(string.IsNullOrEmpty(linhas[0].NRegua));
                 Assert.Equal("T1", linhas[0].Terminal);
                 Assert.Equal(8L, linhas[0].IndexModelo ?? -1);
 

@@ -153,7 +153,12 @@ namespace Positron.Data.Fiacao
             Tipo = BorneXData.TipoBorne;
             TipoBorne = (short)borne.Tipo;
             IndexModelo = (short)borne.IndiceRegua;
-            NRegua = borne.NomeRegua;
+            // `NRegua` fica **vazio** no caminho do borne: no original ele e um
+            // parametro de saida do casamento de terminal (`ltZUHdAX7R`, ref P_6),
+            // que so e preenchido no caminho da **porta** (`E`, via `f2yUfcqdnE`, e
+            // so quando a regra de casamento e 2). Em `B`/`P`/`A` ele permanece "" —
+            // das 38.221 linhas de `Fiacao` do banco do produto, so 14 tem NRegua.
+            NRegua = string.Empty;
             Handle = borne.Handle;
             PosicaoNum = 1;
             OrdemChave = borne.IndiceRegua;
@@ -184,7 +189,10 @@ namespace Positron.Data.Fiacao
             Tipo = dispositivo.Tipo;
             TipoBorne = -1;
             IndexModelo = (short)dispositivo.IndexModelo;
-            NRegua = dispositivo.Nome1;
+            // Pelo mesmo motivo do borne: no original `NRegua` so sai preenchida no
+            // caminho da porta (`E`). Aqui a porta nao chega a preencher — vazio e o
+            // dado ausente, nao um nome inventado.
+            NRegua = string.Empty;
             Handle = dispositivo.Handle;
             PosicaoNum = 0;
             OrdemChave = -1;

@@ -697,11 +697,21 @@ recoder: ...|FU3|FU3|NA|A|...        produto: ...|FU3||NA|A|...
 recoder: ...|R6|R6|40|B|...|0.00|    produto: ...|R6||40|B|...|1.00|
 ```
 
-1. **`NRegua`**: o recoder preenche o nome da régua no ponto que casou com borne; o
-   produto deixa **vazio** — das 38.221 linhas de `Fiacao` do banco do produto, só
-   **14** têm `NRegua` preenchida. Falta descobrir o caso das 14;
-2. **`TipoBorne`**: em `R6`/borne `40` o produto grava `1` e o recoder `0` (o tipo do
-   borne — simples/duplo). Indica índice de XData ou origem do valor diferentes.
+1. **`NRegua` — era bug, corrigido na rodada 43.** O recoder preenchia o nome da régua
+   no ponto (do borne ou do dispositivo); o produto deixa **vazio** — das 38.221 linhas
+   de `Fiacao` do banco do produto, só **14** têm `NRegua`. A origem está no
+   `ltZUHdAX7R` do `frmCompilarFiacao` (linha 2915): `NRegua` é um **parâmetro de saída**
+   do casamento de terminal (`ref P_6`) e só é preenchido no caminho da **porta** (`E`,
+   via `f2yUfcqdnE`, quando a regra de casamento é 2). Em `B`/`P`/`A` ele fica vazio — o
+   nome da régua vai na `Tag`. Corrigido em `AplicarBorne`/`AplicarDispositivo`: a
+   `Fiacao` saiu de **988** linhas divergentes para **238**;
+2. **`TipoBorne` — não é bug do recoder, é o dado.** Em `R6`/borne `40` o produto grava
+   `1` e o recoder `0`. Os **dois** leem o mesmo índice (`structureBorne.tipo`, XData 14
+   — `XDataDispositivosMaster`, linha 891) e o dado do produto é coerente entre as duas
+   tabelas (`Bornes4F.Tipo` = `1` e `Fiacao.TipoBorne` = `1` no mesmo handle). Um dump do
+   XData no desenho que temos mostra **199 de 199** bornes com `tipo = 0`; a distribuição
+   do produto é 79 com `1` e 58 com `0`. Ou seja: a cópia local do desenho tem os bornes
+   sem o tipo (simples/duplo) gravado — mesma classe das outras diferenças de entrada.
 
 **Fechado na rodada 42: os blocos do `Dispositivos4F`.** Eram **42** linhas divergentes
 (metade da tabela) porque o recoder deixava `BlocoTopografico`/`BlocoLayout` vazias. A
