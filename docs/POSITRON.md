@@ -396,6 +396,16 @@ a gerar a tabela. A orientação dos contatos é reprocessada na leitura do dici
 projetado aqui tampouco. Ainda não exercitado num CAD: o `FIA` rodou no AutoCAD
 2020, mas o desenho não tinha modelo de contato, então `Contatos4F` saiu vazia.
 
+A fase 7 (tabelas) avançou sobre o `Dispositivos4F`: o `FIA` grava **um
+dispositivo por bloco** — um por bloco `P` e um por bloco de máscara `M`, como o
+`frmCompilarFiacao` (linhas 2640–2793 do reverso), pulando `Complementar` e
+painel fora de uso. A `Tag` é `Nome1[/Nome2]`, a `Pagina` é o layer do bloco, o
+`BlocoTopografico`/`BlocoLayout` vêm do modelo casado por `IndexModelo` (no `P` o
+dicionário de modelos de contato, no `M` o de máscaras) e `PosicaoNum`/`Ordem`
+saem do `CENG_LAYOUT` por `(painel, tag)`. Limite assumido: no `P` com
+`IndexModelo == 0` o original lê essas duas colunas do XData do bloco e o leitor
+atual não expõe esses índices — saem vazias.
+
 ## 7. Armadilhas
 
 - **App não lê XData.** Qualquer informação que a UI do app precisa ver **tem**
@@ -458,12 +468,14 @@ no `RUNBOOK.md`.
    no catálogo). Hoje o `VERIF` valida as tabelas gravadas (fiação, interligação
    e modelos), mas não lê o desenho.
 3. **Tabelas do contrato §3 ainda não projetadas:** o plugin grava `Fiacao`,
-   `Interligacao4`, `Portas4F`, `Bornes4F`, `Contatos4F`, `Cabos4` e `Veias4`.
-   Ficam por cobrir `Jumper4`, `Bornes4I`, `Portas4I`, `Dispositivos4F`,
+   `Interligacao4`, `Portas4F`, `Bornes4F`, `Contatos4F`, `Dispositivos4F`,
+   `Cabos4` e `Veias4`. Ficam por cobrir `Jumper4`, `Bornes4I`, `Portas4I`,
    `Aranha4`, `Circuitos4F`, `Aplicacao4F`, `Atributos` e `Exportados`
    (jumpers, bornes intermediários, aranha, circuitos, aplicação e projeção
-   cross-DWG) — que estão fora do recorte de comandos atual (`ELET`/`FIA`/`INT`/
-   `SYNCD`/`VERIF`).
+   cross-DWG). Atenção: o `Jumper4` **não** vem do `FIA` — é escrito pelo
+   `frmCompilarJumperExt` (comando `JMP`/`JPEXT`) —, então cada tabela restante
+   exige o seu próprio fluxo do reverso; a receita de cada uma está no
+   `PLANO.md`.
 4. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
 
 **Convenções que não podem ser esquecidas**
@@ -481,7 +493,7 @@ no `RUNBOOK.md`.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 105 testes)
+npm run plugin:test       # xunit, net472 (hoje 110 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

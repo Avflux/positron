@@ -149,13 +149,16 @@ escopo estrutural do recoder.
   valor (cabo sem catálogo, borne sem régua, página ausente) com teste cobrindo
   a regra pura.
 
-### Etapa 7 — Tabelas restantes do contrato · P2
+### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (`Dispositivos4F` feito)**
 
-- **Faltam projetar:** `Jumper4`, `Bornes4I`, `Portas4I`, `Dispositivos4F`,
-  `Aranha4`, `Circuitos4F`, `Aplicacao4F`, `Atributos`, `Exportados`.
+- **Faltam projetar:** `Jumper4`, `Bornes4I`, `Portas4I`, `Aranha4`,
+  `Circuitos4F`, `Aplicacao4F`, `Atributos`, `Exportados`.
+- **~~`Dispositivos4F`~~ — feito (este commit):** `Dispositivos4FGerador` (puro)
+  + `ProjectStore.InserirDispositivos`/`DispositivosDaRevisao` (substitui a
+  revisão) + o `FIA` passou a gerá-la; 5 testes em `Dispositivos4FTests`.
 - **Custo real medido no reverso** (cada tabela vem de um fluxo próprio, não é só
   um `INSERT`):
-  - `Dispositivos4F` — do próprio `frmCompilarFiacao` (linhas 2640–2793): um
+  - (feito) `Dispositivos4F` — do próprio `frmCompilarFiacao` (linhas 2640–2793): um
     bloco por dispositivo tipo `P` **e** por máscara tipo `M` (`Tipo` = `"P"`/
     `"M"`), pulando `Complementar` e painel fora de uso. `Tag` = `Nome1[/Nome2]`;
     `Pagina` = layer (caso `0..2`); `PosicaoNum`/`Ordem` da `mPosicao` por
@@ -163,9 +166,9 @@ escopo estrutural do recoder.
     de modelos de contato** (`DicionarioContatos` = nosso `ModelosContato`, que já
     tem os dois campos) por `IndexModelo`; quando `indexModelo == 0`, do próprio
     XData (`Topografico`/`Layout`). No `M`, vêm do **dicionário de máscaras**
-    (`DicionarioMascaras` = nosso `ModelosMascara`). **Candidato natural a próxima
-    tabela**: os insumos existem; falta o scan dos blocos `M` com entidade
-    (layer/handle/painel) — hoje `MascarasDoDesenho` só devolve índices e painéis.
+    (`DicionarioMascaras` = nosso `ModelosMascara`). O scan dos blocos `M` já
+    vinha do `DispositivosDeFiacaoDoDesenho` (o leitor aceita `M`), então não foi
+    preciso adapter novo.
   - `Jumper4` — **não** vem do `FIA`: é escrito por `frmCompilarJumperExt`
     (comando `JMP`/`JPEXT` do reverso), fora do recorte atual.
   - `Aranha4`, `Circuitos4F`, `Aplicacao4F`, `Atributos`, `Exportados` — cada um
@@ -208,7 +211,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 0 — Plano e baseline | 2026-10-09 | 24a7c5b | baseline da seção 2 medido nesta máquina |
 | 2 — Saneamento documental | 2026-10-09 | 3673d80 | `POSITRON.md` §6/§9, `RUNBOOK.md` (receita ZWCAD + estado de verificação), `README.md` e `cad-plugin/README.md`; contagens 105 testes / 49 módulos |
 | 3 — Harness ZWCAD (parcial) | 2026-10-09 | f5bc9a5 | `POSITRON_LOG` no `Plugin.Escrever`; `scripts/cad-zwcad-smoke.ps1` + `npm run cad:smoke`; receita no `RUNBOOK.md`; parser do `.ps1` OK e criação do `.db` (31 tabelas) validada — execução no CAD pendente do ZWCAD fechado |
-| 5 — Pendências de projeção (parcial) | 2026-10-09 | (este commit) | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; resta só a `Pagina` com cruzamento (matriz de páginas) |
+| 5 — Pendências de projeção (parcial) | 2026-10-09 | bc59c8d | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; resta só a `Pagina` com cruzamento (matriz de páginas) |
+| 7 — Tabelas restantes (parcial) | 2026-10-09 | (este commit) | **`Dispositivos4F`** projetada: gerador puro + gravação idempotente + `FIA` gerando; `plugin:test` **110** aprovados; restam `Jumper4`, `Bornes4I`, `Portas4I`, `Aranha4`, `Circuitos4F`, `Aplicacao4F`, `Atributos`, `Exportados` |
 | 1 — Idempotência da projeção | 2026-10-09 | cbadec5 | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
 
 ## 6. Riscos e armadilhas

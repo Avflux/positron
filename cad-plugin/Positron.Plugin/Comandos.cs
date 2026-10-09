@@ -130,13 +130,15 @@ namespace Positron.Plugin
                 int portas = GerarPortas(store, contexto, emUso.Modelos);
                 int reservas = GerarBornes(store, contexto, reguas, bornes, paineis);
                 int contatos = GerarContatos(store, contexto, dispositivos);
+                int dispositivos4F = GerarDispositivos(store, contexto, paineis, dispositivosDeFiacao, posicoes);
 
                 return "FIA: " + gravados + " linha(s) em Fiacao (" + bornes.Count + " borne(s), "
                     + dispositivosDeFiacao.Count + " dispositivo(s), "
                     + reordenados + " reordenada(s), " + posicoes.NumPosicoes + " posicao(oes), "
                     + deslocamentos.NumPontos + " ponto(s) de bloco); "
                     + portas + " porta(s) em Portas4F; " + reservas + " borne(s) em Bornes4F; "
-                    + contatos + " contato(s) em Contatos4F.";
+                    + contatos + " contato(s) em Contatos4F; "
+                    + dispositivos4F + " dispositivo(s) em Dispositivos4F.";
             }
             catch (System.Exception erro)
             {
@@ -343,6 +345,46 @@ namespace Positron.Plugin
                 auxiliaresPorModelo,
                 dispositivos.TerminaisBobinas);
             store.InserirContatos(linhas, contexto.Revisao, contexto.Dwg);
+            return linhas.Count;
+        }
+
+        /// <summary>
+        /// Gera <c>Dispositivos4F</c> a partir dos blocos <c>P</c>/<c>M</c> do
+        /// desenho (ver <see cref="Dispositivos4FGerador"/>). Os modelos que dão
+        /// <c>BlocoTopografico</c>/<c>BlocoLayout</c> vêm dos mesmos dicionários
+        /// já lidos pelo <c>FIA</c>: contatos (para o <c>P</c>) e máscaras (para o
+        /// <c>M</c>).
+        /// </summary>
+        private static int GerarDispositivos(
+            ProjectStore store,
+            ContextoProjecao contexto,
+            ICollection<int> paineis,
+            IReadOnlyList<DispositivoFiacao> blocos,
+            LayoutPosicoes posicoes)
+        {
+            Dictionary<int, BlocoDoModelo> modeloDeDispositivo = new Dictionary<int, BlocoDoModelo>();
+            foreach (ModeloContato modelo in ContatosDoDesenho.LerModelos())
+            {
+                modeloDeDispositivo[modelo.Indice] = new BlocoDoModelo
+                {
+                    BlocoTopografico = modelo.BlocoTopografico,
+                    BlocoLayout = modelo.BlocoLayout,
+                };
+            }
+
+            Dictionary<int, BlocoDoModelo> modeloDeMascara = new Dictionary<int, BlocoDoModelo>();
+            foreach (ModeloMascara modelo in ModelosMascaraDoDesenho.LerModelos())
+            {
+                modeloDeMascara[modelo.Indice] = new BlocoDoModelo
+                {
+                    BlocoTopografico = modelo.BlocoTopografico,
+                    BlocoLayout = modelo.BlocoLayout,
+                };
+            }
+
+            List<Dispositivo4F> linhas = Dispositivos4FGerador.Gerar(
+                blocos, paineis, modeloDeDispositivo, modeloDeMascara, posicoes);
+            store.InserirDispositivos(linhas, contexto.Revisao, contexto.Dwg);
             return linhas.Count;
         }
 

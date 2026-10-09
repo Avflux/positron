@@ -605,6 +605,48 @@ namespace Positron.Data
             return linhas;
         }
 
+        /// <summary>Lê os dispositivos de uma revisão (<c>Dispositivos4F</c>).</summary>
+        public IReadOnlyList<Dispositivos4FRow> DispositivosDaRevisao(int dwg, string revisao)
+        {
+            List<Dispositivos4FRow> linhas = new List<Dispositivos4FRow>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, DWG, Painel, Tag, Alternativo, Tipo, Handle, Pagina, " +
+                    "BlocoTopografico, BlocoLayout, PosicaoNum, Ordem " +
+                    "FROM Dispositivos4F " +
+                    "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') ORDER BY Painel, Indice";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new Dispositivos4FRow
+                        {
+                            Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
+                            Revisao = Texto(leitor, "Revisao"),
+                            DWG = Inteiro(leitor, "DWG"),
+                            Painel = Inteiro(leitor, "Painel"),
+                            Tag = Texto(leitor, "Tag"),
+                            Alternativo = Texto(leitor, "Alternativo"),
+                            Tipo = Texto(leitor, "Tipo"),
+                            Handle = Texto(leitor, "Handle"),
+                            Pagina = Texto(leitor, "Pagina"),
+                            BlocoTopografico = Texto(leitor, "BlocoTopografico"),
+                            BlocoLayout = Texto(leitor, "BlocoLayout"),
+                            PosicaoNum = Inteiro(leitor, "PosicaoNum"),
+                            Ordem = Inteiro(leitor, "Ordem"),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
         /// <summary>Lê o catálogo de cabos (<c>Cabos</c>) — fonte do snapshot <c>Cabos4</c>.</summary>
         public IReadOnlyList<CabosRow> LerCabos()
         {
@@ -1030,6 +1072,64 @@ namespace Positron.Data
                     parametros[4].Value = Nulo(contato.Terminal);
                     parametros[5].Value = contato.TerminalNum;
                     parametros[6].Value = Nulo(contato.Orientacao);
+                    comando.ExecuteNonQuery();
+                }
+
+                transacao.Commit();
+            }
+        }
+
+        /// <summary>Grava os dispositivos (<c>Dispositivos4F</c>) — ver <see cref="Dispositivos4FGerador"/>.</summary>
+        public void InserirDispositivos(IEnumerable<Dispositivo4F> dispositivos, string revisao, int dwg)
+        {
+            List<Dispositivo4F> lista = dispositivos == null
+                ? new List<Dispositivo4F>()
+                : new List<Dispositivo4F>(dispositivos);
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                // Substitui a revisão (RemoveRevisaoTabelaParaDWG): o desenho é a
+                // verdade — dispositivo que sumiu do desenho sai do banco.
+                RemoverRevisaoDaTabela(conexao, "Dispositivos4F", dwg, revisao);
+
+                comando.CommandText =
+                    "INSERT INTO Dispositivos4F(Revisao, DWG, Painel, Tag, Alternativo, Tipo, Handle, Pagina, " +
+                    "BlocoTopografico, BlocoLayout, PosicaoNum, Ordem) " +
+                    "VALUES(@revisao, @dwg, @painel, @tag, @alternativo, @tipo, @handle, @pagina, " +
+                    "@blocoTopografico, @blocoLayout, @posicaoNum, @ordem)";
+
+                SQLiteParameter[] parametros =
+                {
+                    comando.Parameters.Add("@revisao", System.Data.DbType.String),
+                    comando.Parameters.Add("@dwg", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@painel", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@tag", System.Data.DbType.String),
+                    comando.Parameters.Add("@alternativo", System.Data.DbType.String),
+                    comando.Parameters.Add("@tipo", System.Data.DbType.String),
+                    comando.Parameters.Add("@handle", System.Data.DbType.String),
+                    comando.Parameters.Add("@pagina", System.Data.DbType.String),
+                    comando.Parameters.Add("@blocoTopografico", System.Data.DbType.String),
+                    comando.Parameters.Add("@blocoLayout", System.Data.DbType.String),
+                    comando.Parameters.Add("@posicaoNum", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@ordem", System.Data.DbType.Int32),
+                };
+
+                foreach (Dispositivo4F dispositivo in lista)
+                {
+                    parametros[0].Value = Nulo(revisao);
+                    parametros[1].Value = dwg;
+                    parametros[2].Value = (int)dispositivo.Painel;
+                    parametros[3].Value = Nulo(dispositivo.Tag);
+                    parametros[4].Value = Nulo(dispositivo.Alternativo);
+                    parametros[5].Value = Nulo(dispositivo.Tipo);
+                    parametros[6].Value = Nulo(dispositivo.Handle);
+                    parametros[7].Value = Nulo(dispositivo.Pagina);
+                    parametros[8].Value = Nulo(dispositivo.BlocoTopografico);
+                    parametros[9].Value = Nulo(dispositivo.BlocoLayout);
+                    parametros[10].Value = dispositivo.PosicaoNum;
+                    parametros[11].Value = dispositivo.Ordem;
                     comando.ExecuteNonQuery();
                 }
 

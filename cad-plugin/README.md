@@ -128,6 +128,17 @@ bornes de reserva de `CENG_BORNES/<indexRegua>`; e os contatos de
 procurados no desenho; os painéis em uso, que no original vêm da tela, aqui saem
 das conexões/máscaras/dispositivos presentes.
 
+**Dispositivos (`Dispositivos4F`).** O `FIA` também grava um **dispositivo por
+bloco**: um por bloco de dispositivo (`P`) e um por bloco de máscara (`M`), como
+o `frmCompilarFiacao` do original — blocos `Complementar` e de painel fora de uso
+ficam de fora. A `Tag` é `Nome1[/Nome2]`; a `Pagina` é o layer do bloco; o
+`BlocoTopografico`/`BlocoLayout` vêm do **modelo** casado por `IndexModelo` (no
+`P` o dicionário de modelos de contato, no `M` o de máscaras); e
+`PosicaoNum`/`Ordem` vêm das posições do layout (`CENG_LAYOUT`), casadas por
+`(painel, tag)`. Limite assumido: no `P` com `IndexModelo == 0` o original lê
+essas duas colunas do próprio XData — o leitor atual não expõe esses índices, então
+elas saem vazias (ausente, não inventado).
+
 **Casamento por bounds + deslocamento.** O casamento ponto↔borne usa as duas
 etapas do original: o ponto tem que cair dentro da **bounding-box** do bloco com
 0,25 de folga (`Bounds ±0,25`), e o ponto de referência é
