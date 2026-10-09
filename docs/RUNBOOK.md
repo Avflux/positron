@@ -687,7 +687,7 @@ Resultado no `Funcional.dwg` (revisão `3` do produto contra `R0` do recoder):
 | `Aplicacao4F` | 15 | 15 | **idêntico** |
 | `Fiacao` | 494 | 494 | difere — ver abaixo |
 | `Bornes4F` | 168 | 155 | difere pela cópia do desenho (régua `ENTR 1` × `52-X1`, bornes da página 1000) |
-| `Dispositivos4F` | 83 | 83 | difere em 42 linhas — `BlocoTopografico`/`BlocoLayout` vazios no recoder |
+| `Dispositivos4F` | 83 | 83 | difere em **2** linhas — ver a nota dos blocos |
 
 **Duas diferenças da `Fiacao` que não são da cópia do desenho** (as linhas amostradas
 mostram as duas colunas isoladas):
@@ -703,9 +703,20 @@ recoder: ...|R6|R6|40|B|...|0.00|    produto: ...|R6||40|B|...|1.00|
 2. **`TipoBorne`**: em `R6`/borne `40` o produto grava `1` e o recoder `0` (o tipo do
    borne — simples/duplo). Indica índice de XData ou origem do valor diferentes.
 
-E o `Dispositivos4F` tem os nomes de bloco no desenho (`DIODOS_SKR.dwg`/`PONTE SKR.dwg`)
-que o produto grava nas duas colunas e o recoder deixa em branco — o dado existe, falta
-levá-lo até a tabela.
+**Fechado na rodada 42: os blocos do `Dispositivos4F`.** Eram **42** linhas divergentes
+(metade da tabela) porque o recoder deixava `BlocoTopografico`/`BlocoLayout` vazias. A
+regra está no `frmCompilarFiacao` (linhas 2699-2716): com `indexModelo != 0` os blocos
+vêm do **dicionário do modelo**; com `indexModelo == 0`, do **XData do próprio bloco**
+— `Layout = array[17]`/`Topografico = array[18]` no dispositivo `P` e
+`Topografico = array[16]`/`Layout = array[17]` na máscara `M`
+(`XDataDispositivosMaster`, linhas 808-809 e 845-846). O leitor de XData não expunha
+esses índices; passou a expor, e o gerador usa o XData quando não há modelo. Resultado:
+de **42** linhas divergentes para **2**.
+
+As 2 restantes são de conteúdo do **Layout** (`FINDER_56.34+BASE_LAYOUT.DWG` no recoder
+contra `RJ-8.dwg` no produto), em blocos cujo `Topografico` bate — mesma classe das
+outras diferenças de dado (a cópia local do desenho não é a compilada), mas fica
+registrado como pendência até haver a evidência.
 
 ### Comparação de **conteúdo** (não só de contagem) — `Portas4I`/`Bornes4I`
 

@@ -76,6 +76,19 @@ namespace Positron.Data.Fiacao
                         return false;
                     }
 
+                    // Os blocos do modelo: o original usa o dicionário quando há
+                    // `indexModelo` e, sem ele, o XData do próprio bloco — para o
+                    // dispositivo (P) `Layout=array[17]`/`Topografico=array[18]`, para a
+                    // máscara (M) `Topografico=array[16]`/`Layout=array[17]`. Sem ler
+                    // estes campos, `Dispositivos4F` saía sem os nomes de bloco.
+                    string layout = valores.Count > 17 ? Texto(valores[17].Valor) : string.Empty;
+                    string topografico = valores.Count > 18 ? Texto(valores[18].Valor) : string.Empty;
+                    if (tipo == TipoMascara)
+                    {
+                        topografico = valores.Count > 16 ? Texto(valores[16].Valor) : string.Empty;
+                        layout = valores.Count > 17 ? Texto(valores[17].Valor) : string.Empty;
+                    }
+
                     dispositivo = new DispositivoFiacao
                     {
                         Tipo = tipo,
@@ -85,6 +98,8 @@ namespace Positron.Data.Fiacao
                         Painel = Curto(valores[8].Valor),
                         IndexModelo = Inteiro(valores[12].Valor),
                         Complementar = Booleano(valores[13].Valor),
+                        Topografico = topografico,
+                        Layout = layout,
                     };
                     return true;
 

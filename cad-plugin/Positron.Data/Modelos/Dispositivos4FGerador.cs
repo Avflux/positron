@@ -115,10 +115,22 @@ namespace Positron.Data.Modelos
                     {
                         PreencherDoModelo(modelosDeDispositivo, bloco.IndexModelo, out topografico, out layout);
                     }
+                    else
+                    {
+                        // Sem modelo no dicionário, o original lê do XData do bloco
+                        // (`frmCompilarFiacao`, linhas 2712-2716).
+                        topografico = bloco.Topografico;
+                        layout = bloco.Layout;
+                    }
                 }
                 else if (bloco.IndexModelo > 0)
                 {
                     PreencherDoModelo(modelosDeMascara, bloco.IndexModelo, out topografico, out layout);
+                }
+                else
+                {
+                    topografico = bloco.Topografico;
+                    layout = bloco.Layout;
                 }
 
                 int posicaoNum = 0;

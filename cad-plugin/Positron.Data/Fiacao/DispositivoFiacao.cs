@@ -44,6 +44,17 @@ namespace Positron.Data.Fiacao
 
         public bool Complementar { get; set; }
 
+        /// <summary>
+        /// Bloco topográfico gravado no **próprio XData** do dispositivo —
+        /// usado quando <see cref="IndexModelo"/> é 0 (o original lê o modelo do
+        /// dicionário só quando há índice; sem ele, cai no XData:
+        /// <c>StructureDispositivo.Topografico</c>).
+        /// </summary>
+        public string Topografico { get; set; }
+
+        /// <summary>Bloco de layout do próprio XData (o par de <see cref="Topografico"/>).</summary>
+        public string Layout { get; set; }
+
         /// <summary>Handle do próprio bloco no desenho.</summary>
         public string Handle { get; set; }
 

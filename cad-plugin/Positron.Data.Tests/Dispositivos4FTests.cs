@@ -55,6 +55,58 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void Sem_modelo_no_dicionario_usa_os_blocos_do_XData()
+        {
+            // O original: com `indexModelo == 0` os blocos vem do XData do proprio
+            // bloco (`frmCompilarFiacao`, 2712-2716). Regressao do A/B: 42 linhas de
+            // `Dispositivos4F` no desenho real saiam sem esses nomes.
+            List<DispositivoFiacao> blocos = new List<DispositivoFiacao>
+            {
+                new DispositivoFiacao
+                {
+                    Tipo = "P", Nome1 = "D1-1", Painel = 503, Handle = "H1", Layer = "15",
+                    IndexModelo = 0, Topografico = "DIODOS_SKR.dwg", Layout = "PONTE SKR.dwg",
+                },
+            };
+
+            List<Dispositivo4F> linhas = Dispositivos4FGerador.Gerar(
+                blocos,
+                new List<int> { 503 },
+                new Dictionary<int, BlocoDoModelo>(),
+                new Dictionary<int, BlocoDoModelo>(),
+                Posicoes());
+
+            Dispositivo4F linha = Assert.Single(linhas);
+            Assert.Equal("DIODOS_SKR.dwg", linha.BlocoTopografico);
+            Assert.Equal("PONTE SKR.dwg", linha.BlocoLayout);
+        }
+
+        [Fact]
+        public void Modelo_no_dicionario_tem_precedencia_sobre_o_XData()
+        {
+            List<DispositivoFiacao> blocos = new List<DispositivoFiacao>
+            {
+                new DispositivoFiacao
+                {
+                    Tipo = "P", Nome1 = "D1", Painel = 1, Handle = "H1", Layer = "PAG1",
+                    IndexModelo = 7, Topografico = "DO_XDATA", Layout = "DO_XDATA",
+                },
+            };
+
+            Dictionary<int, BlocoDoModelo> deDispositivo = new Dictionary<int, BlocoDoModelo>
+            {
+                { 7, new BlocoDoModelo { BlocoTopografico = "TOPO1", BlocoLayout = "LAY1" } },
+            };
+
+            List<Dispositivo4F> linhas = Dispositivos4FGerador.Gerar(
+                blocos, new List<int> { 1 }, deDispositivo, new Dictionary<int, BlocoDoModelo>(), Posicoes());
+
+            Dispositivo4F linha = Assert.Single(linhas);
+            Assert.Equal("TOPO1", linha.BlocoTopografico);
+            Assert.Equal("LAY1", linha.BlocoLayout);
+        }
+
+        [Fact]
         public void Gera_linha_da_mascara_M_com_modelo_de_mascara()
         {
             List<DispositivoFiacao> blocos = new List<DispositivoFiacao>
