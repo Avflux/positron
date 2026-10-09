@@ -551,27 +551,39 @@ ELETREL: 107 problema(s) em C:\Users\rno\AppData\Local\Temp\positron-relatorio-e
 # 2026-10-09 11:50:24
 VERIF: 494 fio(s), 20 trecho(s), 265 porta(s), 168 borne(s), 88 contato(s) na revisão.
 # banco=...\positron-zwcad-20261009-115009.db
-# problemas=117
+# problemas=236
 # area;tipo;tabela;identificador;detalhe
 Desenho;BorneSemFiacao;Fiacao;4DD53;borne do desenho sem ponto de fiação
 ...
-# 117 linha(s)
+# 236 linha(s)
 ```
 
-O total mudou de 107 para **117** na rodada 33, quando entrou a regra das **réguas
-vazias** (`ReguaVazia`, 10 no desenho real): o `buscaReguasVazias` do
-`ClsVerificadorProjetoFiacao` (linha 1815 do reverso) varre o **dicionário de réguas**
-do desenho e aponta toda régua cujo par `(painel, régua)` não aparece nos bornes —
-ou seja, régua declarada e nunca usada no caderno. O original guarda as usadas como
-texto `"painel,régua"`; aqui a chave é o par de inteiros.
+O total subiu de 107 para **117** (rodada 33) e para **236** (rodada 34) com duas
+regras de **higiene do desenho** portadas de checagens próprias da tela do produto —
+elas não indicam projeção errada, e sim dado faltando no desenho:
+
+- **`ReguaVazia` (10):** o `buscaReguasVazias` do `ClsVerificadorProjetoFiacao` (linha
+  1815) varre o **dicionário de réguas** e aponta toda régua cujo par `(painel, régua)`
+  não aparece nos bornes — régua declarada e nunca usada no caderno. O original guarda
+  as usadas como texto `"painel,régua"`; aqui a chave é o par de inteiros.
+- **`BorneSemLm` (119):** o `GijcRTCGe3` da mesma tela (linha 2720) monta a árvore
+  `TreeViewBornesLM` com todo borne do desenho cujo `lm == 0`. O `lm` é resolvido do
+  dicionário **na gravação** do borne (`DicionarioBorne.BuscaLMdaRegua`, chamado só em
+  `XDataDispositivosMaster.GravarXDataDispBorne`), e o verificador lê o XData **cru** —
+  então `lm == 0` quer dizer que a régua não define LM (ou o borne nunca foi regravado
+  pelo produto), exatamente o que os 119 bornes desta cópia do desenho mostram.
+
+O relatório continua separando por tipo (`VERIF: por tipo — …`), que é o que mantém o
+número legível: `BorneSemFiacao` e `BorneSemLm` são coisas diferentes.
 
 O verificador do produto é bem maior que as regras de tabela: a tela tem **14
 checagens** (`bt1Fiacao` … `bt14PortasDiscrepantes`, rótulos em
 `DeclaracoesGeral.mMensagem[1, id]`) e o motor fica em
 `ClsVerificadorProjetoFiacao.cs` (2.173 linhas), com uma análise própria do desenho
 (`buscaDadosDeFiacaoDWG`, linha 430) que alimenta `carregaOrfao` (1311), `carregaTree`
-(1159) e companhia. O que ainda **não** está portado é justamente o que depende dessa
-análise — o órfão por `HandleSup`, intervalos de borne, bornes de LM, painéis, itens
+(1159) e companhia. Já portadas cinco checagens do desenho (régua do borne, cabo fora do catálogo,
+página ausente, régua vazia e borne sem LM). O que ainda **não** está portado é o que
+depende dessa análise — o órfão por `HandleSup`, intervalos de borne, painéis, itens
 feitos à mão, régua da máscara e discrepantes principal/auxiliar.
 
 O conteúdo é puro (`RelatorioCompilacao`: `Texto()`/`Salvar()`, testado) e o `VERIF`

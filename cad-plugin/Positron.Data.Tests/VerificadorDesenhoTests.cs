@@ -56,6 +56,38 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void Aponta_borne_sem_LM()
+        {
+            // O `GijcRTCGe3` do reverso: todo borne do desenho com `lm == 0`.
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                new PontoBorne { Handle = "H1", IndiceRegua = 5, Painel = 503, Numero = "11", Lm = 0 },
+                new PontoBorne { Handle = "H2", IndiceRegua = 5, Painel = 503, Numero = "12", Lm = 476 },
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarBornesSemLm(bornes);
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(AreaVerificacao.Desenho, problema.Area);
+            Assert.Equal(TipoProblema.BorneSemLm, problema.Tipo);
+            Assert.Equal("H1", problema.Identificador);
+            Assert.Contains("painel 503", problema.Detalhe);
+            Assert.Contains("11", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Borne_com_LM_nao_aponta()
+        {
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                new PontoBorne { Handle = "H1", Lm = 1 },
+                new PontoBorne { Handle = "H2", Lm = 476 },
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarBornesSemLm(bornes));
+        }
+
+        [Fact]
         public void Aponta_regua_do_dicionario_sem_borne()
         {
             // O `buscaReguasVazias` do reverso: para cada régua do dicionário, se o

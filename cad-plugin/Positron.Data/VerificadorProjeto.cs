@@ -65,6 +65,9 @@ namespace Positron.Data
 
         /// <summary>Régua do dicionário do desenho sem nenhum borne no caderno.</summary>
         ReguaVazia,
+
+        /// <summary>Borne do desenho sem <c>LM</c> (<c>lm == 0</c>): a régua não define LM.</summary>
+        BorneSemLm,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -431,6 +434,38 @@ namespace Positron.Data
         /// (<c>clsReguasDeBornes.EncontraReguasUsadasNoCaderno</c>); aqui a chave é
         /// o par de inteiros, que é a mesma coisa sem depender de formatação.
         /// </summary>
+        /// <summary>
+        /// Borne do desenho com <c>lm == 0</c> — o <c>GijcRTCGe3</c> do
+        /// <c>frmVerificadorProjetoFiacao</c> (linha 2720 do reverso), que monta a
+        /// árvore `TreeViewBornesLM` com todo borne cujo <c>lm</c> é zero, agrupado
+        /// por painel → régua → número. O <c>lm</c> é resolvido do dicionário quando
+        /// o borne é criado (<c>DicionarioBorne.BuscaLMdaRegua</c>): zero significa
+        /// que a régua não define LM.
+        /// </summary>
+        public static List<Problema> VerificarBornesSemLm(IEnumerable<PontoBorne> bornes)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (bornes == null)
+            {
+                return problemas;
+            }
+
+            foreach (PontoBorne borne in bornes)
+            {
+                if (borne == null || borne.Lm != 0)
+                {
+                    continue;
+                }
+
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.BorneSemLm, "Bornes",
+                    borne.Handle,
+                    "borne sem LM (painel " + borne.Painel + ", régua #" + borne.IndiceRegua
+                    + ", borne " + (borne.Numero ?? string.Empty).Trim() + ")"));
+            }
+
+            return problemas;
+        }
+
         public static List<Problema> VerificarReguasVazias(
             ReguasModelo reguas,
             IEnumerable<PontoBorne> bornes)

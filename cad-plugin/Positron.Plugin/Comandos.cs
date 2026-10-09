@@ -652,6 +652,9 @@ namespace Positron.Plugin
             // `buscaReguasVazias` da tela de verificação).
             problemas.AddRange(VerificadorProjeto.VerificarReguasVazias(reguas, bornesDoDesenho));
 
+            // Bornes sem LM (`lm == 0`) — a árvore `TreeViewBornesLM` do original.
+            problemas.AddRange(VerificadorProjeto.VerificarBornesSemLm(bornesDoDesenho));
+
             List<string> handlesDoDesenho = new List<string>();
             foreach (PontoBorne borne in bornesDoDesenho)
             {
