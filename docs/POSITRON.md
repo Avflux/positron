@@ -338,10 +338,10 @@ A fase 8 também está **parcial**. Já existem e são testados: o parser dos
 **geradores** de `Portas4F` (portas de borne e de terminal) e de `Bornes4F`
 (bornes do desenho + reservas), com gravação transacional — verificado ponta a
 ponta (gravou-se em `.db` real e leu-se de outro processo). O `FIA` passou a
-gerar as duas tabelas, como no original. O que **falta**: a numeração do terminal
-não reproduz as formas com `:` e `-` (caem no indefinido), e os **painéis em uso**
-que no original vêm da tela aqui são derivados das conexões/máscaras do desenho.
-Como o ZWCAD não está instalado, nada disso rodou dentro do desenho.
+gerar as duas tabelas, como no original. A numeração de terminal agora reproduz
+as formas com `:` e `-` (`TerminalNumerico`). O que **falta**: os **painéis em
+uso**, que no original vêm da tela e aqui são derivados das conexões/máscaras do
+desenho. Como o ZWCAD não está instalado, nada disso rodou dentro do desenho.
 
 A fase 9 também está **parcial**. Já existem e são testados: o parser dos
 **modelos de contato** e seus **contatos auxiliares** (`CONTATOS`/`MODELOS2` e
@@ -349,10 +349,11 @@ A fase 9 também está **parcial**. Já existem e são testados: o parser dos
 varredura dos blocos de dispositivo (com os terminais de bobina vindos dos
 atributos `T*`) e o gerador de `Contatos4F` (terminais do dispositivo + bobinas +
 auxiliares), com gravação transacional — verificado ponta a ponta. O `FIA` passou
-a gerar a tabela. O que **falta**: reprocessar a orientação dos contatos
-(`VerificaOrientacaoContato`) e o `sComportamento` (que o original lê mas não
-escreve em `Contatos4F`). Como o ZWCAD não está instalado, nada disso rodou
-dentro do desenho.
+a gerar a tabela. A orientação dos contatos é reprocessada na leitura do dicionário
+(`OrientacaoContato.Verificar`, o `VerificaOrientacaoContato` do original). O
+`sComportamento` o original lê mas **não** escreve em `Contatos4F`, então não é
+projetado aqui tampouco. Como o ZWCAD não está instalado, nada disso rodou dentro
+do desenho.
 
 ## 7. Armadilhas
 
@@ -413,7 +414,14 @@ instalado.
    **desenho** (geometria, páginas apagadas, cabos referenciados que não existem
    no catálogo). Hoje o `VERIF` valida as tabelas gravadas (fiação, interligação
    e modelos), mas não lê o desenho.
-3. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
+3. **Tabelas do contrato §3 ainda não projetadas:** o plugin grava `Fiacao`,
+   `Interligacao4`, `Portas4F`, `Bornes4F`, `Contatos4F`, `Cabos4` e `Veias4`.
+   Ficam por cobrir `Jumper4`, `Bornes4I`, `Portas4I`, `Dispositivos4F`,
+   `Aranha4`, `Circuitos4F`, `Aplicacao4F`, `Atributos` e `Exportados`
+   (jumpers, bornes intermediários, aranha, circuitos, aplicação e projeção
+   cross-DWG) — que estão fora do recorte de comandos atual (`ELET`/`FIA`/`INT`/
+   `SYNCD`/`VERIF`).
+4. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
 
 **Convenções que não podem ser esquecidas**
 
