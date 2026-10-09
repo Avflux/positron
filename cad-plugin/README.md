@@ -89,23 +89,30 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 | `INT` | **implementado** — projeta a interligação do desenho para `Interligacao4` |
 | `SYNCD` | **implementado** — projeta o desenho para o banco (fiação + interligação) |
 | `JMP` | **implementado** — projeta os jumpers do desenho para `Jumper4` |
-| `VERIF` | **implementado** — valida as tabelas gravadas (fiação, interligação e modelos) **e lê o desenho** (régua do borne, cabo fora do catálogo, página fora da `LayerTable`) |
+| `VERIF` | **implementado** — valida as tabelas gravadas (fiação, interligação e modelos) **e lê o desenho** (régua do borne, cabo fora do catálogo, página fora da `LayerTable`, borne sem fiação, fiação duplicada) |
+| `ELETCFG` | **implementado** — abre a tela de configuração (WinForms) e grava `%APPDATA%\Positron\positron.ini`. **Modal**: não rode dentro de script |
 
 ### Fluxo de fiação (`FIA`)
 
 Lê as `LWPOLYLINE` do ModelSpace com XData **`CONEXAO`** (layout recuperado em
 `Positron.Data/Fiacao/ConexaoXData.cs`) e grava em `Fiacao` pelo INSERT canônico
-do original. Configuração por variável de ambiente:
+do original. Configuração por arquivo **ou** variável de ambiente:
 
-| Variável | Papel |
-|---|---|
-| `POSITRON_DB_PATH` | caminho do `.db` do projeto (obrigatória) |
-| `POSITRON_DWG` | índice do desenho (`DWG`), padrão `0` |
-| `POSITRON_REVISAO` | revisão da linha (`Revisao`), padrão vazio |
-| `POSITRON_LOCAL` | documento local (`Documento1`/`Documento2`), padrão vazio |
-| `POSITRON_LOG` | arquivo onde `Plugin.Escrever` anexa cada mensagem (evidência de execução por script) — opcional |
-| `POSITRON_INCLUIR_COLUNA` | switch `Conf.incluirColuna` da coluna `Pagina` (`0..6`), padrão `0` (layer cru) |
-| `POSITRON_SEPARADOR_CRUZAMENTO` | separador do caso `6` de `POSITRON_INCLUIR_COLUNA`, padrão vazio |
+**Precedência: padrão < arquivo < ambiente** — a automação (harness/E2E) sempre vence.
+
+| Variável | Chave do arquivo | Papel |
+|---|---|---|
+| `POSITRON_DB_PATH` | `banco` | caminho do `.db` do projeto (obrigatória) |
+| `POSITRON_DWG` | `dwg` | índice do desenho (`DWG`), padrão `0` |
+| `POSITRON_REVISAO` | `revisao` | revisão da linha (`Revisao`), padrão vazio |
+| `POSITRON_LOCAL` | `local` | documento local (`Documento1`/`Documento2`), padrão vazio |
+| `POSITRON_LOG` | `log` | arquivo onde `Plugin.Escrever` anexa cada mensagem (evidência de execução por script) — opcional |
+| `POSITRON_INCLUIR_COLUNA` | `incluirColuna` | switch `Conf.incluirColuna` da coluna `Pagina` (`0..6`), padrão `0` (layer cru) |
+| `POSITRON_SEPARADOR_CRUZAMENTO` | `separadorCruzamento` | separador do caso `6` de `POSITRON_INCLUIR_COLUNA`, padrão vazio |
+
+O arquivo (`%APPDATA%\Positron\positron.ini`, `chave=valor`) é gravado pelo comando
+`ELETCFG`; a leitura é tolerante (linha malformada ignorada, valor inválido mantém o
+anterior).
 
 **Bornes/terminais (fase 7).** O `FIA` varre os blocos de borne do desenho
 (XData `Dispositivo` tipo `"B"`) e as réguas do dicionário
