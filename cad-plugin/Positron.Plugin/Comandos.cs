@@ -131,6 +131,7 @@ namespace Positron.Plugin
                 int reservas = GerarBornes(store, contexto, reguas, bornes, paineis);
                 int contatos = GerarContatos(store, contexto, dispositivos);
                 int dispositivos4F = GerarDispositivos(store, contexto, paineis, dispositivosDeFiacao, posicoes);
+                int circuitos = GerarCircuitos(store, contexto, paineis, pontos);
 
                 return "FIA: " + gravados + " linha(s) em Fiacao (" + bornes.Count + " borne(s), "
                     + dispositivosDeFiacao.Count + " dispositivo(s), "
@@ -138,7 +139,8 @@ namespace Positron.Plugin
                     + deslocamentos.NumPontos + " ponto(s) de bloco); "
                     + portas + " porta(s) em Portas4F; " + reservas + " borne(s) em Bornes4F; "
                     + contatos + " contato(s) em Contatos4F; "
-                    + dispositivos4F + " dispositivo(s) em Dispositivos4F.";
+                    + dispositivos4F + " dispositivo(s) em Dispositivos4F; "
+                    + circuitos + " circuito(s) em Circuitos4F.";
             }
             catch (System.Exception erro)
             {
@@ -345,6 +347,22 @@ namespace Positron.Plugin
                 auxiliaresPorModelo,
                 dispositivos.TerminaisBobinas);
             store.InserirContatos(linhas, contexto.Revisao, contexto.Dwg);
+            return linhas.Count;
+        }
+
+        /// <summary>
+        /// Gera <c>Circuitos4F</c> a partir das conexões (<c>CONEXAO</c>) — o
+        /// <c>t6yXrlfi5w</c> do original: painel em uso, <c>Tipo == 1</c>, nome
+        /// não-vazio e dedup por <c>Potencial</c>. Ver <see cref="Circuitos4FGerador"/>.
+        /// </summary>
+        private static int GerarCircuitos(
+            ProjectStore store,
+            ContextoProjecao contexto,
+            ICollection<int> paineis,
+            IReadOnlyList<PontoFiacao> pontos)
+        {
+            List<Circuito4F> linhas = Circuitos4FGerador.Gerar(pontos, paineis);
+            store.InserirCircuitos(linhas, contexto.Revisao, contexto.Dwg);
             return linhas.Count;
         }
 

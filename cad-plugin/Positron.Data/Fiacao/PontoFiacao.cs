@@ -61,6 +61,19 @@ namespace Positron.Data.Fiacao
         public int Aplicacao { get; set; }
 
         /// <summary>
+        /// <c>Nome</c> da conexão (idx 7 do XData <c>CONEXAO</c>) — é o que vira a
+        /// coluna <c>Circuito</c> de <c>Circuitos4F</c>: o <c>AdicionaItemCircuitos</c>
+        /// do original recebe <c>conex.Nome</c>.
+        /// </summary>
+        public string NomeCircuito { get; set; }
+
+        /// <summary>
+        /// <c>Tipo</c> da conexão (idx 1 do XData <c>CONEXAO</c>). Só o <c>1</c>
+        /// gera circuito, como no original (<c>t6yXrlfi5w</c>).
+        /// </summary>
+        public short TipoConexao { get; set; }
+
+        /// <summary>
         /// Chave de ordenação do original (<c>dOrdem</c>): no borne é o índice da
         /// régua; no não-borne com posição de layout, a ordem da posição. Usada
         /// só para ordenar (não vai para o banco).
@@ -100,6 +113,8 @@ namespace Positron.Data.Fiacao
                 Secao = conexao.Secao,
                 Cor = conexao.Cor,
                 Aplicacao = conexao.Aplicacao,
+                NomeCircuito = conexao.Nome,
+                TipoConexao = conexao.Tipo,
                 BJumper = !string.IsNullOrWhiteSpace(conexao.Jumper),
                 Criador = string.IsNullOrWhiteSpace(conexao.Usuario) ? null : conexao.Usuario,
             };

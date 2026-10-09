@@ -139,6 +139,11 @@ ficam de fora. A `Tag` é `Nome1[/Nome2]`; a `Pagina` é o layer do bloco; o
 essas duas colunas do próprio XData — o leitor atual não expõe esses índices, então
 elas saem vazias (ausente, não inventado).
 
+**Circuitos (`Circuitos4F`).** O `FIA` grava um circuito por **potencial**: das
+conexões `CONEXAO` com `Tipo == 1` e `Nome` não-vazio, de painel em uso,
+deduplicando por `Potencial` (o primeiro vence) — o `t6yXrlfi5w` do original. A
+coluna `Circuito` recebe o `Nome` cru da conexão (o `Trim` só decide se entra).
+
 **Casamento por bounds + deslocamento.** O casamento ponto↔borne usa as duas
 etapas do original: o ponto tem que cair dentro da **bounding-box** do bloco com
 0,25 de folga (`Bounds ±0,25`), e o ponto de referência é

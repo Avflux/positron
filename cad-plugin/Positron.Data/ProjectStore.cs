@@ -605,6 +605,40 @@ namespace Positron.Data
             return linhas;
         }
 
+        /// <summary>Lê os circuitos de uma revisão (<c>Circuitos4F</c>).</summary>
+        public IReadOnlyList<Circuitos4FRow> CircuitosDaRevisao(int dwg, string revisao)
+        {
+            List<Circuitos4FRow> linhas = new List<Circuitos4FRow>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, DWG, Painel, Circuito, Potencial " +
+                    "FROM Circuitos4F " +
+                    "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') ORDER BY Painel, Indice";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new Circuitos4FRow
+                        {
+                            Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
+                            Revisao = Texto(leitor, "Revisao"),
+                            DWG = Inteiro(leitor, "DWG"),
+                            Painel = Inteiro(leitor, "Painel"),
+                            Circuito = Texto(leitor, "Circuito"),
+                            Potencial = Inteiro(leitor, "Potencial"),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
         /// <summary>Lê os dispositivos de uma revisão (<c>Dispositivos4F</c>).</summary>
         public IReadOnlyList<Dispositivos4FRow> DispositivosDaRevisao(int dwg, string revisao)
         {
@@ -1072,6 +1106,47 @@ namespace Positron.Data
                     parametros[4].Value = Nulo(contato.Terminal);
                     parametros[5].Value = contato.TerminalNum;
                     parametros[6].Value = Nulo(contato.Orientacao);
+                    comando.ExecuteNonQuery();
+                }
+
+                transacao.Commit();
+            }
+        }
+
+        /// <summary>Grava os circuitos (<c>Circuitos4F</c>) — ver <see cref="Circuitos4FGerador"/>.</summary>
+        public void InserirCircuitos(IEnumerable<Circuito4F> circuitos, string revisao, int dwg)
+        {
+            List<Circuito4F> lista = circuitos == null
+                ? new List<Circuito4F>()
+                : new List<Circuito4F>(circuitos);
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                // Substitui a revisão (RemoveRevisaoTabelaParaDWG do original).
+                RemoverRevisaoDaTabela(conexao, "Circuitos4F", dwg, revisao);
+
+                comando.CommandText =
+                    "INSERT INTO Circuitos4F(Revisao, DWG, Painel, Circuito, Potencial) " +
+                    "VALUES(@revisao, @dwg, @painel, @circuito, @potencial)";
+
+                SQLiteParameter[] parametros =
+                {
+                    comando.Parameters.Add("@revisao", System.Data.DbType.String),
+                    comando.Parameters.Add("@dwg", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@painel", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@circuito", System.Data.DbType.String),
+                    comando.Parameters.Add("@potencial", System.Data.DbType.Int32),
+                };
+
+                foreach (Circuito4F circuito in lista)
+                {
+                    parametros[0].Value = Nulo(revisao);
+                    parametros[1].Value = dwg;
+                    parametros[2].Value = (int)circuito.Painel;
+                    parametros[3].Value = Nulo(circuito.Circuito);
+                    parametros[4].Value = circuito.Potencial;
                     comando.ExecuteNonQuery();
                 }
 
