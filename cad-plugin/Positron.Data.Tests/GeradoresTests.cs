@@ -120,6 +120,8 @@ namespace Positron.Data.Tests
         private static List<Positron.Data.Fiacao.TypedXData> RegistrosRegua()
         {
             List<Positron.Data.Fiacao.TypedXData> valores = new List<Positron.Data.Fiacao.TypedXData>();
+            // Índice 0 é o cabeçalho (maior indexRegua) — como o produto grava.
+            valores.Add(new Positron.Data.Fiacao.TypedXData(90, 5));
             AcrescentaRegua(valores, 5, "R1", "ALT1", 3);
             return valores;
         }

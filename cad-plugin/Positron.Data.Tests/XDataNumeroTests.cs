@@ -54,6 +54,8 @@ namespace Positron.Data.Tests
             // antes isto estourava FormatException e derrubava o FIA.
             var valores = new System.Collections.Generic.List<Positron.Data.Fiacao.TypedXData>
             {
+                // Índice 0 é o cabeçalho (maior indexRegua).
+                new Positron.Data.Fiacao.TypedXData(90, "5"),
                 new Positron.Data.Fiacao.TypedXData(1071, "5"),
                 new Positron.Data.Fiacao.TypedXData(1000, "R1"),
                 new Positron.Data.Fiacao.TypedXData(1000, "ALT1"),

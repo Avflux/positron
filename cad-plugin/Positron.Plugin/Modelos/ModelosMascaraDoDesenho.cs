@@ -37,9 +37,9 @@ namespace Positron.Plugin.Modelos
                 }
 
                 Xrecord registro = transacao.GetObject(mascaras.GetAt("MODELOS2"), OpenMode.ForRead) as Xrecord;
-                List<ModeloMascara> modelos = registro == null || registro.Data == null
+                List<ModeloMascara> modelos = registro == null
                     ? new List<ModeloMascara>()
-                    : ModelosMascara.LerModelos(XDataNeutro.Para(registro.Data));
+                    : ModelosMascara.LerModelos(XDataNeutro.Para(registro));
                 transacao.Commit();
                 return modelos;
             }
@@ -66,9 +66,9 @@ namespace Positron.Plugin.Modelos
                 }
 
                 Xrecord registro = transacao.GetObject(mascaras.GetAt(chave), OpenMode.ForRead) as Xrecord;
-                List<ModeloPorta> portas = registro == null || registro.Data == null
+                List<ModeloPorta> portas = registro == null
                     ? new List<ModeloPorta>()
-                    : ModelosMascara.LerPortas(XDataNeutro.Para(registro.Data), indiceModelo, nomeModelo);
+                    : ModelosMascara.LerPortas(XDataNeutro.Para(registro), indiceModelo, nomeModelo);
                 transacao.Commit();
                 return portas;
             }

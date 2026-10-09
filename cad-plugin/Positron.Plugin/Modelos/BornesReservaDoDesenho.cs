@@ -44,9 +44,9 @@ namespace Positron.Plugin.Modelos
                 }
 
                 Xrecord registro = transacao.GetObject(bornes.GetAt(chave), OpenMode.ForRead) as Xrecord;
-                List<BorneReserva> reservas = registro == null || registro.Data == null
+                List<BorneReserva> reservas = registro == null
                     ? new List<BorneReserva>()
-                    : BornesReserva.Ler(XDataNeutro.Para(registro.Data));
+                    : BornesReserva.Ler(XDataNeutro.Para(registro));
                 transacao.Commit();
                 return reservas;
             }

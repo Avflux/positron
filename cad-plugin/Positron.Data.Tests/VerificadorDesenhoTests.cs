@@ -67,6 +67,8 @@ namespace Positron.Data.Tests
         private static List<TypedXData> RegistrosRegua()
         {
             List<TypedXData> valores = new List<TypedXData>();
+            // Índice 0 é o cabeçalho (maior indexRegua) — como o produto grava.
+            valores.Add(new TypedXData(90, 5));
             valores.Add(new TypedXData(1071, 5));
             valores.Add(new TypedXData(1000, "R1"));
             valores.Add(new TypedXData(1000, "ALT1"));

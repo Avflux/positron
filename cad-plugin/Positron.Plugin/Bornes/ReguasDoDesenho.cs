@@ -44,13 +44,13 @@ namespace Positron.Plugin.Bornes
                 }
 
                 Xrecord registro = transacao.GetObject(reguas.GetAt("MODELOS2"), OpenMode.ForRead) as Xrecord;
-                if (registro == null || registro.Data == null)
+                if (registro == null)
                 {
                     transacao.Commit();
                     return new ReguasModelo();
                 }
 
-                ReguasModelo modelo = ReguasModelo.Ler(XDataNeutro.Para(registro.Data));
+                ReguasModelo modelo = ReguasModelo.Ler(XDataNeutro.Para(registro));
                 transacao.Commit();
                 return modelo;
             }

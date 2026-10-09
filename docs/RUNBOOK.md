@@ -172,12 +172,13 @@ XData, painéis 503/509):
 
 ```text
 FIA: 365 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 83 posicao(oes),
-     321 ponto(s) de bloco); 265 porta(s) em Portas4F; 0 borne(s) em Bornes4F;
+     321 ponto(s) de bloco); 265 porta(s) em Portas4F; 168 borne(s) em Bornes4F;
      88 contato(s) em Contatos4F; 83 dispositivo(s) em Dispositivos4F;
      11 circuito(s) em Circuitos4F; 15 tipo(s) em Aplicacao4F.
-INT: 20 linha(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I
-VERIF: 365 fio(s), 20 trecho(s), 265 porta(s), 88 contato(s);
-       1034 problema(s) — fiação: 229; interligação: 40; modelos: 548; desenho: 217
+INT: 20 linha(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I;
+     216 borne(s) em Bornes4I
+VERIF: 365 fio(s), 20 trecho(s), 265 porta(s), 168 borne(s), 88 contato(s);
+       821 problema(s) — fiação: 223; interligação: 32; modelos: 548; desenho: 18
 ```
 
 O `SYNCD` repete `FIA`+`INT` e as contagens **não dobram** — idempotência provada
@@ -185,10 +186,18 @@ com dado real. O banco sai com `Fiacao` 365, `Interligacao4` 20 (tags `8-CCE-*`,
 terminais ` A `/` B `), `Portas4F`/`Portas4I` 265, `Contatos4F` 88,
 `Dispositivos4F` 83, `Circuitos4F` 11, `Aplicacao4F` 15.
 
-**Pendência achada aqui:** `Bornes4F` e `Bornes4I` saem **0** com 199 bornes no
-desenho — o `Bornes4FGerador` só grava borne cuja **régua resolve** no dicionário
-(`REGUAS/MODELOS2`), e neste desenho ela não resolve. É a próxima investigação:
-saber onde o produto guarda as réguas (outro dicionário? outro layout de Xrecord?).
+Este número de bornes só saiu depois de corrigir **três** defeitos que o desenho real
+revelou (o `Bornes4F` vinha **0** com 199 bornes no desenho):
+
+1. **`ReguasModelo` lia a partir do índice 0** — o Xrecord `REGUAS/MODELOS2` começa
+   com um **cabeçalho** (o maior `indexRegua`) e os registros de 10 valores vêm do
+   índice 1 (`for (i = 1; ...)` no `LeOsModelosDeRegua`). Com o deslocamento, o
+   `indexPainel` era lido do alternativo (texto) e **toda** régua era descartada.
+2. **`Xrecord.Data` lança** no ZWCAD quando o registro existe mas está vazio
+   (`InvalidOperationException` em `ResultBuffer..ctor`) — visto em
+   `CENG_BORNES/<régua>`. Agora há `XDataNeutro.Para(Xrecord)`, que devolve vazio.
+3. **Os `registro.Data == null` restantes** (6 arquivos) estouravam **antes** de
+   chegar ao helper; viraram `registro == null`, que basta.
 
 ### E2E com dados sintéticos (`npm run cad:e2e`)
 
@@ -391,6 +400,16 @@ ela foi ignorada em favor da política do projeto; isso é esperado. O bootstrap
 remove a variável de ambiente herdada do npm para que ela não seja interpretada
 como uma opção de linha de comando proibida nas instalações locais.
 
+### Xrecord de dicionário: cabeçalho no índice 0 e `Data` que lança
+
+Dois detalhes que só apareceram no desenho real e zeravam o `Bornes4F`:
+
+- os Xrecords do produto (`REGUAS/MODELOS2`) começam com um **cabeçalho** (maior
+  índice) e os registros de 10 valores vêm do **índice 1** — quem lê do 0 pega o
+  cabeçalho como primeiro registro e desloca todos os campos;
+- `Xrecord.Data` **lança** `InvalidOperationException` em registro vazio; leia pelo
+  `XDataNeutro.Para(registro)`, que devolve lista vazia, e não cheque `.Data` antes.
+
 ### `entget` sem applist não devolve XData no ZWCAD 2026
 
 `(entget e)` **não** trouxe o grupo `-3` no desenho real (o dump dizia "nenhuma
@@ -451,7 +470,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
   26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 160 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 161 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge

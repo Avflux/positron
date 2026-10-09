@@ -78,12 +78,12 @@ namespace Positron.Plugin.Layout
             }
 
             Xrecord registro = transacao.GetObject(layout.GetAt(chave), OpenMode.ForRead) as Xrecord;
-            if (registro == null || registro.Data == null)
+            if (registro == null)
             {
                 return;
             }
 
-            destino.AddRange(LayoutPosicoes.Interpretar(XDataNeutro.Para(registro.Data), painel, pos));
+            destino.AddRange(LayoutPosicoes.Interpretar(XDataNeutro.Para(registro), painel, pos));
         }
     }
 }

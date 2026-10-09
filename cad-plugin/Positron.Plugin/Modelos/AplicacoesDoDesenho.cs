@@ -47,13 +47,13 @@ namespace Positron.Plugin.Modelos
                 }
 
                 Xrecord registro = transacao.GetObject(aplicacao.GetAt("TIPOS"), OpenMode.ForRead) as Xrecord;
-                if (registro == null || registro.Data == null)
+                if (registro == null)
                 {
                     transacao.Commit();
                     return vazio;
                 }
 
-                List<AplicacaoDefinicao> tipos = Aplicacao4FGerador.LerTipos(XDataNeutro.Para(registro.Data));
+                List<AplicacaoDefinicao> tipos = Aplicacao4FGerador.LerTipos(XDataNeutro.Para(registro));
                 transacao.Commit();
                 return tipos;
             }

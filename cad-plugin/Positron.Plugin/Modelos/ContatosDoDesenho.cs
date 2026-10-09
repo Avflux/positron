@@ -37,9 +37,9 @@ namespace Positron.Plugin.Modelos
                 }
 
                 Xrecord registro = transacao.GetObject(contatos.GetAt("MODELOS2"), OpenMode.ForRead) as Xrecord;
-                List<ModeloContato> modelos = registro == null || registro.Data == null
+                List<ModeloContato> modelos = registro == null
                     ? new List<ModeloContato>()
-                    : ModelosContato.LerModelos(XDataNeutro.Para(registro.Data));
+                    : ModelosContato.LerModelos(XDataNeutro.Para(registro));
                 transacao.Commit();
                 return modelos;
             }
@@ -65,9 +65,9 @@ namespace Positron.Plugin.Modelos
                 }
 
                 Xrecord registro = transacao.GetObject(contatos.GetAt(chave), OpenMode.ForRead) as Xrecord;
-                List<ContatoAuxiliar> auxiliares = registro == null || registro.Data == null
+                List<ContatoAuxiliar> auxiliares = registro == null
                     ? new List<ContatoAuxiliar>()
-                    : ModelosContato.LerAuxiliares(XDataNeutro.Para(registro.Data));
+                    : ModelosContato.LerAuxiliares(XDataNeutro.Para(registro));
                 transacao.Commit();
                 return auxiliares;
             }

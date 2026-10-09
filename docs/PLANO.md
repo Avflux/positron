@@ -132,10 +132,13 @@ escopo estrutural do recoder.
   Esta rodada achou e corrigiu um defeito real: `ReguasModelo.Inteiro` estourava
   `FormatException` com os inteiros vindo como string — agora tudo passa por
   `XDataNumero` (tolerante, coberto por `XDataNumeroTests`).
-- **Pendência achada no desenho real:** `Bornes4F`/`Bornes4I` saem **0** com 199
-  bornes no desenho — o gerador só grava borne cuja **régua resolve** em
-  `REGUAS/MODELOS2`, e neste desenho ela não resolve. Investigar onde o produto
-  guarda as réguas (outro dicionário/outro layout de Xrecord).
+- **~~Pendência do `Bornes4F`/`Bornes4I`~~ — resolvida:** eram **três** defeitos
+  que só o desenho real mostrava — (1) o Xrecord `REGUAS/MODELOS2` tem um
+  **cabeçalho** no índice 0 e a régua é lida do índice 1 (`ReguasModelo` lia do 0 e
+  descartava todas); (2) `Xrecord.Data` **lança** em registro vazio, agora lido por
+  `XDataNeutro.Para(registro)`; (3) sobravam seis `registro.Data == null` que
+  estouravam antes do helper. Resultado no desenho real: `Bornes4F` **168** e
+  `Bornes4I` **216** (era 0/0).
 - **Falta (opcional):** uma fixture com **blocos** (borne com XData `Dispositivo`/`B`, máscara
   `M`, contatos) para exercitar as fases 7–9 dentro do CAD — hoje elas só têm
   cobertura unitária.
@@ -310,7 +313,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 3 — Harness ZWCAD | 2026-10-09 | f5bc9a5 | `POSITRON_LOG` no `Plugin.Escrever`; `scripts/cad-zwcad-smoke.ps1` + `npm run cad:smoke`; receita no `RUNBOOK.md`; parser do `.ps1` OK e criação do `.db` (31 tabelas) validada — execução no CAD pendente do ZWCAD fechado |
 | 3b — Harness **executado** no ZWCAD | 2026-10-09 | ee042f4 | `npm run cad:smoke` exit 0: `NETLOAD` + `ELET`/`FIA`/`INT`/`SYNCD`/`VERIF` no ZWCAD 2026 (fase 4 fechada); 3 defeitos do harness corrigidos (`-Db`×`-Debug`, `/b` sem `.scr`, precedência da vírgula no `@()`) |
 | 4 — E2E com dados no ZWCAD | 2026-10-09 | 54fdcdf | `scripts/cad-fixture.lsp` + `npm run cad:e2e`: `FIA` 2 linhas + 2 circuitos, `INT` 1 `Interligacao4`, `SYNCD` repete sem duplicar, sidecar lê o mesmo conteúdo; falta fixture com blocos (fases 7–9) |
-| 4b — E2E com **desenho real** | 2026-10-09 | (este commit) | `-Desenho ..\Elet\RCD\Funcional.dwg`: `FIA` 365 linhas (199 bornes, 191 dispositivos), 265 portas, 88 contatos, 83 dispositivos; `INT` 20 trechos; `SYNCD` sem duplicar; `VERIF` 1.034 problemas. Achou e corrigiu o `FormatException` do `ReguasModelo` (`XDataNumero` + `DescreverErro` + `-Desenho` no harness); `plugin:test` **160** aprovados |
+| 4b — E2E com **desenho real** | 2026-10-09 | 0bff89d | `-Desenho ..\Elet\RCD\Funcional.dwg`: `FIA` 365 linhas (199 bornes, 191 dispositivos), 265 portas, 88 contatos, 83 dispositivos; `INT` 20 trechos; `SYNCD` sem duplicar; `VERIF` 1.034 problemas. Achou e corrigiu o `FormatException` do `ReguasModelo` (`XDataNumero` + `DescreverErro` + `-Desenho` no harness); `plugin:test` **160** aprovados |
+| 4c — 3 defeitos do desenho real (bornes) | 2026-10-09 | (este commit) | `ReguasModelo` passa a ler do índice 1 (cabeçalho), `XDataNeutro.Para(Xrecord)` tolera `Xrecord.Data` que lança e os `registro.Data == null` saíram; no `Funcional.dwg` `Bornes4F` 0→**168** e `Bornes4I` 0→**216**; `plugin:test` **161** aprovados |
 | 5 — Pendências de projeção (parcial) | 2026-10-09 | bc59c8d | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; resta só a `Pagina` com cruzamento (matriz de páginas) |
 | 7a — `Dispositivos4F` | 2026-10-09 | ed7222a | gerador puro + gravação idempotente + `FIA` gerando; `plugin:test` **110** aprovados |
 | 7b — `Circuitos4F` | 2026-10-09 | 1afbd7a | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados |

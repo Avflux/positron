@@ -21,8 +21,11 @@ namespace Positron.Data.Bornes
     /// <c>NamedObjectsDictionary → "REGUAS" → "MODELOS2"</c> — e o lê em
     /// <c>DicionarioReguas.LeOsModelosDeRegua</c>.
     ///
-    /// O XRecord é uma lista plana de <c>TypedValue</c>: cada régua ocupa **10
-    /// valores**, e do registro interessa (ver o reverso):
+    /// O XRecord é uma lista plana de <c>TypedValue</c>. O **índice 0 é o
+    /// cabeçalho** — o maior <c>indexRegua</c> do desenho (o
+    /// <c>array2[0] = num</c> do <c>GravaOsModelosDeRegua</c> e o
+    /// <c>mModelo[0].iMaxIndice</c> do leitor) — e os registros começam no
+    /// **índice 1**: cada régua ocupa **10 valores**, e do registro interessa:
     ///
     /// | deslocamento | campo          |
     /// |--------------|----------------|
@@ -33,6 +36,11 @@ namespace Positron.Data.Bornes
     ///
     /// Só entram as réguas com <c>indexPainel &gt; 0</c>; o original descarta as
     /// demais. O resto do registro (+4..+9) não é usado aqui.
+    ///
+    /// **Regressão medida no desenho real:** ler a partir do índice 0 fazia o
+    /// cabeçalho virar "primeira régua" e deslocava todos os campos — com
+    /// <c>indexPainel</c> lido do alternativo (texto) a régua virava 0 e
+    /// **nenhuma** régua era aceita, o que zerava o <c>Bornes4F</c>.
     /// </summary>
     public sealed class ReguasModelo
     {
@@ -72,7 +80,9 @@ namespace Positron.Data.Bornes
                 return modelo;
             }
 
-            for (int i = 0; i + 3 < valores.Count; i += ValoresPorRegua)
+            // Começa em 1: o índice 0 é o cabeçalho (maior indexRegua), como no
+            // `for (i = 1; ...)` do LeOsModelosDeRegua.
+            for (int i = 1; i + 3 < valores.Count; i += ValoresPorRegua)
             {
                 int indicePainel = Inteiro(valores[i + 3].Valor);
                 if (indicePainel <= 0)
