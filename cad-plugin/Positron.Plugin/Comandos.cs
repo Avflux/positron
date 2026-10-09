@@ -119,6 +119,15 @@ namespace Positron.Plugin
                 // ponto não-borne, casadas por (painel, tag).
                 LayoutPosicoes posicoes = LayoutDoDesenho.Ler(paineis);
 
+                // Coluna `Pagina`: o switch `Conf.incluirColuna` do original, lido do
+                // ambiente (a tela ainda não existe). O ponto guarda a página montada
+                // e mantém o layer — ele é a chave do casamento com borne/dispositivo.
+                ColunaPagina colunaPagina = LerColunaPagina();
+                foreach (PontoFiacao ponto in pontos)
+                {
+                    ponto.Pagina = colunaPagina.Para(ponto.Layer);
+                }
+
                 ProjectStore store = new ProjectStore(caminho);
                 FiacaoProjetor projetor = new FiacaoProjetor(store);
                 int gravados = projetor.Projetar(pontos, contexto, bornes, posicoes, deslocamentos, dispositivosDeFiacao);
@@ -128,9 +137,9 @@ namespace Positron.Plugin
                 int reordenados = store.ReordenarOrdemFiacao(contexto.Dwg, contexto.Revisao);
 
                 int portas = GerarPortas(store, contexto, emUso.Modelos);
-                int reservas = GerarBornes(store, contexto, reguas, bornes, paineis);
+                int reservas = GerarBornes(store, contexto, reguas, bornes, paineis, colunaPagina);
                 int contatos = GerarContatos(store, contexto, dispositivos);
-                int dispositivos4F = GerarDispositivos(store, contexto, paineis, dispositivosDeFiacao, posicoes);
+                int dispositivos4F = GerarDispositivos(store, contexto, paineis, dispositivosDeFiacao, posicoes, colunaPagina);
                 int circuitos = GerarCircuitos(store, contexto, paineis, pontos);
                 int aplicacoes = GerarAplicacoes(store, contexto);
 
@@ -203,6 +212,15 @@ namespace Positron.Plugin
                 // Pontos de ligação por nome de bloco (bounds ±0,25 + offset).
                 TabelaDeslocamentoBlocos deslocamentos = DeslocamentosDoDesenho.Ler();
 
+                // Coluna `Pagina` (Conf.incluirColuna) — a mesma regra do FIA. A
+                // ponta guarda a página montada e mantém o layer, que é o usado no
+                // casamento com o borne.
+                ColunaPagina colunaPagina = LerColunaPagina();
+                foreach (PontoInterligacao ponto in pontos)
+                {
+                    ponto.PaginaProjetada = colunaPagina.Para(ponto.Pagina);
+                }
+
                 ProjectStore store = new ProjectStore(caminho);
                 InterligacaoProjetor projetor = new InterligacaoProjetor(store);
                 int gravados = projetor.Projetar(pontos, contexto, bornes, deslocamentos);
@@ -212,7 +230,7 @@ namespace Positron.Plugin
                 // bornes do desenho + reservas, sem o filtro de painel em uso que
                 // o FIA aplica.
                 int portas4I = GerarPortas4I(store, contexto);
-                int bornes4I = GerarBornes4I(store, contexto, reguas, bornes);
+                int bornes4I = GerarBornes4I(store, contexto, reguas, bornes, colunaPagina);
 
                 // Snapshot do catálogo por revisão (RUIU5Sbjhj/v1TU0cEjWd do
                 // original): Cabos4/Veias4 são o catálogo carimbado com a revisão.
@@ -376,7 +394,8 @@ namespace Positron.Plugin
             ContextoProjecao contexto,
             ReguasModelo reguas,
             IReadOnlyList<PontoBorne> bornes,
-            ICollection<int> paineisEmUso)
+            ICollection<int> paineisEmUso,
+            ColunaPagina colunaPagina)
         {
             Dictionary<int, IReadOnlyList<BorneReserva>> reservasPorRegua =
                 new Dictionary<int, IReadOnlyList<BorneReserva>>();
@@ -386,6 +405,12 @@ namespace Positron.Plugin
             }
 
             List<Borne4F> linhas = Bornes4FGerador.Gerar(bornes, reguas, paineisEmUso, reservasPorRegua);
+            foreach (Borne4F linha in linhas)
+            {
+                // Reserva entra com Pagina vazia: `Para("")` devolve vazio.
+                linha.Pagina = colunaPagina.Para(linha.Pagina);
+            }
+
             store.InserirBornes(linhas, contexto.Revisao, contexto.Dwg);
             return linhas.Count;
         }
@@ -450,7 +475,8 @@ namespace Positron.Plugin
             ContextoProjecao contexto,
             ICollection<int> paineis,
             IReadOnlyList<DispositivoFiacao> blocos,
-            LayoutPosicoes posicoes)
+            LayoutPosicoes posicoes,
+            ColunaPagina colunaPagina)
         {
             Dictionary<int, BlocoDoModelo> modeloDeDispositivo = new Dictionary<int, BlocoDoModelo>();
             foreach (ModeloContato modelo in ContatosDoDesenho.LerModelos())
@@ -474,6 +500,11 @@ namespace Positron.Plugin
 
             List<Dispositivo4F> linhas = Dispositivos4FGerador.Gerar(
                 blocos, paineis, modeloDeDispositivo, modeloDeMascara, posicoes);
+            foreach (Dispositivo4F linha in linhas)
+            {
+                linha.Pagina = colunaPagina.Para(linha.Pagina);
+            }
+
             store.InserirDispositivos(linhas, contexto.Revisao, contexto.Dwg);
             return linhas.Count;
         }
@@ -507,7 +538,8 @@ namespace Positron.Plugin
             ProjectStore store,
             ContextoInterligacao contexto,
             ReguasModelo reguas,
-            IReadOnlyList<PontoBorne> bornes)
+            IReadOnlyList<PontoBorne> bornes,
+            ColunaPagina colunaPagina)
         {
             Dictionary<int, IReadOnlyList<BorneReserva>> reservasPorRegua =
                 new Dictionary<int, IReadOnlyList<BorneReserva>>();
@@ -517,6 +549,11 @@ namespace Positron.Plugin
             }
 
             List<Borne4I> linhas = Bornes4IGerador.Gerar(bornes, reguas, reservasPorRegua);
+            foreach (Borne4I linha in linhas)
+            {
+                linha.Pagina = colunaPagina.Para(linha.Pagina);
+            }
+
             store.InserirBornes4I(linhas, contexto.Revisao, contexto.Dwg);
             return linhas.Count;
         }
@@ -536,6 +573,20 @@ namespace Positron.Plugin
             List<Veias4Row> linhas = CabosVeias4Gerador.GerarVeias(store.LerVeias(), contexto.Revisao);
             store.RegravarVeias4(contexto.Revisao, linhas);
             return linhas.Count;
+        }
+
+        /// <summary>
+        /// Como a coluna `Pagina` é montada: `Conf.incluirColuna` (0..6) e o
+        /// `SeparadorCruzamento`, do ambiente — a tela do original
+        /// (`frmConfiguracaoGeral`) ainda não existe aqui. Sem configuração, o
+        /// comportamento é o caso 0..2 (layer cru). Ver `ColunaPagina`.
+        /// </summary>
+        private static ColunaPagina LerColunaPagina()
+        {
+            return new ColunaPagina(
+                PaginasDoDesenho.Ler(),
+                LerInteiro("POSITRON_INCLUIR_COLUNA", 0),
+                Environment.GetEnvironmentVariable("POSITRON_SEPARADOR_CRUZAMENTO"));
         }
 
         private static int LerInteiro(string nome, int padrao)

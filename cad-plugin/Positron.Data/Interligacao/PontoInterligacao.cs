@@ -47,6 +47,14 @@ namespace Positron.Data.Interligacao
         /// <summary>Layer da entidade — vira a página da ponta.</summary>
         public string Pagina { get; set; }
 
+        /// <summary>
+        /// Página já montada pela coluna configurada (o switch
+        /// <c>Conf.incluirColuna</c>). Quando vazia, a projeção grava o
+        /// <see cref="Pagina"/> (o layer cru). O <c>Pagina</c> **não** pode ser
+        /// sobrescrito: ele é o layer usado no casamento com o borne.
+        /// </summary>
+        public string PaginaProjetada { get; set; }
+
         /// <summary>Esta polyline fornece a ponta 1 (vértice 0).</summary>
         public bool TemPonta1 { get; set; }
 

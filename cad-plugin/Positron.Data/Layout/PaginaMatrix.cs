@@ -157,4 +157,64 @@ namespace Positron.Data.Layout
             return double.TryParse(texto, NumberStyles.Float, CultureInfo.InvariantCulture, out valor);
         }
     }
+
+    /// <summary>
+    /// Como a coluna <c>Pagina</c> é montada a partir do layer — o switch
+    /// <c>Conf.incluirColuna</c> do <c>frmCompilarFiacao</c>:
+    ///
+    /// | valor | saída |
+    /// |---|---|
+    /// | <c>0..2</c> | o layer cru |
+    /// | <c>3..5</c> | <c>Pagina.BuscaAlternativo(layer, false)</c> — o alternativo, ou o próprio layer |
+    /// | <c>6</c> | <c>(layer)</c> + separador + alternativo (o separador só entra se houver alternativo) |
+    ///
+    /// Layer vazio devolve vazio: as reservas de borne entram com <c>Pagina = ""</c> e
+    /// não podem virar <c>"()"</c>.
+    /// </summary>
+    public sealed class ColunaPagina
+    {
+        private readonly PaginaMatrix _matriz;
+        private readonly int _incluirColuna;
+        private readonly string _separador;
+
+        public ColunaPagina(PaginaMatrix matriz, int incluirColuna, string separador)
+        {
+            _matriz = matriz ?? PaginaMatrix.Vazia;
+            _incluirColuna = incluirColuna;
+            _separador = separador ?? string.Empty;
+        }
+
+        /// <summary>Sem matriz e sem config: devolve o layer (caso <c>0..2</c>).</summary>
+        public static ColunaPagina Crua
+        {
+            get { return new ColunaPagina(PaginaMatrix.Vazia, 0, string.Empty); }
+        }
+
+        public string Para(string layer)
+        {
+            if (string.IsNullOrEmpty(layer))
+            {
+                return layer ?? string.Empty;
+            }
+
+            if (_incluirColuna >= 3 && _incluirColuna <= 5)
+            {
+                return _matriz.BuscaAlternativo(layer, false);
+            }
+
+            if (_incluirColuna == 6)
+            {
+                string texto = "(" + layer + ")";
+                string alternativo = _matriz.BuscaAlternativo(layer, true);
+                if (alternativo.Length > 0)
+                {
+                    texto = texto + _separador + alternativo;
+                }
+
+                return texto;
+            }
+
+            return layer;
+        }
+    }
 }

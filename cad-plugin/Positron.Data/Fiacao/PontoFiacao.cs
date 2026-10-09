@@ -30,6 +30,15 @@ namespace Positron.Data.Fiacao
 
         public string Layer { get; set; }
 
+        /// <summary>
+        /// Página já montada pela coluna configurada (o switch
+        /// <c>Conf.incluirColuna</c>). Quando <c>null</c>, a projeção grava o
+        /// <see cref="Layer"/> cru — o caso <c>0..2</c>. O <c>Layer</c> em si
+        /// **não** pode ser sobrescrito: ele é a chave do casamento com
+        /// borne/dispositivo.
+        /// </summary>
+        public string Pagina { get; set; }
+
         public string Tag { get; set; }
 
         public string Alternativo { get; set; }

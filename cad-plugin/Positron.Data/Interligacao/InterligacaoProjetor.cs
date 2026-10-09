@@ -139,6 +139,12 @@ namespace Positron.Data.Interligacao
         ///   <c>-1</c> nas duas pontas.
         /// - Outros tipos: ignorados, como no original.
         /// </summary>
+        /// <summary>A página da ponta: a coluna projetada (`Conf.incluirColuna`) ou o layer.</summary>
+        private static string PaginaDoPonto(PontoInterligacao ponto)
+        {
+            return string.IsNullOrEmpty(ponto.PaginaProjetada) ? ponto.Pagina : ponto.PaginaProjetada;
+        }
+
         internal static List<TrechoInterligacao> Mesclar(IEnumerable<PontoInterligacao> pontos, ContextoInterligacao contexto)
         {
             List<TrechoInterligacao> linhas = new List<TrechoInterligacao>();
@@ -150,16 +156,16 @@ namespace Positron.Data.Interligacao
                     case 1:
                         TrechoInterligacao tipo1 = NovoTrecho(ponto);
                         tipo1.Painel1 = ponto.Painel1;
-                        tipo1.Pagina1 = ponto.Pagina;
+                        tipo1.Pagina1 = PaginaDoPonto(ponto);
                         tipo1.Painel2 = ponto.Painel2;
-                        tipo1.Pagina2 = ponto.Pagina;
+                        tipo1.Pagina2 = PaginaDoPonto(ponto);
                         linhas.Add(tipo1);
                         break;
 
                     case 3:
                         TrechoInterligacao tipo3 = NovoTrecho(ponto);
                         tipo3.Painel2 = ponto.Painel2;
-                        tipo3.Pagina2 = ponto.Pagina;
+                        tipo3.Pagina2 = PaginaDoPonto(ponto);
                         linhas.Add(tipo3);
                         break;
 
@@ -183,12 +189,12 @@ namespace Positron.Data.Interligacao
                         if (ponto.Painel1 <= 0)
                         {
                             trecho.Painel2 = ponto.Painel2;
-                            trecho.Pagina2 = ponto.Pagina;
+                            trecho.Pagina2 = PaginaDoPonto(ponto);
                         }
                         else
                         {
                             trecho.Painel1 = ponto.Painel1;
-                            trecho.Pagina1 = ponto.Pagina;
+                            trecho.Pagina1 = PaginaDoPonto(ponto);
                         }
 
                         break;

@@ -122,23 +122,23 @@ escopo estrutural do recoder.
 - **Cobre hoje sem CAD:** os testes unitários já cobrem os parsers/geradores; o
   que falta é a prova ponta a ponta no host real.
 
-### Etapa 5 — Pendências de projeção · P1 · **parcial (itens 2 e 3 concluídos)**
+### Etapa 5 — Pendências de projeção · P1 · **concluída**
 
-- **Página com cruzamento** (`Conf.incluirColuna` `3..6`): depende da matriz de
-  páginas do projeto — ler do desenho e aplicar `Pagina.BuscaAlternativo` +
-  separador + cruzamento.
+- **~~Página com cruzamento~~ — feito na Etapa 12:** `ColunaPagina` reproduz o
+  switch `Conf.incluirColuna` (`0..2` layer cru, `3..5` `BuscaAlternativo`, `6`
+  `(layer)` + separador + alternativo) sobre a `PaginaMatrix`, e o `FIA`/`INT`
+  aplicam a coluna ao gravar `Fiacao`, `Bornes4F`, `Dispositivos4F`,
+  `Interligacao4` e `Bornes4I`. Config pelo ambiente: `POSITRON_INCLUIR_COLUNA`
+  (padrão `0`) e `POSITRON_SEPARADOR_CRUZAMENTO`.
 - **~~`ltZUHdAX7R`~~**: já implementado — `CasamentoDispositivo.EscolherTerminal`
   exige terminal `T*`/`B*` não-vazio e `!= "?"`, com o adapter lendo os
   atributos do bloco; testes `Sem_terminal_nao_casa`/`Terminal_indefinido_nao_casa`.
   Esta etapa só corrigiu a documentação, que dizia "fica como próximo passo".
 - **~~Tipos `I`/`M`~~**: decisão já documentada e coberta
   (`Mascara_M_nunca_da_tag`, `Importado_le_tipo_I_e_painel_do_indice_9`).
-- **Pendente de verdade nesta etapa:** a `Pagina` com **cruzamento** —
-  `Conf.incluirColuna` `3..6` (`Pagina.BuscaAlternativo` + separador +
-  cruzamento). A **matriz de páginas** já é lida do desenho
-  (`PaginaMatrix`/`PaginasDoDesenho`); o que falta é o valor de
-  `Conf.incluirColuna`/`Conf.SeparadorCruzamento` e aplicar o switch na hora de
-  gravar. Hoje só o caso `0..2` (layer cru) é projetado.
+- **Estado:** concluída — o `Pagina` da conexão (e das outras tabelas) é a coluna
+  montada; `PaginaMatrixTests`/`ColunaPaginaTests` cobrem a matriz, o switch e a
+  gravação.
 
 ### Etapa 6 — `VERIF` lendo o desenho · P1 · **parcial**
 
@@ -239,15 +239,11 @@ escopo estrutural do recoder.
   não existe na `LayerTable` vira problema na área `Desenho`.
 - **Pronto quando:** `plugin:build` (ZWCAD e stub) 0 avisos, `plugin:test` com
   `PaginaMatrixTests` cobrindo `LayerValido`, o `BuscaAlternativo` e a regra.
-- **Falta:** aplicar o switch `Conf.incluirColuna` 3..6 na **gravação** da
-  `Pagina`. O original define `Conf.incluirColuna`/`Conf.SeparadorCruzamento`
-  na tela `frmConfiguracaoGeral` (config de sessão), **não** no `.db` — a tabela
-  `Configuracoes(Indice, Tipo, Comando, Valor)` do modelo está vazia e não há
-  `INSERT` dessas chaves no reverso. O caminho coerente com o resto do plugin é
-  `POSITRON_INCLUIR_COLUNA` (default `0`) e `POSITRON_SEPARADOR_CRUZAMENTO`
-  (obrigatório só no caso `6`), como já se faz com `POSITRON_DWG`/`POSITRON_LOCAL`
-  — decisão a tomar antes de mexer na projeção de `Fiacao`, `Bornes4F`,
-  `Dispositivos4F` e `Interligacao4`.
+- **Feito na Etapa 12:** o switch `Conf.incluirColuna` 3..6 é aplicado na
+  gravação. O original define `Conf.incluirColuna`/`Conf.SeparadorCruzamento` na
+  tela `frmConfiguracaoGeral` (config de sessão), **não** no `.db`; o recoder usa
+  `POSITRON_INCLUIR_COLUNA` (padrão `0`) e `POSITRON_SEPARADOR_CRUZAMENTO`, no
+  mesmo padrão de `POSITRON_DWG`/`POSITRON_LOCAL`.
 
 ## 4. Como cada etapa é verificada
 
@@ -280,7 +276,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 7d — `Portas4I`/`Bornes4I` | 2026-10-09 | bf46e7d | geradores `4I` (reuso com filtro nulo) + gravação idempotente + `INT` gerando (`wrlU180vl0`/`T6NUlT3ghH`); `plugin:test` **122** aprovados; restam `Jumper4`, `Aranha4`, `Atributos`, `Exportados` |
 | 6 — `VERIF` no desenho (parcial) | 2026-10-09 | 50e06b4 | área `Desenho` + `VerificarCabosSemCatalogo`/`VerificarBornesSemRegua` ligadas ao `VERIF`; `plugin:test` **126** aprovados; falta a regra de página ausente |
 | 10 — Tabelas novas no app | 2026-10-09 | bc65cbf | `circuitos_por_painel`, `dispositivos_por_painel`, `aplicacoes_por_revisao` no contrato (12 métodos, `protocol:gen` verde) + consultas no `ProjectDatabase` + `CircuitosPanel`/`DispositivosPanel` na visão de painel; `pytest` **23** testes, `build:web` 51 módulos |
-| 11 — Matriz de páginas | 2026-10-09 | (este commit) | `PaginaMatrix` (LayerValido/BuscaAlternativo) + `PaginasDoDesenho` (LayerTable + XData `Eletron`) + `VerificarPaginasAusentes` no `VERIF`; `plugin:test` **139** aprovados; build ZWCAD e stub 0 avisos |
+| 11 — Matriz de páginas | 2026-10-09 | 16e88c3 | `PaginaMatrix` (LayerValido/BuscaAlternativo) + `PaginasDoDesenho` (LayerTable + XData `Eletron`) + `VerificarPaginasAusentes` no `VERIF`; `plugin:test` **139** aprovados; build ZWCAD e stub 0 avisos |
+| 12 — Coluna `Pagina` (cruzamento) | 2026-10-09 | (este commit) | `ColunaPagina` (switch `Conf.incluirColuna` 0..6) sobre a `PaginaMatrix`, com `POSITRON_INCLUIR_COLUNA`/`POSITRON_SEPARADOR_CRUZAMENTO`, aplicada na gravação de `Fiacao`, `Bornes4F`, `Dispositivos4F`, `Interligacao4` e `Bornes4I`; `plugin:test` **145** aprovados |
 | 1 — Idempotência da projeção | 2026-10-09 | cbadec5 | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
 
 ## 6. Riscos e armadilhas
