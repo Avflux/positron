@@ -1,0 +1,191 @@
+# Plano de execução — recoder do Eletron4Z sobre o positron
+
+> Documento vivo. Cada etapa concluída vira uma linha na
+> [tabela de registro](#registro-de-execução), com o commit e a evidência.
+> Contexto de arquitetura: `POSITRON.md`. Como rodar/verificar: `RUNBOOK.md`.
+
+## 1. Objetivo
+
+Cobrir o máximo do recoder do `Eletron4Z` (reverso em
+`..\..\Elet\Eletron4_ZWcad`) sobre este repositório, com estas regras:
+
+1. **Toda etapa termina em commit** (um commit por etapa, mensagem descritiva).
+2. **Toda alteração fica registrada** aqui (tabela de registro + `git log`).
+3. **Toda etapa tem um critério de pronto verificável** — comando que roda e
+   devolve exit 0, ou execução documentada dentro do CAD.
+4. **Nada de dado inventado:** quando o original grava `0`/`""` e o dado não
+   existe, o recoder grava ausente e o documento diz por quê (regra já adotada
+   em `POSITRON.md` §6).
+
+## 2. Estado de partida (baseline verificado)
+
+Medido em 2026-10-09, árvore limpa, último commit `b37576e`.
+
+| Gate | Resultado |
+|---|---|
+| `npm run plugin:build` (ZWCAD) | exit 0, 0 avisos → `Positron.Plugin.ZWCAD.dll` (29 KB) |
+| `npm run plugin:test` | 100 aprovados |
+| `npm run protocol:gen` | contrato OK (9 métodos; 31 tabelas / 341 colunas) |
+| `npm run typecheck` | limpo |
+| `npm run build:web` | OK (49 módulos) |
+| `npm run test:sidecar` / `ruff check` | 20 testes / limpo |
+
+**Ambiente CAD desta máquina:**
+
+| Host | Estado | Consequência |
+|---|---|---|
+| **ZWCAD 2026** (26.31.0.20285) | instalado em `C:\Program Files\ZWSOFT\ZWCAD 2026`; `ZwManaged`/`ZwDatabaseMgd` 26.0.26.0, IL `v4.0.30319`; `.NET Framework 4.8.1`; símbolo `cmd_netload` presente | **alvo principal**: o build ZWCAD resolve `ZWCadDir` sozinho e a DLL é carregável por `NETLOAD` |
+| **AutoCAD 2020** | **não instalado nesta máquina** (há 2010/2011/2013) | as execuções de `FIA`/`INT` feitas pelo dono do projeto no AutoCAD 2020 **foram positivas** e ficam documentadas como evidência histórica; não são reproduzíveis aqui |
+| DWG TrueView 2027 | `accoreconsole.exe` + `acmgd/acdbmgd/accoremgd`, mas em **.NET 10** | **não serve** para o plugin net472 (falha `CS1705`); não substituir o AutoCAD |
+| AutoCAD 2025+ | API .NET 8+ | fora do alvo net472 por construção |
+
+**Defeito conhecido a corrigir primeiro** (bloqueia rodar dentro do CAD mais de
+uma vez): só `Cabos4`/`Veias4` apagam a revisão antes de regravar
+(`ProjectStore.RegravarCabos4`/`RegravarVeias4`). `Fiacao`,
+`Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` **acumulam** — a
+segunda execução de `FIA`/`INT` duplica linhas e o `ReordenarOrdemFiacao`
+passa a reescrever a `Ordem` das duas cópias (medido no `RUNBOOK.md`: `Fiacao`
+3→6, `Bornes4F` 2→4).
+
+## 3. Etapas
+
+Prioridade **P0** = desbloqueia o resto; **P1** = fecha as fases 5–9; **P2** =
+escopo estrutural do recoder.
+
+### Etapa 0 — Plano e baseline · P0 · **concluída**
+
+- **Entrega:** este documento + registro do baseline.
+- **Pronto quando:** `docs/PLANO.md` existe, com as etapas e critérios.
+- **Commit:** `docs(plano): ...`
+
+### Etapa 1 — Idempotência da projeção · P0
+
+- **O que:** apagar as linhas da revisão (`DWG`+`Revisao`) antes de inserir em
+  `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F`,
+  espelhando o `RemoveRevisaoTabelaParaDWG`/`...ParaTodosDWG` do original.
+  `Cabos4`/`Veias4` já fazem isso e servem de molde.
+- **Pronto quando:** um teste roda `Projetar`/`Inserir*` **duas vezes** sobre a
+  mesma revisão e o número de linhas não muda; a `Ordem` continua `1..N` por
+  potencial depois da segunda rodada. `npm run plugin:test` e
+  `npm run plugin:build` verdes.
+- **Arquivos:** `cad-plugin/Positron.Data/ProjectStore.cs`,
+  `cad-plugin/Positron.Data.Tests/*`, `docs/POSITRON.md` (fases 5–8),
+  `docs/RUNBOOK.md` (remover o aviso de "nunca rode duas vezes").
+
+### Etapa 2 — Saneamento documental · P0
+
+- **O que:** corrigir o que está factualmente errado ou velho:
+  - `POSITRON.md` §6 e §9: ZWCAD 2026 **está** instalado; o alvo ZWCAD builda
+    contra a API **real**; o AutoCAD 2020 é evidência histórica positiva do dono
+    do projeto e não está nesta máquina; contagem de testes (100) e de módulos do
+    web (49).
+  - `RUNBOOK.md`: receita CAD deixa de ser só `accoreconsole` (AutoCAD) e ganha
+    a receita ZWCAD `/b`; "Estado de verificação" atualizado.
+  - `README.md` e `cad-plugin/README.md`: estado atual e pré-requisitos.
+- **Pronto quando:** nenhum documento afirmar que o ZWCAD não está instalado nem
+  que o build ZWCAD usa o stub; a receita do AutoCAD 2020 fica marcada como
+  "executada pelo dono do projeto, resultado positivo, não reproduzível nesta
+  máquina".
+- **Commit:** `docs: ...`
+
+### Etapa 3 — Harness ZWCAD 2026 (fase 4 fecha) · P0
+
+- **O que:**
+  1. `Plugin.Escrever` também anexa a mensagem num arquivo quando
+     `POSITRON_LOG` estiver definido (evidência *headless*; hoje a saída só
+     aparece na linha de comando).
+  2. Script `passo.scr` (`FILEDIA 0`, `SECURELOAD 0`, `NETLOAD`, comandos,
+     `QUIT`) e um script de apoio (`scripts/cad-zwcad-smoke.ps1`) que cria o
+     `.db` do zero pelo `schema.sql`, exporta as variáveis `POSITRON_*` e roda
+     `ZWCAD.exe /nologo /b`.
+  3. Receita no `RUNBOOK.md`.
+- **Pronto quando:** `ELET` imprime `"Positron carregado..."` no
+  `POSITRON_LOG` a partir de uma execução real do ZWCAD 2026. Requer o ZWCAD
+  **fechado** (a segunda instância entrega para a primeira e não herda as
+  variáveis de ambiente).
+
+### Etapa 4 — E2E das fases 5–9 dentro do ZWCAD · P1
+
+- **O que:** um DWG de teste com XData (`CONEXAO`, `INTERLIGACAO`, bornes,
+  máscara e contatos), montado por script, e o ciclo
+  `FIA` → `INT` → `SYNCD` → `VERIF` lido de volta pelo sidecar
+  (`fiacao_por_painel`, `interligacao_por_cabo`).
+- **Pronto quando:** o número de linhas gravado por comando confere com o
+  esperado do desenho e o sidecar lê o mesmo conteúdo; resultado registrado no
+  `RUNBOOK.md`.
+- **Cobre hoje sem CAD:** os testes unitários já cobrem os parsers/geradores; o
+  que falta é a prova ponta a ponta no host real.
+
+### Etapa 5 — Pendências de projeção · P1
+
+- **Página com cruzamento** (`Conf.incluirColuna` `3..6`): depende da matriz de
+  páginas do projeto — ler do desenho e aplicar `Pagina.BuscaAlternativo` +
+  separador + cruzamento.
+- **`ltZUHdAX7R`**: no casamento de dispositivo, exigir terminal não-vazio
+  (`T*`/`B*`) do bloco, como o original.
+- **Tipos `I`/`M`**: manter a decisão atual (`I` entra a pedido do projeto,
+  `M` nunca) documentada e coberta por teste.
+
+### Etapa 6 — `VERIF` lendo o desenho · P1
+
+- **O que:** o verificador original (`frmVerificadorProjetoFiacao`/
+  `...Interligacao`, ~3 mil linhas) também pinta erros do **desenho**
+  (geometria, páginas apagadas, cabo referenciado fora do catálogo). Hoje o
+  `VERIF` valida só as tabelas gravadas.
+- **Pronto quando:** o `VERIF` reporta ao menos os problemas de desenho de maior
+  valor (cabo sem catálogo, borne sem régua, página ausente) com teste cobrindo
+  a regra pura.
+
+### Etapa 7 — Tabelas restantes do contrato · P2
+
+- **Faltam projetar:** `Jumper4`, `Bornes4I`, `Portas4I`, `Dispositivos4F`,
+  `Aranha4`, `Circuitos4F`, `Aplicacao4F`, `Atributos`, `Exportados`.
+- **Pronto quando:** cada tabela projetada tem gerador puro + teste + comando ou
+  passo de comando que a produz.
+
+### Etapa 8 — UI WinForms do plugin · P2
+
+- **O que:** as telas `frmCompilar*` equivalentes, hoje substituídas por
+  variáveis de ambiente (`POSITRON_DB_PATH`, `POSITRON_DWG`, ...).
+
+### Etapa 9 — Decisões abertas · P2
+
+- Licenciamento (Rockey/ElecKey/Nuvem — **não** reconstruir as credenciais Azure
+  do reverso), relatórios (PDF/iTextSharp vs. app Python) e multi-usuário
+  (SQLite → SQL Server).
+
+## 4. Como cada etapa é verificada
+
+Sempre os mesmos gates, do `RUNBOOK.md`, **todos exit 0**:
+
+```bash
+npm run plugin:build      # C# do plugin (ZWCAD, API real quando instalada)
+npm run plugin:test       # xunit, net472
+npm run protocol:gen      # contrato Python<->TS e tipos do schema
+npm run typecheck
+npm run build:web
+npm run test:sidecar
+uv run --directory services/sidecar ruff check .
+```
+
+Etapas que mexem no host CAD acrescentam a execução dentro do ZWCAD (Etapa 3) e
+a leitura de volta pelo sidecar (Etapa 4).
+
+## 5. Registro de execução
+
+| Etapa | Data | Commit | Evidência |
+|---|---|---|---|
+| 0 — Plano e baseline | 2026-10-09 | (este commit) | baseline da seção 2 medido nesta máquina |
+
+## 6. Riscos e armadilhas
+
+- **ZWCAD é instância única.** Rodar o script com o ZWCAD já aberto entrega para a
+  instância existente, que **não** herda `POSITRON_*` — feche antes.
+- **`FIA`/`INT` acumulam** até a Etapa 1 entrar: comece sempre de um `.db` novo.
+- **O `.db` não é criado pelo plugin.** `ProjectStore` não aplica o schema;
+  quem cria é o sidecar (`ProjectDatabase.create_from_schema`, usado por
+  `projeto_abrir`) ou o harness da Etapa 3.
+- **`WAL` não é opcional** — leitor longo sem WAL trava o plugin no meio do
+  comando.
+- **AutoCAD 2020 é evidência histórica.** Não "consertar" o stub para fazer o
+  build AutoCAD passar por acidente: o stub é gate de compilação, não host.
