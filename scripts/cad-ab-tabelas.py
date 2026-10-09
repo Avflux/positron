@@ -30,10 +30,10 @@ COLUNAS = {
                'Tipo', 'Secao', 'Cor', 'PosicaoNum', 'TipoBorne', 'Handle'],
     'Portas4F': ['IndexModelo', 'NomeModelo', 'Regua', 'Borne', 'Terminal', 'Tipo', 'Orientacao'],
     'Bornes4F': ['Painel', 'IndexRegua', 'Regua', 'Borne', 'Ordem', 'Tipo', 'Pagina',
-                 'bReserva', 'LM', 'BlocoLayout'],
+                 'bReserva', 'LM', 'BlocoLayout', 'Handle'],
     'Contatos4F': ['IndexModelo', 'NomeModelo', 'Terminal', 'Orientacao'],
     'Dispositivos4F': ['Painel', 'Tag', 'Alternativo', 'Tipo', 'Pagina', 'BlocoTopografico',
-                       'BlocoLayout', 'PosicaoNum'],
+                       'BlocoLayout', 'PosicaoNum', 'Handle'],
     'Circuitos4F': ['Painel', 'Circuito', 'Potencial'],
     'Aplicacao4F': ['Numero', 'Nome', 'Secao', 'Cor', 'TipoCabo', 'Isolacao'],
 }
@@ -77,6 +77,46 @@ def linhas_do_produto(pasta, tabela, colunas):
         return ['|'.join(norm(registro.get(coluna)) for coluna in colunas) for registro in leitor]
 
 
+def chave_da_linha(linha: str, indice_handle: int) -> str:
+    """Chave de casamento: o `Handle` quando existe (linhas de reserva não têm),
+    senão a própria linha — assim reservas só casam se forem idênticas."""
+    if indice_handle >= 0:
+        handle = linha.split('|')[indice_handle]
+        if handle and handle != '0.0000':
+            return handle
+    return linha
+
+
+def detalhe(tabela: str, colunas, nosso, produto, indice_handle: int) -> None:
+    """Para cada coluna, quantas linhas casadas divergem — o que o resumo não diz."""
+    def por_chave(linhas):
+        mapa = {}
+        for linha in linhas:
+            mapa.setdefault(chave_da_linha(linha, indice_handle), linha)
+        return mapa
+
+    mapa_nosso, mapa_produto = por_chave(nosso), por_chave(produto)
+    comuns = set(mapa_nosso) & set(mapa_produto)
+    contagem = {coluna: 0 for coluna in colunas}
+    exemplo = {}
+    for chave in comuns:
+        a = mapa_nosso[chave].split('|')
+        b = mapa_produto[chave].split('|')
+        for i, coluna in enumerate(colunas):
+            if i < len(a) and i < len(b) and a[i] != b[i]:
+                contagem[coluna] += 1
+                exemplo.setdefault(coluna, (chave, a[i], b[i]))
+    divergentes = {c: n for c, n in contagem.items() if n}
+    print(f'  {tabela}: {len(nosso)} x {len(produto)} linhas, {len(comuns)} chave(s) em comum')
+    print(f'    so no recoder: {len(mapa_nosso) - len(comuns)} | so no produto: {len(mapa_produto) - len(comuns)}')
+    if not divergentes:
+        print('    colunas iguais nas chaves em comum')
+        return
+    for coluna, n in sorted(divergentes.items(), key=lambda par: -par[1]):
+        chave, a, b = exemplo[coluna]
+        print(f'    {coluna:<16} {n:>5}  ex. {chave}: recoder={a!r} produto={b!r}')
+
+
 def marca(linhas):
     linhas = sorted(linhas)
     return len(linhas), hashlib.sha256('\n'.join(linhas).encode('utf-8')).hexdigest()[:16], set(linhas)
@@ -88,6 +128,8 @@ def principal() -> int:
     parser.add_argument('pasta_produto')
     parser.add_argument('--nosso-dwg', type=int, default=63)
     parser.add_argument('--nosso-revisao', default='R0')
+    parser.add_argument('--detalhe', action='store_true',
+                        help='mostra, por coluna, quantas linhas casadas divergem')
     args = parser.parse_args()
 
     con = sqlite3.connect(args.banco)
@@ -121,6 +163,18 @@ def principal() -> int:
             print('  recoder:', linha)
         for linha in so_b[:4]:
             print('  produto:', linha)
+
+    if args.detalhe:
+        print()
+        print('== detalhe por coluna (linhas casadas por Handle) ==')
+        for tabela in COLUNAS:
+            colunas = COLUNAS[tabela]
+            nosso = linhas_do_recoder(con, tabela, colunas, args.nosso_dwg, args.nosso_revisao)
+            produto = linhas_do_produto(args.pasta_produto, tabela, colunas)
+            if produto is None:
+                continue
+            indice = colunas.index('Handle') if 'Handle' in colunas else -1
+            detalhe(tabela, colunas, nosso, produto, indice)
 
     print()
     print(f'{iguais} de {len(COLUNAS)} tabela(s) identicas')

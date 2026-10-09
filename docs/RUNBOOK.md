@@ -677,6 +677,11 @@ números com 4 casas (`Ordem 1.0` × `1`); e o texto do Access desfeito da dupla
 codificação (`s.encode('cp1252').decode('utf-8')`). Sem a normalização de bool, toda
 linha com coluna booleana aparecia diferente.
 
+Com `--detalhe` o script desce ao nível da coluna: casa as linhas por `Handle` e mostra
+**quantas linhas divergem em cada coluna**, com um exemplo. É o que separa "a tabela
+difere" de "a coluna X difere em N linhas" — e foi assim que os dois bugs e a diferença
+de dado apareceram.
+
 Resultado no `Funcional.dwg` (revisão `3` do produto contra `R0` do recoder):
 
 | Tabela | Recoder | Produto | Situação |
@@ -685,9 +690,30 @@ Resultado no `Funcional.dwg` (revisão `3` do produto contra `R0` do recoder):
 | `Contatos4F` | 70 | 70 | **idêntico** |
 | `Circuitos4F` | 11 | 11 | **idêntico** |
 | `Aplicacao4F` | 15 | 15 | **idêntico** |
-| `Fiacao` | 494 | 494 | difere — ver abaixo |
-| `Bornes4F` | 168 | 155 | difere pela cópia do desenho (régua `ENTR 1` × `52-X1`, bornes da página 1000) |
-| `Dispositivos4F` | 83 | 83 | difere em **2** linhas — ver a nota dos blocos |
+| `Fiacao` | 494 | 494 | diferenças localizadas — ver abaixo |
+| `Bornes4F` | 168 | 155 | diferenças localizadas — ver abaixo |
+| `Dispositivos4F` | 83 | 83 | **2** linhas, uma coluna (`BlocoLayout`) |
+
+**Veredito de cada diferença que sobrou** (rodada 44, com o `--detalhe`):
+
+| Tabela | Coluna | Linhas | Causa |
+|---|---|---|---|
+| `Fiacao` | `TipoBorne` | 79 | dado: o desenho local tem 199/199 bornes com `tipo = 0` |
+| `Fiacao` | `Ordem` | 29 | dado: ordem/posição no layout |
+| `Fiacao` | `Potencial` / `Terminal` | 19 / 19 | dado: pontos diferentes da cópia |
+| `Fiacao` | `Tag` | 6 | dado: régua `ENTR 2` × `52-X2` |
+| `Fiacao` | 2 chaves de cada lado | 2 | dado: bornes da página 1000 |
+| `Bornes4F` | `Tipo` | 79 | dado (o mesmo `tipo` do borne) |
+| `Bornes4F` | `Ordem` | 53 | dado: ordenação dos bornes na régua |
+| `Bornes4F` | `Borne` / `Regua` | 10 / 6 | dado: bornes/numeração da cópia |
+| `Bornes4F` | 33 e 20 chaves | — | dado: bornes que só existem de um lado (página 1000) |
+| `Dispositivos4F` | `BlocoLayout` | 2 | dado: valor do dicionário na cópia |
+
+As **quatro** tabelas idênticas não têm nenhuma coluna divergente, e nas três restantes
+cada linha divergente tem causa identificada — nenhuma é regra de projeção. Nos dois
+casos em que a dúvida era "regra ou dado?" (`TipoBorne` e `Tipo`), a resposta veio do
+**dump do XData no desenho**: os dois lados leem o **mesmo índice** (14) e o dado local
+é uniformemente zero.
 
 **Duas diferenças da `Fiacao` que não são da cópia do desenho** (as linhas amostradas
 mostram as duas colunas isoladas):
