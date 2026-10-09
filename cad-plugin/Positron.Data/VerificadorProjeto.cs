@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Positron.Contract;
 using Positron.Data.Bornes;
+using Positron.Data.Layout;
 
 namespace Positron.Data
 {
@@ -51,6 +52,9 @@ namespace Positron.Data
 
         /// <summary>Borne do desenho cuja régua não resolve no dicionário.</summary>
         BorneSemRegua,
+
+        /// <summary>Página gravada que não existe na <c>LayerTable</c> do desenho.</summary>
+        PaginaAusente,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -415,6 +419,47 @@ namespace Positron.Data
                     : borne.Handle;
                 problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.BorneSemRegua, "Bornes", identificador,
                     "borne sem régua no dicionário (índice " + borne.IndiceRegua + ")"));
+            }
+
+            return problemas;
+        }
+
+        /// <summary>
+        /// Página gravada que não existe na <c>LayerTable</c> do desenho — a
+        /// matriz de páginas é montada dos layers (o <c>Pagina.CarregaPaginas</c>),
+        /// então uma página fora dela é página apagada/renomeada.
+        /// </summary>
+        public static List<Problema> VerificarPaginasAusentes(
+            IEnumerable<string> paginas,
+            PaginaMatrix matriz)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (paginas == null)
+            {
+                return problemas;
+            }
+
+            HashSet<string> apontadas = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string pagina in paginas)
+            {
+                if (string.IsNullOrWhiteSpace(pagina))
+                {
+                    continue;
+                }
+
+                string limpa = pagina.Trim();
+                if (matriz != null && matriz.Contem(limpa))
+                {
+                    continue;
+                }
+
+                if (!apontadas.Add(limpa))
+                {
+                    continue;
+                }
+
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.PaginaAusente, "Pagina", limpa,
+                    "página gravada não existe na LayerTable do desenho"));
             }
 
             return problemas;

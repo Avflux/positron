@@ -293,6 +293,32 @@ namespace Positron.Plugin
 
                 problemas.AddRange(VerificadorProjeto.VerificarCabosSemCatalogo(cabosUsados, catalogo));
 
+                // Página gravada que não existe na LayerTable do desenho (a matriz
+                // de páginas é montada dos layers, como o Pagina.CarregaPaginas).
+                List<string> paginasGravadas = new List<string>();
+                foreach (FiacaoRow fio in fiacao)
+                {
+                    paginasGravadas.Add(fio.Pagina);
+                }
+
+                foreach (Bornes4FRow borne in bornes)
+                {
+                    paginasGravadas.Add(borne.Pagina);
+                }
+
+                foreach (Interligacao4Row trecho in interligacao)
+                {
+                    paginasGravadas.Add(trecho.Pagina1);
+                    paginasGravadas.Add(trecho.Pagina2);
+                }
+
+                foreach (Dispositivos4FRow dispositivo in store.DispositivosDaRevisao(dwg, revisao))
+                {
+                    paginasGravadas.Add(dispositivo.Pagina);
+                }
+
+                problemas.AddRange(VerificadorProjeto.VerificarPaginasAusentes(paginasGravadas, PaginasDoDesenho.Ler()));
+
                 int porFiacao = 0;
                 int porInterligacao = 0;
                 int porModelos = 0;

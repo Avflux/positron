@@ -268,6 +268,15 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         }
     }
 
+    public class LayerTable : SymbolTable
+    {
+    }
+
+    public class LayerTableRecord : DBObject
+    {
+        public string Name { get; set; }
+    }
+
     public class Transaction : IDisposable
     {
         public DBObject GetObject(ObjectId id, OpenMode modo)
@@ -309,6 +318,11 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         }
 
         public ObjectId NamedObjectsDictionaryId
+        {
+            get { return default(ObjectId); }
+        }
+
+        public ObjectId LayerTableId
         {
             get { return default(ObjectId); }
         }

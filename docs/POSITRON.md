@@ -487,11 +487,16 @@ no `RUNBOOK.md`.
 2. **`VERIF` no desenho (parcial):** as telas originais
    (`frmVerificadorProjetoFiacao`/`frmVerificadorProjetoInterligacao`, ~3 mil
    linhas) também pintam erros lidos do **desenho**. O `VERIF` já valida as
-   tabelas gravadas **e** duas regras do desenho — o borne cuja régua não resolve
-   no dicionário e o cabo referenciado que não existe no catálogo
-   (`VerificarBornesSemRegua`/`VerificarCabosSemCatalogo`, área `Desenho`).
-   Falta o que depende de **geometria** e da matriz de páginas (páginas apagadas,
-   cruzamento de página).
+   tabelas gravadas **e** três regras do desenho — o borne cuja régua não resolve
+   no dicionário, o cabo referenciado que não existe no catálogo e a **página
+   gravada que não está na `LayerTable`**
+   (`VerificarBornesSemRegua`/`VerificarCabosSemCatalogo`/`VerificarPaginasAusentes`,
+   área `Desenho`).
+   Falta o que depende de **geometria**. A **matriz de páginas** já é lida do
+   desenho (`PaginaMatrix`/`PaginasDoDesenho`, montada da `LayerTable` como o
+   `Pagina.CarregaPaginas`) e alimenta a regra de **página ausente**
+   (`VerificarPaginasAusentes`); o que ainda não é aplicado é o switch
+   `Conf.incluirColuna` 3..6 na hora de **gravar** a `Pagina`.
 3. **Tabelas do contrato §3 ainda não projetadas:** o plugin grava `Fiacao`,
    `Interligacao4`, `Portas4F`, `Bornes4F`, `Contatos4F`, `Dispositivos4F`,
    `Circuitos4F`, `Aplicacao4F`, `Portas4I`, `Bornes4I`, `Cabos4` e `Veias4`.
@@ -518,7 +523,7 @@ no `RUNBOOK.md`.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 126 testes)
+npm run plugin:test       # xunit, net472 (hoje 139 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

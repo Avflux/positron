@@ -135,9 +135,10 @@ escopo estrutural do recoder.
   (`Mascara_M_nunca_da_tag`, `Importado_le_tipo_I_e_painel_do_indice_9`).
 - **Pendente de verdade nesta etapa:** a `Pagina` com **cruzamento** —
   `Conf.incluirColuna` `3..6` (`Pagina.BuscaAlternativo` + separador +
-  cruzamento), que exige a **matriz de páginas** do projeto, ainda não lida do
-  desenho. Hoje só o caso `0..2` (layer cru) é projetado, o mesmo do `Bornes4F` e
-  do `Interligacao4`.
+  cruzamento). A **matriz de páginas** já é lida do desenho
+  (`PaginaMatrix`/`PaginasDoDesenho`); o que falta é o valor de
+  `Conf.incluirColuna`/`Conf.SeparadorCruzamento` e aplicar o switch na hora de
+  gravar. Hoje só o caso `0..2` (layer cru) é projetado.
 
 ### Etapa 6 — `VERIF` lendo o desenho · P1 · **parcial**
 
@@ -152,8 +153,9 @@ escopo estrutural do recoder.
   (`Interligacao4.Tag_Cabo` fora do catálogo `Cabos`) e `VerificarBornesSemRegua`
   (`IndiceRegua` que não resolve em `REGUAS/MODELOS2`), na área nova
   `AreaVerificacao.Desenho`; o `VERIF` lê o desenho (réguas/bornes) e o catálogo,
-  e o resumo separa "desenho". 4 testes em `VerificadorDesenhoTests`. Falta a
-  regra de **página ausente**, que depende da matriz de páginas.
+  e o resumo separa "desenho". A terceira regra entrou na Etapa 11
+  (`VerificarPaginasAusentes`, com a matriz de páginas). Testes em
+  `VerificadorDesenhoTests` e `PaginaMatrixTests`.
 
 ### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (5 de 10 feitas)**
 
@@ -224,6 +226,22 @@ escopo estrutural do recoder.
 - **Pronto quando:** `protocol:gen` verde (12 métodos), `typecheck` limpo,
   `pytest` cobrindo os métodos novos e `build:web` OK.
 
+### Etapa 11 — Matriz de páginas · P1 · **concluída**
+
+- **O que:** o `DeclaracoesGeral.mPaginas` do original é montado por
+  `Pagina.CarregaPaginas` a partir da **LayerTable**: cada layer que passa no
+  `Pagina.LayerValido` (número positivo ou `<número><dígito|letra maiúscula>`)
+  vira página, com `unidade`/`alternativo` do XData do app `Eletron`
+  (marcador `UNIDADE`). Entraram: `PaginaMatrix` (puro: `Ler`, `Contem`,
+  `Buscar`, `BuscaAlternativo`, `LayerValido`) e o adapter
+  `PaginasDoDesenho` (LayerTable + XData).
+- **Uso:** a regra `VerificarPaginasAusentes` no `VERIF` — a página gravada que
+  não existe na `LayerTable` vira problema na área `Desenho`.
+- **Pronto quando:** `plugin:build` (ZWCAD e stub) 0 avisos, `plugin:test` com
+  `PaginaMatrixTests` cobrindo `LayerValido`, o `BuscaAlternativo` e a regra.
+- **Falta:** aplicar o switch `Conf.incluirColuna` 3..6 na **gravação** da
+  `Pagina` (precisa de `Conf.incluirColuna`/`Conf.SeparadorCruzamento`).
+
 ## 4. Como cada etapa é verificada
 
 Sempre os mesmos gates, do `RUNBOOK.md`, **todos exit 0**:
@@ -254,7 +272,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 7c — `Aplicacao4F` | 2026-10-09 | 8591b9c | leitor do dicionário `APLICACAO/TIPOS` + gerador puro + gravação idempotente + `FIA` gerando (`FiRUTW6Q6W`); `plugin:test` **118** aprovados |
 | 7d — `Portas4I`/`Bornes4I` | 2026-10-09 | bf46e7d | geradores `4I` (reuso com filtro nulo) + gravação idempotente + `INT` gerando (`wrlU180vl0`/`T6NUlT3ghH`); `plugin:test` **122** aprovados; restam `Jumper4`, `Aranha4`, `Atributos`, `Exportados` |
 | 6 — `VERIF` no desenho (parcial) | 2026-10-09 | 50e06b4 | área `Desenho` + `VerificarCabosSemCatalogo`/`VerificarBornesSemRegua` ligadas ao `VERIF`; `plugin:test` **126** aprovados; falta a regra de página ausente |
-| 10 — Tabelas novas no app | 2026-10-09 | (este commit) | `circuitos_por_painel`, `dispositivos_por_painel`, `aplicacoes_por_revisao` no contrato (12 métodos, `protocol:gen` verde) + consultas no `ProjectDatabase` + `CircuitosPanel`/`DispositivosPanel` na visão de painel; `pytest` **23** testes, `build:web` 51 módulos |
+| 10 — Tabelas novas no app | 2026-10-09 | bc65cbf | `circuitos_por_painel`, `dispositivos_por_painel`, `aplicacoes_por_revisao` no contrato (12 métodos, `protocol:gen` verde) + consultas no `ProjectDatabase` + `CircuitosPanel`/`DispositivosPanel` na visão de painel; `pytest` **23** testes, `build:web` 51 módulos |
+| 11 — Matriz de páginas | 2026-10-09 | (este commit) | `PaginaMatrix` (LayerValido/BuscaAlternativo) + `PaginasDoDesenho` (LayerTable + XData `Eletron`) + `VerificarPaginasAusentes` no `VERIF`; `plugin:test` **139** aprovados; build ZWCAD e stub 0 avisos |
 | 1 — Idempotência da projeção | 2026-10-09 | cbadec5 | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
 
 ## 6. Riscos e armadilhas
