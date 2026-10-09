@@ -620,6 +620,57 @@ mostrada numa `DataGridView` (área, tipo, tabela, identificador, detalhe) com b
 Salvar. Ela é **modal** — como o `ELETCFG`, não entra em script, e é por isso que a
 verificação automatizada usa o `ELETREL`; o conteúdo dos dois é o mesmo objeto.
 
+### Linha de base do `VERIF` (regressão do conjunto de regras)
+
+O conjunto de regras do `VERIF` cresceu (são **seis** checagens do desenho além das de
+tabela), e a única leitura rápida é o resumo por tipo. Para que uma rodada futura
+perceba uma mudança **não intencional**, a contagem esperada no desenho real está
+gravada em `scripts/verif-baseline.txt` e há um conferidor:
+
+```powershell
+# gera o relatorio (o ELETREL escreve em %TEMP%\positron-relatorio.txt)
+npm run cad:smoke -- -Dwg 63 -Revisao R0 -Comandos ELETREL `
+  -Desenho "..\Elet\RCD\Funcional.dwg" -Banco "$env:TEMP\positron-idem.db"
+
+# confere: sai 0 quando confere, 1 quando algum tipo mudou
+python scripts/cad-verif-baseline.py $env:TEMP\positron-relatorio.txt
+```
+
+Saída de hoje:
+
+```
+  tipo                       agora   base
+  BorneSemFiacao              107    107
+  BorneSemLm                  119    119
+  ReguaVazia                   10     10
+  SobreposicaoAusente           2      2
+linha de base confere
+```
+
+Regravar a base é deliberado (`--atualizar`) e deve vir junto da explicação da
+diferença — o script marca cada tipo como `DIFERE` ou `NOVO`. Ele compara **contagens
+por tipo**, não linhas: identificadores e ordem mudam entre rodadas, o número de
+problemas de cada regra é que é o contrato.
+
+### O `BorneSemFiacao` no A/B (o que os 107 querem dizer)
+
+Vale registrar a diferença de **população** entre o que o `VERIF` conta e o que a
+tabela mostra — foi fonte de confusão desde a rodada 13:
+
+| | produto (rev 3) | recoder (R0) |
+|---|---|---|
+| bornes **não-reserva** em `Bornes4F` | 137 | 151 |
+| … **com** ponto em `Fiacao` | **92** | **92** |
+| … sem ponto | 45 | 59 |
+| bornes **do desenho** sem ponto (a regra `BorneSemFiacao`) | — | **107** |
+
+O que importa: os **92 bornes com fiação batem exatamente** — mesmo conjunto de handles
+nos dois lados, embora a tabela do recoder tenha 14 bornes a mais (a cópia local do
+desenho tem bornes que o produto não tinha, como os da página 1000). E os **107** do
+`VERIF` não são os 59 da tabela: a regra compara os **bornes lidos do desenho** (199)
+com os handles gravados em `Fiacao` (92), enquanto a tabela `Bornes4F` tem 168 linhas
+(151 sem reserva). Mesma história, populações diferentes — os dois números estão certos.
+
 ### Idempotência e isolamento por desenho
 
 Duas invariantes que o recorte promete, verificáveis com o script do repositório

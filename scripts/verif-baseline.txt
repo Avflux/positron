@@ -1,0 +1,9 @@
+# Linha de base do VERIF — desenho real (Funcional.dwg, DWG 63, R0).
+# Gerado por scripts/cad-verif-baseline.py --atualizar; confira a diferenca antes.
+#
+# banco=C:\Users\rno\AppData\Local\Temp\positron-idem.db
+total=238
+BorneSemFiacao=107
+BorneSemLm=119
+ReguaVazia=10
+SobreposicaoAusente=2
