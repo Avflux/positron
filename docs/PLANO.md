@@ -306,7 +306,7 @@ roda com SQLite, sem licença e com relatório em texto.
   `protocol:gen` confere os dois lados.
 - **UI:** a visão de painel (`usePainelDetalhe` + `PainelView`) ganhou
   `CircuitosPanel` e `DispositivosPanel` ao lado da fiação e da interligação.
-- **Pronto quando:** `protocol:gen` verde (12 métodos), `typecheck` limpo,
+- **Pronto quando:** `protocol:gen` verde (12 métodos **na época**; o contrato está em 17 depois das rodadas 10 e 12), `typecheck` limpo,
   `pytest` cobrindo os métodos novos e `build:web` OK.
 
 ### Etapa 11 — Matriz de páginas · P1 · **concluída**
