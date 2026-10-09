@@ -567,7 +567,58 @@ mostrada numa `DataGridView` (área, tipo, tabela, identificador, detalhe) com b
 Salvar. Ela é **modal** — como o `ELETCFG`, não entra em script, e é por isso que a
 verificação automatizada usa o `ELETREL`; o conteúdo dos dois é o mesmo objeto.
 
-### Os três desenhos do projeto (e o perfil de XData)
+### A/B contra o banco do produto (`RCD.mdb`) — a verificação mais forte
+
+O `..\Elet\RCD\RCD.mdb` (19 MB, Access) é o banco **gerado pelo produto original**
+para o mesmo projeto dos três DWGs. Ele abre por ODBC (driver 64-bit *Microsoft
+Access Driver*) — sempre na **cópia** em `%TEMP%`, nunca no original:
+
+```powershell
+Copy-Item "..\Elet\RCD\RCD.mdb" "$env:TEMP\positron-rcd.mdb" -Force
+$conn = New-Object System.Data.Odbc.OdbcConnection("Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=$env:TEMP\positron-rcd.mdb;ReadOnly=1;")
+```
+
+A tabela **`DWG`** dá o índice de cada desenho (`Indice`, `Tipo`, `Caminho`, `Nome`),
+o que permite achar a linha do desenho certo:
+
+| Desenho | Índice no produto |
+|---|---|
+| `Funcional.dwg` | **63** (`RCD-8-GGE-04`, `01_Funcional`) |
+| `Interligação.dwg` | 74 (`RCD-8-GGE-02`) |
+| `Fiação.dwg` | 65 (`RCD-8-GGE-30`) |
+
+Comparação para o **DWG 63, revisão 3**:
+
+| Tabela | Produto original | Recoder | |
+|---|---|---|---|
+| `Fiacao` | 494 | **494** | ✅ |
+| `Portas4F` | 265 | **265** | ✅ |
+| `Dispositivos4F` | 83 | **83** | ✅ |
+| `Aplicacao4F` | 15 | **15** | ✅ |
+| `Circuitos4F` | 11 | **11** | ✅ (era 7 — ver abaixo) |
+| `Jumper4` | 0 | 0 | ✅ (o desenho não tem `Tipo 4` nem `Jumper` preenchido) |
+| `Bornes4F` | 155 | 168 | +13 a investigar |
+| `Contatos4F` | 70 | 88 | +18 a investigar |
+| `Interligacao4` | 0 (o trecho vive no DWG 74) | 20 | recorte diferente |
+
+**Esquema:** as **19 tabelas** que o recoder implementa batem **coluna a coluna** com
+o Access (mesmos nomes e mesma ordem) — `Fiacao` 25, `Interligacao4` 34, `Jumper4` 23,
+`Cabos4` 18, `Exportados` 17, `Bornes4F` 16, `Dispositivos4F` 13, `Bornes4I` 13,
+`ModelosCabos` 12, `Portas4F` 11, … `Paineis` 5.
+
+**Regras confirmadas pelo dado do produto:**
+
+- **`Portas4F` só tem linha `T`** no projeto (6.425 linhas, todas `Tipo='T'`, todas com
+  `Terminal` e **nenhuma** com `Regua`/`Borne`) — confirma a calibração da rodada 12
+  (linha `T` não exige régua/borne);
+- **contatos repetem terminal** no mesmo modelo (410 modelos com repetição) — confirma a
+  rodada 16 (o produto grava um contato por `sT1`/`sT2`/`sT3`, sem dedup);
+- **`Circuitos4F`**: o produto gravou **11** circuitos com nomes (`N`, `P`, `MANUAL
+  LOCAL`, `MANUAL REMOTO`, `BARRA ∅A/B/C`, `S`, `TL`, `AUTOMÁTICO`). O recoder gravava
+  **7**: o gerador era alimentado pelos *pontos* de fiação, e uma `Tipo 1` sem
+  `Disp1`/`Disp2` não gera ponto — mas o `t6yXrlfi5w` varre as **conexões** do desenho.
+  Corrigido (`ConexoesDoDesenho` + `Circuitos4FGerador` sobre conexões): **11**. É o
+  tipo de defeito que só essa comparação pega.
 
 Os DWGs reais do projeto têm papéis diferentes, e rodar o comando no desenho errado
 não é erro do plugin. Medido no ZWCAD, com a contagem de XData por app name:
@@ -631,7 +682,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
   26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 188 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 189 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge

@@ -13,21 +13,21 @@ namespace Positron.Data.Tests
         [Fact]
         public void Gera_um_circuito_por_potencial()
         {
-            List<PontoFiacao> pontos = new List<PontoFiacao>
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
             {
-                new PontoFiacao { Painel = 1, Potencial = 5, TipoConexao = 1, NomeCircuito = "C1" },
+                new ConexaoFiacao { Painel = 1, Potencial = 5, Tipo = 1, Nome = "C1" },
                 // Mesmo potencial: o primeiro vence (o list.Contains do original).
-                new PontoFiacao { Painel = 1, Potencial = 5, TipoConexao = 1, NomeCircuito = "C1-BIS" },
+                new ConexaoFiacao { Painel = 1, Potencial = 5, Tipo = 1, Nome = "C1-BIS" },
                 // Tipo diferente de 1 não gera.
-                new PontoFiacao { Painel = 1, Potencial = 6, TipoConexao = 2, NomeCircuito = "C2" },
+                new ConexaoFiacao { Painel = 1, Potencial = 6, Tipo = 2, Nome = "C2" },
                 // Nome em branco não gera.
-                new PontoFiacao { Painel = 1, Potencial = 7, TipoConexao = 1, NomeCircuito = "  " },
+                new ConexaoFiacao { Painel = 1, Potencial = 7, Tipo = 1, Nome = "  " },
                 // Painel fora de uso não gera.
-                new PontoFiacao { Painel = 9, Potencial = 8, TipoConexao = 1, NomeCircuito = "C4" },
-                new PontoFiacao { Painel = 1, Potencial = 9, TipoConexao = 1, NomeCircuito = "C5" },
+                new ConexaoFiacao { Painel = 9, Potencial = 8, Tipo = 1, Nome = "C4" },
+                new ConexaoFiacao { Painel = 1, Potencial = 9, Tipo = 1, Nome = "C5" },
             };
 
-            List<Circuito4F> linhas = Circuitos4FGerador.Gerar(pontos, new List<int> { 1 });
+            List<Circuito4F> linhas = Circuitos4FGerador.Gerar(conexoes, new List<int> { 1 });
 
             Assert.Equal(2, linhas.Count);
             Assert.Equal((short)1, linhas[0].Painel);
@@ -38,14 +38,44 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
-        public void Preserva_o_nome_cru_da_conexao()
+        public void Conexao_sem_ponto_de_fiacao_ainda_gera_circuito()
         {
-            List<PontoFiacao> pontos = new List<PontoFiacao>
+            // Tipo 1 sem Disp1/Disp2 não gera ponto (PontosDaConexao), mas o
+            // original varre as CONEXAO do desenho: o circuito sai. Regressão do
+            // banco do produto (11 circuitos no DWG 63; 7 quando alimentado pelos
+            // pontos).
+            ConexaoXData semPonto = new ConexaoXData
             {
-                new PontoFiacao { Painel = 1, Potencial = 3, TipoConexao = 1, NomeCircuito = " C1 " },
+                Tipo = 1,
+                Disp1 = false,
+                Disp2 = false,
+                Painel = 1,
+                Potencial = 2059,
+                Nome = "BARRA A",
             };
 
-            List<Circuito4F> linhas = Circuitos4FGerador.Gerar(pontos, new List<int> { 1 });
+            Assert.False(PontosDaConexao.UsaPrimeiroVertice(semPonto));
+            Assert.False(PontosDaConexao.UsaUltimoVertice(semPonto));
+
+            List<Circuito4F> linhas = Circuitos4FGerador.Gerar(
+                new List<ConexaoFiacao>
+                {
+                    new ConexaoFiacao { Painel = 1, Potencial = 2059, Tipo = 1, Nome = "BARRA A" },
+                },
+                new List<int> { 1 });
+
+            Assert.Equal("BARRA A", Assert.Single(linhas).Circuito);
+        }
+
+        [Fact]
+        public void Preserva_o_nome_cru_da_conexao()
+        {
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
+            {
+                new ConexaoFiacao { Painel = 1, Potencial = 3, Tipo = 1, Nome = " C1 " },
+            };
+
+            List<Circuito4F> linhas = Circuitos4FGerador.Gerar(conexoes, new List<int> { 1 });
 
             // O original passa conex.Nome sem recortar; o Trim só decide se entra.
             Assert.Equal(" C1 ", Assert.Single(linhas).Circuito);

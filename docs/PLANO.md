@@ -185,6 +185,15 @@ escopo estrutural do recoder.
   e o resumo separa "desenho". A terceira regra entrou na Etapa 11
   (`VerificarPaginasAusentes`, com a matriz de páginas). Testes em
   `VerificadorDesenhoTests` e `PaginaMatrixTests`.
+- **A/B contra o banco do produto (rodada 26):** o `RCD.mdb` do projeto (Access,
+  gerado pelo original) abre por ODBC e permite comparar **tabela a tabela** no mesmo
+  desenho (`Funcional.dwg` = índice **63** na tabela `DWG` do produto, revisão 3):
+  `Fiacao` 494=**494**, `Portas4F` 265=**265**, `Dispositivos4F` 83=**83**,
+  `Aplicacao4F` 15=**15**, `Circuitos4F` 11=**11** (era 7 — defeito achado e
+  corrigido: o gerador varria pontos em vez das conexões); as **19 tabelas** batem
+  coluna a coluna com o Access. Restam `Bornes4F` (155 vs 168) e `Contatos4F` (70 vs
+  88) para investigar. Ver `RUNBOOK.md`.
+
 - **Calibração no desenho real (rodada 12):** o `VERIF` saiu com **821** problemas
   no `Funcional.dwg`, e **548 eram falsos positivos sistemáticos** —
   (1) o verificador exigia régua/borne de **toda** linha de `Portas4F`, mas o
@@ -413,6 +422,7 @@ aberto por **cópia no TEMP**).
 | 23 — painéis das consultas novas no app | 2026-10-09 | 3816651 | `JumpersPanel`, `AplicacoesPanel` e `CatalogoPanel` (cabos+veias) entram na `PainelView` via `usePainelDetalhe` (5 chamadas novas em paralelo), fechando a UI dos métodos expostos na rodada 10; verificado com as consultas contra o `.db` do `Funcional.dwg` — `aplicacoes_por_revisao` 15 linhas, `portas4i_por_modelo(1)` 17, `bornes4i_por_regua(5)` 4 (jumpers/catálogo 0, coerente: sem `JMP` e sem catálogo) — e `typecheck` + `build:web` (**54** módulos) |
 | 24 — busca por cabo e catálogo completo no app | 2026-10-09 | e5a7954 | `InterligacaoPanel` ganha busca por `Tag_Cabo` (`interligacao_por_cabo`, com o resultado substituindo a lista) e o `CatalogoPanel` passa a mostrar `Materiais` e `ModelosCabos` além de cabos/veias; verificado com as consultas no `.db` real (`interligacao_por_cabo('8-CCE-001')` → 1 trecho; catálogo 0, coerente com o `RCD.mdb` não carregado) e `typecheck` + `build:web` (**54** módulos); UI fecha **15 dos 17 métodos** |
 | 25 — Portas4F/Bornes4F no contrato e drill-down do modelo | 2026-10-09 | 0444254 | dois métodos novos (`portas4f_por_revisao`, `bornes4f_por_revisao`) levam o contrato a **19** e fecham a leitura das 13 tabelas do diagrama; na UI, `PortasPanel` e `BornesPanel` listam as portas/bornes do diagrama e abrem `portas4i_por_modelo`/`bornes4i_por_regua` no mesmo painel; verificado com o `.db` real (`portas4f` **265** e `bornes4f` **168**, batendo com o log do `FIA`; drill-downs 17 e 4) e `pytest` **27** / `build:web` **57** módulos; follow-up fechou o `Contatos4F` (20 métodos, **88** contatos no desenho real, batendo com o `FIA`) |
+| 26 — A/B contra o banco do produto e correção dos circuitos | 2026-10-09 | (este commit) | o `RCD.mdb` (Access, gerado pelo original) abre por ODBC na cópia e permite comparar no mesmo desenho (`Funcional.dwg` = DWG **63**): `Fiacao` 494=494, `Portas4F` 265=265, `Dispositivos4F` 83=83, `Aplicacao4F` 15=15, `Circuitos4F` 11=**11** (era 7) e as **19 tabelas** batem coluna a coluna; confirma as regras `T`/`B` das portas e dos contatos repetidos; `Circuitos4FGerador` passa a receber as **conexões** (`ConexoesDoDesenho`), não os pontos — 1 teste novo, `plugin:test` **189** |
 
 ## 6. Riscos e armadilhas
 

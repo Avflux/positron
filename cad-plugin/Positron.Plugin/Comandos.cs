@@ -187,7 +187,7 @@ namespace Positron.Plugin
                 int reservas = GerarBornes(store, contexto, reguas, bornes, paineis, colunaPagina);
                 int contatos = GerarContatos(store, contexto, dispositivos);
                 int dispositivos4F = GerarDispositivos(store, contexto, paineis, dispositivosDeFiacao, posicoes, colunaPagina);
-                int circuitos = GerarCircuitos(store, contexto, paineis, pontos);
+                int circuitos = GerarCircuitos(store, contexto, paineis);
                 int aplicacoes = GerarAplicacoes(store, contexto);
 
                 return "FIA: " + gravados + " linha(s) em Fiacao (" + bornes.Count + " borne(s), "
@@ -751,14 +751,32 @@ namespace Positron.Plugin
         /// Gera <c>Circuitos4F</c> a partir das conexões (<c>CONEXAO</c>) — o
         /// <c>t6yXrlfi5w</c> do original: painel em uso, <c>Tipo == 1</c>, nome
         /// não-vazio e dedup por <c>Potencial</c>. Ver <see cref="Circuitos4FGerador"/>.
+        ///
+        /// Recebe as **conexões do desenho** (não os pontos): uma `Tipo 1` sem
+        /// `Disp1`/`Disp2` não vira ponto de fiação, mas vira circuito.
         /// </summary>
         private static int GerarCircuitos(
             ProjectStore store,
             ContextoProjecao contexto,
-            ICollection<int> paineis,
-            IReadOnlyList<PontoFiacao> pontos)
+            ICollection<int> paineis)
         {
-            List<Circuito4F> linhas = Circuitos4FGerador.Gerar(pontos, paineis);
+            // As conexões são lidas **aqui**, e não vêm dos pontos: o original
+            // (`t6yXrlfi5w`) varre as polylines do desenho, e uma `Tipo 1` sem
+            // `Disp1`/`Disp2` não gera ponto de fiação mas gera circuito. Medido
+            // contra o banco do produto: 11 circuitos no desenho real, contra 7
+            // quando o gerador era alimentado pelos pontos.
+            IReadOnlyList<ConexaoFiacao> conexoes = ConexoesDoDesenho.Ler();
+
+            List<int> paineisEfetivos = new List<int>(paineis ?? new List<int>());
+            foreach (ConexaoFiacao conexao in conexoes)
+            {
+                if (!paineisEfetivos.Contains(conexao.Painel))
+                {
+                    paineisEfetivos.Add(conexao.Painel);
+                }
+            }
+
+            List<Circuito4F> linhas = Circuitos4FGerador.Gerar(conexoes, paineisEfetivos);
             store.InserirCircuitos(linhas, contexto.Revisao, contexto.Dwg);
             return linhas.Count;
         }

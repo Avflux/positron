@@ -14,7 +14,12 @@ namespace Positron.Data.Fiacao
 
     /// <summary>
     /// Gera <c>Circuitos4F</c> — o <c>t6yXrlfi5w</c> do <c>frmCompilarFiacao</c>:
-    /// varre as conexões (<c>CONEXAO</c>) e grava **um circuito por potencial**.
+    /// varre as conexões (<c>CONEXAO</c>) do desenho e grava **um circuito por
+    /// potencial**.
+    ///
+    /// A varredura é das **conexões**, não dos pontos de fiação: uma `Tipo 1` sem
+    /// `Disp1`/`Disp2` não gera ponto (`PontosDaConexao`), mas **gera circuito** se
+    /// tiver nome — é o que o original faz (o laço dele percorre as polylines).
     ///
     /// Regras do original, na mesma ordem:
     ///
@@ -27,33 +32,33 @@ namespace Positron.Data.Fiacao
     /// </summary>
     public static class Circuitos4FGerador
     {
-        public static List<Circuito4F> Gerar(IEnumerable<PontoFiacao> pontos, ICollection<int> paineisEmUso)
+        public static List<Circuito4F> Gerar(IEnumerable<ConexaoFiacao> conexoes, ICollection<int> paineisEmUso)
         {
             List<Circuito4F> circuitos = new List<Circuito4F>();
-            if (pontos == null)
+            if (conexoes == null)
             {
                 return circuitos;
             }
 
             HashSet<int> potenciais = new HashSet<int>();
-            foreach (PontoFiacao ponto in pontos)
+            foreach (ConexaoFiacao conexao in conexoes)
             {
-                if (ponto == null)
+                if (conexao == null)
                 {
                     continue;
                 }
 
-                if (paineisEmUso != null && !paineisEmUso.Contains(ponto.Painel))
+                if (paineisEmUso != null && !paineisEmUso.Contains(conexao.Painel))
                 {
                     continue;
                 }
 
-                if (ponto.TipoConexao != 1)
+                if (conexao.Tipo != 1)
                 {
                     continue;
                 }
 
-                string nome = ponto.NomeCircuito;
+                string nome = conexao.Nome;
                 if (string.IsNullOrEmpty(nome) || nome.Trim().Length == 0)
                 {
                     continue;
@@ -61,16 +66,16 @@ namespace Positron.Data.Fiacao
 
                 // Só consome o potencial quando a linha entra (mesma ordem de
                 // curto-circuito do original: o list.Contains é o último teste).
-                if (!potenciais.Add(ponto.Potencial))
+                if (!potenciais.Add(conexao.Potencial))
                 {
                     continue;
                 }
 
                 circuitos.Add(new Circuito4F
                 {
-                    Painel = ponto.Painel,
+                    Painel = conexao.Painel,
                     Circuito = nome,
-                    Potencial = ponto.Potencial,
+                    Potencial = conexao.Potencial,
                 });
             }
 
