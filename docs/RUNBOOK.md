@@ -831,7 +831,17 @@ Comparação para o **DWG 63, revisão 3**:
 | `Jumper4` | 0 | 0 | ✅ (o desenho não tem `Tipo 4` nem `Jumper` preenchido) |
 | `Contatos4F` | 70 | **70** | ✅ (era 88 — ver abaixo) |
 | `Bornes4F` | 155 | 168 | +13 a investigar (detalhe abaixo) |
-| `Interligacao4` | 0 (o trecho vive no DWG 74) | 20 | recorte diferente |
+| `Interligacao4` | **20** (revisão `00A-1`) | **20** | ✅ (conteúdo idêntico — ver a nota das revisões) |
+
+**Nota das revisões — por que uma comparação pode parecer vazia.** Os dois fluxos do
+produto usam **ciclos de revisão diferentes**: a fiação usa `1`, `2`, `3`, `4`; a
+interligação e o snapshot de cabos usam `00A-1`, `00A-4`, `CORR` (e as variantes
+`0A-06`, `0B-00` em outros desenhos). Foi exatamente isso que fez a comparação da
+rodada 26 concluir "`Interligacao4` = 0 para o DWG 63": a consulta era com a revisão
+`3`, e as 20 linhas do produto para esse desenho estão sob `00A-1` e `CORR`. Com a
+revisão certa, o conjunto `(Tag_Cabo, Num_Veia, Nome_Veia)` bate **hash a hash**
+(`ddf44e52…`), 20 = 20. Antes de concluir que uma tabela não tem dado, confira **qual
+ciclo de revisão** aquele fluxo usa.
 
 **Esquema:** as **19 tabelas** que o recoder implementa batem **coluna a coluna** com
 o Access (mesmos nomes e mesma ordem) — `Fiacao` 25, `Interligacao4` 34, `Jumper4` 23,
