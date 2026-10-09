@@ -643,11 +643,27 @@ o Access (mesmos nomes e mesma ordem) — `Fiacao` 25, `Interligacao4` 34, `Jump
 | 482 `R8` | 2 + 2 | 3 + 1 | +1 / −1 |
 | 487 `R8` | — | 3 | só no recoder |
 
-Duas pistas fortes para a próxima rodada: (a) os índices 1 e 2 têm **nome diferente** no
-dicionário do desenho de hoje (`ENTR 1`/`ENTR 2`) do que no banco do produto (`52-X1`/
-`52-X2`) — pode ser o desenho ter sido editado depois daquela compilação, ou o nome da
-coluna vir de outro dicionário; (b) o recoder casa bornes a mais nas réguas 1/2 e tem uma
-régua (487) que o produto não tem.
+**Investigado (rodada 28): a diferença não é do recoder — a cópia local do desenho não é
+a que o produto compilou.** As evidências:
+
+1. **Os bornes extras estão todos na página `1000`** e **não existem em lugar nenhum** do
+   banco do produto: `Bornes4F` tem **zero** linhas com `Pagina='1000'`, e os 10 `Handle`
+   extras não aparecem nem em `Bornes4F` nem em `Fiacao`. Ou seja, o produto nunca viu
+   esses bornes.
+2. **O nome da régua 1 e 2 é outro:** o dicionário do desenho de hoje diz `ENTR 1`/`ENTR 2`
+   (lido no próprio ZWCAD pelo dump do `REGUAS/MODELOS2`); o banco do produto tem
+   `52-X1`/`52-X2` — em **todas as 4 revisões**. A `DWG` do produto aponta para
+   `J:\Eletrobras\...\RCD-8-GGE-04`, um caminho externo: os arquivos de `..\Elet\RCD`
+   são **cópias**, possivelmente de outro momento.
+3. **O número do borne dos mesmos handles é outro:** o handle `49538` é `Borne=' A '` no
+   nosso recoder e `Borne='1'` no produto — mesma entidade (mesmo handle), XData
+   reescrito entre uma compilação e a cópia que temos.
+
+As outras seis tabelas do `FIA` batem exatamente, então a diferença fica contida em bornes
+de régua — o que seria de esperar se o desenho foi editado (régua renomeada, bornes
+acrescentados na página 1000). Para fechar de vez seria preciso o **DWG original** do
+caminho que o produto registrou. Enquanto isso, o `VERIF` continua apontando 107 bornes
+sem fiação **nessa cópia**, o que é a leitura correta do desenho que temos.
 
 Os DWGs reais do projeto têm papéis diferentes, e rodar o comando no desenho errado
 não é erro do plugin. Medido no ZWCAD, com a contagem de XData por app name:
