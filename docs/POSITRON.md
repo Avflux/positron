@@ -342,7 +342,10 @@ eles, o `FIA` passa a preencher `Terminal`, `TerminalNum`, `Tipo`, `TipoBorne`,
 `IndexModelo`, `Tag`, `Alternativo` e `Handle` — verificado ponta a ponta (o
 projetor .NET grava e o sidecar lê). A geração de `Portas4F`/`Bornes4F` que
 constava aqui foi feita na fase 8; a varredura de bornes do lado da interligação,
-na fase 6. O ZWCAD não está instalado, então nada disso rodou dentro do desenho.
+na fase 6. A varredura de bornes **rodou dentro do AutoCAD 2020** pelo `INT` (ver
+`RUNBOOK.md`): as duas pontas de um trecho casaram com bornes distintos, cada uma
+preenchendo `Terminal`/`Handle`/`IndexModelo` da sua ponta. O `FIA` (que é quem
+reordena `Ordem`) ainda não rodou num CAD real.
 
 A fase 8 também está **parcial**. Já existem e são testados: o parser dos
 **modelos de máscara** e suas **portas** (`MASCARAS`/`MODELOS2` e
@@ -354,7 +357,8 @@ ponta (gravou-se em `.db` real e leu-se de outro processo). O `FIA` passou a
 gerar as duas tabelas, como no original. A numeração de terminal agora reproduz
 as formas com `:` e `-` (`TerminalNumerico`). O que **falta**: os **painéis em
 uso**, que no original vêm da tela e aqui são derivados das conexões/máscaras do
-desenho. Como o ZWCAD não está instalado, nada disso rodou dentro do desenho.
+desenho. Nada disso rodou dentro de um desenho real: `Portas4F`/`Bornes4F` são
+gerados pelo `FIA`, que ainda não foi executado num CAD.
 
 A fase 9 também está **parcial**. Já existem e são testados: o parser dos
 **modelos de contato** e seus **contatos auxiliares** (`CONTATOS`/`MODELOS2` e
@@ -365,8 +369,8 @@ auxiliares), com gravação transacional — verificado ponta a ponta. O `FIA` p
 a gerar a tabela. A orientação dos contatos é reprocessada na leitura do dicionário
 (`OrientacaoContato.Verificar`, o `VerificaOrientacaoContato` do original). O
 `sComportamento` o original lê mas **não** escreve em `Contatos4F`, então não é
-projetado aqui tampouco. Como o ZWCAD não está instalado, nada disso rodou dentro
-do desenho.
+projetado aqui tampouco. Nada disso rodou dentro de um desenho real: `Contatos4F`
+é gerado pelo `FIA`, que ainda não foi executado num CAD.
 
 ## 7. Armadilhas
 
