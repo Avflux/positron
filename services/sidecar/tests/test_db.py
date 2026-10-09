@@ -48,6 +48,20 @@ def make_project_db(target: Path) -> Path:
             VALUES (20, 'R0', 1, 'C-100', 1, 1, 'A1', 2, 'B1'),
                    (21, 'R0', 1, 'C-100', 2, 1, 'A2', 2, 'B2'),
                    (22, 'R0', 1, 'C-200', 1, 1, 'A1', 3, 'C1');
+
+        INSERT INTO Circuitos4F(Indice, Revisao, DWG, Painel, Circuito, Potencial)
+            VALUES (30, 'R0', 1, 1, 'C1', 5),
+                   (31, 'R0', 1, 1, 'C2', 3),
+                   (32, 'R0', 1, 2, 'C3', 7);
+
+        INSERT INTO Dispositivos4F(Indice, Revisao, DWG, Painel, Tag, Tipo)
+            VALUES (40, 'R0', 1, 1, 'D2', 'P'),
+                   (41, 'R0', 1, 1, 'D1', 'M'),
+                   (42, 'R0', 1, 2, 'D3', 'P');
+
+        INSERT INTO Aplicacao4F(Indice, Revisao, DWG, Numero, Nome, Secao)
+            VALUES (50, 'R0', 1, 2, 'AP2', '4'),
+                   (51, 'R0', 1, 1, 'AP1', '2,5');
         """
     )
     connection.commit()
@@ -125,6 +139,35 @@ async def test_interligacao_por_painel_pega_as_duas_pontas(project_db: Path):
     trechos = await handlers.dispatch("interligacao_por_painel", {"painel": 2})
     # Painel 2 só aparece como destino nas duas veias de C-100.
     assert {t["Tag_Cabo"] for t in trechos["trechos"]} == {"C-100"}
+
+
+async def test_circuitos_por_painel_ordenados_por_potencial(project_db: Path):
+    handlers = Handlers(str(project_db))
+    painel1 = await handlers.dispatch("circuitos_por_painel", {"painel": 1})
+    # Potencial crescente: C2 (3) antes de C1 (5).
+    assert [c["Circuito"] for c in painel1["circuitos"]] == ["C2", "C1"]
+
+    painel2 = await handlers.dispatch("circuitos_por_painel", {"painel": 2})
+    assert [c["Circuito"] for c in painel2["circuitos"]] == ["C3"]
+
+    vazio = await handlers.dispatch("circuitos_por_painel", {"painel": 1, "revisao": "R9"})
+    assert vazio["circuitos"] == []
+
+
+async def test_dispositivos_por_painel_ordenados_por_tag(project_db: Path):
+    handlers = Handlers(str(project_db))
+    dispositivos = await handlers.dispatch("dispositivos_por_painel", {"painel": 1})
+    assert [d["Tag"] for d in dispositivos["dispositivos"]] == ["D1", "D2"]
+    assert dispositivos["dispositivos"][0]["Tipo"] == "M"
+
+
+async def test_aplicacoes_por_revisao_ordenadas_por_numero(project_db: Path):
+    handlers = Handlers(str(project_db))
+    aplicacoes = await handlers.dispatch("aplicacoes_por_revisao", {})
+    assert [a["Nome"] for a in aplicacoes["aplicacoes"]] == ["AP1", "AP2"]
+
+    filtrado = await handlers.dispatch("aplicacoes_por_revisao", {"revisao": "R9"})
+    assert filtrado["aplicacoes"] == []
 
 
 async def test_catalogo_materiais_com_e_sem_filtro(project_db: Path):

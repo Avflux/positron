@@ -1,10 +1,12 @@
 import type { Paineis } from "@protocol";
 import { usePainelDetalhe } from "@/hooks/usePainelDetalhe";
+import { CircuitosPanel } from "@/features/circuitos/CircuitosPanel";
+import { DispositivosPanel } from "@/features/dispositivos/DispositivosPanel";
 import { FiacaoPanel } from "@/features/fiacao/FiacaoPanel";
 import { InterligacaoPanel } from "@/features/interligacao/InterligacaoPanel";
 
 export function PainelView({ painel }: { painel: Paineis }) {
-  const { fios, trechos, carregando, erro } = usePainelDetalhe(painel);
+  const { fios, trechos, circuitos, dispositivos, carregando, erro } = usePainelDetalhe(painel);
 
   return (
     <section className="panel">
@@ -15,6 +17,8 @@ export function PainelView({ painel }: { painel: Paineis }) {
         <>
           <FiacaoPanel fios={fios} />
           <InterligacaoPanel trechos={trechos} />
+          <CircuitosPanel circuitos={circuitos} />
+          <DispositivosPanel dispositivos={dispositivos} />
         </>
       )}
     </section>

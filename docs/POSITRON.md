@@ -178,9 +178,18 @@ ferramenta.
 | `fiacao_por_painel` | `{ painel, revisao? }` | `{ fios: Fiacao[] }` |
 | `interligacao_por_cabo` | `{ tag_cabo }` | `{ trechos: Interligacao4[] }` |
 | `interligacao_por_painel` | `{ painel }` | `{ trechos: Interligacao4[] }` |
+| `circuitos_por_painel` | `{ painel, revisao? }` | `{ circuitos: Circuitos4F[] }` |
+| `dispositivos_por_painel` | `{ painel, revisao? }` | `{ dispositivos: Dispositivos4F[] }` |
+| `aplicacoes_por_revisao` | `{ revisao? }` | `{ aplicacoes: Aplicacao4F[] }` |
 
 O tipo de cada linha (`Paineis`, `Fiacao`, …) vem de `schema.generated.ts`, não de
 modelos escritos à mão. `relatorio_gerar` fica para a fase de relatórios.
+
+As tabelas que o `FIA`/`INT` passaram a gravar também chegam ao app:
+`circuitos_por_painel`, `dispositivos_por_painel` e `aplicacoes_por_revisao`
+(`Circuitos4F`, `Dispositivos4F`, `Aplicacao4F`). A visão de painel da UI mostra
+circuitos e dispositivos ao lado da fiação e da interligação — o laço
+"quem desenha, grava; o app lê" fecha sem uma ponte nova.
 
 Todas são **leitura** das tabelas derivadas (decisão 2) e leitura/escrita das
 tabelas do app (decisão 5). Erros: `db_not_open` (nenhum projeto aberto) e

@@ -211,6 +211,19 @@ escopo estrutural do recoder.
   do reverso), relatórios (PDF/iTextSharp vs. app Python) e multi-usuário
   (SQLite → SQL Server).
 
+### Etapa 10 — Expor ao app as tabelas novas · P1 · **concluída**
+
+- **O que:** o plugin passou a gravar `Circuitos4F`, `Dispositivos4F` e
+  `Aplicacao4F`, mas o app não tinha como lê-las. Entraram no contrato
+  (`protocol.py` + `packages/protocol/src/index.ts`) os métodos
+  `circuitos_por_painel`, `dispositivos_por_painel` e
+  `aplicacoes_por_revisao`, com as consultas no `ProjectDatabase`; o
+  `protocol:gen` confere os dois lados.
+- **UI:** a visão de painel (`usePainelDetalhe` + `PainelView`) ganhou
+  `CircuitosPanel` e `DispositivosPanel` ao lado da fiação e da interligação.
+- **Pronto quando:** `protocol:gen` verde (12 métodos), `typecheck` limpo,
+  `pytest` cobrindo os métodos novos e `build:web` OK.
+
 ## 4. Como cada etapa é verificada
 
 Sempre os mesmos gates, do `RUNBOOK.md`, **todos exit 0**:
@@ -240,7 +253,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 7b — `Circuitos4F` | 2026-10-09 | 1afbd7a | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados |
 | 7c — `Aplicacao4F` | 2026-10-09 | 8591b9c | leitor do dicionário `APLICACAO/TIPOS` + gerador puro + gravação idempotente + `FIA` gerando (`FiRUTW6Q6W`); `plugin:test` **118** aprovados |
 | 7d — `Portas4I`/`Bornes4I` | 2026-10-09 | bf46e7d | geradores `4I` (reuso com filtro nulo) + gravação idempotente + `INT` gerando (`wrlU180vl0`/`T6NUlT3ghH`); `plugin:test` **122** aprovados; restam `Jumper4`, `Aranha4`, `Atributos`, `Exportados` |
-| 6 — `VERIF` no desenho (parcial) | 2026-10-09 | (este commit) | área `Desenho` + `VerificarCabosSemCatalogo`/`VerificarBornesSemRegua` ligadas ao `VERIF`; `plugin:test` **126** aprovados; falta a regra de página ausente |
+| 6 — `VERIF` no desenho (parcial) | 2026-10-09 | 50e06b4 | área `Desenho` + `VerificarCabosSemCatalogo`/`VerificarBornesSemRegua` ligadas ao `VERIF`; `plugin:test` **126** aprovados; falta a regra de página ausente |
+| 10 — Tabelas novas no app | 2026-10-09 | (este commit) | `circuitos_por_painel`, `dispositivos_por_painel`, `aplicacoes_por_revisao` no contrato (12 métodos, `protocol:gen` verde) + consultas no `ProjectDatabase` + `CircuitosPanel`/`DispositivosPanel` na visão de painel; `pytest` **23** testes, `build:web` 51 módulos |
 | 1 — Idempotência da projeção | 2026-10-09 | cbadec5 | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
 
 ## 6. Riscos e armadilhas

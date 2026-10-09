@@ -17,9 +17,12 @@ from pydantic import ValidationError
 from . import __version__
 from .db import ProjectDatabase
 from .protocol import (
+    AplicacoesPorRevisaoParams,
     BadParams,
     CatalogoListarMateriaisParams,
+    CircuitosPorPainelParams,
     DatabaseNotOpen,
+    DispositivosPorPainelParams,
     EchoParams,
     EchoResult,
     FiacaoPorPainelParams,
@@ -51,6 +54,9 @@ class Handlers:
             "fiacao_por_painel": self._fiacao_por_painel,
             "interligacao_por_cabo": self._interligacao_por_cabo,
             "interligacao_por_painel": self._interligacao_por_painel,
+            "circuitos_por_painel": self._circuitos_por_painel,
+            "dispositivos_por_painel": self._dispositivos_por_painel,
+            "aplicacoes_por_revisao": self._aplicacoes_por_revisao,
         }
 
     @property
@@ -101,6 +107,23 @@ class Handlers:
     async def _interligacao_por_painel(self, params: dict[str, Any]) -> dict[str, Any]:
         parsed = _validate("interligacao_por_painel", InterligacaoPorPainelParams, params)
         return {"trechos": await self._require_db().interligacao_por_painel(parsed.painel)}
+
+    async def _circuitos_por_painel(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("circuitos_por_painel", CircuitosPorPainelParams, params)
+        circuitos = await self._require_db().circuitos_por_painel(parsed.painel, parsed.revisao)
+        return {"circuitos": circuitos}
+
+    async def _dispositivos_por_painel(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("dispositivos_por_painel", DispositivosPorPainelParams, params)
+        return {
+            "dispositivos": await self._require_db().dispositivos_por_painel(
+                parsed.painel, parsed.revisao
+            )
+        }
+
+    async def _aplicacoes_por_revisao(self, params: dict[str, Any]) -> dict[str, Any]:
+        parsed = _validate("aplicacoes_por_revisao", AplicacoesPorRevisaoParams, params)
+        return {"aplicacoes": await self._require_db().aplicacoes_por_revisao(parsed.revisao)}
 
     def _require_db(self) -> ProjectDatabase:
         if self._db is None:

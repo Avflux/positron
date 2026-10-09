@@ -123,6 +123,20 @@ class InterligacaoPorPainelParams(BaseModel):
     painel: int
 
 
+class CircuitosPorPainelParams(BaseModel):
+    painel: int
+    revisao: str | None = None
+
+
+class DispositivosPorPainelParams(BaseModel):
+    painel: int
+    revisao: str | None = None
+
+
+class AplicacoesPorRevisaoParams(BaseModel):
+    revisao: str | None = None
+
+
 #: Erros do domínio do sidecar. `code` é o que a UI usa para decidir o que mostrar.
 class SidecarError(Exception):
     def __init__(self, code: str, message: str, detail: Any | None = None) -> None:

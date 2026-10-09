@@ -337,7 +337,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 
 **Executado e verificado nesta máquina (Windows, Python 3.14, Node 24):**
 
-- `pytest` — 20 testes passando, com DEALER/ROUTER e SUB/PUB reais e leitura do
+- `pytest` — 23 testes passando, com DEALER/ROUTER e SUB/PUB reais e leitura do
   SQLite do projeto.
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
@@ -348,7 +348,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge
   (testado injetando um método só no TS).
 - `npm run typecheck` — `tsc --noEmit` limpo nos dois workspaces.
-- `npm run build` — gera `apps/web/dist` (49 módulos).
+- `npm run build` — gera `apps/web/dist` (51 módulos).
 - `ruff check .` no sidecar — limpo.
 
 **Não executado (por falta de ferramenta no ambiente, não por escolha):**

@@ -119,7 +119,7 @@ npm run build:all        # protocol:gen → build:web → build:desktop (tudo)
 
 ## Estado atual
 
-O **sidecar Python, o contrato e a UI são funcionais e verificados**: 20 testes
+O **sidecar Python, o contrato e a UI são funcionais e verificados**: 23 testes
 (round-trip ZMQ com sockets reais + leitura do SQLite do projeto), handshake de
 processo ponta a ponta, `typecheck` limpo e build do web gerando `dist`.
 

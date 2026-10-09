@@ -154,3 +154,39 @@ class ProjectDatabase:
             "ORDER BY Tag_Cabo, Num_Veia, Indice",
             (painel, painel),
         )
+
+    async def circuitos_por_painel(
+        self, painel: int, revisao: str | None = None
+    ) -> list[dict[str, Any]]:
+        if revisao:
+            return await self.query(
+                "SELECT * FROM Circuitos4F WHERE Painel = ? AND Revisao = ? "
+                "ORDER BY Potencial, Indice",
+                (painel, revisao),
+            )
+        return await self.query(
+            "SELECT * FROM Circuitos4F WHERE Painel = ? ORDER BY Potencial, Indice",
+            (painel,),
+        )
+
+    async def dispositivos_por_painel(
+        self, painel: int, revisao: str | None = None
+    ) -> list[dict[str, Any]]:
+        if revisao:
+            return await self.query(
+                "SELECT * FROM Dispositivos4F WHERE Painel = ? AND Revisao = ? "
+                "ORDER BY Tag, Indice",
+                (painel, revisao),
+            )
+        return await self.query(
+            "SELECT * FROM Dispositivos4F WHERE Painel = ? ORDER BY Tag, Indice", (painel,)
+        )
+
+    async def aplicacoes_por_revisao(self, revisao: str | None = None) -> list[dict[str, Any]]:
+        # Os tipos de aplicação são copiados do dicionário do desenho por revisão.
+        if revisao:
+            return await self.query(
+                "SELECT * FROM Aplicacao4F WHERE Revisao = ? ORDER BY Numero, Indice",
+                (revisao,),
+            )
+        return await self.query("SELECT * FROM Aplicacao4F ORDER BY Numero, Indice")

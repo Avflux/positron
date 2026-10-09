@@ -10,7 +10,16 @@
  * regex só aceita `[a-z_][a-z0-9_]*`), então nada de `namespace.metodo`.
  */
 
-import type { Fiacao, Interligacao4, Materiais, ModelosCabos, Paineis } from "./schema.generated";
+import type {
+  Aplicacao4F,
+  Circuitos4F,
+  Dispositivos4F,
+  Fiacao,
+  Interligacao4,
+  Materiais,
+  ModelosCabos,
+  Paineis,
+} from "./schema.generated";
 
 // Os tipos das linhas do banco fazem parte do contrato público: a UI importa
 // `Paineis`, `Fiacao`, ... daqui, nunca do arquivo gerado direto.
@@ -97,6 +106,20 @@ export interface InterligacaoPorPainelParams {
   painel: number;
 }
 
+export interface CircuitosPorPainelParams {
+  painel: number;
+  revisao?: string | null;
+}
+
+export interface DispositivosPorPainelParams {
+  painel: number;
+  revisao?: string | null;
+}
+
+export interface AplicacoesPorRevisaoParams {
+  revisao?: string | null;
+}
+
 /** Mapa método -> assinatura. É a única fonte de tipos para `request()`. */
 export interface MethodMap {
   ping: { params: Record<string, never>; result: PingResult };
@@ -119,6 +142,18 @@ export interface MethodMap {
   interligacao_por_painel: {
     params: InterligacaoPorPainelParams;
     result: { trechos: Interligacao4[] };
+  };
+  circuitos_por_painel: {
+    params: CircuitosPorPainelParams;
+    result: { circuitos: Circuitos4F[] };
+  };
+  dispositivos_por_painel: {
+    params: DispositivosPorPainelParams;
+    result: { dispositivos: Dispositivos4F[] };
+  };
+  aplicacoes_por_revisao: {
+    params: AplicacoesPorRevisaoParams;
+    result: { aplicacoes: Aplicacao4F[] };
   };
 }
 
