@@ -118,6 +118,8 @@ DLL contra a API **real**; o alvo AutoCAD continua no stub.
    ```bash
    export POSITRON_DB_PATH="C:/caminho/projeto.db"
    export POSITRON_DWG=1 POSITRON_REVISAO=R0 POSITRON_LOCAL=LOCAL-A
+   # opcional: coluna `Pagina` (switch Conf.incluirColuna 0..6)
+   export POSITRON_INCLUIR_COLUNA=0 POSITRON_SEPARADOR_CRUZAMENTO="-"
    ```
 
 4. **Rode por script.** O ZWCAD aceita `/b <script>` (executa o `.scr` depois de
