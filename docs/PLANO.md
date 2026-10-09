@@ -269,7 +269,7 @@ escopo estrutural do recoder.
 - **Pronto quando:** cada tabela projetada tem gerador puro + teste + comando ou
   passo de comando que a produz.
 
-### Etapa 8 — UI WinForms do plugin · P2 · **parcial (configuração pronta)**
+### Etapa 8 — UI WinForms do plugin · P2 · **concluída (telas + configuração)**
 
 - **O que:** as telas `frmCompilar*` equivalentes, hoje substituídas por
   variáveis de ambiente (`POSITRON_DB_PATH`, `POSITRON_DWG`, ...).
@@ -284,10 +284,16 @@ escopo estrutural do recoder.
   grava em arquivo a verificação inteira (título, resumo, contagens e uma linha por
   problema). Como roda por script, é verificável: no `Funcional.dwg` sai um relatório
   de 116 linhas com os 107 problemas.
-- **Falta:** a **tela** de compilação propriamente dita
-  (`frmCompilarFiacao`/`Interligacao`: seleção de painéis/revisão, progresso e a grid
-  na tela) — os comandos fazem o serviço sem tela e o relatório já tem o conteúdo;
-  a tela virou um viewer do mesmo `RelatorioCompilacao`.
+- **Feito (rodada 22):** a **tela de compilação** (`FormularioCompilacao`) no comando
+  `ELETCMP`: grid de erro com área/tipo/tabela/identificador/detalhe, resumo e contagem
+  no topo, e botão Salvar que grava pelo mesmo `RelatorioCompilacao`. O conteúdo vem de
+  `MontarRelatorio` — o mesmo caminho do `ELETREL`.
+- **Critério de pronto, com ressalva honesta:** as telas são **modais** e não há como
+  clicar nelas nesta máquina; o que se verifica é (a) as duas builds compilam com as
+  telas, (b) os 9 nomes de comando estão no assembly gerado e (c) o conteúdo da tela
+  sai igual no `ELETREL` — 116 linhas, 107 problemas, no `Funcional.dwg`. Seleção de
+  painéis/revisão e barra de progresso das telas do original seguem **fora**: painel e
+  revisão vêm da configuração, e o progresso é a linha de resumo que o comando imprime.
 
 ### Etapa 9 — Decisões abertas · P2 · **aberta — depende do dono do projeto**
 
@@ -392,6 +398,7 @@ aberto por **cópia no TEMP**).
 | 19 — relatório de verificação (`ELETREL`) | 2026-10-09 | 060df46 | a grid de erros das telas do original vira arquivo: `RelatorioCompilacao` puro (`Texto()`/`Salvar()`, 4 testes) + comando `ELETREL` (chave `relatorio`/`POSITRON_RELATORIO`), com `VERIF` e `ELETREL` compartilhando `VerificarRevisao`; no `Funcional.dwg` saiu um relatório de 116 linhas com os **107** problemas (`Desenho;BorneSemFiacao;Fiacao;…`); `plugin:test` **188** |
 | 20 — saneamento do plano | 2026-10-09 | eaa5bc1 | auditoria do documento inteiro: `(este commit)` zerado (19→`060df46`, 7e→`2a8035c`), tabela de registro reordenada por etapa (26 linhas), status em todas as etapas (1 e 2 estavam sem), Etapa 7 de 6→**7 de 10** (o `Jumper4` entrou na 7e), Etapa 9 virou tabela de decisão (o que existe / o que muda em cada escolha), gates ganham `plugin:build:autocad` com a lição do stub e o risco obsoleto de `FIA`/`INT` acumularem saiu; no follow-up `f6fd0d0` o `README.md` passou a listar os **8 comandos** (faltavam `JMP`, `ELETCFG` e `ELETREL`) e o E2E em desenho real |
 | 21 — evidência das 3 tabelas fora do recorte | 2026-10-09 | dd1c533 | rastreado quem escreve cada uma no reverso: `Aranha4` só por `exportaCabos`, chamado por **cinco telas de relatório** (`frmRelatorio_Aranha`/`DInterlig`/`DICemig`/`DIEnergisaMS`/`MT`), com insumo em `clsDInterlig.carregaTodosCabosDWG` (o XData `DINTERLIG`, **530** entidades no `Interligação.dwg` real); `Atributos`/`Exportados` pelo `cDadosAccessExpImp` (exportar/importar cross-DWG). `DINTERLIG` é um app name com **cinco layouts** (borne, régua, jumper, cabo, veia) |
+| 22 — tela de compilação (`ELETCMP`) | 2026-10-09 | (este commit) | `FormularioCompilacao` (DataGridView + Salvar) sobre `MontarRelatorio`, o mesmo conteúdo do `ELETREL`; verificação: as duas builds com as telas, os **9 comandos** presentes no assembly gerado (`ELET`…`ELETREL`) e o relatório do `Funcional.dwg` idêntico ao da rodada 19 (116 linhas / 107 problemas); Etapa 8 fecha (ressalva: telas modais não clicáveis aqui) |
 
 ## 6. Riscos e armadilhas
 

@@ -562,6 +562,11 @@ O conteúdo é puro (`RelatorioCompilacao`: `Texto()`/`Salvar()`, testado) e o `
 passou a compartilhar a mesma montagem (`VerificarRevisao`), então os dois não podem
 divergir.
 
+A **tela** correspondente é o comando `ELETCMP`: mesma montagem (`MontarRelatorio`),
+mostrada numa `DataGridView` (área, tipo, tabela, identificador, detalhe) com botão
+Salvar. Ela é **modal** — como o `ELETCFG`, não entra em script, e é por isso que a
+verificação automatizada usa o `ELETREL`; o conteúdo dos dois é o mesmo objeto.
+
 ### Os três desenhos do projeto (e o perfil de XData)
 
 Os DWGs reais do projeto têm papéis diferentes, e rodar o comando no desenho errado

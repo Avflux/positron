@@ -491,44 +491,95 @@ namespace Positron.Plugin
 
             try
             {
-                int fios;
-                int trechos;
-                int portas;
-                int bornes;
-                int contatos;
-                List<Problema> problemas = VerificarRevisao(
-                    caminho, config.Dwg, config.Revisao, out fios, out trechos, out portas, out bornes, out contatos);
-
-                string resumo = "VERIF: " + fios + " fio(s), " + trechos + " trecho(s), "
-                    + portas + " porta(s), " + bornes + " borne(s), " + contatos + " contato(s) na revisão.";
-
-                RelatorioCompilacao relatorio = RelatorioCompilacao.DeProblemas(
-                    "Verificação do projeto (" + (config.Revisao ?? "sem revisão") + ", DWG " + config.Dwg + ")",
-                    resumo,
-                    problemas);
-
-                relatorio.Contagens.Add("# banco=" + caminho);
-                relatorio.Contagens.Add("# problemas=" + problemas.Count);
-
-                string destino = config.Relatorio;
-                if (string.IsNullOrWhiteSpace(destino))
-                {
-                    string pasta = System.IO.Path.GetDirectoryName(caminho);
-                    destino = System.IO.Path.Combine(
-                        string.IsNullOrEmpty(pasta) ? "." : pasta,
-                        "positron-relatorio.txt");
-                }
+                RelatorioCompilacao relatorio = MontarRelatorio(config);
+                string destino = CaminhoDoRelatorio(config);
 
                 relatorio.Salvar(destino);
 
-                Plugin.Escrever("ELETREL: " + problemas.Count + " problema(s) em " + destino + ".");
-                Plugin.Escrever("ELETREL: " + fios + " fio(s), " + trechos + " trecho(s), " + portas
-                    + " porta(s), " + bornes + " borne(s), " + contatos + " contato(s) na revisão.");
+                Plugin.Escrever("ELETREL: " + relatorio.Linhas.Count + " problema(s) em " + destino + ".");
+                Plugin.Escrever("ELETREL: " + relatorio.Resumo);
             }
             catch (System.Exception erro)
             {
                 Plugin.Escrever("ELETREL: falhou — " + DescreverErro(erro));
             }
+        }
+
+        /// <summary>
+        /// <c>ELETCMP</c> — abre a **tela de compilação** (a grid de erros do
+        /// `frmCompilarFiacao`/`Interligacao`) sobre a verificação da revisão. A tela
+        /// só mostra e salva; quem monta o conteúdo é <see cref="MontarRelatorio"/>,
+        /// o mesmo do `ELETREL`.
+        ///
+        /// **Modal** (como `ELETCFG`): não rode dentro de script — ninguém clica em OK
+        /// e o ZWCAD fica parado. Para script existe o `ELETREL`.
+        /// </summary>
+        [CommandMethod("ELETCMP")]
+        public void EletCmp()
+        {
+#if !POSITRON_SEM_WINFORMS
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            if (string.IsNullOrEmpty(config.Banco))
+            {
+                Plugin.Escrever("ELETCMP: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).");
+                return;
+            }
+
+            try
+            {
+                RelatorioCompilacao relatorio = MontarRelatorio(config);
+                using (Relatorios.FormularioCompilacao tela = new Relatorios.FormularioCompilacao(relatorio, CaminhoDoRelatorio(config)))
+                {
+                    tela.ShowDialog();
+                    Plugin.Escrever("ELETCMP: " + relatorio.Linhas.Count + " problema(s) na tela"
+                        + (string.IsNullOrEmpty(tela.ArquivoSalvo) ? "." : " e salvos em " + tela.ArquivoSalvo + "."));
+                }
+            }
+            catch (System.Exception erro)
+            {
+                Plugin.Escrever("ELETCMP: falhou — " + DescreverErro(erro));
+            }
+#else
+            Plugin.Escrever("ELETCMP: compilado sem WinForms; use ELETREL para gravar o relatório.");
+#endif
+        }
+
+        /// <summary>Monta o relatório da revisão (o conteúdo que a tela e o arquivo mostram).</summary>
+        private static RelatorioCompilacao MontarRelatorio(ConfiguracaoPositron config)
+        {
+            int fios;
+            int trechos;
+            int portas;
+            int bornes;
+            int contatos;
+            List<Problema> problemas = VerificarRevisao(
+                config.Banco, config.Dwg, config.Revisao, out fios, out trechos, out portas, out bornes, out contatos);
+
+            string resumo = "VERIF: " + fios + " fio(s), " + trechos + " trecho(s), "
+                + portas + " porta(s), " + bornes + " borne(s), " + contatos + " contato(s) na revisão.";
+
+            RelatorioCompilacao relatorio = RelatorioCompilacao.DeProblemas(
+                "Verificação do projeto (" + (config.Revisao ?? "sem revisão") + ", DWG " + config.Dwg + ")",
+                resumo,
+                problemas);
+
+            relatorio.Contagens.Add("# banco=" + config.Banco);
+            relatorio.Contagens.Add("# problemas=" + problemas.Count);
+            return relatorio;
+        }
+
+        /// <summary>Caminho do relatório: o da configuração ou, sem ela, ao lado do banco.</summary>
+        private static string CaminhoDoRelatorio(ConfiguracaoPositron config)
+        {
+            if (!string.IsNullOrWhiteSpace(config.Relatorio))
+            {
+                return config.Relatorio;
+            }
+
+            string pasta = System.IO.Path.GetDirectoryName(config.Banco);
+            return System.IO.Path.Combine(
+                string.IsNullOrEmpty(pasta) ? "." : pasta,
+                "positron-relatorio.txt");
         }
 
         /// <summary>
