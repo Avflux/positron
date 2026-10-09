@@ -270,16 +270,23 @@ Cada fase é verificável sozinha. As fases 2 e 4 não dependem uma da outra —
 5 fecha o laço entre os dois frontends.
 
 A fase 4 está **parcial**: o scaffold compila (0 avisos) e registra os comandos
-(`ELET`, `FIA`, `INT`, `SYNCD`, `VERIF`). O **ZWCAD** não está instalado nesta
-máquina (não há `ZwManaged.dll`), então o alvo ZWCAD ainda builda contra o stub
-(`Positron.CadStub`) — que é gate de compilação e **não** produz um assembly
-carregável por `NETLOAD`.
+(`ELET`, `FIA`, `INT`, `SYNCD`, `VERIF`). O **ZWCAD 2026 está instalado** nesta
+máquina (`C:\Program Files\ZWSOFT\ZWCAD 2026`, com `ZwManaged.dll`/
+`ZwDatabaseMgd.dll` 26.0.26.0 em .NET Framework e o símbolo `cmd_netload`), então
+`npm run plugin:build` resolve o `ZWCadDir` sozinho e gera
+`Positron.Plugin.ZWCAD.dll` contra a API **real** `ZwSoft.ZwCAD.*` — não é mais o
+stub. O que falta para fechar a fase é **carregar por `NETLOAD` dentro do ZWCAD**
+(a receita está no `RUNBOOK.md`; é o passo 3 do `PLANO.md`).
 
-O **AutoCAD 2020 está instalado**, porém, e o alvo AutoCAD builda contra a API
-**real** (`-p:AutoCadDir=...`): o plugin foi carregado por `NETLOAD` dentro do
-`accoreconsole` 2020 e o `INT` rodou de verdade, gravando `Interligacao4` — a
-receita está no `RUNBOOK.md`. Atenção: o `csproj` procura 2026/2025/2024, então
-numa máquina com 2020 o caminho precisa ser passado à mão.
+Os alvos **AutoCAD** continuam buildando contra o stub nesta máquina: o
+`AutoCAD 2020` usado nos ensaios originais **não está instalado aqui** (há
+2010/2011/2013 e o DWG TrueView 2027). Os ensaios de `FIA`/`INT` no
+`accoreconsole` 2020 foram feitos pelo dono do projeto e **deram positivo** — o
+`INT` gravou `Interligacao4` de verdade e o `FIA` gravou `Fiacao`/`Bornes4F` —
+e ficam registrados no `RUNBOOK.md` como evidência histórica. Atenção: o
+`csproj` procura 2026/2025/2024; numa máquina com 2020 o caminho precisa ser
+passado à mão, e AutoCAD 2025+/TrueView 2027 (API .NET 8/10) **não** carregam um
+plugin net472.
 
 A fase 5 também está **parcial**. Já existem e são testados: o comando `FIA`, o
 leitor do XData `CONEXAO`, a projeção para `Fiacao` (INSERT canônico) e a leitura
@@ -436,8 +443,10 @@ reler o repositório inteiro.
   CAD) e `cad-plugin/Positron.Plugin/` (adapters do ZWCAD e AutoCAD).
 
 **Estado:** fases 0–3 **feitas**; fases 4–9 **parciais** (a tabela do §6 diz o
-que falta em cada uma). Nenhuma delas rodou dentro do ZWCAD — ele não está
-instalado.
+que falta em cada uma). Nesta máquina o **ZWCAD 2026 está instalado** e a DLL do
+ZWCAD é carregável por `NETLOAD` — falta executar o carregamento (passo 3 do
+`PLANO.md`). Os ensaios de `FIA`/`INT` no AutoCAD 2020 foram positivos e estão
+no `RUNBOOK.md`.
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
@@ -472,7 +481,7 @@ instalado.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 99 testes)
+npm run plugin:test       # xunit, net472 (hoje 105 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

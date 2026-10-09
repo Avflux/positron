@@ -95,8 +95,57 @@ com um erro de compilação vermelho só atrapalha. `cargo check` é o gate.
 ## Rodar o plugin dentro de um CAD de verdade
 
 O `plugin:build` compila contra o **stub** quando não acha o CAD — isso valida a
-sintaxe, mas **não** prova que o plugin carrega. Para rodar de fato (foi assim que
-o `INT` foi conferido, no AutoCAD 2020):
+sintaxe, mas **não** prova que o plugin carrega. Nesta máquina o **ZWCAD 2026 está
+instalado**, então `npm run plugin:build` resolve o `ZWCadDir` sozinho e gera a
+DLL contra a API **real**; o alvo AutoCAD continua no stub.
+
+### ZWCAD 2026 (alvo principal)
+
+1. **Compile.** O `csproj` acha o ZWCAD 2026 sozinho (`ZWCadDir`):
+
+   ```bash
+   npm run plugin:build     # -> Positron.Plugin.ZWCAD.dll
+   ```
+
+2. **Feche o ZWCAD antes.** Ele é instância única: uma segunda execução entrega
+   para a instância já aberta, e essa instância **não** herda as variáveis
+   `POSITRON_*` (o plugin lê o contexto do processo).
+
+3. **Defina o contexto e garanta o `.db`.** O `ProjectStore` não aplica o
+   `schema.sql`; quem cria o arquivo é o sidecar (`projeto_abrir`) — ou copie o
+   `Modelo de BD Projeto.db` do reverso.
+
+   ```bash
+   export POSITRON_DB_PATH="C:/caminho/projeto.db"
+   export POSITRON_DWG=1 POSITRON_REVISAO=R0 POSITRON_LOCAL=LOCAL-A
+   ```
+
+4. **Rode por script.** O ZWCAD aceita `/b <script>` (executa o `.scr` depois de
+   abrir) e `/nologo`:
+
+   ```lisp
+   (setvar "FILEDIA" 0)
+   (setvar "SECURELOAD" 0)
+   (vl-cmdf "_.NETLOAD" "C:/.../Positron.Plugin.ZWCAD.dll")
+   ELET
+   QUIT
+   ```
+
+   ```bash
+   "C:/Program Files/ZWSOFT/ZWCAD 2026/ZWCAD.exe" /nologo /b passo.scr
+   ```
+
+5. **Confira pelo leitor do app**, não por SQL cru (mesma receita do item 4 do
+   AutoCAD abaixo).
+
+### AutoCAD (evidência histórica; alvo net472)
+
+Os ensaios de `FIA`/`INT` no `accoreconsole` do **AutoCAD 2020** foram feitos pelo
+dono do projeto e **deram positivo** — o `INT` gravou `Interligacao4` de verdade e
+o `FIA` gravou `Fiacao`/`Bornes4F`. O AutoCAD 2020 **não está instalado nesta
+máquina**, então a receita abaixo é referência (o alvo AutoCAD builda só contra o
+stub aqui). Vale para AutoCAD 2018–2024; 2025+ e o TrueView 2027 são .NET 8/10 e
+**não** carregam um plugin net472.
 
 1. **Compile contra a API real.** Sem `AutoCadDir` o `csproj` procura
    AutoCAD 2026/2025/2024; numa máquina com outra versão, passe o caminho:
@@ -277,14 +326,16 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 
 - `pytest` — 20 testes passando, com DEALER/ROUTER e SUB/PUB reais e leitura do
   SQLite do projeto.
-- `npm run plugin:build` / `npm run plugin:test` — 0 erros/0 avisos e 99 testes
-  xunit (net472) do plugin CAD (ZWCAD/AutoCAD), contra o stub.
+- `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
+  instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
+  26.0.26.0), sem o stub na saída.
+- `npm run plugin:test` — 105 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge
   (testado injetando um método só no TS).
 - `npm run typecheck` — `tsc --noEmit` limpo nos dois workspaces.
-- `npm run build` — gera `apps/web/dist` (38 módulos).
+- `npm run build` — gera `apps/web/dist` (49 módulos).
 - `ruff check .` no sidecar — limpo.
 
 **Não executado (por falta de ferramenta no ambiente, não por escolha):**
@@ -292,7 +343,10 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `tauri dev` / `tauri build` — o Rust **está** instalado (a lib do desktop
   compila com `cargo build`), mas a feature `vendored` do crate `zmq` ainda
   exigiria CMake + MSVC, que não estão no PATH.
-- **Dentro do CAD** — nem o ZWCAD nem o AutoCAD estão instalados, então o plugin builda contra o
-  stub (`Positron.CadStub`) e **não** carrega por `NETLOAD`. Nenhum comando do
-  plugin (`FIA`, `INT`) rodou dentro de um desenho.
+- **`NETLOAD` no ZWCAD 2026** — a DLL é gerada contra a API real e é carregável,
+  mas o carregamento dentro do ZWCAD (passo 3 do `docs/PLANO.md`) ainda não foi
+  executado nesta máquina.
+- **AutoCAD** — o AutoCAD 2020 dos ensaios de `FIA`/`INT` (positivos) não está
+  instalado aqui; o alvo AutoCAD builda contra o stub (`Positron.CadStub`) e não
+  carrega por `NETLOAD`.
 - `npm run sidecar:build` (PyInstaller) — não executado aqui.
