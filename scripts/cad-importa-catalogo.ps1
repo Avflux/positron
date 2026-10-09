@@ -3,9 +3,10 @@
   Importa o catalogo do banco do produto (Access) para o banco do projeto (SQLite).
 
 .DESCRIPTION
-  O produto guarda o catalogo (Cabos/Veias/Materiais/ModelosCabos) no Access; o
-  positron guarda no SQLite do projeto. Este script le a COPIA do .mdb (o original
-  nunca e tocado), exporta as quatro tabelas para CSV e chama o carregador Python.
+  O produto guarda no Access o catalogo (Cabos/Veias/Materiais/ModelosCabos) e o
+  cadastro de paineis (Paineis); o positron guarda no SQLite do projeto. Este script
+  le a COPIA do .mdb (o original nunca e tocado), exporta as tabelas pedidas para CSV
+  e chama o carregador Python (`-Tabelas` muda a lista).
 
   Serve para verificar o caminho do catalogo de ponta a ponta: com o catalogo
   carregado, o INT carimba Cabos4/Veias4 (snapshot por revisao) e o app deixa de
@@ -19,7 +20,11 @@
 param(
     [string] $Mdb = "..\Elet\RCD\RCD.mdb",
     [string] $Banco,
-    [string] $Pasta
+    [string] $Pasta,
+    # Tabelas do projeto que vivem no Access e sao carregadas para o SQLite. As
+    # quatro primeiras sao o catalogo; `Paineis` e o cadastro de paineis (o app
+    # lista os paineis por ele: `projeto_listar_paineis`).
+    [string[]] $Tabelas = @('Cabos', 'Veias', 'Materiais', 'ModelosCabos', 'Paineis')
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,7 +47,7 @@ $conn = New-Object System.Data.Odbc.OdbcConnection("Driver={Microsoft Access Dri
 $conn.Open()
 try {
     $cmd = $conn.CreateCommand()
-    foreach ($tabela in @('Cabos', 'Veias', 'Materiais', 'ModelosCabos')) {
+    foreach ($tabela in $Tabelas) {
         $cmd.CommandText = "SELECT * FROM [$tabela]"
         $dt = New-Object System.Data.DataTable
         $dt.Load($cmd.ExecuteReader())

@@ -719,18 +719,31 @@ diferença apontada é exatamente essa, e nada mais.
 
 ### Catalogo do produto → banco do projeto (e o snapshot de cabos/veias)
 
-O catalogo (`Cabos`, `Veias`, `Materiais`, `ModelosCabos`) vive no Access do produto;
-o positron guarda o seu no SQLite. `scripts/cad-importa-catalogo.ps1` (com o carregador
-`scripts/cad-importa-catalogo.py`) le a **copia** do `.mdb`, casa as colunas **por nome**,
-converte `BOOL` para 0/1 e recarrega as tabelas:
+O catalogo (`Cabos`, `Veias`, `Materiais`, `ModelosCabos`) e o **cadastro de paineis**
+(`Paineis`) vivem no Access do produto; o positron guarda os dois no SQLite.
+`scripts/cad-importa-catalogo.ps1` (com o carregador `scripts/cad-importa-catalogo.py`)
+le a **copia** do `.mdb`, casa as colunas **por nome**, converte `BOOL` para 0/1 e
+recarrega as tabelas (a lista sai em `-Tabelas`):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/cad-importa-catalogo.ps1 `
   -Banco "$env:TEMP\positron-idem.db" -Mdb "..\Elet\RCD\RCD.mdb"
 ```
 
-Rodar duas vezes da o mesmo resultado (697 cabos, 2.388 veias, 210 materiais;
-`ModelosCabos` esta vazia no Access e e pulada).
+Rodar duas vezes da o mesmo resultado (697 cabos, 2.388 veias, 210 materiais, **480
+paineis**; `ModelosCabos` esta vazia no Access e e pulada).
+
+Com o cadastro carregado o **app funciona sobre o projeto real**:
+
+| Consulta | Resultado |
+|---|---|
+| `projeto_listar_paineis` | **480** paineis, com nome (`04F6 TFO1`, `04J1/4RB1`, …) |
+| `fiacao_por_painel(503)` | **490** fios (dos 494 da revisao — 4 sao de outro painel) |
+| `interligacao_por_painel(503)` | 20 trechos |
+| `circuitos_por_painel(503)` | **11** circuitos (o mesmo numero do A/B) |
+
+E os **quatro** paineis que a projecao usa (`9`, `503`, `509`, `510`) estao todos no
+cadastro do produto — o dado do desenho e o cadastro do projeto concordam.
 
 Com o catalogo carregado, o `INT` passa a carimbar o **snapshot por revisao**
 (`Cabos4`/`Veias4`), que antes saia 0 — e o resultado bate com o produto:
