@@ -278,13 +278,17 @@ leitor do XData `CONEXAO`, a projeção para `Fiacao` (INSERT canônico) e a lei
 no app (o sidecar lê o `.db` que o projetor .NET gravou). As colunas que dependem
 do desenho (`Tag`, `Terminal`, `Tipo`, `TipoBorne`, `IndexModelo`, `Alternativo`,
 `Handle`, `NRegua`, `PosicaoNum`, `BLink`) são preenchidas pela varredura de
-**bornes/terminais** da fase 7. A `Ordem` segue a **chave de ordenação do
-original** — `Potencial`, `PosicaoNum` decrescente (bornes primeiro), `dOrdem`
-(índice da régua), `TerminalNum`, `Terminal` — e o comando roda o
-`ReordenaOrdemPotenciais` (renumera `Ordem` 1..N por potencial). O que **falta**
-é a parcela do não-borne do `dOrdem` (a tabela `mPosicao` da tela de posições,
-ainda não trazida), então o não-borne ordena com `dOrdem = 0`. E, como o ZWCAD
-não está instalado, o `FIA` ainda não rodou dentro do desenho.
+**bornes/terminais** da fase 7. O casamento ponto↔borne já usa as **duas etapas
+do original**: o filtro de **bounds ±0,25** e a **tabela de pontos de ligação por
+nome de bloco** (`mknUzyUVsW`) — o ponto de referência é `inserção + deslocamento`,
+não o pé de inserção. A `Ordem` segue a **chave do original** — `Potencial`,
+`PosicaoNum` decrescente (bornes primeiro), `dOrdem`, `TerminalNum`, `Terminal` —
+e o comando roda o `ReordenaOrdemPotenciais` (renumera `Ordem` 1..N por potencial).
+O `dOrdem` do **não-borne** vem da tabela `mPosicao`, lida do dicionário
+`CENG_LAYOUT` do desenho — o que **falta** é a varredura de **dispositivos**
+(blocos tipo `I`/`E`/`P`) que dá a `tag` do ponto não-borne: sem ela o casamento
+por `(painel, tag)` não dispara e o não-borne ordena com `dOrdem = 0`. E, como o
+ZWCAD não está instalado, o `FIA` ainda não rodou dentro do desenho.
 
 A fase 6 também está **parcial**, pelo mesmo motivo da 5. Já existem e são
 testados: o comando `INT`, o leitor do XData `INTERLIGACAO`, a mesclagem das
@@ -393,9 +397,9 @@ instalado.
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
-1. **Casamento por bounds** do bloco no lugar da distância de inserção
-   (`Bounds ±0,25` + tabela de deslocamento por nome de bloco) e a tabela
-   `mPosicao` que dá o `dOrdem`/`PosicaoNum` do **não-borne** na reordenação.
+1. **Varredura de dispositivos** (blocos tipo `I`/`E`/`P`, o `ltZUHdAX7R` nos
+   tipos não-`B`): dá a `tag` ao ponto não-borne, sem a qual a tabela `mPosicao`
+   (já lida do `CENG_LAYOUT`) não casa.
 2. **`TerminalNumerico`** com as formas `:` e `-` (`VerificaOrientacaoContato`
    também, para os contatos).
 3. **`SYNCD` e `VERIF`** — comandos restantes do recorte do plugin.
@@ -418,7 +422,7 @@ instalado.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 54 testes)
+npm run plugin:test       # xunit, net472 (hoje 63 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

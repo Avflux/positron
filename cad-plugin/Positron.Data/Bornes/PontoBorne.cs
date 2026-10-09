@@ -49,6 +49,20 @@ namespace Positron.Data.Bornes
         /// <summary>Nome alternativo da régua — vira <c>Alternativo</c>.</summary>
         public string Alternativo { get; set; }
 
+        /// <summary>Nome da definição do bloco (o <c>BlockReference.Name</c>) — chave da tabela de deslocamento.</summary>
+        public string NomeBloco { get; set; }
+
+        /// <summary>Há bounding-box conhecida do bloco? Sem ela o filtro de bounds não se aplica.</summary>
+        public bool TemBounds { get; set; }
+
+        public double MinX { get; set; }
+
+        public double MinY { get; set; }
+
+        public double MaxX { get; set; }
+
+        public double MaxY { get; set; }
+
         /// <summary>
         /// A partir do XData de um borne e dos dados de entidade, resolve régua e
         /// painel pelo dicionário (se disponível).

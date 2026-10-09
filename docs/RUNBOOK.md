@@ -212,7 +212,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 
 - `pytest` — 20 testes passando, com DEALER/ROUTER e SUB/PUB reais e leitura do
   SQLite do projeto.
-- `npm run plugin:build` / `npm run plugin:test` — 0 erros/0 avisos e 54 testes
+- `npm run plugin:build` / `npm run plugin:test` — 0 erros/0 avisos e 63 testes
   xunit (net472) do plugin CAD (ZWCAD/AutoCAD), contra o stub.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.

@@ -106,15 +106,24 @@ bornes de reserva de `CENG_BORNES/<indexRegua>`; e os contatos de
 procurados no desenho; os painéis em uso, que no original vêm da tela, aqui saem
 das conexões/máscaras/dispositivos presentes.
 
-**Ordenação e reordenação (backlog 3).** A `Ordem` segue a chave do original —
-`Potencial`, `PosicaoNum` decrescente (bornes primeiro), `dOrdem` (índice da
-régua), `TerminalNum`, `Terminal`. Depois, o comando roda o
-`ReordenaOrdemPotenciais` (`ReordenarOrdemFiacao`), que renumera `Ordem` 1..N por
-potencial. `NRegua`, `PosicaoNum` e `BLink` vêm do borne casado.
+**Casamento por bounds + deslocamento.** O casamento ponto↔borne usa as duas
+etapas do original: o ponto tem que cair dentro da **bounding-box** do bloco com
+0,25 de folga (`Bounds ±0,25`), e o ponto de referência é
+`inserção + ponto de ligação`, onde os pontos de ligação vêm das **definições de
+bloco** (`mknUzyUVsW`), montados por `DeslocamentosDoDesenho`.
 
-**O que ainda sai vazio:** a parcela do `dOrdem` do **não-borne** (a tabela
-`mPosicao` da tela de posições, ainda não trazida) — o não-borne ordena com
-`dOrdem = 0`. Dado ausente é melhor que dado inventado.
+**Ordenação e reordenação (backlog 3).** A `Ordem` segue a chave do original —
+`Potencial`, `PosicaoNum` decrescente (bornes primeiro), `dOrdem`, `TerminalNum`,
+`Terminal`. Depois, o comando roda o `ReordenaOrdemPotenciais`
+(`ReordenarOrdemFiacao`), que renumera `Ordem` 1..N por potencial. `NRegua`,
+`PosicaoNum` e `BLink` vêm do borne casado. O `dOrdem` do **não-borne** vem da
+tabela `mPosicao`, lida do dicionário `CENG_LAYOUT` (`LayoutDoDesenho`), que casa
+por `(painel, tag)`.
+
+**O que ainda sai vazio:** a `tag` do ponto **não-borne** — ela vem da varredura
+de dispositivos (blocos tipo `I`/`E`/`P`), ainda não implementada; sem ela o
+`mPosicao` não casa e o não-borne ordena com `dOrdem = 0`. Dado ausente é melhor
+que dado inventado.
 
 ### Fluxo de interligação (`INT`)
 

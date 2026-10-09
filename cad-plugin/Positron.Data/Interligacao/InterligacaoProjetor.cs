@@ -43,7 +43,7 @@ namespace Positron.Data.Interligacao
         /// <summary>Projeta os pontos e devolve quantas linhas foram gravadas.</summary>
         public int Projetar(IEnumerable<PontoInterligacao> pontos, ContextoInterligacao contexto)
         {
-            return Projetar(pontos, contexto, null);
+            return Projetar(pontos, contexto, null, null);
         }
 
         /// <summary>
@@ -52,6 +52,16 @@ namespace Positron.Data.Interligacao
         /// próximo (terminal, régua, tipo, handle).
         /// </summary>
         public int Projetar(IEnumerable<PontoInterligacao> pontos, ContextoInterligacao contexto, IReadOnlyList<PontoBorne> bornes)
+        {
+            return Projetar(pontos, contexto, bornes, null);
+        }
+
+        /// <summary>Versão completa, com a tabela de deslocamento dos bornes.</summary>
+        public int Projetar(
+            IEnumerable<PontoInterligacao> pontos,
+            ContextoInterligacao contexto,
+            IReadOnlyList<PontoBorne> bornes,
+            TabelaDeslocamentoBlocos deslocamentos)
         {
             if (pontos == null)
             {
@@ -64,7 +74,7 @@ namespace Positron.Data.Interligacao
             }
 
             List<TrechoInterligacao> linhas = Mesclar(pontos, contexto);
-            AplicarBornes(linhas, bornes);
+            AplicarBornes(linhas, bornes, deslocamentos);
             _store.InserirInterligacao(linhas);
             return linhas.Count;
         }
@@ -74,7 +84,7 @@ namespace Positron.Data.Interligacao
         /// colunas da ponta. Ponta sem borne dentro da tolerância fica com as
         /// colunas nulas — dado ausente é melhor que dado inventado.
         /// </summary>
-        internal static void AplicarBornes(IEnumerable<TrechoInterligacao> linhas, IReadOnlyList<PontoBorne> bornes)
+        internal static void AplicarBornes(IEnumerable<TrechoInterligacao> linhas, IReadOnlyList<PontoBorne> bornes, TabelaDeslocamentoBlocos deslocamentos)
         {
             if (linhas == null || bornes == null || bornes.Count == 0)
             {
@@ -85,7 +95,8 @@ namespace Positron.Data.Interligacao
             {
                 if (linha.TemPonta1)
                 {
-                    PontoBorne borne = CasamentoBorne.Proximo(linha.X1, linha.Y1, linha.Pagina1, linha.Painel1, bornes);
+                    PontoBorne borne = CasamentoBorne.Proximo(
+                        linha.X1, linha.Y1, linha.Pagina1, linha.Painel1, bornes, CasamentoBorne.Tolerancia, deslocamentos);
                     if (borne != null)
                     {
                         linha.AplicarBornePonta1(borne);
@@ -94,7 +105,8 @@ namespace Positron.Data.Interligacao
 
                 if (linha.TemPonta2)
                 {
-                    PontoBorne borne = CasamentoBorne.Proximo(linha.X2, linha.Y2, linha.Pagina2, linha.Painel2, bornes);
+                    PontoBorne borne = CasamentoBorne.Proximo(
+                        linha.X2, linha.Y2, linha.Pagina2, linha.Painel2, bornes, CasamentoBorne.Tolerancia, deslocamentos);
                     if (borne != null)
                     {
                         linha.AplicarBornePonta2(borne);

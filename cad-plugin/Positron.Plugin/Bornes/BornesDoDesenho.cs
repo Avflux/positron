@@ -65,13 +65,28 @@ namespace Positron.Plugin.Bornes
                         continue;
                     }
 
-                    bornes.Add(PontoBorne.DeBorne(
+                    PontoBorne ponto = PontoBorne.DeBorne(
                         borne,
                         bloco.Handle.ToString(),
                         bloco.Layer,
                         bloco.Position.X,
                         bloco.Position.Y,
-                        reguas));
+                        reguas);
+
+                    // Nome do bloco (chave da tabela de deslocamento) e a
+                    // bounding-box (filtro ±0,25 do casamento).
+                    ponto.NomeBloco = bloco.Name;
+                    Extents3d? bounds = ((Drawable)bloco).Bounds;
+                    if (bounds.HasValue)
+                    {
+                        ponto.TemBounds = true;
+                        ponto.MinX = bounds.Value.MinPoint.X;
+                        ponto.MinY = bounds.Value.MinPoint.Y;
+                        ponto.MaxX = bounds.Value.MaxPoint.X;
+                        ponto.MaxY = bounds.Value.MaxPoint.Y;
+                    }
+
+                    bornes.Add(ponto);
                 }
 
                 transacao.Commit();

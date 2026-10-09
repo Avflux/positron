@@ -1,5 +1,6 @@
 using System;
 using Positron.Data.Bornes;
+using Positron.Data.Layout;
 
 namespace Positron.Data.Fiacao
 {
@@ -57,6 +58,13 @@ namespace Positron.Data.Fiacao
         public string NRegua { get; set; }
 
         public int Aplicacao { get; set; }
+
+        /// <summary>
+        /// Chave de ordenação do original (<c>dOrdem</c>): no borne é o índice da
+        /// régua; no não-borne com posição de layout, a ordem da posição. Usada
+        /// só para ordenar (não vai para o banco).
+        /// </summary>
+        public int OrdemChave { get; set; }
 
         /// <summary>Sequência dentro do potencial; calculada pelo projetor.</summary>
         public int Ordem { get; set; }
@@ -123,7 +131,25 @@ namespace Positron.Data.Fiacao
             NRegua = borne.NomeRegua;
             Handle = borne.Handle;
             PosicaoNum = 1;
+            OrdemChave = borne.IndiceRegua;
             BLink = false;
+        }
+
+        /// <summary>
+        /// Completa um ponto **não-borne** com a posição do layout
+        /// (<see cref="LayoutPosicoes"/>) casada por <c>(painel, tag)</c> — o
+        /// <c>mPosicao</c> do <c>frmCompilarFiacao</c>. Dá o <c>PosicaoNum</c> e a
+        /// ordem na reordenação.
+        /// </summary>
+        public void AplicarPosicao(PosicaoLayout posicao)
+        {
+            if (posicao == null)
+            {
+                throw new ArgumentNullException("posicao");
+            }
+
+            PosicaoNum = posicao.PosicaoNum;
+            OrdemChave = posicao.Ordem;
         }
     }
 

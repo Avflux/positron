@@ -6,10 +6,12 @@ using Positron.Data.Cabos;
 using Positron.Data.Bornes;
 using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
+using Positron.Data.Layout;
 using Positron.Data.Modelos;
 using Positron.Plugin.Bornes;
 using Positron.Plugin.Fiacao;
 using Positron.Plugin.Interligacao;
+using Positron.Plugin.Layout;
 using Positron.Plugin.Modelos;
 #if AUTOCAD
 using Autodesk.AutoCAD.Runtime;
@@ -77,16 +79,11 @@ namespace Positron.Plugin
                 ReguasModelo reguas = ReguasDoDesenho.Ler();
                 IReadOnlyList<PontoBorne> bornes = BornesDoDesenho.Ler(reguas);
 
-                ProjectStore store = new ProjectStore(caminho);
-                FiacaoProjetor projetor = new FiacaoProjetor(store);
-                int gravados = projetor.Projetar(pontos, contexto, bornes);
-
-                // Renumera Ordem 1..N por potencial (ReordenaOrdemPotenciais do
-                // original). No-op quando a projeção já inseriu ordenada.
-                int reordenados = store.ReordenarOrdemFiacao(contexto.Dwg, contexto.Revisao);
+                // Pontos de ligação por nome de bloco (bounds ±0,25 + offset).
+                TabelaDeslocamentoBlocos deslocamentos = DeslocamentosDoDesenho.Ler();
 
                 // Painéis desta revisão: no original vêm da tela; aqui, das
-                // conexões e das máscaras presentes no desenho.
+                // conexões e das máscaras/dispositivos presentes no desenho.
                 MascarasDoDesenho.EmUso emUso = MascarasDoDesenho.Ler();
                 List<int> paineis = new List<int>(emUso.Paineis);
                 foreach (PontoFiacao ponto in pontos)
@@ -106,12 +103,25 @@ namespace Positron.Plugin
                     }
                 }
 
+                // Posições do layout (CENG_LAYOUT) — dão o PosicaoNum/ordem do
+                // ponto não-borne.
+                LayoutPosicoes posicoes = LayoutDoDesenho.Ler(paineis);
+
+                ProjectStore store = new ProjectStore(caminho);
+                FiacaoProjetor projetor = new FiacaoProjetor(store);
+                int gravados = projetor.Projetar(pontos, contexto, bornes, posicoes, deslocamentos);
+
+                // Renumera Ordem 1..N por potencial (ReordenaOrdemPotenciais do
+                // original). No-op quando a projeção já inseriu ordenada.
+                int reordenados = store.ReordenarOrdemFiacao(contexto.Dwg, contexto.Revisao);
+
                 int portas = GerarPortas(store, contexto, emUso.Modelos);
                 int reservas = GerarBornes(store, contexto, reguas, bornes, paineis);
                 int contatos = GerarContatos(store, contexto, dispositivos);
 
                 Plugin.Escrever("FIA: " + gravados + " linha(s) em Fiacao (" + bornes.Count + " borne(s), "
-                    + reordenados + " reordenada(s)); "
+                    + reordenados + " reordenada(s), " + posicoes.NumPosicoes + " posicao(oes), "
+                    + deslocamentos.NumPontos + " ponto(s) de bloco); "
                     + portas + " porta(s) em Portas4F; " + reservas + " borne(s) em Bornes4F; "
                     + contatos + " contato(s) em Contatos4F.");
             }
@@ -163,9 +173,12 @@ namespace Positron.Plugin
                 ReguasModelo reguas = ReguasDoDesenho.Ler();
                 IReadOnlyList<PontoBorne> bornes = BornesDoDesenho.Ler(reguas);
 
+                // Pontos de ligação por nome de bloco (bounds ±0,25 + offset).
+                TabelaDeslocamentoBlocos deslocamentos = DeslocamentosDoDesenho.Ler();
+
                 ProjectStore store = new ProjectStore(caminho);
                 InterligacaoProjetor projetor = new InterligacaoProjetor(store);
-                int gravados = projetor.Projetar(pontos, contexto, bornes);
+                int gravados = projetor.Projetar(pontos, contexto, bornes, deslocamentos);
 
                 // Snapshot do catálogo por revisão (RUIU5Sbjhj/v1TU0cEjWd do
                 // original): Cabos4/Veias4 são o catálogo carimbado com a revisão.

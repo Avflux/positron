@@ -116,14 +116,30 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         }
     }
 
-    public class Entity : DBObject
+    /// <summary>Base do que tem geometria; <c>Bounds</c> pode não existir (desenho vazio).</summary>
+    public class Drawable : DBObject
+    {
+        public Extents3d? Bounds
+        {
+            get { return null; }
+        }
+    }
+
+    public class Entity : Drawable
     {
         public string Layer { get; set; }
+    }
 
-        public Extents3d Bounds
-        {
-            get { return default(Extents3d); }
-        }
+    public class DBPoint : Entity
+    {
+        public Point3d Position { get; set; }
+    }
+
+    public class Line : Entity
+    {
+        public Point3d StartPoint { get; set; }
+
+        public Point3d EndPoint { get; set; }
     }
 
     public class Polyline : Entity
@@ -176,11 +192,16 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         }
     }
 
-    public class SymbolTable : DBObject
+    public class SymbolTable : DBObject, IEnumerable
     {
         public bool Has(string nome)
         {
             return false;
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            return new List<ObjectId>().GetEnumerator();
         }
     }
 
@@ -195,6 +216,8 @@ namespace ZwSoft.ZwCAD.DatabaseServices
     public class BlockTableRecord : DBObject, IEnumerable
     {
         public const string ModelSpace = "*ModelSpace";
+
+        public string Name { get; set; }
 
         public IEnumerator GetEnumerator()
         {

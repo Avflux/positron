@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Positron.Data.Bornes;
+using Positron.Data.Layout;
 
 namespace Positron.Data.Fiacao
 {
@@ -30,7 +31,7 @@ namespace Positron.Data.Fiacao
         /// <summary>Projeta os pontos e devolve quantas linhas foram gravadas.</summary>
         public int Projetar(IEnumerable<PontoFiacao> pontos, ContextoProjecao contexto)
         {
-            return Projetar(pontos, contexto, null);
+            return Projetar(pontos, contexto, null, null);
         }
 
         /// <summary>
@@ -40,6 +41,32 @@ namespace Positron.Data.Fiacao
         /// varredura de bornes fornece.
         /// </summary>
         public int Projetar(IEnumerable<PontoFiacao> pontos, ContextoProjecao contexto, IReadOnlyList<PontoBorne> bornes)
+        {
+            return Projetar(pontos, contexto, bornes, null);
+        }
+
+        /// <summary>
+        /// Versão completa: com <paramref name="deslocamentos"/>, o casamento usa
+        /// os pontos de ligação do bloco (bounds ±0,25 + tabela por nome); com
+        /// <paramref name="posicoes"/>, o **não-borne** ganha <c>PosicaoNum</c> e a
+        /// ordem da posição de layout (o <c>mPosicao</c> do original).
+        /// </summary>
+        public int Projetar(
+            IEnumerable<PontoFiacao> pontos,
+            ContextoProjecao contexto,
+            IReadOnlyList<PontoBorne> bornes,
+            LayoutPosicoes posicoes)
+        {
+            return Projetar(pontos, contexto, bornes, posicoes, null);
+        }
+
+        /// <summary>Versão completa com a tabela de deslocamento dos bornes.</summary>
+        public int Projetar(
+            IEnumerable<PontoFiacao> pontos,
+            ContextoProjecao contexto,
+            IReadOnlyList<PontoBorne> bornes,
+            LayoutPosicoes posicoes,
+            TabelaDeslocamentoBlocos deslocamentos)
         {
             if (pontos == null)
             {
@@ -52,14 +79,26 @@ namespace Positron.Data.Fiacao
             }
 
             List<PontoFiacao> lista = pontos as List<PontoFiacao> ?? new List<PontoFiacao>(pontos);
-            if (bornes != null && bornes.Count > 0)
+            foreach (PontoFiacao ponto in lista)
             {
-                foreach (PontoFiacao ponto in lista)
+                if (bornes != null && bornes.Count > 0)
                 {
-                    PontoBorne borne = CasamentoBorne.Proximo(ponto.X, ponto.Y, ponto.Layer, ponto.Painel, bornes);
+                    PontoBorne borne = CasamentoBorne.Proximo(
+                        ponto.X, ponto.Y, ponto.Layer, ponto.Painel, bornes, CasamentoBorne.Tolerancia, deslocamentos);
                     if (borne != null)
                     {
                         ponto.AplicarBorne(borne);
+                        continue;
+                    }
+                }
+
+                // Não-borne: a posição do layout (se houver) dá o PosicaoNum/ordem.
+                if (posicoes != null && !posicoes.EstaVazia && ponto.PosicaoNum != 1)
+                {
+                    PosicaoLayout posicao = posicoes.Buscar(ponto.Painel, ponto.Tag);
+                    if (posicao != null)
+                    {
+                        ponto.AplicarPosicao(posicao);
                     }
                 }
             }
@@ -90,7 +129,7 @@ namespace Positron.Data.Fiacao
                 .Where(ponto => ponto.Potencial > 0)
                 .OrderBy(ponto => ponto.Potencial)
                 .ThenByDescending(ponto => ponto.PosicaoNum)
-                .ThenBy(ponto => ponto.PosicaoNum == 1 ? ponto.IndexModelo : 0)
+                .ThenBy(ponto => ponto.OrdemChave)
                 .ThenBy(ponto => ponto.TerminalNum)
                 .ThenBy(ponto => ponto.Terminal ?? string.Empty, StringComparer.Ordinal)
                 .ToList();
