@@ -55,6 +55,19 @@ namespace Positron.Data.Tests
             Assert.Equal("SUBESTACAO", lida.Local);
             Assert.Equal(6, lida.IncluirColuna);
             Assert.Equal("-", lida.SeparadorCruzamento);
+            Assert.Equal(original.Relatorio, lida.Relatorio);
+        }
+
+        [Fact]
+        public void Relatorio_vem_do_ambiente_e_do_arquivo()
+        {
+            ConfiguracaoPositron doArquivo = ConfiguracaoPositron.Ler("relatorio=C:\\a\\r.txt\n", null);
+            Assert.Equal(@"C:\a\r.txt", doArquivo.Relatorio);
+
+            ConfiguracaoPositron doAmbiente = ConfiguracaoPositron.Ler(
+                "relatorio=C:\\a\\r.txt\n",
+                Ambiente("POSITRON_RELATORIO", @"C:\b\r.txt"));
+            Assert.Equal(@"C:\b\r.txt", doAmbiente.Relatorio);
         }
 
         [Fact]

@@ -271,9 +271,15 @@ escopo estrutural do recoder.
   dela, e a tela WinForms `FormularioConfiguracao` no comando **`ELETCFG`** (modal,
   nunca em script). A variável de ambiente continua vencendo, então nenhum E2E
   depende de arquivo.
-- **Falta:** as telas de **compilação** (`frmCompilarFiacao`/`Interligacao` com
-  grid de erros, seleção de painéis/revisão e botão de salvar) — hoje os comandos
-  fazem o serviço sem tela, pegando painel/revisão da configuração.
+- **Feito também (rodada 19):** o **conteúdo** da grid de erros —
+  `RelatorioCompilacao` (puro, com `Texto()`/`Salvar()`) e o comando `ELETREL`, que
+  grava em arquivo a verificação inteira (título, resumo, contagens e uma linha por
+  problema). Como roda por script, é verificável: no `Funcional.dwg` sai um relatório
+  de 116 linhas com os 107 problemas.
+- **Falta:** a **tela** de compilação propriamente dita
+  (`frmCompilarFiacao`/`Interligacao`: seleção de painéis/revisão, progresso e a grid
+  na tela) — os comandos fazem o serviço sem tela e o relatório já tem o conteúdo;
+  a tela virou um viewer do mesmo `RelatorioCompilacao`.
 
 ### Etapa 9 — Decisões abertas · P2
 
@@ -347,7 +353,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 15 — pontos de fiação nas duas pontas | 2026-10-09 | ff8227e | a leitura passa a criar ponto na **primeira** e/ou **última** ponta da `CONEXAO` conforme `Tipo`/`Disp1`/`Disp2`/`Jumper` (regra do `frmCompilarFiacao`), com `PontosDaConexao` + 6 testes; no `Funcional.dwg` o `FIA` grava **494** linhas (era 365; previsto 494), `Circuitos4F` 11→**7** e os órfãos 171→**107** — o mesmo 107 que a simulação offline previa, fechando o casamento; `plugin:test` **172** |
 | 16 — regras de duplicidade fiéis ao original | 2026-10-09 | 755b374 | sai a regra de "terminal repetido" da fiação (110 falsos positivos) e entra a do original: dois trechos **Tipo 2** com **mesma página e mesmas pontas** (`FiacaoDuplicada` + adapter `TrechosDoDesenho`); mesma coisa nos contatos (18 falsos positivos; o produto grava um contato por `sT1`/`sT2`/`sT3` sem dedup). Desenho real: **107 problemas, todos `BorneSemFiacao`** (a conta fecha com a simulação); `plugin:test` **173** |
 | 17 — configuração do plugin (Etapa 8) | 2026-10-09 | 1feccfb | `ConfiguracaoPositron` (padrão < arquivo < ambiente, tolerante, com 5 testes), comandos e log lendo dela, tela WinForms + comando `ELETCFG`; `Circle` entra no `Positron.CadStub` (a build AutoCAD estava quebrada desde a rodada 14); desenho real segue em **107** problemas e `plugin:test` em **178** |
-| 18 — perfil de XData do desenho | 2026-10-09 | (este commit) | os três DWGs reais mapeados por papel (Funcional = diagrama; Interligação = documento com `DINTERLIG`; Fiação = documento/plot) e `FIA`/`INT` passam a responder com o **perfil do desenho** quando não acham o que procuram (`PerfilDoDesenho` puro + `PerfilDoDesenhoDoDesenho`, 5 testes); `cad:e2e` sintético re-rodado (pendente da 17) e `Funcional.dwg` sem regressão (494 linhas / 107 problemas); `plugin:test` **183** |
+| 18 — perfil de XData do desenho | 2026-10-09 | 12b0e68 | os três DWGs reais mapeados por papel (Funcional = diagrama; Interligação = documento com `DINTERLIG`; Fiação = documento/plot) e `FIA`/`INT` passam a responder com o **perfil do desenho** quando não acham o que procuram (`PerfilDoDesenho` puro + `PerfilDoDesenhoDoDesenho`, 5 testes); `cad:e2e` sintético re-rodado (pendente da 17) e `Funcional.dwg` sem regressão (494 linhas / 107 problemas); `plugin:test` **183** |
+| 19 — relatório de verificação (`ELETREL`) | 2026-10-09 | (este commit) | a grid de erros das telas do original vira arquivo: `RelatorioCompilacao` puro (`Texto()`/`Salvar()`, 4 testes) + comando `ELETREL` (chave `relatorio`/`POSITRON_RELATORIO`), com `VERIF` e `ELETREL` compartilhando `VerificarRevisao`; no `Funcional.dwg` saiu um relatório de 116 linhas com os **107** problemas (`Desenho;BorneSemFiacao;Fiacao;…`); `plugin:test` **188** |
 | 5 — Pendências de projeção (parcial) | 2026-10-09 | bc59c8d | auditoria mostrou que `ltZUHdAX7R` e a regra `I`/`M` **já estavam implementadas e testadas** (`DispositivosFiacaoTests`, 105 testes); `cad-plugin/README.md` corrigido; resta só a `Pagina` com cruzamento (matriz de páginas) |
 | 7a — `Dispositivos4F` | 2026-10-09 | ed7222a | gerador puro + gravação idempotente + `FIA` gerando; `plugin:test` **110** aprovados |
 | 7b — `Circuitos4F` | 2026-10-09 | 1afbd7a | gerador puro + gravação idempotente + `FIA` gerando (`t6yXrlfi5w`); `plugin:test` **114** aprovados |

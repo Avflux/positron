@@ -533,6 +533,35 @@ script é assíncrono e a `pz-dump` seguinte roda no desenho antigo. Para abrir 
 DWG como desenho ativo, passe o **arquivo na linha de comando** do ZWCAD
 (`ZWCAD.exe <desenho> /nologo /b <script>`).
 
+### Relatório de verificação em arquivo (`ELETREL`)
+
+A grid de erros das telas `frmCompilar*` do original virou **relatório em arquivo**,
+que roda por script (a tela em si não dá para verificar):
+
+```bash
+npm run cad:smoke -- -Desenho "$env:TEMP\positron-match.dwg" -Comandos ELET,FIA,INT,VERIF,ELETREL -Revisao R0
+```
+
+O caminho vem de `POSITRON_RELATORIO` (chave `relatorio` na configuração); sem ela,
+grava `positron-relatorio.txt` ao lado do banco. Medido no `Funcional.dwg`:
+
+```text
+ELETREL: 107 problema(s) em C:\Users\rno\AppData\Local\Temp\positron-relatorio-e2e.txt.
+# Verificação do projeto (R0, DWG 1)
+# 2026-10-09 11:50:24
+VERIF: 494 fio(s), 20 trecho(s), 265 porta(s), 168 borne(s), 88 contato(s) na revisão.
+# banco=...\positron-zwcad-20261009-115009.db
+# problemas=107
+# area;tipo;tabela;identificador;detalhe
+Desenho;BorneSemFiacao;Fiacao;4DD53;borne do desenho sem ponto de fiação
+...
+# 107 linha(s)
+```
+
+O conteúdo é puro (`RelatorioCompilacao`: `Texto()`/`Salvar()`, testado) e o `VERIF`
+passou a compartilhar a mesma montagem (`VerificarRevisao`), então os dois não podem
+divergir.
+
 ### Os três desenhos do projeto (e o perfil de XData)
 
 Os DWGs reais do projeto têm papéis diferentes, e rodar o comando no desenho errado
@@ -597,7 +626,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
   26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 183 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 188 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge

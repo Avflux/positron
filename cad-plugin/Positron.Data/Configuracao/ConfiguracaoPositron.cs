@@ -30,6 +30,7 @@ namespace Positron.Data.Configuracao
         public const string ChaveLog = "log";
         public const string ChaveIncluirColuna = "incluirColuna";
         public const string ChaveSeparador = "separadorCruzamento";
+        public const string ChaveRelatorio = "relatorio";
 
         public const string VariavelBanco = "POSITRON_DB_PATH";
         public const string VariavelDwg = "POSITRON_DWG";
@@ -38,6 +39,7 @@ namespace Positron.Data.Configuracao
         public const string VariavelLog = "POSITRON_LOG";
         public const string VariavelIncluirColuna = "POSITRON_INCLUIR_COLUNA";
         public const string VariavelSeparador = "POSITRON_SEPARADOR_CRUZAMENTO";
+        public const string VariavelRelatorio = "POSITRON_RELATORIO";
 
         private static ConfiguracaoPositron _cache;
 
@@ -54,6 +56,9 @@ namespace Positron.Data.Configuracao
         public int IncluirColuna { get; set; }
 
         public string SeparadorCruzamento { get; set; }
+
+        /// <summary>Arquivo do relatório de verificação (<c>ELETREL</c>).</summary>
+        public string Relatorio { get; set; }
 
         /// <summary>Arquivo padrão: <c>%APPDATA%\Positron\positron.ini</c> (ou o TEMP).</summary>
         public static string ArquivoPadrao
@@ -81,6 +86,7 @@ namespace Positron.Data.Configuracao
                 Log = null,
                 IncluirColuna = 0,
                 SeparadorCruzamento = null,
+                Relatorio = null,
             };
         }
 
@@ -155,6 +161,7 @@ namespace Positron.Data.Configuracao
             texto.AppendLine(ChaveLog + "=" + (Log ?? string.Empty));
             texto.AppendLine(ChaveIncluirColuna + "=" + IncluirColuna.ToString(CultureInfo.InvariantCulture));
             texto.AppendLine(ChaveSeparador + "=" + (SeparadorCruzamento ?? string.Empty));
+            texto.AppendLine(ChaveRelatorio + "=" + (Relatorio ?? string.Empty));
             return texto.ToString();
         }
 
@@ -201,7 +208,8 @@ namespace Positron.Data.Configuracao
             if (Mesma(chave, ChaveLocal, VariavelLocal)) { configuracao.Local = Vazio(valor); return; }
             if (Mesma(chave, ChaveLog, VariavelLog)) { configuracao.Log = Vazio(valor); return; }
             if (Mesma(chave, ChaveIncluirColuna, VariavelIncluirColuna)) { configuracao.IncluirColuna = Inteiro(valor, configuracao.IncluirColuna); return; }
-            if (Mesma(chave, ChaveSeparador, VariavelSeparador)) { configuracao.SeparadorCruzamento = Vazio(valor); }
+            if (Mesma(chave, ChaveSeparador, VariavelSeparador)) { configuracao.SeparadorCruzamento = Vazio(valor); return; }
+            if (Mesma(chave, ChaveRelatorio, VariavelRelatorio)) { configuracao.Relatorio = Vazio(valor); }
         }
 
         private static void AplicarAmbiente(ConfiguracaoPositron configuracao, IDictionary<string, string> ambiente)
@@ -225,7 +233,7 @@ namespace Positron.Data.Configuracao
         private static IDictionary<string, string> Ambiente()
         {
             Dictionary<string, string> ambiente = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador })
+            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio })
             {
                 string valor = Environment.GetEnvironmentVariable(nome);
                 if (!string.IsNullOrEmpty(valor))

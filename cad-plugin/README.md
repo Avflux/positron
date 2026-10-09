@@ -91,6 +91,7 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 | `JMP` | **implementado** — projeta os jumpers do desenho para `Jumper4` |
 | `VERIF` | **implementado** — valida as tabelas gravadas (fiação, interligação e modelos) **e lê o desenho** (régua do borne, cabo fora do catálogo, página fora da `LayerTable`, borne sem fiação, fiação duplicada) |
 | `ELETCFG` | **implementado** — abre a tela de configuração (WinForms) e grava `%APPDATA%\Positron\positron.ini`. **Modal**: não rode dentro de script |
+| `ELETREL` | **implementado** — grava o **relatório da verificação** em arquivo (a grid de erros das telas do original, sem tela). Roda por script |
 
 ### Fluxo de fiação (`FIA`)
 
@@ -109,6 +110,7 @@ do original. Configuração por arquivo **ou** variável de ambiente:
 | `POSITRON_LOG` | `log` | arquivo onde `Plugin.Escrever` anexa cada mensagem (evidência de execução por script) — opcional |
 | `POSITRON_INCLUIR_COLUNA` | `incluirColuna` | switch `Conf.incluirColuna` da coluna `Pagina` (`0..6`), padrão `0` (layer cru) |
 | `POSITRON_SEPARADOR_CRUZAMENTO` | `separadorCruzamento` | separador do caso `6` de `POSITRON_INCLUIR_COLUNA`, padrão vazio |
+| `POSITRON_RELATORIO` | `relatorio` | arquivo do relatório do `ELETREL`; padrão: `positron-relatorio.txt` ao lado do banco |
 
 O arquivo (`%APPDATA%\Positron\positron.ini`, `chave=valor`) é gravado pelo comando
 `ELETCFG`; a leitura é tolerante (linha malformada ignorada, valor inválido mantém o

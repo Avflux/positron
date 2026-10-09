@@ -9,6 +9,7 @@ using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
 using Positron.Data.Layout;
 using Positron.Data.Modelos;
+using Positron.Data.Relatorios;
 using Positron.Plugin.Bornes;
 using Positron.Plugin.Fiacao;
 using Positron.Plugin.Interligacao;
@@ -397,83 +398,13 @@ namespace Positron.Plugin
 
             try
             {
-                ProjectStore store = new ProjectStore(caminho);
-                int dwg = config.Dwg;
-                string revisao = config.Revisao;
-
-                IReadOnlyList<FiacaoRow> fiacao = store.FiacaoDaRevisao(dwg, revisao);
-                IReadOnlyList<Interligacao4Row> interligacao = store.InterligacaoDaRevisao(dwg, revisao);
-                IReadOnlyList<Portas4FRow> portas = store.PortasDaRevisao(dwg, revisao);
-                IReadOnlyList<Bornes4FRow> bornes = store.BornesDaRevisao(dwg, revisao);
-                IReadOnlyList<Contatos4FRow> contatos = store.ContatosDaRevisao(dwg, revisao);
-
-                List<Problema> problemas = VerificadorProjeto.Verificar(
-                    fiacao, interligacao, portas, bornes, contatos);
-
-                // O verifier original também lê o DESENHO: a régua de cada borne e
-                // o cabo referenciado que não existe no catálogo.
-                ReguasModelo reguas = ReguasDoDesenho.Ler();
-                IReadOnlyList<PontoBorne> bornesDoDesenho = BornesDoDesenho.Ler(reguas);
-                problemas.AddRange(VerificadorProjeto.VerificarBornesSemRegua(bornesDoDesenho, reguas));
-
-                // Borne do desenho que não casou com nenhum ponto de fiação (órfão).
-                List<string> handlesDoDesenho = new List<string>();
-                foreach (PontoBorne borne in bornesDoDesenho)
-                {
-                    handlesDoDesenho.Add(borne.Handle);
-                }
-
-                List<string> handlesNaFiacao = new List<string>();
-                foreach (FiacaoRow fio in fiacao)
-                {
-                    handlesNaFiacao.Add(fio.Handle);
-                }
-
-                problemas.AddRange(VerificadorProjeto.VerificarBornesSemFiacao(handlesDoDesenho, handlesNaFiacao));
-
-                // Fiação desenhada em duplicidade: dois trechos Tipo 2 com as mesmas
-                // pontas na mesma página (o `LFiacaoTTDuplicada` do original).
-                problemas.AddRange(VerificadorProjeto.VerificarFiacaoDuplicada(TrechosDoDesenho.Ler()));
-
-                List<string> cabosUsados = new List<string>();
-                foreach (Interligacao4Row trecho in interligacao)
-                {
-                    cabosUsados.Add(trecho.Tag_Cabo);
-                }
-
-                List<string> catalogo = new List<string>();
-                foreach (CabosRow cabo in store.LerCabos())
-                {
-                    catalogo.Add(cabo.Tag);
-                }
-
-                problemas.AddRange(VerificadorProjeto.VerificarCabosSemCatalogo(cabosUsados, catalogo));
-
-                // Página gravada que não existe na LayerTable do desenho (a matriz
-                // de páginas é montada dos layers, como o Pagina.CarregaPaginas).
-                List<string> paginasGravadas = new List<string>();
-                foreach (FiacaoRow fio in fiacao)
-                {
-                    paginasGravadas.Add(fio.Pagina);
-                }
-
-                foreach (Bornes4FRow borne in bornes)
-                {
-                    paginasGravadas.Add(borne.Pagina);
-                }
-
-                foreach (Interligacao4Row trecho in interligacao)
-                {
-                    paginasGravadas.Add(trecho.Pagina1);
-                    paginasGravadas.Add(trecho.Pagina2);
-                }
-
-                foreach (Dispositivos4FRow dispositivo in store.DispositivosDaRevisao(dwg, revisao))
-                {
-                    paginasGravadas.Add(dispositivo.Pagina);
-                }
-
-                problemas.AddRange(VerificadorProjeto.VerificarPaginasAusentes(paginasGravadas, PaginasDoDesenho.Ler()));
+                int fios;
+                int trechos;
+                int portas;
+                int bornes;
+                int contatos;
+                List<Problema> problemas = VerificarRevisao(
+                    caminho, config.Dwg, config.Revisao, out fios, out trechos, out portas, out bornes, out contatos);
 
                 int porFiacao = 0;
                 int porInterligacao = 0;
@@ -498,8 +429,8 @@ namespace Positron.Plugin
                     }
                 }
 
-                Plugin.Escrever("VERIF: " + fiacao.Count + " fio(s), " + interligacao.Count + " trecho(s), "
-                    + portas.Count + " porta(s), " + bornes.Count + " borne(s), " + contatos.Count
+                Plugin.Escrever("VERIF: " + fios + " fio(s), " + trechos + " trecho(s), "
+                    + portas + " porta(s), " + bornes + " borne(s), " + contatos
                     + " contato(s) na revisão.");
                 // Composição por TIPO: sem isso, "548 problemas de modelos" não diz
                 // se é regra estrita demais ou dado ruim. Só os tipos que aparecem.
@@ -536,6 +467,159 @@ namespace Positron.Plugin
             {
                 Plugin.Escrever("VERIF: falhou — " + DescreverErro(erro));
             }
+        }
+
+        /// <summary>
+        /// <c>ELETREL</c> — grava o **relatório da verificação** em arquivo: é a grid
+        /// de erros das telas <c>frmCompilar*</c> do original, sem tela. Serve para
+        /// rodar por script (o harness lê o arquivo) e para anexar ao projeto.
+        ///
+        /// O caminho vem da configuração: chave <c>relatorio</c> (variável
+        /// <c>POSITRON_RELATORIO</c>); sem ela, grava ao lado do banco, como
+        /// <c>positron-relatorio.txt</c>.
+        /// </summary>
+        [CommandMethod("ELETREL")]
+        public void EletRel()
+        {
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            string caminho = config.Banco;
+            if (string.IsNullOrEmpty(caminho))
+            {
+                Plugin.Escrever("ELETREL: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).");
+                return;
+            }
+
+            try
+            {
+                int fios;
+                int trechos;
+                int portas;
+                int bornes;
+                int contatos;
+                List<Problema> problemas = VerificarRevisao(
+                    caminho, config.Dwg, config.Revisao, out fios, out trechos, out portas, out bornes, out contatos);
+
+                string resumo = "VERIF: " + fios + " fio(s), " + trechos + " trecho(s), "
+                    + portas + " porta(s), " + bornes + " borne(s), " + contatos + " contato(s) na revisão.";
+
+                RelatorioCompilacao relatorio = RelatorioCompilacao.DeProblemas(
+                    "Verificação do projeto (" + (config.Revisao ?? "sem revisão") + ", DWG " + config.Dwg + ")",
+                    resumo,
+                    problemas);
+
+                relatorio.Contagens.Add("# banco=" + caminho);
+                relatorio.Contagens.Add("# problemas=" + problemas.Count);
+
+                string destino = config.Relatorio;
+                if (string.IsNullOrWhiteSpace(destino))
+                {
+                    string pasta = System.IO.Path.GetDirectoryName(caminho);
+                    destino = System.IO.Path.Combine(
+                        string.IsNullOrEmpty(pasta) ? "." : pasta,
+                        "positron-relatorio.txt");
+                }
+
+                relatorio.Salvar(destino);
+
+                Plugin.Escrever("ELETREL: " + problemas.Count + " problema(s) em " + destino + ".");
+                Plugin.Escrever("ELETREL: " + fios + " fio(s), " + trechos + " trecho(s), " + portas
+                    + " porta(s), " + bornes + " borne(s), " + contatos + " contato(s) na revisão.");
+            }
+            catch (System.Exception erro)
+            {
+                Plugin.Escrever("ELETREL: falhou — " + DescreverErro(erro));
+            }
+        }
+
+        /// <summary>
+        /// Monta os problemas da revisão: as regras de tabela (<see cref="VerificadorProjeto"/>)
+        /// mais as que leem o desenho (régua do borne, órfãos, fiação duplicada, página
+        /// ausente). Devolve também as contagens que o resumo imprime. Compartilhado por
+        /// <c>VERIF</c> (imprime) e <c>ELETREL</c> (grava em arquivo).
+        /// </summary>
+        private static List<Problema> VerificarRevisao(
+            string caminho, int dwg, string revisao,
+            out int fios, out int trechos, out int portas, out int bornes, out int contatos)
+        {
+            ProjectStore store = new ProjectStore(caminho);
+
+            IReadOnlyList<FiacaoRow> fiacao = store.FiacaoDaRevisao(dwg, revisao);
+            IReadOnlyList<Interligacao4Row> interligacao = store.InterligacaoDaRevisao(dwg, revisao);
+            IReadOnlyList<Portas4FRow> linhasPortas = store.PortasDaRevisao(dwg, revisao);
+            IReadOnlyList<Bornes4FRow> linhasBornes = store.BornesDaRevisao(dwg, revisao);
+            IReadOnlyList<Contatos4FRow> linhasContatos = store.ContatosDaRevisao(dwg, revisao);
+
+            fios = fiacao.Count;
+            trechos = interligacao.Count;
+            portas = linhasPortas.Count;
+            bornes = linhasBornes.Count;
+            contatos = linhasContatos.Count;
+
+            List<Problema> problemas = VerificadorProjeto.Verificar(
+                fiacao, interligacao, linhasPortas, linhasBornes, linhasContatos);
+
+            // O verifier original também lê o DESENHO: a régua de cada borne e
+            // o cabo referenciado que não existe no catálogo.
+            ReguasModelo reguas = ReguasDoDesenho.Ler();
+            IReadOnlyList<PontoBorne> bornesDoDesenho = BornesDoDesenho.Ler(reguas);
+            problemas.AddRange(VerificadorProjeto.VerificarBornesSemRegua(bornesDoDesenho, reguas));
+
+            List<string> handlesDoDesenho = new List<string>();
+            foreach (PontoBorne borne in bornesDoDesenho)
+            {
+                handlesDoDesenho.Add(borne.Handle);
+            }
+
+            List<string> handlesNaFiacao = new List<string>();
+            foreach (FiacaoRow fio in fiacao)
+            {
+                handlesNaFiacao.Add(fio.Handle);
+            }
+
+            problemas.AddRange(VerificadorProjeto.VerificarBornesSemFiacao(handlesDoDesenho, handlesNaFiacao));
+
+            // Fiação desenhada em duplicidade: dois trechos Tipo 2 com as mesmas
+            // pontas na mesma página (o `LFiacaoTTDuplicada` do original).
+            problemas.AddRange(VerificadorProjeto.VerificarFiacaoDuplicada(TrechosDoDesenho.Ler()));
+
+            List<string> cabosUsados = new List<string>();
+            foreach (Interligacao4Row trecho in interligacao)
+            {
+                cabosUsados.Add(trecho.Tag_Cabo);
+            }
+
+            List<string> catalogo = new List<string>();
+            foreach (CabosRow cabo in store.LerCabos())
+            {
+                catalogo.Add(cabo.Tag);
+            }
+
+            problemas.AddRange(VerificadorProjeto.VerificarCabosSemCatalogo(cabosUsados, catalogo));
+
+            List<string> paginasGravadas = new List<string>();
+            foreach (FiacaoRow fio in fiacao)
+            {
+                paginasGravadas.Add(fio.Pagina);
+            }
+
+            foreach (Bornes4FRow borne in linhasBornes)
+            {
+                paginasGravadas.Add(borne.Pagina);
+            }
+
+            foreach (Interligacao4Row trecho in interligacao)
+            {
+                paginasGravadas.Add(trecho.Pagina1);
+                paginasGravadas.Add(trecho.Pagina2);
+            }
+
+            foreach (Dispositivos4FRow dispositivo in store.DispositivosDaRevisao(dwg, revisao))
+            {
+                paginasGravadas.Add(dispositivo.Pagina);
+            }
+
+            problemas.AddRange(VerificadorProjeto.VerificarPaginasAusentes(paginasGravadas, PaginasDoDesenho.Ler()));
+            return problemas;
         }
 
         /// <summary>Gera <c>Portas4F</c> a partir dos modelos de máscara do desenho.</summary>
