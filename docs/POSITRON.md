@@ -412,6 +412,13 @@ original grava um circuito por **potencial**, das conexões `CONEXAO` com
 (o primeiro vence). Para isso o `PontoFiacao` passou a carregar o `Nome` e o
 `Tipo` da conexão (idx 7 e 1 do XData).
 
+O `INT` ganhou as tabelas **intermediárias** do original: `Portas4I` (o
+`wrlU180vl0`: portas de **todos** os modelos de máscara do dicionário, sem
+filtro de uso) e `Bornes4I` (o `T6NUlT3ghH`: bornes do desenho + reservas das
+réguas, **sem** o filtro de painel em uso que o `FIA` aplica). Os geradores
+reaproveitam `Portas4FGerador`/`Bornes4FGerador` com o filtro nulo e projetam
+o subconjunto de colunas das tabelas I.
+
 ## 7. Armadilhas
 
 - **App não lê XData.** Qualquer informação que a UI do app precisa ver **tem**
@@ -475,8 +482,8 @@ no `RUNBOOK.md`.
    e modelos), mas não lê o desenho.
 3. **Tabelas do contrato §3 ainda não projetadas:** o plugin grava `Fiacao`,
    `Interligacao4`, `Portas4F`, `Bornes4F`, `Contatos4F`, `Dispositivos4F`,
-   `Circuitos4F`, `Cabos4` e `Veias4`. Ficam por cobrir `Jumper4`, `Bornes4I`,
-   `Portas4I`, `Aranha4`, `Aplicacao4F`, `Atributos` e `Exportados`
+   `Circuitos4F`, `Aplicacao4F`, `Portas4I`, `Bornes4I`, `Cabos4` e `Veias4`.
+   Ficam por cobrir `Jumper4`, `Aranha4`, `Atributos` e `Exportados`
    (jumpers, bornes intermediários, aranha, circuitos, aplicação e projeção
    cross-DWG). Atenção: o `Jumper4` **não** vem do `FIA` — é escrito pelo
    `frmCompilarJumperExt` (comando `JMP`/`JPEXT`) —, então cada tabela restante
@@ -499,7 +506,7 @@ no `RUNBOOK.md`.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 118 testes)
+npm run plugin:test       # xunit, net472 (hoje 122 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

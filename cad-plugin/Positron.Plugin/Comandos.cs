@@ -207,13 +207,21 @@ namespace Positron.Plugin
                 InterligacaoProjetor projetor = new InterligacaoProjetor(store);
                 int gravados = projetor.Projetar(pontos, contexto, bornes, deslocamentos);
 
+                // Portas e bornes da interligação (wrlU180vl0 / T6NUlT3ghH do
+                // frmCompilarInterligacao): todos os modelos de máscara e todos os
+                // bornes do desenho + reservas, sem o filtro de painel em uso que
+                // o FIA aplica.
+                int portas4I = GerarPortas4I(store, contexto);
+                int bornes4I = GerarBornes4I(store, contexto, reguas, bornes);
+
                 // Snapshot do catálogo por revisão (RUIU5Sbjhj/v1TU0cEjWd do
                 // original): Cabos4/Veias4 são o catálogo carimbado com a revisão.
                 int cabos = RegravarCabos4(store, contexto);
                 int veias = RegravarVeias4(store, contexto);
 
                 return "INT: " + gravados + " linha(s) gravada(s) em Interligacao4 ("
-                    + bornes.Count + " borne(s)); " + cabos + " cabo(s) em Cabos4; "
+                    + bornes.Count + " borne(s)); " + portas4I + " porta(s) em Portas4I; "
+                    + bornes4I + " borne(s) em Bornes4I; " + cabos + " cabo(s) em Cabos4; "
                     + veias + " veia(s) em Veias4.";
             }
             catch (System.Exception erro)
@@ -417,6 +425,49 @@ namespace Positron.Plugin
             List<Dispositivo4F> linhas = Dispositivos4FGerador.Gerar(
                 blocos, paineis, modeloDeDispositivo, modeloDeMascara, posicoes);
             store.InserirDispositivos(linhas, contexto.Revisao, contexto.Dwg);
+            return linhas.Count;
+        }
+
+        /// <summary>
+        /// Gera <c>Portas4I</c> — o <c>wrlU180vl0</c> do <c>frmCompilarInterligacao</c>:
+        /// todas as portas dos modelos de máscara do dicionário, sem o filtro de
+        /// "em uso". Ver <see cref="Portas4IGerador"/>.
+        /// </summary>
+        private static int GerarPortas4I(ProjectStore store, ContextoInterligacao contexto)
+        {
+            List<ModeloMascara> modelos = ModelosMascaraDoDesenho.LerModelos();
+            Dictionary<int, IReadOnlyList<ModeloPorta>> portasPorModelo =
+                new Dictionary<int, IReadOnlyList<ModeloPorta>>();
+            foreach (ModeloMascara modelo in modelos)
+            {
+                portasPorModelo[modelo.Indice] = ModelosMascaraDoDesenho.LerPortas(modelo.Indice, modelo.Nome);
+            }
+
+            List<Porta4I> linhas = Portas4IGerador.Gerar(modelos, portasPorModelo);
+            store.InserirPortas4I(linhas, contexto.Revisao, contexto.Dwg);
+            return linhas.Count;
+        }
+
+        /// <summary>
+        /// Gera <c>Bornes4I</c> — o <c>T6NUlT3ghH</c> do
+        /// <c>frmCompilarInterligacao</c>: bornes do desenho + reservas das réguas,
+        /// sem o filtro de painel em uso. Ver <see cref="Bornes4IGerador"/>.
+        /// </summary>
+        private static int GerarBornes4I(
+            ProjectStore store,
+            ContextoInterligacao contexto,
+            ReguasModelo reguas,
+            IReadOnlyList<PontoBorne> bornes)
+        {
+            Dictionary<int, IReadOnlyList<BorneReserva>> reservasPorRegua =
+                new Dictionary<int, IReadOnlyList<BorneReserva>>();
+            foreach (ReguaInfo regua in reguas.Ordenadas)
+            {
+                reservasPorRegua[regua.Indice] = BornesReservaDoDesenho.Ler(regua.Indice);
+            }
+
+            List<Borne4I> linhas = Bornes4IGerador.Gerar(bornes, reguas, reservasPorRegua);
+            store.InserirBornes4I(linhas, contexto.Revisao, contexto.Dwg);
             return linhas.Count;
         }
 

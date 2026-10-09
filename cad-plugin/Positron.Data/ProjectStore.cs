@@ -605,6 +605,85 @@ namespace Positron.Data
             return linhas;
         }
 
+        /// <summary>Lê as portas de uma revisão (<c>Portas4I</c>).</summary>
+        public IReadOnlyList<Portas4IRow> Portas4IDaRevisao(int dwg, string revisao)
+        {
+            List<Portas4IRow> linhas = new List<Portas4IRow>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, DWG, IndexModelo, NomeModelo, Regua, Borne, Terminal, TerminalNum, Tipo " +
+                    "FROM Portas4I " +
+                    "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') ORDER BY IndexModelo, Indice";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new Portas4IRow
+                        {
+                            Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
+                            Revisao = Texto(leitor, "Revisao"),
+                            DWG = Inteiro(leitor, "DWG"),
+                            IndexModelo = Inteiro(leitor, "IndexModelo"),
+                            NomeModelo = Texto(leitor, "NomeModelo"),
+                            Regua = Texto(leitor, "Regua"),
+                            Borne = Texto(leitor, "Borne"),
+                            Terminal = Texto(leitor, "Terminal"),
+                            TerminalNum = Real(leitor, "TerminalNum"),
+                            Tipo = Texto(leitor, "Tipo"),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
+        /// <summary>Lê os bornes de uma revisão (<c>Bornes4I</c>).</summary>
+        public IReadOnlyList<Bornes4IRow> Bornes4IDaRevisao(int dwg, string revisao)
+        {
+            List<Bornes4IRow> linhas = new List<Bornes4IRow>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, DWG, Painel, IndexRegua, Regua, Alternativo, Handle, Borne, " +
+                    "Ordem, Tipo, Pagina, bReserva FROM Bornes4I " +
+                    "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') ORDER BY Painel, Indice";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new Bornes4IRow
+                        {
+                            Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
+                            Revisao = Texto(leitor, "Revisao"),
+                            DWG = Inteiro(leitor, "DWG"),
+                            Painel = Inteiro(leitor, "Painel"),
+                            IndexRegua = Inteiro(leitor, "IndexRegua"),
+                            Regua = Texto(leitor, "Regua"),
+                            Alternativo = Texto(leitor, "Alternativo"),
+                            Handle = Texto(leitor, "Handle"),
+                            Borne = Texto(leitor, "Borne"),
+                            Ordem = Real(leitor, "Ordem"),
+                            Tipo = Inteiro(leitor, "Tipo"),
+                            Pagina = Texto(leitor, "Pagina"),
+                            bReserva = Logico(leitor, "bReserva"),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
         /// <summary>Lê os tipos de aplicação de uma revisão (<c>Aplicacao4F</c>).</summary>
         public IReadOnlyList<Aplicacao4FRow> AplicacoesDaRevisao(int dwg, string revisao)
         {
@@ -1143,6 +1222,108 @@ namespace Positron.Data
                     parametros[4].Value = Nulo(contato.Terminal);
                     parametros[5].Value = contato.TerminalNum;
                     parametros[6].Value = Nulo(contato.Orientacao);
+                    comando.ExecuteNonQuery();
+                }
+
+                transacao.Commit();
+            }
+        }
+
+        /// <summary>Grava as portas da interligação (<c>Portas4I</c>) — ver <see cref="Portas4IGerador"/>.</summary>
+        public void InserirPortas4I(IEnumerable<Porta4I> portas, string revisao, int dwg)
+        {
+            List<Porta4I> lista = portas == null ? new List<Porta4I>() : new List<Porta4I>(portas);
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                RemoverRevisaoDaTabela(conexao, "Portas4I", dwg, revisao);
+
+                comando.CommandText =
+                    "INSERT INTO Portas4I(Revisao, DWG, IndexModelo, NomeModelo, Regua, Borne, Terminal, " +
+                    "TerminalNum, Tipo) " +
+                    "VALUES(@revisao, @dwg, @indexModelo, @nomeModelo, @regua, @borne, @terminal, " +
+                    "@terminalNum, @tipo)";
+
+                SQLiteParameter[] parametros =
+                {
+                    comando.Parameters.Add("@revisao", System.Data.DbType.String),
+                    comando.Parameters.Add("@dwg", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@indexModelo", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@nomeModelo", System.Data.DbType.String),
+                    comando.Parameters.Add("@regua", System.Data.DbType.String),
+                    comando.Parameters.Add("@borne", System.Data.DbType.String),
+                    comando.Parameters.Add("@terminal", System.Data.DbType.String),
+                    comando.Parameters.Add("@terminalNum", System.Data.DbType.Double),
+                    comando.Parameters.Add("@tipo", System.Data.DbType.String),
+                };
+
+                foreach (Porta4I porta in lista)
+                {
+                    parametros[0].Value = Nulo(revisao);
+                    parametros[1].Value = dwg;
+                    parametros[2].Value = porta.IndexModelo;
+                    parametros[3].Value = Nulo(porta.NomeModelo);
+                    parametros[4].Value = Nulo(porta.Regua);
+                    parametros[5].Value = Nulo(porta.Borne);
+                    parametros[6].Value = Nulo(porta.Terminal);
+                    parametros[7].Value = porta.TerminalNum;
+                    parametros[8].Value = Nulo(porta.Tipo);
+                    comando.ExecuteNonQuery();
+                }
+
+                transacao.Commit();
+            }
+        }
+
+        /// <summary>Grava os bornes da interligação (<c>Bornes4I</c>) — ver <see cref="Bornes4IGerador"/>.</summary>
+        public void InserirBornes4I(IEnumerable<Borne4I> bornes, string revisao, int dwg)
+        {
+            List<Borne4I> lista = bornes == null ? new List<Borne4I>() : new List<Borne4I>(bornes);
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                RemoverRevisaoDaTabela(conexao, "Bornes4I", dwg, revisao);
+
+                comando.CommandText =
+                    "INSERT INTO Bornes4I(Revisao, DWG, Painel, IndexRegua, Regua, Alternativo, Handle, Borne, " +
+                    "Ordem, Tipo, Pagina, bReserva) " +
+                    "VALUES(@revisao, @dwg, @painel, @indexRegua, @regua, @alternativo, @handle, @borne, " +
+                    "@ordem, @tipo, @pagina, @bReserva)";
+
+                SQLiteParameter[] parametros =
+                {
+                    comando.Parameters.Add("@revisao", System.Data.DbType.String),
+                    comando.Parameters.Add("@dwg", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@painel", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@indexRegua", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@regua", System.Data.DbType.String),
+                    comando.Parameters.Add("@alternativo", System.Data.DbType.String),
+                    comando.Parameters.Add("@handle", System.Data.DbType.String),
+                    comando.Parameters.Add("@borne", System.Data.DbType.String),
+                    comando.Parameters.Add("@ordem", System.Data.DbType.Double),
+                    comando.Parameters.Add("@tipo", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@pagina", System.Data.DbType.String),
+                    comando.Parameters.Add("@bReserva", System.Data.DbType.Boolean),
+                };
+
+                foreach (Borne4I borne in lista)
+                {
+                    parametros[0].Value = Nulo(revisao);
+                    parametros[1].Value = dwg;
+                    parametros[2].Value = (int)borne.Painel;
+                    parametros[3].Value = borne.IndexRegua;
+                    parametros[4].Value = Nulo(borne.Regua);
+                    parametros[5].Value = Nulo(borne.Alternativo);
+                    parametros[6].Value = Nulo(borne.Handle);
+                    parametros[7].Value = Nulo(borne.Borne);
+                    parametros[8].Value = borne.Ordem;
+                    parametros[9].Value = borne.Tipo;
+                    parametros[10].Value = Nulo(borne.Pagina);
+                    parametros[11].Value = borne.BReserva;
                     comando.ExecuteNonQuery();
                 }
 

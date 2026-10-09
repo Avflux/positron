@@ -217,6 +217,13 @@ inventado).
 `(Tag_Cabo, Num_Veia)` para completar a outra ponta — e compara o cabo ignorando
 caixa, como o `yHoU3hlYPo` do original (ver `../docs/POSITRON.md`).
 
+**Portas e bornes intermediários (`Portas4I`/`Bornes4I`).** O `INT` também
+projeta as tabelas **I** do original: o `wrlU180vl0` grava `Portas4I` a partir
+das portas de **todos** os modelos de máscara do dicionário (não só os em uso) e o
+`T6NUlT3ghH` grava `Bornes4I` com os bornes do desenho mais as reservas das
+réguas, **sem** o filtro de painel em uso que o `FIA` aplica ao `Bornes4F`. As
+duas tabelas não têm `Orientacao`/`LM`/`BlocoLayout`.
+
 O leitor e o projetor são puros (não dependem do CAD) e têm teste real contra
 um SQLite montado do `schema.sql`:
 
