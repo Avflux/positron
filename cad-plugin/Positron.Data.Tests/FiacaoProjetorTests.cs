@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.IO;
 using Positron.Contract;
 using Positron.Data.Bornes;
@@ -120,6 +121,87 @@ namespace Positron.Data.Tests
                 FiacaoRow linha = Assert.Single(linhas);
                 Assert.Equal("R1/ALT1", linha.Tag);
                 Assert.Equal("12A", linha.Terminal);
+            }
+            finally
+            {
+                BancoDeTeste.Limpar(caminho);
+            }
+        }
+
+        [Fact]
+        public void Borne_vem_primeiro_e_ordem_e_renumerada()
+        {
+            string caminho = BancoDeTeste.Criar();
+            try
+            {
+                ProjectStore store = new ProjectStore(caminho);
+                FiacaoProjetor projetor = new FiacaoProjetor(store);
+
+                // Dois pontos no mesmo potencial. Na entrada o não-borne vem
+                // primeiro, mas o borne (PosicaoNum = 1) tem que vir antes na Ordem.
+                List<PontoFiacao> pontos = new List<PontoFiacao>
+                {
+                    new PontoFiacao { Painel = 1, Potencial = 4, X = 50.0, Y = 50.0, Layer = "PAG1" },
+                    new PontoFiacao { Painel = 1, Potencial = 4, X = 0.0, Y = 0.0, Layer = "PAG1" },
+                };
+                List<PontoBorne> bornes = new List<PontoBorne>
+                {
+                    new PontoBorne
+                    {
+                        Handle = "H1", X = 0.1, Y = 0.0, Layer = "PAG1", Painel = 1,
+                        Terminal = "T1", Ordem = 5.0, IndiceRegua = 8, NomeRegua = "R1",
+                    },
+                };
+
+                projetor.Projetar(pontos, new ContextoProjecao { Dwg = 1, Criador = "ana", Data = DateTime.Now }, bornes);
+
+                IReadOnlyList<FiacaoRow> linhas = store.FiacaoDoPainel(1);
+                Assert.Equal(2, linhas.Count);
+
+                // Ordem 1 = o borne (PosicaoNum 1), com NRegua/terminal preenchidos.
+                Assert.Equal(1L, linhas[0].Ordem ?? 0);
+                Assert.Equal(1L, linhas[0].PosicaoNum ?? 0);
+                Assert.Equal("R1", linhas[0].NRegua);
+                Assert.Equal("T1", linhas[0].Terminal);
+                Assert.Equal(8L, linhas[0].IndexModelo ?? -1);
+
+                // Ordem 2 = o não-borne.
+                Assert.Equal(2L, linhas[1].Ordem ?? 0);
+                Assert.Equal(0L, linhas[1].PosicaoNum ?? -1);
+            }
+            finally
+            {
+                BancoDeTeste.Limpar(caminho);
+            }
+        }
+
+        [Fact]
+        public void Reordenar_numera_ordem_de_1_a_n_por_potencial()
+        {
+            string caminho = BancoDeTeste.Criar();
+            try
+            {
+                // Linhas "cruas" com Ordem fora de sequência (como um banco antigo).
+                using (SQLiteConnection conexao = new SQLiteConnection("Data Source=" + caminho + ";Version=3;"))
+                {
+                    conexao.Open();
+                    using (SQLiteCommand comando = conexao.CreateCommand())
+                    {
+                        comando.CommandText =
+                            "INSERT INTO Fiacao(Revisao, DWG, Painel, Potencial, Ordem, BJumper, BLink) VALUES" +
+                            "('R0', 1, 1, 7, 5, 0, 0), ('R0', 1, 1, 7, 9, 0, 0), " +
+                            "('R0', 1, 1, 9, 2, 0, 0), ('R0', 1, 1, 9, 4, 0, 0)";
+                        comando.ExecuteNonQuery();
+                    }
+                }
+
+                ProjectStore store = new ProjectStore(caminho);
+                int corrigidas = store.ReordenarOrdemFiacao(1, "R0");
+                Assert.Equal(4, corrigidas);
+
+                IReadOnlyList<FiacaoRow> linhas = store.FiacaoDoPainel(1);
+                Assert.Equal(new long[] { 7, 7, 9, 9 }, PotencialPorLinha(linhas));
+                Assert.Equal(new long[] { 1, 2, 1, 2 }, OrdemPorLinha(linhas));
             }
             finally
             {

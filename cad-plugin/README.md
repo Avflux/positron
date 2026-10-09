@@ -106,9 +106,15 @@ bornes de reserva de `CENG_BORNES/<indexRegua>`; e os contatos de
 procurados no desenho; os painéis em uso, que no original vêm da tela, aqui saem
 das conexões/máscaras/dispositivos presentes.
 
-**O que ainda sai vazio:** `NRegua` e `PosicaoNum`/`BLink` (dependem da passada de
-reordenação, ainda não implementada). A projeção deixa essas colunas nulas de
-propósito — dado ausente é melhor que dado inventado.
+**Ordenação e reordenação (backlog 3).** A `Ordem` segue a chave do original —
+`Potencial`, `PosicaoNum` decrescente (bornes primeiro), `dOrdem` (índice da
+régua), `TerminalNum`, `Terminal`. Depois, o comando roda o
+`ReordenaOrdemPotenciais` (`ReordenarOrdemFiacao`), que renumera `Ordem` 1..N por
+potencial. `NRegua`, `PosicaoNum` e `BLink` vêm do borne casado.
+
+**O que ainda sai vazio:** a parcela do `dOrdem` do **não-borne** (a tabela
+`mPosicao` da tela de posições, ainda não trazida) — o não-borne ordena com
+`dOrdem = 0`. Dado ausente é melhor que dado inventado.
 
 ### Fluxo de interligação (`INT`)
 
@@ -131,10 +137,9 @@ revisão — o `RUIU5Sbjhj`/`v1TU0cEjWd` do original. Não é derivado do desenh
 catálogo por revisão. As linhas da revisão são apagadas antes de inserir, para
 rodar duas vezes não duplicar.
 
-**O que ainda sai vazio:** `NRegua` (depende da passada de reordenação, ainda não
-implementada) e `Documento`/`Posicao`/`DWG1`/`DWG2` (configuração e por-ponta, não
-projetadas). Ficam nulas de propósito. A semântica fina do `Tipo == 3` também
-ficou aproximada (ver `../docs/POSITRON.md`).
+**O que ainda sai vazio:** `Documento`/`Posicao`/`DWG1`/`DWG2` (configuração e
+por-ponta, não projetadas). Ficam nulas de propósito. A semântica fina do
+`Tipo == 3` também ficou aproximada (ver `../docs/POSITRON.md`).
 
 O leitor e o projetor são puros (não dependem do CAD) e têm teste real contra
 um SQLite montado do `schema.sql`:

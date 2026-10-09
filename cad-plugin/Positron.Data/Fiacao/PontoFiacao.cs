@@ -7,14 +7,13 @@ namespace Positron.Data.Fiacao
     /// Um ponto de fiação — equivalente ao <c>structurePontosPotencial</c> do
     /// original, com os campos que viram colunas de <c>Fiacao</c>.
     ///
-    /// **O que ainda não é preenchido.** O original monta estes pontos varrendo
-    /// também os **bornes/terminais** do desenho (a tabela de dados de
-    /// <c>frmCompilarFiacao</c> tem colunas que não existem no XData de
-    /// <c>CONEXAO</c>). Enquanto essa varredura não existe, ficam com default:
-    /// <see cref="Tag"/>, <see cref="Alternativo"/>, <see cref="Terminal"/>,
-    /// <see cref="TerminalNum"/>, <see cref="Tipo"/>, <see cref="PosicaoNum"/>,
-    /// <see cref="TipoBorne"/>, <see cref="IndexModelo"/>, <see cref="BLink"/>,
-    /// <see cref="NRegua"/> e <see cref="Handle"/>. Ver docs/POSITRON.md (fase 5).
+    /// **O que vem do borne.** O original monta estes pontos varrendo também os
+    /// **bornes/terminais** do desenho (colunas que não existem no XData de
+    /// <c>CONEXAO</c>). <see cref="AplicarBorne"/> preenche <see cref="Tag"/>,
+    /// <see cref="Alternativo"/>, <see cref="Terminal"/>, <see cref="TerminalNum"/>,
+    /// <see cref="Tipo"/>, <see cref="PosicaoNum"/>, <see cref="TipoBorne"/>,
+    /// <see cref="IndexModelo"/>, <see cref="NRegua"/>, <see cref="Handle"/> e
+    /// <see cref="BLink"/>. Ver docs/POSITRON.md (fases 5 e 7).
     /// </summary>
     public sealed class PontoFiacao
     {
@@ -121,6 +120,7 @@ namespace Positron.Data.Fiacao
             Tipo = BorneXData.TipoBorne;
             TipoBorne = (short)borne.Tipo;
             IndexModelo = (short)borne.IndiceRegua;
+            NRegua = borne.NomeRegua;
             Handle = borne.Handle;
             PosicaoNum = 1;
             BLink = false;

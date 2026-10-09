@@ -81,6 +81,10 @@ namespace Positron.Plugin
                 FiacaoProjetor projetor = new FiacaoProjetor(store);
                 int gravados = projetor.Projetar(pontos, contexto, bornes);
 
+                // Renumera Ordem 1..N por potencial (ReordenaOrdemPotenciais do
+                // original). No-op quando a projeção já inseriu ordenada.
+                int reordenados = store.ReordenarOrdemFiacao(contexto.Dwg, contexto.Revisao);
+
                 // Painéis desta revisão: no original vêm da tela; aqui, das
                 // conexões e das máscaras presentes no desenho.
                 MascarasDoDesenho.EmUso emUso = MascarasDoDesenho.Ler();
@@ -106,7 +110,8 @@ namespace Positron.Plugin
                 int reservas = GerarBornes(store, contexto, reguas, bornes, paineis);
                 int contatos = GerarContatos(store, contexto, dispositivos);
 
-                Plugin.Escrever("FIA: " + gravados + " linha(s) em Fiacao (" + bornes.Count + " borne(s)); "
+                Plugin.Escrever("FIA: " + gravados + " linha(s) em Fiacao (" + bornes.Count + " borne(s), "
+                    + reordenados + " reordenada(s)); "
                     + portas + " porta(s) em Portas4F; " + reservas + " borne(s) em Bornes4F; "
                     + contatos + " contato(s) em Contatos4F.");
             }

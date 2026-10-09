@@ -82,7 +82,8 @@ namespace Positron.Data
             {
                 // Ordem reinicia a cada potencial, então Potencial vem primeiro.
                 comando.CommandText =
-                    "SELECT Indice, Revisao, DWG, Painel, Potencial, Ordem, Pagina, Tag, Terminal, Secao, Cor, " +
+                    "SELECT Indice, Revisao, DWG, Painel, Potencial, Ordem, Pagina, Tag, Alternativo, NRegua, " +
+                    "Terminal, TerminalNum, Tipo, Secao, Cor, PosicaoNum, TipoBorne, BLink, Handle, IndexModelo, " +
                     "Criador FROM Fiacao WHERE Painel = @painel ORDER BY Potencial, Ordem";
                 comando.Parameters.AddWithValue("@painel", painel);
 
@@ -179,6 +180,92 @@ namespace Positron.Data
             }
         }
 
+        /// <summary>
+        /// Renumera <c>Ordem</c> de 1..N dentro de cada <c>Potencial</c> da revisão
+        /// — o <c>ReordenaOrdemPotenciais</c> do original
+        /// (<c>cDadosAccessFiacao</c>). Só toca as linhas cujo <c>Ordem</c> já divergiu
+        /// da sequência; devolve quantas foram corrigidas. É no-op quando a inserção
+        /// já veio ordenada (<see cref="FiacaoProjetor.Numerar"/>).
+        /// </summary>
+        public int ReordenarOrdemFiacao(int dwg, string revisao)
+        {
+            int corrigidas = 0;
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            {
+                List<int> potenciais = new List<int>();
+                using (SQLiteCommand comando = conexao.CreateCommand())
+                {
+                    comando.CommandText =
+                        "SELECT DISTINCT Potencial FROM Fiacao " +
+                        "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '')";
+                    comando.Parameters.AddWithValue("@dwg", dwg);
+                    comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+                    using (SQLiteDataReader leitor = comando.ExecuteReader())
+                    {
+                        while (leitor.Read())
+                        {
+                            if (!leitor.IsDBNull(0))
+                            {
+                                potenciais.Add(leitor.GetInt32(0));
+                            }
+                        }
+                    }
+                }
+
+                using (SQLiteCommand buscar = conexao.CreateCommand())
+                using (SQLiteCommand atualizar = conexao.CreateCommand())
+                {
+                    buscar.CommandText =
+                        "SELECT Indice, Ordem FROM Fiacao " +
+                        "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') AND Potencial = @potencial " +
+                        "ORDER BY Ordem, Indice";
+                    buscar.Parameters.Add("@dwg", System.Data.DbType.Int32);
+                    buscar.Parameters.Add("@revisao", System.Data.DbType.String);
+                    buscar.Parameters.Add("@potencial", System.Data.DbType.Int32);
+
+                    atualizar.CommandText = "UPDATE Fiacao SET Ordem = @ordem WHERE Indice = @indice";
+                    SQLiteParameter ordem = atualizar.Parameters.Add("@ordem", System.Data.DbType.Int32);
+                    SQLiteParameter indice = atualizar.Parameters.Add("@indice", System.Data.DbType.Int64);
+
+                    foreach (int potencial in potenciais)
+                    {
+                        buscar.Parameters["@dwg"].Value = dwg;
+                        buscar.Parameters["@revisao"].Value = (object)revisao ?? DBNull.Value;
+                        buscar.Parameters["@potencial"].Value = potencial;
+
+                        List<long> ids = new List<long>();
+                        List<int> ordens = new List<int>();
+                        using (SQLiteDataReader leitor = buscar.ExecuteReader())
+                        {
+                            while (leitor.Read())
+                            {
+                                ids.Add(leitor.GetInt64(0));
+                                ordens.Add(leitor.IsDBNull(1) ? 0 : leitor.GetInt32(1));
+                            }
+                        }
+
+                        for (int i = 0; i < ids.Count; i++)
+                        {
+                            int nova = i + 1;
+                            if (ordens[i] != nova)
+                            {
+                                ordem.Value = nova;
+                                indice.Value = ids[i];
+                                atualizar.ExecuteNonQuery();
+                                corrigidas++;
+                            }
+                        }
+                    }
+                }
+
+                transacao.Commit();
+            }
+
+            return corrigidas;
+        }
+
         /// <summary>Grava as linhas de interligação já mescladas (ver <see cref="InterligacaoProjetor"/>).</summary>
         public void InserirInterligacao(IEnumerable<TrechoInterligacao> trechos)
         {
@@ -251,7 +338,7 @@ namespace Positron.Data
                     parametros[7].Value = trecho.Painel1 > 0 ? (object)(int)trecho.Painel1 : DBNull.Value;
                     parametros[8].Value = Nulo(trecho.Tag1);
                     parametros[9].Value = Nulo(trecho.Alternativo1);
-                    parametros[10].Value = DBNull.Value; // NRegua1: depende da passada de reordenação
+                    parametros[10].Value = Nulo(trecho.NRegua1);
                     parametros[11].Value = Nulo(trecho.Terminal1);
                     parametros[12].Value = Falta(trecho.TerminalNum1);
                     parametros[13].Value = Falta(trecho.TipoBorne1);
@@ -264,7 +351,7 @@ namespace Positron.Data
                     parametros[20].Value = trecho.Painel2 > 0 ? (object)(int)trecho.Painel2 : DBNull.Value;
                     parametros[21].Value = Nulo(trecho.Tag2);
                     parametros[22].Value = Nulo(trecho.Alternativo2);
-                    parametros[23].Value = DBNull.Value; // NRegua2
+                    parametros[23].Value = Nulo(trecho.NRegua2);
                     parametros[24].Value = Nulo(trecho.Terminal2);
                     parametros[25].Value = Falta(trecho.TerminalNum2);
                     parametros[26].Value = Falta(trecho.TipoBorne2);
@@ -294,8 +381,8 @@ namespace Positron.Data
             {
                 comando.CommandText =
                     "SELECT Indice, Revisao, DWG, Tag_Cabo, Num_Veia, Nome_Veia, Painel1, Pagina1, Tag1, " +
-                    "Alternativo1, Terminal1, TerminalNum1, TipoBorne1, Handle1, IndexModelo1, Painel2, " +
-                    "Pagina2, Tag2, Alternativo2, Terminal2, TerminalNum2, TipoBorne2, Handle2, IndexModelo2, " +
+                    "Alternativo1, NRegua1, Terminal1, TerminalNum1, TipoBorne1, Handle1, IndexModelo1, Painel2, " +
+                    "Pagina2, Tag2, Alternativo2, NRegua2, Terminal2, TerminalNum2, TipoBorne2, Handle2, IndexModelo2, " +
                     "Criador FROM Interligacao4 WHERE Tag_Cabo = @tagCabo ORDER BY Num_Veia, Indice";
                 comando.Parameters.AddWithValue("@tagCabo", tagCabo);
 
@@ -315,6 +402,7 @@ namespace Positron.Data
                             Pagina1 = Texto(leitor, "Pagina1"),
                             Tag1 = Texto(leitor, "Tag1"),
                             Alternativo1 = Texto(leitor, "Alternativo1"),
+                            NRegua1 = Texto(leitor, "NRegua1"),
                             Terminal1 = Texto(leitor, "Terminal1"),
                             TerminalNum1 = Real(leitor, "TerminalNum1"),
                             TipoBorne1 = Inteiro(leitor, "TipoBorne1"),
@@ -324,6 +412,7 @@ namespace Positron.Data
                             Pagina2 = Texto(leitor, "Pagina2"),
                             Tag2 = Texto(leitor, "Tag2"),
                             Alternativo2 = Texto(leitor, "Alternativo2"),
+                            NRegua2 = Texto(leitor, "NRegua2"),
                             Terminal2 = Texto(leitor, "Terminal2"),
                             TerminalNum2 = Real(leitor, "TerminalNum2"),
                             TipoBorne2 = Inteiro(leitor, "TipoBorne2"),
@@ -826,9 +915,18 @@ namespace Positron.Data
                 Ordem = Inteiro(leitor, "Ordem"),
                 Pagina = Texto(leitor, "Pagina"),
                 Tag = Texto(leitor, "Tag"),
+                Alternativo = Texto(leitor, "Alternativo"),
+                NRegua = Texto(leitor, "NRegua"),
                 Terminal = Texto(leitor, "Terminal"),
+                TerminalNum = Real(leitor, "TerminalNum"),
+                Tipo = Texto(leitor, "Tipo"),
                 Secao = Texto(leitor, "Secao"),
                 Cor = Texto(leitor, "Cor"),
+                PosicaoNum = Inteiro(leitor, "PosicaoNum"),
+                TipoBorne = Inteiro(leitor, "TipoBorne"),
+                BLink = Logico(leitor, "BLink"),
+                Handle = Texto(leitor, "Handle"),
+                IndexModelo = Inteiro(leitor, "IndexModelo"),
                 Criador = Texto(leitor, "Criador"),
             };
         }

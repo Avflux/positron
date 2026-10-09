@@ -101,6 +101,7 @@ namespace Positron.Data.Tests
                 Interligacao4Row linha = store.InterligacaoPorCabo("CABO1")[0];
                 Assert.Equal("R1", linha.Tag1);
                 Assert.Null(linha.Alternativo1);
+                Assert.Equal("R1", linha.NRegua1);
                 Assert.Equal("1", linha.Terminal1);
                 Assert.Equal(1.0, linha.TerminalNum1.Value);
                 Assert.Equal(0L, linha.TipoBorne1.Value);
@@ -109,6 +110,7 @@ namespace Positron.Data.Tests
 
                 Assert.Equal("R2/ALT", linha.Tag2);
                 Assert.Equal("ALT", linha.Alternativo2);
+                Assert.Equal("R2", linha.NRegua2);
                 Assert.Equal("2", linha.Terminal2);
                 Assert.Equal(2.0, linha.TerminalNum2.Value);
                 Assert.Equal(8L, linha.IndexModelo2.Value);

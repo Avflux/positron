@@ -108,11 +108,11 @@ namespace Positron.Data.Interligacao
     /// Uma linha de <c>Interligacao4</c> já mesclada. Espelha as colunas do
     /// INSERT canônico (<c>cDadosAccessInterligacao2.AdicionaItemInterligacao</c>).
     ///
-    /// As colunas das pontas que **não** vêm do XData nem do borne — <c>NRegua</c>,
-    /// <c>Documento</c>, <c>Posicao</c> e <c>DWG1</c>/<c>DWG2</c> — não são expostas
-    /// aqui: saem nulas de propósito, como na fase 7 para a <c>Fiacao</c>. O que a
-    /// varredura de bornes preenche (tag, alternativo, terminal, terminalNum,
-    /// tipoBorne, handle, indexModelo) é o que se aplica por ponta.
+    /// As colunas que a varredura de bornes preenche (tag, alternativo, nRegua,
+    /// terminal, terminalNum, tipoBorne, handle, indexModelo) são o que se aplica
+    /// por ponta. As que **não** vêm do XData nem do borne — <c>Documento</c>,
+    /// <c>Posicao</c> e <c>DWG1</c>/<c>DWG2</c> — não são expostas: saem nulas de
+    /// propósito (config e por-ponta, não projetadas).
     /// </summary>
     public sealed class TrechoInterligacao
     {
@@ -158,6 +158,8 @@ namespace Positron.Data.Interligacao
 
         public string Alternativo1 { get; set; }
 
+        public string NRegua1 { get; set; }
+
         public string Terminal1 { get; set; }
 
         public double? TerminalNum1 { get; set; }
@@ -173,6 +175,8 @@ namespace Positron.Data.Interligacao
         public string Tag2 { get; set; }
 
         public string Alternativo2 { get; set; }
+
+        public string NRegua2 { get; set; }
 
         public string Terminal2 { get; set; }
 
@@ -193,6 +197,7 @@ namespace Positron.Data.Interligacao
         {
             Tag1 = MontarTag(borne);
             Alternativo1 = borne.Alternativo;
+            NRegua1 = borne.NomeRegua;
             Terminal1 = borne.Terminal;
             TerminalNum1 = borne.Ordem;
             TipoBorne1 = borne.Tipo;
@@ -205,6 +210,7 @@ namespace Positron.Data.Interligacao
         {
             Tag2 = MontarTag(borne);
             Alternativo2 = borne.Alternativo;
+            NRegua2 = borne.NomeRegua;
             Terminal2 = borne.Terminal;
             TerminalNum2 = borne.Ordem;
             TipoBorne2 = borne.Tipo;

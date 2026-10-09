@@ -274,14 +274,17 @@ plugin builda contra o stub (`Positron.CadStub`), que é só gate de compilaçã
 **não** produz um assembly carregável por NETLOAD.
 
 A fase 5 também está **parcial**. Já existem e são testados: o comando `FIA`, o
-leitor do XData `CONEXAO`, a projeção para `Fiacao` (INSERT canônico, `Ordem`
-reiniciando por potencial) e a leitura no app (o sidecar lê o `.db` que o
-projetor .NET gravou). As colunas que dependem do desenho (`Tag`, `Terminal`, `Tipo`,
-`TipoBorne`, `IndexModelo`, `Alternativo`, `Handle`) passaram a ser preenchidas
-pela varredura de **bornes/terminais** da fase 7; o que ainda sai vazio é
-`NRegua` e `PosicaoNum`/`BLink` (dependem dos modelos de régua e da passada de
-reordenação). E, como o ZWCAD não está instalado, o `FIA` ainda não rodou dentro
-do desenho.
+leitor do XData `CONEXAO`, a projeção para `Fiacao` (INSERT canônico) e a leitura
+no app (o sidecar lê o `.db` que o projetor .NET gravou). As colunas que dependem
+do desenho (`Tag`, `Terminal`, `Tipo`, `TipoBorne`, `IndexModelo`, `Alternativo`,
+`Handle`, `NRegua`, `PosicaoNum`, `BLink`) são preenchidas pela varredura de
+**bornes/terminais** da fase 7. A `Ordem` segue a **chave de ordenação do
+original** — `Potencial`, `PosicaoNum` decrescente (bornes primeiro), `dOrdem`
+(índice da régua), `TerminalNum`, `Terminal` — e o comando roda o
+`ReordenaOrdemPotenciais` (renumera `Ordem` 1..N por potencial). O que **falta**
+é a parcela do não-borne do `dOrdem` (a tabela `mPosicao` da tela de posições,
+ainda não trazida), então o não-borne ordena com `dOrdem = 0`. E, como o ZWCAD
+não está instalado, o `FIA` ainda não rodou dentro do desenho.
 
 A fase 6 também está **parcial**, pelo mesmo motivo da 5. Já existem e são
 testados: o comando `INT`, o leitor do XData `INTERLIGACAO`, a mesclagem das
@@ -291,9 +294,9 @@ pontas por `(Tag_Cabo, Num_Veia)` (o `ssqypmV1FI`/`yHoU3hlYPo` do original), a
 verificado ponta a ponta (o projetor .NET grava e o sidecar lê
 `interligacao_por_cabo`/`interligacao_por_painel`). A varredura preenche `Tag`,
 `Alternativo`, `Terminal`, `TerminalNum`, `TipoBorne`, `Handle` e `IndexModelo` de
-cada ponta. Ficam nulas de propósito: `NRegua` (depende da passada de reordenação)
-e `Documento`/`Posicao`/`DWG1`/`DWG2` (configuração e por-ponta, não projetadas) —
-dado ausente é melhor que dado inventado. Continua aproximada a semântica fina do
+cada ponta. Ficam nulas de propósito: `Documento`/`Posicao`/`DWG1`/`DWG2`
+(configuração e por-ponta, não projetadas) — dado ausente é melhor que dado
+inventado. Continua aproximada a semântica fina do
 `Tipo == 3` (o original anexa uma linha só de destino, em vez de mesclar); como o
 ZWCAD não está instalado, nada disso rodou dentro do desenho.
 
@@ -390,17 +393,15 @@ instalado.
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
-1. **Reordenação de `Ordem`** da `Fiacao` (`ReordenaOrdemPotenciais`), que fecha
-   `PosicaoNum`/`BLink` — e, por consequência, o `NRegua` das duas pontas do
-   `Interligacao4`.
-2. **Casamento por bounds** do bloco no lugar da distância de inserção
-   (`Bounds ±0,25` + tabela de deslocamento por nome de bloco).
-3. **`TerminalNumerico`** com as formas `:` e `-` (`VerificaOrientacaoContato`
+1. **Casamento por bounds** do bloco no lugar da distância de inserção
+   (`Bounds ±0,25` + tabela de deslocamento por nome de bloco) e a tabela
+   `mPosicao` que dá o `dOrdem`/`PosicaoNum` do **não-borne** na reordenação.
+2. **`TerminalNumerico`** com as formas `:` e `-` (`VerificaOrientacaoContato`
    também, para os contatos).
-4. **`SYNCD` e `VERIF`** — comandos restantes do recorte do plugin.
-5. **UI WinForms** do plugin (as telas `frmCompilar*`), hoje substituídas por
+3. **`SYNCD` e `VERIF`** — comandos restantes do recorte do plugin.
+4. **UI WinForms** do plugin (as telas `frmCompilar*`), hoje substituídas por
    comandos que leem variáveis de ambiente.
-6. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
+5. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
 
 **Convenções que não podem ser esquecidas**
 
@@ -417,7 +418,7 @@ instalado.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 52 testes)
+npm run plugin:test       # xunit, net472 (hoje 54 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

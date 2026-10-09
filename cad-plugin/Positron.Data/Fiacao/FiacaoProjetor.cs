@@ -69,12 +69,31 @@ namespace Positron.Data.Fiacao
             return numerados.Count;
         }
 
-        /// <summary>Ordena por potencial e numera <c>Ordem</c> dentro de cada potencial.</summary>
+        /// <summary>
+        /// Ordena e numera <c>Ordem</c> dentro de cada potencial — a reordenação
+        /// do <c>frmCompilarFiacao</c> (o efeito do <c>DataTable.Select</c> +
+        /// <c>ReordenaOrdemPotenciais</c>).
+        ///
+        /// **Chave de ordenação** (a mesma do original): <c>Potencial</c>,
+        /// <c>PosicaoNum</c> decrescente (bornes primeiro), <c>dOrdem</c> — o índice
+        /// da régua no borne; no não-borne é 0, a aproximação sem a tabela
+        /// <c>mPosicao</c> (que no original vem da tela de posições) —,
+        /// <c>TerminalNum</c> e <c>Terminal</c>. Só entram pontos com
+        /// <c>Potencial &gt; 0</c>, como o filtro do original.
+        ///
+        /// `OrderBy`/`ThenBy` são estáveis (ao contrário de `List.Sort`), então
+        /// empates preservam a ordem de entrada.
+        /// </summary>
         internal static List<PontoFiacao> Numerar(IEnumerable<PontoFiacao> pontos, ContextoProjecao contexto)
         {
-            // `OrderBy` é estável (ao contrário de `List.Sort`), então dentro do
-            // mesmo potencial a ordem de entrada é preservada.
-            List<PontoFiacao> ordenados = pontos.OrderBy(ponto => ponto.Potencial).ToList();
+            List<PontoFiacao> ordenados = pontos
+                .Where(ponto => ponto.Potencial > 0)
+                .OrderBy(ponto => ponto.Potencial)
+                .ThenByDescending(ponto => ponto.PosicaoNum)
+                .ThenBy(ponto => ponto.PosicaoNum == 1 ? ponto.IndexModelo : 0)
+                .ThenBy(ponto => ponto.TerminalNum)
+                .ThenBy(ponto => ponto.Terminal ?? string.Empty, StringComparer.Ordinal)
+                .ToList();
 
             List<PontoFiacao> numerados = new List<PontoFiacao>(ordenados.Count);
             int potencialAtual = 0;
