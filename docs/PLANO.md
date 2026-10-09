@@ -320,11 +320,14 @@ roda com SQLite, sem licença e com relatório em texto.
   `protocol:gen` confere os dois lados.
 - **UI:** a visão de painel (`usePainelDetalhe` + `PainelView`) ganhou
   `CircuitosPanel` e `DispositivosPanel` ao lado da fiação e da interligação.
-- **UI (rodada 23):** os cinco métodos que ficaram sem tela ganharam painel —
-  `JumpersPanel` (`jumper_por_painel`), `AplicacoesPanel` (`aplicacoes_por_revisao`)
-  e `CatalogoPanel` (`cabos4_por_revisao` + `veias4_por_revisao`), todos alimentados
-  pelo mesmo `usePainelDetalhe`; `portas4i_por_modelo`/`bornes4i_por_regua` seguem
-  só no contrato (são consulta por modelo/régua, para o drill-down do modelo).
+- **UI (rodadas 23–24):** os métodos que ficaram sem tela ganharam painel —
+  `JumpersPanel` (`jumper_por_painel`), `AplicacoesPanel` (`aplicacoes_por_revisao`),
+  `CatalogoPanel` (`cabos4_por_revisao`, `veias4_por_revisao`,
+  `catalogo_listar_materiais`, `catalogo_listar_modelos_cabo`) e a **busca por cabo**
+  no `InterligacaoPanel` (`interligacao_por_cabo`). Sobram só
+  `portas4i_por_modelo`/`bornes4i_por_regua` — consulta **por modelo/régua**, que
+  pertence ao drill-down do modelo (não existe tela de modelo ainda). Total:
+  **15 dos 17 métodos** com tela.
 - **Pronto quando:** `protocol:gen` verde (12 métodos **na época**; o contrato está em 17 depois das rodadas 10 e 12), `typecheck` limpo,
   `pytest` cobrindo os métodos novos e `build:web` OK.
 
@@ -405,6 +408,7 @@ aberto por **cópia no TEMP**).
 | 21 — evidência das 3 tabelas fora do recorte | 2026-10-09 | dd1c533 | rastreado quem escreve cada uma no reverso: `Aranha4` só por `exportaCabos`, chamado por **cinco telas de relatório** (`frmRelatorio_Aranha`/`DInterlig`/`DICemig`/`DIEnergisaMS`/`MT`), com insumo em `clsDInterlig.carregaTodosCabosDWG` (o XData `DINTERLIG`, **530** entidades no `Interligação.dwg` real); `Atributos`/`Exportados` pelo `cDadosAccessExpImp` (exportar/importar cross-DWG). `DINTERLIG` é um app name com **cinco layouts** (borne, régua, jumper, cabo, veia) |
 | 22 — tela de compilação (`ELETCMP`) | 2026-10-09 | f0f2878 | `FormularioCompilacao` (DataGridView + Salvar) sobre `MontarRelatorio`, o mesmo conteúdo do `ELETREL`; verificação: as duas builds com as telas, os **9 comandos** presentes no assembly gerado (`ELET`…`ELETREL`) e o relatório do `Funcional.dwg` idêntico ao da rodada 19 (116 linhas / 107 problemas); Etapa 8 fecha (ressalva: telas modais não clicáveis aqui) |
 | 23 — painéis das consultas novas no app | 2026-10-09 | 3816651 | `JumpersPanel`, `AplicacoesPanel` e `CatalogoPanel` (cabos+veias) entram na `PainelView` via `usePainelDetalhe` (5 chamadas novas em paralelo), fechando a UI dos métodos expostos na rodada 10; verificado com as consultas contra o `.db` do `Funcional.dwg` — `aplicacoes_por_revisao` 15 linhas, `portas4i_por_modelo(1)` 17, `bornes4i_por_regua(5)` 4 (jumpers/catálogo 0, coerente: sem `JMP` e sem catálogo) — e `typecheck` + `build:web` (**54** módulos) |
+| 24 — busca por cabo e catálogo completo no app | 2026-10-09 | (este commit) | `InterligacaoPanel` ganha busca por `Tag_Cabo` (`interligacao_por_cabo`, com o resultado substituindo a lista) e o `CatalogoPanel` passa a mostrar `Materiais` e `ModelosCabos` além de cabos/veias; verificado com as consultas no `.db` real (`interligacao_por_cabo('8-CCE-001')` → 1 trecho; catálogo 0, coerente com o `RCD.mdb` não carregado) e `typecheck` + `build:web` (**54** módulos); UI fecha **15 dos 17 métodos** |
 
 ## 6. Riscos e armadilhas
 

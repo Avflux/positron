@@ -7,6 +7,8 @@ import type {
   Fiacao,
   Interligacao4,
   Jumper4,
+  Materiais,
+  ModelosCabos,
   Paineis,
   Veias4,
 } from "@protocol";
@@ -21,6 +23,8 @@ export interface PainelDetalhe {
   aplicacoes: Aplicacao4F[];
   cabos: Cabos4[];
   veias: Veias4[];
+  materiais: Materiais[];
+  modelosCabo: ModelosCabos[];
   carregando: boolean;
   erro: string | null;
 }
@@ -34,6 +38,8 @@ const VAZIO: PainelDetalhe = {
   aplicacoes: [],
   cabos: [],
   veias: [],
+  materiais: [],
+  modelosCabo: [],
   carregando: false,
   erro: null,
 };
@@ -63,7 +69,7 @@ export function usePainelDetalhe(painel: Paineis | null): PainelDetalhe {
 
     void (async () => {
       try {
-        const [fiacao, interligacao, circuitos, dispositivos, jumpers, aplicacoes, cabos, veias] =
+        const [fiacao, interligacao, circuitos, dispositivos, jumpers, aplicacoes, cabos, veias, materiais, modelos] =
           await Promise.all([
             request("fiacao_por_painel", { painel: painel.Indice }),
             request("interligacao_por_painel", { painel: painel.Indice }),
@@ -73,6 +79,8 @@ export function usePainelDetalhe(painel: Paineis | null): PainelDetalhe {
             request("aplicacoes_por_revisao", {}),
             request("cabos4_por_revisao", {}),
             request("veias4_por_revisao", {}),
+            request("catalogo_listar_materiais", {}),
+            request("catalogo_listar_modelos_cabo", {}),
           ]);
         if (vivo) {
           setState({
@@ -84,6 +92,8 @@ export function usePainelDetalhe(painel: Paineis | null): PainelDetalhe {
             aplicacoes: aplicacoes.aplicacoes,
             cabos: cabos.cabos,
             veias: veias.veias,
+            materiais: materiais.materiais,
+            modelosCabo: modelos.modelos,
             carregando: false,
             erro: null,
           });

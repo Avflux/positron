@@ -9,8 +9,20 @@ import { InterligacaoPanel } from "@/features/interligacao/InterligacaoPanel";
 import { JumpersPanel } from "@/features/jumpers/JumpersPanel";
 
 export function PainelView({ painel }: { painel: Paineis }) {
-  const { fios, trechos, circuitos, dispositivos, jumpers, aplicacoes, cabos, veias, carregando, erro } =
-    usePainelDetalhe(painel);
+  const {
+    fios,
+    trechos,
+    circuitos,
+    dispositivos,
+    jumpers,
+    aplicacoes,
+    cabos,
+    veias,
+    materiais,
+    modelosCabo,
+    carregando,
+    erro,
+  } = usePainelDetalhe(painel);
 
   return (
     <section className="panel">
@@ -25,7 +37,12 @@ export function PainelView({ painel }: { painel: Paineis }) {
           <DispositivosPanel dispositivos={dispositivos} />
           <JumpersPanel jumpers={jumpers} />
           <AplicacoesPanel aplicacoes={aplicacoes} />
-          <CatalogoPanel cabos={cabos} veias={veias} />
+          <CatalogoPanel
+            cabos={cabos}
+            veias={veias}
+            materiais={materiais}
+            modelosCabo={modelosCabo}
+          />
         </>
       )}
     </section>

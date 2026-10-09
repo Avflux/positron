@@ -1,18 +1,36 @@
-import type { Cabos4, Veias4 } from "@protocol";
+import type { Cabos4, Materiais, ModelosCabos, Veias4 } from "@protocol";
 import { ouTraco } from "@/features/fiacao/FiacaoPanel";
 
 /**
- * Catálogo da revisão: `Cabos4` e `Veias4` — o snapshot que o `INT` carimba com a
- * revisão (`RUIU5Sbjhj`/`v1TU0cEjWd` do original). Sem catálogo carregado, as
- * listas saem vazias (o `VERIF` não aponta cabo por causa disso).
+ * Catálogo: `Cabos4`/`Veias4` (o snapshot que o `INT` carimba com a revisão —
+ * `RUIU5Sbjhj`/`v1TU0cEjWd`) e as tabelas de catálogo `Materiais` e `ModelosCabos`,
+ * que vêm do banco do produto (no projeto real, do `RCD.mdb`).
+ *
+ * Sem catálogo carregado as listas saem vazias — é por isso que o `VERIF` não
+ * aponta cabo (`CaboSemCatalogo` não roda com catálogo vazio).
  */
-export function CatalogoPanel({ cabos, veias }: { cabos: Cabos4[]; veias: Veias4[] }) {
+export function CatalogoPanel({
+  cabos,
+  veias,
+  materiais,
+  modelosCabo,
+}: {
+  cabos: Cabos4[];
+  veias: Veias4[];
+  materiais: Materiais[];
+  modelosCabo: ModelosCabos[];
+}) {
+  const vazio =
+    cabos.length === 0 && veias.length === 0 && materiais.length === 0 && modelosCabo.length === 0;
   return (
     <div className="subsection">
       <h3>
-        Catálogo <span className="muted">({cabos.length} cabo(s), {veias.length} veia(s))</span>
+        Catálogo <span className="muted">
+          ({cabos.length} cabo(s), {veias.length} veia(s), {materiais.length} material(is),
+          {" "}{modelosCabo.length} modelo(s) de cabo)
+        </span>
       </h3>
-      {cabos.length === 0 && veias.length === 0 ? (
+      {vazio ? (
         <p className="muted">sem catálogo carregado nesta revisão</p>
       ) : (
         <>
@@ -59,6 +77,54 @@ export function CatalogoPanel({ cabos, veias }: { cabos: Cabos4[]; veias: Veias4
                     <td>{ouTraco(veia.Num_Veia)}</td>
                     <td>{ouTraco(veia.Nome_Veia)}</td>
                     <td>{ouTraco(veia.Funcao)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {materiais.length > 0 && (
+            <table className="data">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Cliente</th>
+                  <th>Descrição</th>
+                  <th>Modelo</th>
+                  <th>Fabricante</th>
+                </tr>
+              </thead>
+              <tbody>
+                {materiais.map((material) => (
+                  <tr key={material.Indice}>
+                    <td>{ouTraco(material.CodigoInterno)}</td>
+                    <td>{ouTraco(material.CodigoCliente)}</td>
+                    <td>{ouTraco(material.DescricaoResumida)}</td>
+                    <td>{ouTraco(material.Modelo)}</td>
+                    <td>{ouTraco(material.Fabricante)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {modelosCabo.length > 0 && (
+            <table className="data">
+              <thead>
+                <tr>
+                  <th>Modelo</th>
+                  <th>Descrição</th>
+                  <th>Prefixo</th>
+                  <th>Conector 1</th>
+                  <th>Conector 2</th>
+                </tr>
+              </thead>
+              <tbody>
+                {modelosCabo.map((modelo) => (
+                  <tr key={modelo.Indice}>
+                    <td>{ouTraco(modelo.CodigoCliente)}</td>
+                    <td>{ouTraco(modelo.Descricao)}</td>
+                    <td>{ouTraco(modelo.Prefixo)}</td>
+                    <td>{ouTraco(modelo.Conector1)}</td>
+                    <td>{ouTraco(modelo.Conector2)}</td>
                   </tr>
                 ))}
               </tbody>
