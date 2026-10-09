@@ -146,11 +146,17 @@ o `INT` foi conferido, no AutoCAD 2020):
    print(asyncio.run(db.interligacao_por_cabo('CABO1')))"
    ```
 
-**`INT` acumula linhas.** Rodar o `INT` duas vezes na mesma revisão duplica as
-linhas de `Interligacao4` — não há limpeza da revisão antes do `INSERT`. O
-original tem `RemoveRevisaoTabelaParaDWG`/`...ParaTodosDWG` para isso, mas
-nenhum chamador no código reverso; `Cabos4`/`Veias4` **são** apagados antes de
-regravar. Ao conferir à mão, comece de um `.db` novo.
+**`INT` e `FIA` acumulam linhas — e o `FIA` corrompe a `Ordem` ao repetir.**
+Nenhum dos dois apaga a revisão antes do `INSERT`, então rodar duas vezes duplica
+as linhas (medido: `Fiacao` 3→6, `Bornes4F` 2→4). Pior no `FIA`: o
+`ReordenarOrdemFiacao`, que roda no fim do comando, renumera `Ordem` 1..N por
+`Potencial` sobre **todas** as linhas da revisão — com as duas cópias na tabela
+ele reescreve também a `Ordem` da primeira rodada, e as duas passam a se
+intercalar (`1,3 / 2,4` em vez de `1,2` em cada cópia). O original tem
+`RemoveRevisaoTabelaParaDWG`/`...ParaTodosDWG` para isso, mas nenhum chamador no
+código reverso; `Cabos4`/`Veias4` **são** apagados antes de regravar. Ao conferir
+à mão, comece sempre de um `.db` novo — e nunca leia a `Ordem` depois de mais de
+uma rodada.
 
 ## Empacotar
 

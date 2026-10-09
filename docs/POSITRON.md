@@ -304,8 +304,10 @@ da máscara. Com a `tag`, o `dOrdem` do **não-borne** passa a ser a ordem da ta
 a segunda checagem do `ltZUHdAX7R`: o bloco só é aceito se tirar um terminal
 **não-vazio** do atributo `T*` (ou `B*`, no `E`) mais próximo do ponto — o adapter
 lê os atributos do bloco e o núcleo exige o terminal, que vira `Terminal`/
-`TerminalNum` do ponto. O `FIA` ainda não rodou dentro do desenho (quem já rodou
-foi o `INT`, no AutoCAD 2020).
+`TerminalNum` do ponto. O `FIA` rodou dentro do AutoCAD 2020 (ver `RUNBOOK.md`):
+num desenho com 4 conexões e 2 bornes, gravou 3 linhas em `Fiacao` — a conexão de
+`Potencial == 0` foi descartada, como no original. O caminho do **dispositivo**
+não foi exercitado (o desenho não tinha blocos de dispositivo).
 
 A fase 6 também está **parcial**, pelo mesmo motivo da 5. Já existem e são
 testados: o comando `INT`, o leitor do XData `INTERLIGACAO`, a mesclagem das
@@ -344,8 +346,10 @@ projetor .NET grava e o sidecar lê). A geração de `Portas4F`/`Bornes4F` que
 constava aqui foi feita na fase 8; a varredura de bornes do lado da interligação,
 na fase 6. A varredura de bornes **rodou dentro do AutoCAD 2020** pelo `INT` (ver
 `RUNBOOK.md`): as duas pontas de um trecho casaram com bornes distintos, cada uma
-preenchendo `Terminal`/`Handle`/`IndexModelo` da sua ponta. O `FIA` (que é quem
-reordena `Ordem`) ainda não rodou num CAD real.
+preenchendo `Terminal`/`Handle`/`IndexModelo` da sua ponta. O `FIA` também rodou
+no AutoCAD 2020: o ponto casado com o borne recebeu da régua do dicionário a
+`Tag`/`NRegua`, e a renumeração de `Ordem` 1..N por `Potencial` saiu ordenada
+(bornes primeiro, `PosicaoNum` decrescente).
 
 A fase 8 também está **parcial**. Já existem e são testados: o parser dos
 **modelos de máscara** e suas **portas** (`MASCARAS`/`MODELOS2` e
@@ -357,8 +361,9 @@ ponta (gravou-se em `.db` real e leu-se de outro processo). O `FIA` passou a
 gerar as duas tabelas, como no original. A numeração de terminal agora reproduz
 as formas com `:` e `-` (`TerminalNumerico`). O que **falta**: os **painéis em
 uso**, que no original vêm da tela e aqui são derivados das conexões/máscaras do
-desenho. Nada disso rodou dentro de um desenho real: `Portas4F`/`Bornes4F` são
-gerados pelo `FIA`, que ainda não foi executado num CAD.
+desenho. O `FIA` já rodou no AutoCAD 2020 e gerou `Bornes4F` (2 linhas, com a
+régua e a página resolvidas); `Portas4F` saiu com 0 linhas porque aquele desenho
+não tinha modelo de máscara — esse caminho ainda não foi exercitado num CAD.
 
 A fase 9 também está **parcial**. Já existem e são testados: o parser dos
 **modelos de contato** e seus **contatos auxiliares** (`CONTATOS`/`MODELOS2` e
@@ -369,8 +374,8 @@ auxiliares), com gravação transacional — verificado ponta a ponta. O `FIA` p
 a gerar a tabela. A orientação dos contatos é reprocessada na leitura do dicionário
 (`OrientacaoContato.Verificar`, o `VerificaOrientacaoContato` do original). O
 `sComportamento` o original lê mas **não** escreve em `Contatos4F`, então não é
-projetado aqui tampouco. Nada disso rodou dentro de um desenho real: `Contatos4F`
-é gerado pelo `FIA`, que ainda não foi executado num CAD.
+projetado aqui tampouco. Ainda não exercitado num CAD: o `FIA` rodou no AutoCAD
+2020, mas o desenho não tinha modelo de contato, então `Contatos4F` saiu vazia.
 
 ## 7. Armadilhas
 
