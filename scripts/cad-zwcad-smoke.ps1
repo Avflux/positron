@@ -110,7 +110,9 @@ Write-Host "rodando: $exe /nologo /b $passo"
 # O Start-Process pode devolver um launcher que sai e deixa o ZWCAD real vivo;
 # guardamos os PIDs de antes para encerrar exatamente o que este script abriu.
 $antes = @(Get-Process ZWCAD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id)
-$processo = Start-Process -FilePath $exe -ArgumentList @("/nologo", "/b", $passo) -PassThru
+# -WorkingDirectory no TEMP: sem isso o ZWCAD salva o `Drawing1.dwg` de trabalho
+# no diretorio de onde foi chamado (a raiz do repo).
+$processo = Start-Process -FilePath $exe -ArgumentList @("/nologo", "/b", $passo) -WorkingDirectory $env:TEMP -PassThru
 
 $limite = [DateTime]::UtcNow.AddSeconds($TimeoutSegundos)
 while ([DateTime]::UtcNow -lt $limite) {

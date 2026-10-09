@@ -19,6 +19,12 @@ __pycache__/
 *.egg-info/
 build/
 
+# CAD (o ZWCAD salva o desenho de trabalho no diretorio de onde foi chamado)
+Drawing1.dwg
+Drawing1.bak
+*.dwl
+*.dwl2
+
 # Env
 .env
 .env.local
