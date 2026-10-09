@@ -240,7 +240,14 @@ escopo estrutural do recoder.
 - **Pronto quando:** `plugin:build` (ZWCAD e stub) 0 avisos, `plugin:test` com
   `PaginaMatrixTests` cobrindo `LayerValido`, o `BuscaAlternativo` e a regra.
 - **Falta:** aplicar o switch `Conf.incluirColuna` 3..6 na **gravação** da
-  `Pagina` (precisa de `Conf.incluirColuna`/`Conf.SeparadorCruzamento`).
+  `Pagina`. O original define `Conf.incluirColuna`/`Conf.SeparadorCruzamento`
+  na tela `frmConfiguracaoGeral` (config de sessão), **não** no `.db` — a tabela
+  `Configuracoes(Indice, Tipo, Comando, Valor)` do modelo está vazia e não há
+  `INSERT` dessas chaves no reverso. O caminho coerente com o resto do plugin é
+  `POSITRON_INCLUIR_COLUNA` (default `0`) e `POSITRON_SEPARADOR_CRUZAMENTO`
+  (obrigatório só no caso `6`), como já se faz com `POSITRON_DWG`/`POSITRON_LOCAL`
+  — decisão a tomar antes de mexer na projeção de `Fiacao`, `Bornes4F`,
+  `Dispositivos4F` e `Interligacao4`.
 
 ## 4. Como cada etapa é verificada
 
