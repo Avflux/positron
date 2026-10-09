@@ -17,8 +17,22 @@ namespace Positron.Data.Fiacao
     public sealed class FiacaoProjetor
     {
         private readonly ProjectStore _store;
+        private readonly bool _paraJumper;
 
+        /// <summary>Projeta na tabela <c>Fiacao</c> — o <c>FIA</c>.</summary>
         public FiacaoProjetor(ProjectStore store)
+            : this(store, false)
+        {
+        }
+
+        /// <summary>
+        /// Com <paramref name="paraJumper"/>, projeta na tabela <c>Jumper4</c> — o
+        /// <c>JMP</c> (<c>frmCompilarJumperExt</c>). O casamento com borne/
+        /// dispositivo e a numeração de <c>Ordem</c> são os mesmos; muda só o
+        /// destino (a tabela tem as mesmas colunas, sem <c>Aplicacao</c>/
+        /// <c>Orientacao</c>).
+        /// </summary>
+        public FiacaoProjetor(ProjectStore store, bool paraJumper)
         {
             if (store == null)
             {
@@ -26,6 +40,7 @@ namespace Positron.Data.Fiacao
             }
 
             _store = store;
+            _paraJumper = paraJumper;
         }
 
         /// <summary>Projeta os pontos e devolve quantas linhas foram gravadas.</summary>
@@ -142,7 +157,15 @@ namespace Positron.Data.Fiacao
             }
 
             List<PontoFiacao> numerados = Numerar(lista, contexto);
-            _store.InserirFiacao(numerados);
+            if (_paraJumper)
+            {
+                _store.InserirJumper(numerados);
+            }
+            else
+            {
+                _store.InserirFiacao(numerados);
+            }
+
             return numerados.Count;
         }
 

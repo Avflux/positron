@@ -157,12 +157,11 @@ escopo estrutural do recoder.
   (`VerificarPaginasAusentes`, com a matriz de páginas). Testes em
   `VerificadorDesenhoTests` e `PaginaMatrixTests`.
 
-### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (5 de 10 feitas)**
+### Etapa 7 — Tabelas restantes do contrato · P2 · **parcial (6 de 10 feitas)**
 
-- **Faltam projetar:** `Jumper4`, `Aranha4`, `Atributos`, `Exportados`
-  (`Jumper4` vem do `frmCompilarJumperExt`; `Aranha4`, de `exportaCabos`, só
-  chamado pelas telas de relatório; `Atributos`/`Exportados` são da
-  importação/exportação cross-DWG — todos fora do recorte `ELET`/`FIA`/`INT`).
+- **Faltam projetar:** `Aranha4`, `Atributos`, `Exportados` (`Aranha4` vem de
+  `exportaCabos`, só chamado pelas telas de relatório; `Atributos`/`Exportados`
+  são da importação/exportação cross-DWG — fora do recorte atual).
 - **~~`Dispositivos4F`~~ — feito:** `Dispositivos4FGerador` (puro) +
   `ProjectStore.InserirDispositivos`/`DispositivosDaRevisao` (substitui a
   revisão) + o `FIA` gerando; 5 testes em `Dispositivos4FTests`.
@@ -176,6 +175,12 @@ escopo estrutural do recoder.
   linhas) + `AplicacoesDoDesenho` (adapter do dicionário) +
   `InserirAplicacoes`/`AplicacoesDaRevisao` + o `FIA` gerando (o `FiRUTW6Q6W` do
   original: copia todos os tipos, sem filtro); 4 testes em `Aplicacao4FTests`.
+- **~~`Jumper4`~~ — feito:** comando novo `JMP` (o `frmCompilarJumperExt`):
+  `JumperDoDesenho` monta um ponto por ponta da conexão (`Tipo == 4` com
+  `Disp1`/`Disp2`, `Tipo == 3` com `Jumper == "JUMPER"`, sempre `bJumper = true`),
+  e o `FiacaoProjetor` ganhou o destino `Jumper4` (`new FiacaoProjetor(store, true)`)
+  reaproveitando casamento, layout, numeração e coluna `Pagina`;
+  `InserirJumper`/`JumperDaRevisao` no `ProjectStore`; 3 testes em `JumperTests`.
 - **~~`Portas4I`/`Bornes4I`~~ — feito:** `Portas4IGerador`/`Bornes4IGerador`
   (reaproveitam `Portas4FGerador`/`Bornes4FGerador` com o filtro nulo — a
   interligação não filtra por painel/modelo em uso) + `InserirPortas4I`/
@@ -277,7 +282,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | 6 — `VERIF` no desenho (parcial) | 2026-10-09 | 50e06b4 | área `Desenho` + `VerificarCabosSemCatalogo`/`VerificarBornesSemRegua` ligadas ao `VERIF`; `plugin:test` **126** aprovados; falta a regra de página ausente |
 | 10 — Tabelas novas no app | 2026-10-09 | bc65cbf | `circuitos_por_painel`, `dispositivos_por_painel`, `aplicacoes_por_revisao` no contrato (12 métodos, `protocol:gen` verde) + consultas no `ProjectDatabase` + `CircuitosPanel`/`DispositivosPanel` na visão de painel; `pytest` **23** testes, `build:web` 51 módulos |
 | 11 — Matriz de páginas | 2026-10-09 | 16e88c3 | `PaginaMatrix` (LayerValido/BuscaAlternativo) + `PaginasDoDesenho` (LayerTable + XData `Eletron`) + `VerificarPaginasAusentes` no `VERIF`; `plugin:test` **139** aprovados; build ZWCAD e stub 0 avisos |
-| 12 — Coluna `Pagina` (cruzamento) | 2026-10-09 | (este commit) | `ColunaPagina` (switch `Conf.incluirColuna` 0..6) sobre a `PaginaMatrix`, com `POSITRON_INCLUIR_COLUNA`/`POSITRON_SEPARADOR_CRUZAMENTO`, aplicada na gravação de `Fiacao`, `Bornes4F`, `Dispositivos4F`, `Interligacao4` e `Bornes4I`; `plugin:test` **145** aprovados |
+| 12 — Coluna `Pagina` (cruzamento) | 2026-10-09 | b14fd51 | `ColunaPagina` (switch `Conf.incluirColuna` 0..6) sobre a `PaginaMatrix`, com `POSITRON_INCLUIR_COLUNA`/`POSITRON_SEPARADOR_CRUZAMENTO`, aplicada na gravação de `Fiacao`, `Bornes4F`, `Dispositivos4F`, `Interligacao4` e `Bornes4I`; `plugin:test` **145** aprovados |
+| 7e — `Jumper4` (`JMP`) | 2026-10-09 | (este commit) | `JumperDoDesenho` (Tipo 3/4 com `Jumper`/`Disp1`/`Disp2`) + `FiacaoProjetor(store, true)` + `InserirJumper`/`JumperDaRevisao` + comando `JMP`; `plugin:test` **148** aprovados |
 | 1 — Idempotência da projeção | 2026-10-09 | cbadec5 | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
 
 ## 6. Riscos e armadilhas

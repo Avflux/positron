@@ -209,6 +209,7 @@ recorte mínimo:
 | `INT` | projeta a interligação do desenho para `Interligacao4` (equivalente a `frmCompilarInterligacao`) |
 | `SYNCD` | projeta XData → tabelas do banco (o "quem desenha, grava") |
 | `VERIF` | valida o projeto (espelho de `frmVerificadorProjetoFiacao`) |
+| `JMP` | projeta os jumpers do desenho para `Jumper4` (o `frmCompilarJumperExt`) |
 
 Implementados: `ELET`, `FIA`, `INT`, `SYNCD` e `VERIF` (sem tela ainda — ver
 `cad-plugin/README.md`). O `SYNCD` é a projeção em lote (fiação + interligação); o
@@ -494,17 +495,18 @@ no `RUNBOOK.md`.
    Falta o que depende de **geometria**. A **matriz de páginas** já é lida do
    desenho (`PaginaMatrix`/`PaginasDoDesenho`, montada da `LayerTable` como o
    `Pagina.CarregaPaginas`) e alimenta a regra de **página ausente**
-   (`VerificarPaginasAusentes`); o que ainda não é aplicado é o switch
-   `Conf.incluirColuna` 3..6 na hora de **gravar** a `Pagina`.
+   (`VerificarPaginasAusentes`) e a coluna `Pagina` (`ColunaPagina`, o switch
+   `Conf.incluirColuna` 0..6, configurado por `POSITRON_INCLUIR_COLUNA`).
 3. **Tabelas do contrato §3 ainda não projetadas:** o plugin grava `Fiacao`,
    `Interligacao4`, `Portas4F`, `Bornes4F`, `Contatos4F`, `Dispositivos4F`,
-   `Circuitos4F`, `Aplicacao4F`, `Portas4I`, `Bornes4I`, `Cabos4` e `Veias4`.
-   Ficam por cobrir `Jumper4`, `Aranha4`, `Atributos` e `Exportados`
-   (jumpers, bornes intermediários, aranha, circuitos, aplicação e projeção
-   cross-DWG). Atenção: o `Jumper4` **não** vem do `FIA` — é escrito pelo
-   `frmCompilarJumperExt` (comando `JMP`/`JPEXT`) —, então cada tabela restante
-   exige o seu próprio fluxo do reverso; a receita de cada uma está no
-   `PLANO.md`.
+   `Circuitos4F`, `Aplicacao4F`, `Portas4I`, `Bornes4I`, `Jumper4`, `Cabos4` e
+   `Veias4`. Ficam por cobrir `Aranha4`, `Atributos` e `Exportados` (aranha,
+   atributos de bloco e projeção cross-DWG). O `Jumper4` tem o seu próprio comando
+   (`JMP`), porque **não** vem do `FIA`: o `frmCompilarJumperExt` monta um ponto por
+   ponta da conexão (`Tipo == 4` com `Disp1`/`Disp2`, e `Tipo == 3` com
+   `Jumper == "JUMPER"`) e usa a mesma máquina de casamento do `FIA`, só trocando a
+   tabela. Os três restantes vêm de telas de relatório e de importação/exportação —
+   a receita de cada um está no `PLANO.md`.
 4. Decisões abertas do §8 (licenciamento, relatórios, multi-usuário).
 
 **Convenções que não podem ser esquecidas**
@@ -522,7 +524,7 @@ no `RUNBOOK.md`.
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 139 testes)
+npm run plugin:test       # xunit, net472 (hoje 148 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

@@ -54,6 +54,16 @@ namespace Positron.Plugin
         }
 
         /// <summary>
+        /// <c>JMP</c> — compila os **jumpers** do desenho para <c>Jumper4</c>, o
+        /// <c>frmCompilarJumperExt</c> do original (sem a tela).
+        /// </summary>
+        [CommandMethod("JMP")]
+        public void Jmp()
+        {
+            Plugin.Escrever(ExecutarJumper());
+        }
+
+        /// <summary>
         /// Projeta a fiação do desenho e devolve a linha de resumo — usada tanto
         /// pelo <c>FIA</c> quanto pelo <c>SYNCD</c>. Nunca lança: um comando que
         /// estoura derruba a linha de comando do ZWCAD.
@@ -156,6 +166,75 @@ namespace Positron.Plugin
             catch (System.Exception erro)
             {
                 return "FIA: falhou — " + erro.Message;
+            }
+        }
+
+        /// <summary>
+        /// Projeta os jumpers do desenho e devolve a linha de resumo.
+        ///
+        /// O <c>frmCompilarJumperExt</c> lê as conexões com <c>Tipo == 4</c>
+        /// (<c>Disp1</c>/<c>Disp2</c>) e as de <c>Tipo == 3</c> com
+        /// <c>Jumper == "JUMPER"</c>, casa cada ponta com borne/dispositivo e grava
+        /// em <c>Jumper4</c> — a mesma máquina do <c>FIA</c>, com a tabela de
+        /// destino trocada. Nunca lança.
+        /// </summary>
+        internal static string ExecutarJumper()
+        {
+            string caminho = Environment.GetEnvironmentVariable("POSITRON_DB_PATH");
+            if (string.IsNullOrEmpty(caminho))
+            {
+                return "JMP: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
+            }
+
+            try
+            {
+                IReadOnlyList<PontoFiacao> pontos = JumperDoDesenho.Ler();
+                if (pontos.Count == 0)
+                {
+                    return "JMP: nenhuma conexão de jumper no desenho.";
+                }
+
+                ContextoProjecao contexto = new ContextoProjecao
+                {
+                    Dwg = LerInteiro("POSITRON_DWG", 0),
+                    Revisao = Environment.GetEnvironmentVariable("POSITRON_REVISAO"),
+                    Criador = Environment.UserName,
+                    Data = DateTime.Now,
+                };
+
+                ReguasModelo reguas = ReguasDoDesenho.Ler();
+                IReadOnlyList<PontoBorne> bornes = BornesDoDesenho.Ler(reguas);
+                TabelaDeslocamentoBlocos deslocamentos = DeslocamentosDoDesenho.Ler();
+
+                MascarasDoDesenho.EmUso emUso = MascarasDoDesenho.Ler();
+                List<int> paineis = new List<int>(emUso.Paineis);
+                foreach (PontoFiacao ponto in pontos)
+                {
+                    if (!paineis.Contains(ponto.Painel))
+                    {
+                        paineis.Add(ponto.Painel);
+                    }
+                }
+
+                IReadOnlyList<DispositivoFiacao> dispositivosDeFiacao = DispositivosDeFiacaoDoDesenho.Ler();
+                LayoutPosicoes posicoes = LayoutDoDesenho.Ler(paineis);
+
+                ColunaPagina colunaPagina = LerColunaPagina();
+                foreach (PontoFiacao ponto in pontos)
+                {
+                    ponto.Pagina = colunaPagina.Para(ponto.Layer);
+                }
+
+                ProjectStore store = new ProjectStore(caminho);
+                FiacaoProjetor projetor = new FiacaoProjetor(store, true);
+                int gravados = projetor.Projetar(pontos, contexto, bornes, posicoes, deslocamentos, dispositivosDeFiacao);
+
+                return "JMP: " + gravados + " linha(s) em Jumper4 (" + bornes.Count + " borne(s), "
+                    + dispositivosDeFiacao.Count + " dispositivo(s)).";
+            }
+            catch (System.Exception erro)
+            {
+                return "JMP: falhou — " + erro.Message;
             }
         }
 

@@ -88,6 +88,7 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 | `FIA` | **implementado** — projeta a fiação do desenho para `Fiacao` |
 | `INT` | **implementado** — projeta a interligação do desenho para `Interligacao4` |
 | `SYNCD` | **implementado** — projeta o desenho para o banco (fiação + interligação) |
+| `JMP` | **implementado** — projeta os jumpers do desenho para `Jumper4` |
 | `VERIF` | **implementado** — valida as tabelas gravadas (fiação, interligação e modelos) **e lê o desenho** (régua do borne, cabo fora do catálogo, página fora da `LayerTable`) |
 
 ### Fluxo de fiação (`FIA`)
@@ -142,6 +143,14 @@ ficam de fora. A `Tag` é `Nome1[/Nome2]`; a `Pagina` é o layer do bloco; o
 `(painel, tag)`. Limite assumido: no `P` com `IndexModelo == 0` o original lê
 essas duas colunas do próprio XData — o leitor atual não expõe esses índices, então
 elas saem vazias (ausente, não inventado).
+
+**Jumpers (`JMP` → `Jumper4`).** O comando `JMP` reproduz o
+`frmCompilarJumperExt`: varre as conexões `CONEXAO` e cria um ponto por ponta —
+**vértice 0** quando `Tipo == 4` e `Disp1`, **último vértice** quando `Tipo == 3`
+e `Jumper == "JUMPER"` ou `Tipo == 4` e `Disp2` — sempre com `bJumper = true`. O
+casamento com borne/dispositivo, a posição do layout, a numeração de `Ordem` e a
+coluna `Pagina` são os mesmos do `FIA`; muda só a tabela de destino (`Jumper4`, que
+tem as mesmas colunas sem `Aplicacao`/`Orientacao`).
 
 **Circuitos (`Circuitos4F`).** O `FIA` grava um circuito por **potencial**: das
 conexões `CONEXAO` com `Tipo == 1` e `Nome` não-vazio, de painel em uso,

@@ -225,6 +225,143 @@ namespace Positron.Data
         }
 
         /// <summary>
+        /// Grava os pontos de **jumper** (<c>Jumper4</c>) — o <c>JMP</c> do
+        /// original. Mesmas colunas do <c>Fiacao</c>, sem <c>Aplicacao</c>/
+        /// <c>Orientacao</c>; a revisão é substituída, como nas demais tabelas.
+        /// </summary>
+        public void InserirJumper(IEnumerable<PontoFiacao> pontos)
+        {
+            List<PontoFiacao> lista = pontos == null
+                ? new List<PontoFiacao>()
+                : new List<PontoFiacao>(pontos);
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteTransaction transacao = conexao.BeginTransaction())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                // Substitui a revisão (RemoveRevisaoTabelaParaDWG do original).
+                RemoverRevisoesDoLote(conexao, "Jumper4", lista, ponto => ponto.Dwg, ponto => ponto.Revisao);
+
+                comando.CommandText =
+                    "INSERT INTO Jumper4(Revisao, DWG, Painel, Potencial, Ordem, Pagina, Tag, Alternativo, NRegua, " +
+                    "Terminal, TerminalNum, Tipo, Secao, Cor, PosicaoNum, TipoBorne, BJumper, BLink, Handle, " +
+                    "IndexModelo, Criador, Data) " +
+                    "VALUES(@revisao, @dwg, @painel, @potencial, @ordem, @pagina, @tag, @alternativo, @nregua, " +
+                    "@terminal, @terminalNum, @tipo, @secao, @cor, @posicaoNum, @tipoBorne, @bJumper, @bLink, " +
+                    "@handle, @indexModelo, @criador, @data)";
+
+                SQLiteParameter[] parametros =
+                {
+                    comando.Parameters.Add("@revisao", System.Data.DbType.String),
+                    comando.Parameters.Add("@dwg", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@painel", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@potencial", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@ordem", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@pagina", System.Data.DbType.String),
+                    comando.Parameters.Add("@tag", System.Data.DbType.String),
+                    comando.Parameters.Add("@alternativo", System.Data.DbType.String),
+                    comando.Parameters.Add("@nregua", System.Data.DbType.String),
+                    comando.Parameters.Add("@terminal", System.Data.DbType.String),
+                    comando.Parameters.Add("@terminalNum", System.Data.DbType.Double),
+                    comando.Parameters.Add("@tipo", System.Data.DbType.String),
+                    comando.Parameters.Add("@secao", System.Data.DbType.String),
+                    comando.Parameters.Add("@cor", System.Data.DbType.String),
+                    comando.Parameters.Add("@posicaoNum", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@tipoBorne", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@bJumper", System.Data.DbType.Boolean),
+                    comando.Parameters.Add("@bLink", System.Data.DbType.Boolean),
+                    comando.Parameters.Add("@handle", System.Data.DbType.String),
+                    comando.Parameters.Add("@indexModelo", System.Data.DbType.Int32),
+                    comando.Parameters.Add("@criador", System.Data.DbType.String),
+                    comando.Parameters.Add("@data", System.Data.DbType.DateTime),
+                };
+
+                foreach (PontoFiacao ponto in lista)
+                {
+                    parametros[0].Value = Nulo(ponto.Revisao);
+                    parametros[1].Value = ponto.Dwg;
+                    parametros[2].Value = (int)ponto.Painel;
+                    parametros[3].Value = ponto.Potencial;
+                    parametros[4].Value = ponto.Ordem;
+                    parametros[5].Value = Nulo(ponto.Pagina ?? ponto.Layer);
+                    parametros[6].Value = Nulo(ponto.Tag);
+                    parametros[7].Value = Nulo(ponto.Alternativo);
+                    parametros[8].Value = Nulo(ponto.NRegua);
+                    parametros[9].Value = Nulo(ponto.Terminal);
+                    parametros[10].Value = ponto.TerminalNum;
+                    parametros[11].Value = Nulo(ponto.Tipo);
+                    parametros[12].Value = Nulo(ponto.Secao);
+                    parametros[13].Value = Nulo(ponto.Cor);
+                    parametros[14].Value = ponto.PosicaoNum;
+                    parametros[15].Value = (int)ponto.TipoBorne;
+                    parametros[16].Value = ponto.BJumper;
+                    parametros[17].Value = ponto.BLink;
+                    parametros[18].Value = Nulo(ponto.Handle);
+                    parametros[19].Value = (int)ponto.IndexModelo;
+                    parametros[20].Value = Nulo(ponto.Criador);
+                    parametros[21].Value = ponto.Data;
+                    comando.ExecuteNonQuery();
+                }
+
+                transacao.Commit();
+            }
+        }
+
+        /// <summary>Lê os jumpers de uma revisão (<c>Jumper4</c>).</summary>
+        public IReadOnlyList<Jumper4Row> JumperDaRevisao(int dwg, string revisao)
+        {
+            List<Jumper4Row> linhas = new List<Jumper4Row>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, Revisao, DWG, Painel, Potencial, Ordem, Pagina, Tag, Alternativo, NRegua, " +
+                    "Terminal, TerminalNum, Tipo, Secao, Cor, PosicaoNum, TipoBorne, BJumper, BLink, Handle, " +
+                    "IndexModelo, Criador, Data FROM Jumper4 " +
+                    "WHERE DWG = @dwg AND IFNULL(Revisao, '') = IFNULL(@revisao, '') ORDER BY Potencial, Ordem, Indice";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+                comando.Parameters.AddWithValue("@revisao", (object)revisao ?? DBNull.Value);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        linhas.Add(new Jumper4Row
+                        {
+                            Indice = leitor.GetInt64(leitor.GetOrdinal("Indice")),
+                            Revisao = Texto(leitor, "Revisao"),
+                            DWG = Inteiro(leitor, "DWG"),
+                            Painel = Inteiro(leitor, "Painel"),
+                            Potencial = Inteiro(leitor, "Potencial"),
+                            Ordem = Inteiro(leitor, "Ordem"),
+                            Pagina = Texto(leitor, "Pagina"),
+                            Tag = Texto(leitor, "Tag"),
+                            Alternativo = Texto(leitor, "Alternativo"),
+                            NRegua = Texto(leitor, "NRegua"),
+                            Terminal = Texto(leitor, "Terminal"),
+                            TerminalNum = Real(leitor, "TerminalNum"),
+                            Tipo = Texto(leitor, "Tipo"),
+                            Secao = Texto(leitor, "Secao"),
+                            Cor = Texto(leitor, "Cor"),
+                            PosicaoNum = Inteiro(leitor, "PosicaoNum"),
+                            TipoBorne = Inteiro(leitor, "TipoBorne"),
+                            BJumper = Logico(leitor, "BJumper"),
+                            BLink = Logico(leitor, "BLink"),
+                            Handle = Texto(leitor, "Handle"),
+                            IndexModelo = Inteiro(leitor, "IndexModelo"),
+                            Criador = Texto(leitor, "Criador"),
+                            Data = leitor.IsDBNull(leitor.GetOrdinal("Data"))
+                                ? (System.DateTime?)null
+                                : leitor.GetDateTime(leitor.GetOrdinal("Data")),
+                        });
+                    }
+                }
+            }
+
+            return linhas;
+        }
+
+        /// <summary>
         /// Renumera <c>Ordem</c> de 1..N dentro de cada <c>Potencial</c> da revisão
         /// — o <c>ReordenaOrdemPotenciais</c> do original
         /// (<c>cDadosAccessFiacao</c>). Só toca as linhas cujo <c>Ordem</c> já divergiu
