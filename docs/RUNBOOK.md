@@ -231,7 +231,8 @@ contagens **não** dobram, que é a prova da idempotência no CAD de verdade):
 FIA: 2 linha(s) em Fiacao (...); 2 circuito(s) em Circuitos4F; ...
 INT: 1 linha(s) gravada(s) em Interligacao4 (...)
 VERIF: 2 fio(s), 1 trecho(s), 0 porta(s), 0 borne(s), 0 contato(s) na revisão.
-VERIF: 5 problema(s) — fiação: 2; interligação: 2; modelos: 0; desenho: 1.
+VERIF: 4 problema(s) — fiação: 2; interligação: 2; modelos: 0; desenho: 0.
+VERIF: por tipo — PontoSemTag: 2; SemTag: 2.
 ```
 
 Confirme no banco com o leitor do app (o `.db` fica no `%TEMP%`, o script imprime o
