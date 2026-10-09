@@ -931,6 +931,33 @@ namespace Positron.Data
             return linhas;
         }
 
+        /// <summary>
+        /// Lê o **cadastro de painéis** (<c>Paineis</c>) — o mapa <c>índice → nome</c> do
+        /// projeto. No original o dicionário de painéis mora no **banco**
+        /// (<c>cDadosAccess.carregaPainelDicionario</c>, lido por
+        /// <c>Dicionario.BuscaNomeDoPainel</c>), não no desenho: é esta tabela que
+        /// responde "???" para um painel que não existe mais (`lPnAoagado`).
+        /// </summary>
+        public IReadOnlyCollection<int> LerIndicesDePaineis()
+        {
+            List<int> indices = new List<int>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText = "SELECT Indice FROM Paineis";
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        indices.Add((int)leitor.GetInt64(0));
+                    }
+                }
+            }
+
+            return indices;
+        }
+
         /// <summary>Lê o catálogo de cabos (<c>Cabos</c>) — fonte do snapshot <c>Cabos4</c>.</summary>
         public IReadOnlyList<CabosRow> LerCabos()
         {

@@ -69,6 +69,9 @@ namespace Positron.Data
         /// <summary>Borne do desenho sem <c>LM</c> (<c>lm == 0</c>): a régua não define LM.</summary>
         BorneSemLm,
 
+        /// <summary>Painel usado no desenho que não existe no cadastro do projeto (<c>lPnAoagado</c>).</summary>
+        PainelSemCadastro,
+
         /// <summary>Conexão sem par: sem sobreposição (Tipo 3 com Handle vazio) ou fora do potencial.</summary>
         ConexaoOrfa,
         /// <summary>Tipo 3 apontando para um Handle que não existe como conexão na mesma página.</summary>
@@ -464,6 +467,44 @@ namespace Positron.Data
         /// conexões do desenho; aqui é o mesmo, sem o filtro de painéis em uso que a
         /// tela aplica (<c>lPn</c>).
         /// </summary>
+        /// <summary>
+        /// Painel usado no desenho que **não existe no cadastro** do projeto — o
+        /// `lPnAoagado` do `ClsVerificadorProjetoFiacao`. O painel entra na lista
+        /// quando o dispositivo/máscara o referencia e `Dicionario.BuscaNomeDoPainel`
+        /// responde `"???"` (o dicionário de painéis é a tabela `Paineis` do banco,
+        /// não o desenho). Painel `0` é "não definido" e não entra, como no original.
+        /// </summary>
+        public static List<Problema> VerificarPaineisSemCadastro(
+            IEnumerable<int> paineisDoDesenho,
+            IEnumerable<int> indicesDoCadastro)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (paineisDoDesenho == null)
+            {
+                return problemas;
+            }
+
+            HashSet<int> vistos = new HashSet<int>();
+            foreach (int painel in paineisDoDesenho)
+            {
+                if (painel <= 0 || !vistos.Add(painel))
+                {
+                    continue;
+                }
+
+                if (indicesDoCadastro != null && new HashSet<int>(indicesDoCadastro).Contains(painel))
+                {
+                    continue;
+                }
+
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.PainelSemCadastro, "Paineis",
+                    "painel " + painel,
+                    "painel usado no desenho sem cadastro no projeto (o dicionário devolveria \"???\")"));
+            }
+
+            return problemas;
+        }
+
         public static List<Problema> VerificarOrfaos(IEnumerable<ConexaoFiacao> conexoes)
         {
             List<Problema> problemas = new List<Problema>();

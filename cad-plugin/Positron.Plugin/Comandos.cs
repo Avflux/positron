@@ -656,7 +656,29 @@ namespace Positron.Plugin
             problemas.AddRange(VerificadorProjeto.VerificarBornesSemLm(bornesDoDesenho));
 
             // Conexões órfãs — o botão `bt2Orfao` da tela (`carregaOrfao`).
-            problemas.AddRange(VerificadorProjeto.VerificarOrfaos(ConexoesDoDesenho.Ler()));
+            IReadOnlyList<ConexaoFiacao> conexoes = ConexoesDoDesenho.Ler();
+            problemas.AddRange(VerificadorProjeto.VerificarOrfaos(conexoes));
+
+            // Painéis do desenho que não existem no cadastro do projeto
+            // (`lPnAoagado`): o original olha os blocos `P` e `E` (`buscaPaineisDoDG`).
+            List<int> paineisDoDesenho = new List<int>();
+            foreach (int painel in MascarasDoDesenho.Ler().Paineis)
+            {
+                paineisDoDesenho.Add(painel);
+            }
+
+            foreach (int painel in DispositivosDoDesenho.Ler().Paineis)
+            {
+                paineisDoDesenho.Add(painel);
+            }
+
+            foreach (ConexaoFiacao conexao in conexoes)
+            {
+                paineisDoDesenho.Add(conexao.Painel);
+            }
+
+            problemas.AddRange(VerificadorProjeto.VerificarPaineisSemCadastro(
+                paineisDoDesenho, store.LerIndicesDePaineis()));
 
             List<string> handlesDoDesenho = new List<string>();
             foreach (PontoBorne borne in bornesDoDesenho)

@@ -576,6 +576,24 @@ elas não indicam projeção errada, e sim dado faltando no desenho:
 O relatório continua separando por tipo (`VERIF: por tipo — …`), que é o que mantém o
 número legível: `BorneSemFiacao` e `BorneSemLm` são coisas diferentes.
 
+**Rodada 45 — painéis fora do cadastro (`lPnAoagado`).** O painel usado no desenho que
+não existe no cadastro do projeto vira `PainelSemCadastro`. A sutileza está na origem do
+dicionário: `Dicionario.BuscaNomeDoPainel` **não** lê o desenho — ele chama
+`cDadosAccess.carregaPainelDicionario()`, ou seja, o mapa `índice → nome` mora no **banco**
+(a tabela `Paineis`, que o app preenche e que o importador traz). Sem cadastro, todo
+painel do desenho responde `"???"` e o `ClsVerificadorProjetoFiacao` o joga em
+`lPnAoagado`; por isso a regra só faz sentido com o cadastro carregado.
+
+A verificação foi feita **dos dois lados**, que é o que prova a regra:
+
+| Banco | `VERIF` por tipo |
+|---|---|
+| sem o cadastro (projeção pura) | `BorneSemLm: 119; BorneSemFiacao: 107; ReguaVazia: 10; SobreposicaoAusente: 2; **PainelSemCadastro: 2**` — total **240** |
+| com o cadastro importado (480 painéis) | os quatro de sempre — total **238** (a linha de base) |
+
+Os 2 painéis são os que os blocos `P`/`E` e as conexões do desenho citam; com o cadastro
+do produto eles existem, e a regra fica limpa.
+
 **Rodada 35 — conexões órfãs (`carregaOrfao`, linha 1311).** É o botão `bt2Orfao` da
 tela, e a regra é mais fina do que a nossa aproximação (`BorneSemFiacao`). O
 `HandleSup` do verificador é `"OK"` por padrão e, nas `Tipo 3`, recebe o campo

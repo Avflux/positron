@@ -56,6 +56,28 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void Aponta_painel_fora_do_cadastro()
+        {
+            // O `lPnAoagado` do original: `Dicionario.BuscaNomeDoPainel` responde
+            // "???" quando o painel nao esta no dicionario (a tabela `Paineis`).
+            List<Problema> problemas = VerificadorProjeto.VerificarPaineisSemCadastro(
+                new List<int> { 503, 509, 0, 509 },
+                new List<int> { 503 });
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(TipoProblema.PainelSemCadastro, problema.Tipo);
+            Assert.Equal("painel 509", problema.Identificador);
+        }
+
+        [Fact]
+        public void Painel_no_cadastro_nao_aponta()
+        {
+            Assert.Empty(VerificadorProjeto.VerificarPaineisSemCadastro(
+                new List<int> { 503, 509 },
+                new List<int> { 503, 509, 510 }));
+        }
+
+        [Fact]
         public void Aponta_conexao_sem_sobreposicao()
         {
             // O laço A do `carregaOrfao`: `HandleSup` vazio = Tipo 3 sem o Handle do
