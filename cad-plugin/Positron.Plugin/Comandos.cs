@@ -165,7 +165,7 @@ namespace Positron.Plugin
             }
             catch (System.Exception erro)
             {
-                return "FIA: falhou — " + erro.Message;
+                return "FIA: falhou — " + DescreverErro(erro);
             }
         }
 
@@ -234,7 +234,7 @@ namespace Positron.Plugin
             }
             catch (System.Exception erro)
             {
-                return "JMP: falhou — " + erro.Message;
+                return "JMP: falhou — " + DescreverErro(erro);
             }
         }
 
@@ -323,7 +323,7 @@ namespace Positron.Plugin
             }
             catch (System.Exception erro)
             {
-                return "INT: falhou — " + erro.Message;
+                return "INT: falhou — " + DescreverErro(erro);
             }
         }
 
@@ -448,7 +448,7 @@ namespace Positron.Plugin
             }
             catch (System.Exception erro)
             {
-                Plugin.Escrever("VERIF: falhou — " + erro.Message);
+                Plugin.Escrever("VERIF: falhou — " + DescreverErro(erro));
             }
         }
 
@@ -666,6 +666,33 @@ namespace Positron.Plugin
                 PaginasDoDesenho.Ler(),
                 LerInteiro("POSITRON_INCLUIR_COLUNA", 0),
                 Environment.GetEnvironmentVariable("POSITRON_SEPARADOR_CRUZAMENTO"));
+        }
+
+        /// <summary>
+        /// Descreve a falha para o log: mensagem + tipo + primeiro quadro do stack.
+        /// Sem isso um erro de dado (formato, conversao) vira so "falhou" e nao da
+        /// para saber qual leitor estourou dentro do CAD.
+        /// </summary>
+        private static string DescreverErro(System.Exception erro)
+        {
+            string pilha = erro.StackTrace;
+            if (string.IsNullOrEmpty(pilha))
+            {
+                return erro.GetType().Name + ": " + erro.Message;
+            }
+
+            // Ajuda a achar qual leitor estourou: as falhas de dado (formato) sao
+            // FormatException com uma pilha longa, e o primeiro quadro e sempre o
+            // proprio Number.StringToNumber.
+            string[] quadros = pilha.Split(new[] { '\r', '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
+            System.Text.StringBuilder texto = new System.Text.StringBuilder();
+            texto.Append(erro.GetType().Name).Append(": ").Append(erro.Message);
+            for (int i = 0; i < quadros.Length && i < 4; i++)
+            {
+                texto.Append(" | ").Append(quadros[i].Trim());
+            }
+
+            return texto.ToString();
         }
 
         private static int LerInteiro(string nome, int padrao)

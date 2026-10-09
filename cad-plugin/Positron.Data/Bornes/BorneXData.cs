@@ -141,12 +141,12 @@ namespace Positron.Data.Bornes
 
         private static double Real(object valor)
         {
-            return valor == null || valor is DBNull ? 0.0 : Convert.ToDouble(valor);
+            return valor == null || valor is DBNull ? 0.0 : XDataNumero.Real(valor);
         }
 
         private static int Inteiro(object valor)
         {
-            return valor == null || valor is DBNull ? 0 : Convert.ToInt32(valor);
+            return valor == null || valor is DBNull ? 0 : XDataNumero.Inteiro(valor);
         }
 
         private static string Texto(object valor)

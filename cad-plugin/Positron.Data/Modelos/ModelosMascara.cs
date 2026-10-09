@@ -116,7 +116,7 @@ namespace Positron.Data.Modelos
 
         private static int Inteiro(object valor)
         {
-            return valor == null || valor is DBNull ? 0 : Convert.ToInt32(valor);
+            return valor == null || valor is DBNull ? 0 : XDataNumero.Inteiro(valor);
         }
 
         private static string Texto(object valor)

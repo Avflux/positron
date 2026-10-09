@@ -106,7 +106,7 @@ namespace Positron.Data.Bornes
 
         private static int Inteiro(object valor)
         {
-            return valor == null || valor is System.DBNull ? 0 : System.Convert.ToInt32(valor);
+            return valor == null || valor is System.DBNull ? 0 : XDataNumero.Inteiro(valor);
         }
 
         private static string Texto(object valor)

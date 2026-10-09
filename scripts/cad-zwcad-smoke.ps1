@@ -35,7 +35,10 @@ param(
     [int]      $EsperaSegundos = 15,
     # Script LISP carregado antes do NETLOAD: monta o desenho do teste
     # (`scripts/cad-fixture.lsp`). Sem ele o `Drawing1` fica vazio.
-    [string]   $Fixture
+    [string]   $Fixture,
+    # Desenho de verdade para abrir no CAD (E2E com dados reais). O script copia
+    # para o TEMP e abre a COPIA: o original nunca e tocado.
+    [string]   $Desenho
 )
 
 $ErrorActionPreference = "Stop"
@@ -112,7 +115,18 @@ Write-Host "rodando: $exe /nologo /b $passo"
 $antes = @(Get-Process ZWCAD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id)
 # -WorkingDirectory no TEMP: sem isso o ZWCAD salva o `Drawing1.dwg` de trabalho
 # no diretorio de onde foi chamado (a raiz do repo).
-$processo = Start-Process -FilePath $exe -ArgumentList @("/nologo", "/b", $passo) -WorkingDirectory $env:TEMP -PassThru
+$argumentos = @()
+if (-not [string]::IsNullOrWhiteSpace($Desenho)) {
+    if (-not (Test-Path $Desenho)) { throw "desenho nao encontrado: $Desenho" }
+    $copia = Join-Path $env:TEMP ("positron-desenho-" + $carimbo + ".dwg")
+    Copy-Item $Desenho $copia -Force
+    Write-Host "desenho (copia): $copia"
+    # O desenho vai na LINHA DE COMANDO: `(command "_.OPEN")` num script e
+    # assincrono e o resto do script rodaria no desenho antigo (verificado).
+    $argumentos += $copia
+}
+$argumentos += @("/nologo", "/b", $passo)
+$processo = Start-Process -FilePath $exe -ArgumentList $argumentos -WorkingDirectory $env:TEMP -PassThru
 
 $limite = [DateTime]::UtcNow.AddSeconds($TimeoutSegundos)
 while ([DateTime]::UtcNow -lt $limite) {

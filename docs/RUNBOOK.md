@@ -157,7 +157,40 @@ DLL contra a API **real**; o alvo AutoCAD continua no stub.
 5. **Confira pelo leitor do app**, não por SQL cru (mesma receita do item 4 do
    AutoCAD abaixo).
 
-### E2E com dados (`npm run cad:e2e`)
+### E2E com um desenho de verdade (`-Desenho`)
+
+A fixture acima prova o caminho, mas quem acha defeito é desenho real. O harness
+aceita um DWG e **abre a cópia** (o original nunca é tocado):
+
+```bash
+npm run cad:smoke -- -Desenho "..\Elet\RCD\Funcional.dwg" -Comandos ELET,FIA,INT,SYNCD,VERIF -Revisao R0
+```
+
+O desenho vai na **linha de comando** do ZWCAD (não por `_.OPEN`, que num script é
+assíncrono). Resultado medido em `..\Elet\RCD\Funcional.dwg` (1.541 entidades com
+XData, painéis 503/509):
+
+```text
+FIA: 365 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 83 posicao(oes),
+     321 ponto(s) de bloco); 265 porta(s) em Portas4F; 0 borne(s) em Bornes4F;
+     88 contato(s) em Contatos4F; 83 dispositivo(s) em Dispositivos4F;
+     11 circuito(s) em Circuitos4F; 15 tipo(s) em Aplicacao4F.
+INT: 20 linha(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I
+VERIF: 365 fio(s), 20 trecho(s), 265 porta(s), 88 contato(s);
+       1034 problema(s) — fiação: 229; interligação: 40; modelos: 548; desenho: 217
+```
+
+O `SYNCD` repete `FIA`+`INT` e as contagens **não dobram** — idempotência provada
+com dado real. O banco sai com `Fiacao` 365, `Interligacao4` 20 (tags `8-CCE-*`,
+terminais ` A `/` B `), `Portas4F`/`Portas4I` 265, `Contatos4F` 88,
+`Dispositivos4F` 83, `Circuitos4F` 11, `Aplicacao4F` 15.
+
+**Pendência achada aqui:** `Bornes4F` e `Bornes4I` saem **0** com 199 bornes no
+desenho — o `Bornes4FGerador` só grava borne cuja **régua resolve** no dicionário
+(`REGUAS/MODELOS2`), e neste desenho ela não resolve. É a próxima investigação:
+saber onde o produto guarda as réguas (outro dicionário? outro layout de Xrecord?).
+
+### E2E com dados sintéticos (`npm run cad:e2e`)
 
 O smoke roda num `Drawing1` vazio, então os comandos só provam que carregam. Para
 exercitar o caminho de dados, `scripts/cad-fixture.lsp` monta um desenho funcional
@@ -358,6 +391,21 @@ ela foi ignorada em favor da política do projeto; isso é esperado. O bootstrap
 remove a variável de ambiente herdada do npm para que ela não seja interpretada
 como uma opção de linha de comando proibida nas instalações locais.
 
+### `entget` sem applist não devolve XData no ZWCAD 2026
+
+`(entget e)` **não** trouxe o grupo `-3` no desenho real (o dump dizia "nenhuma
+entidade com XData" num desenho que tem 1.541). Com `(entget e '("*"))` o XData
+aparece. Ao diagnosticar XData dentro do CAD, use sempre a applist `'("*")`.
+
+### Numérico de XData tem que ser tolerante
+
+O Xrecord real do desenho entrega inteiros como **string** (`"5"`, `"1.0"`), e
+`Convert.ToInt32("1.0")` estoura `FormatException` — o comando inteiro falhava com
+"Input string was not in a correct format" e não dizia onde. Agora tudo passa por
+`XDataNumero` (`Inteiro`/`Curto`/`Real`/`Booleano`), que nunca lança. Os comandos
+também passaram a logar `TipoDaExcecao: mensagem | 4 quadros do stack` em vez de só
+a mensagem — foi assim que a falha foi localizada em um minuto.
+
 ### XData num `INSERT` pelo LISP não funciona no ZWCAD 2026
 
 Tentar carimbar XData num bloco (`INSERT`) pelo LISP falha com
@@ -403,7 +451,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
   instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
   26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 148 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 160 testes xunit (net472) do plugin CAD.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge
@@ -411,7 +459,12 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run typecheck` — `tsc --noEmit` limpo nos dois workspaces.
 - `npm run build` — gera `apps/web/dist` (51 módulos).
 - `ruff check .` no sidecar — limpo.
-- **Dentro do ZWCAD 2026 com dados** — `npm run cad:e2e` (fixture `scripts/cad-fixture.lsp`):
+- **Dentro do ZWCAD 2026 com um desenho real** — `-Desenho ..\Elet\RCD\Funcional.dwg`:
+  `FIA` grava 365 linhas (199 bornes, 191 dispositivos), `INT` 20 trechos, o
+  `SYNCD` repete sem duplicar e as tabelas derivadas (portas, contatos,
+  dispositivos, circuitos, aplicações) saem preenchidas. Foi esta rodada que achou
+  o `FormatException` do `ReguasModelo` (ver armadilha abaixo).
+- **Dentro do ZWCAD 2026 com dados sintéticos** — `npm run cad:e2e` (fixture `scripts/cad-fixture.lsp`):
   `FIA` grava 2 linhas em `Fiacao` + 2 circuitos, `INT` grava 1 `Interligacao4`, o
   `SYNCD` repete e **não duplica** (idempotência no CAD) e o sidecar lê as mesmas
   linhas do `.db`.

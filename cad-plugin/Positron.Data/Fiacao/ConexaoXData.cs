@@ -126,18 +126,18 @@ namespace Positron.Data.Fiacao
 
         private static short Curto(object valor)
         {
-            return valor == null || valor is DBNull ? (short)0 : Convert.ToInt16(valor);
+            return valor == null || valor is DBNull ? (short)0 : XDataNumero.Curto(valor);
         }
 
         private static int Inteiro(object valor)
         {
-            return valor == null || valor is DBNull ? 0 : Convert.ToInt32(valor);
+            return valor == null || valor is DBNull ? 0 : XDataNumero.Inteiro(valor);
         }
 
         private static bool Booleano(object valor)
         {
             // Grava-se 0 ou -1 (padrão do CAD); qualquer não-zero é true.
-            return valor != null && !(valor is DBNull) && Convert.ToBoolean(valor);
+            return valor != null && !(valor is DBNull) && XDataNumero.Booleano(valor);
         }
 
         private static string Texto(object valor)
