@@ -56,6 +56,78 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void Aponta_conexao_sem_sobreposicao()
+        {
+            // O laço A do `carregaOrfao`: `HandleSup` vazio = Tipo 3 sem o Handle do
+            // XData, ou seja, uma conexão sem par.
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
+            {
+                new ConexaoFiacao { Tipo = 3, Potencial = 10, Painel = 503, Handle = "H1", HandleSuperposto = "", Pagina = "8" },
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarOrfaos(conexoes);
+
+            Assert.Contains(problemas, p => p.Tipo == TipoProblema.ConexaoOrfa && p.Identificador == "H1");
+        }
+
+        [Fact]
+        public void Aponta_potencial_sem_conexao_tipo_1_ou_2()
+        {
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
+            {
+                // Tipo 3 com sobreposição "OK"? impossível: só o Tipo 1/2 recebem OK.
+                new ConexaoFiacao { Tipo = 3, Potencial = 77, Painel = 503, Handle = "H1", HandleSuperposto = "OK", Pagina = "8" },
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarOrfaos(conexoes);
+
+            Assert.Contains(problemas, p => p.Tipo == TipoProblema.ConexaoOrfa && p.Detalhe.Contains("77"));
+        }
+
+        [Fact]
+        public void Aponta_sobreposicao_que_nao_resolve()
+        {
+            // Tipo 2 existe no potencial 5 (logo o potencial não é isolado), mas o
+            // Tipo 3 aponta para um handle que não é conexão nenhuma.
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
+            {
+                new ConexaoFiacao { Tipo = 2, Potencial = 5, Painel = 503, Handle = "H1", HandleSuperposto = "OK", Pagina = "8" },
+                new ConexaoFiacao { Tipo = 3, Potencial = 5, Painel = 503, Handle = "H2", HandleSuperposto = "NAOEXISTE", Pagina = "8" },
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarOrfaos(conexoes);
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(TipoProblema.SobreposicaoAusente, problema.Tipo);
+            Assert.Equal("H2", problema.Identificador);
+        }
+
+        [Fact]
+        public void Conexao_de_jumper_e_descartada()
+        {
+            // O original ignora as conexões com `Jumper == "JUMPER"` ao montar o
+            // conjunto (`ClsVerificadorProjetoFiacao:791`).
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
+            {
+                new ConexaoFiacao { Tipo = 4, Potencial = 99, Painel = 503, Handle = "H1", HandleSuperposto = "", Pagina = "8", Jumper = "JUMPER" },
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarOrfaos(conexoes));
+        }
+
+        [Fact]
+        public void Conexao_com_par_nao_aponta()
+        {
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
+            {
+                new ConexaoFiacao { Tipo = 2, Potencial = 5, Painel = 503, Handle = "H1", HandleSuperposto = "OK", Pagina = "8" },
+                new ConexaoFiacao { Tipo = 3, Potencial = 5, Painel = 503, Handle = "H2", HandleSuperposto = "H1", Pagina = "8" },
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarOrfaos(conexoes));
+        }
+
+        [Fact]
         public void Aponta_borne_sem_LM()
         {
             // O `GijcRTCGe3` do reverso: todo borne do desenho com `lm == 0`.

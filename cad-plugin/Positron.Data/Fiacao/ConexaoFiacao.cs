@@ -24,5 +24,25 @@ namespace Positron.Data.Fiacao
         public string Secao { get; set; }
 
         public string Cor { get; set; }
+
+        /// <summary>Handle da própria polilinha — o <c>m_Fiacao[i].Handle</c> do original.</summary>
+        public string Handle { get; set; }
+
+        /// <summary>
+        /// O <c>HandleSup</c> do verificador: <c>"OK"</c> por padrão e, nas conexões
+        /// <c>Tipo 3</c>, o campo <c>Handle</c> do XData — que aponta para a conexão
+        /// com que esta se superpõe. Vazio é órfão (o laço do <c>carregaOrfao</c>).
+        /// </summary>
+        public string HandleSuperposto { get; set; }
+
+        /// <summary>Layer da polilinha — a página (<c>sPaginaa</c>) do verificador.</summary>
+        public string Pagina { get; set; }
+
+        /// <summary>
+        /// Campo <c>Jumper</c> do XData. O verificador do original <b>descarta</b> as
+        /// conexões com <c>Jumper == "JUMPER"</c> antes de montar o conjunto
+        /// (<c>ClsVerificadorProjetoFiacao:791</c>): elas são do <c>JMP</c>, não da fiação.
+        /// </summary>
+        public string Jumper { get; set; }
     }
 }

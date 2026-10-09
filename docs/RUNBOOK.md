@@ -551,11 +551,11 @@ ELETREL: 107 problema(s) em C:\Users\rno\AppData\Local\Temp\positron-relatorio-e
 # 2026-10-09 11:50:24
 VERIF: 494 fio(s), 20 trecho(s), 265 porta(s), 168 borne(s), 88 contato(s) na revisão.
 # banco=...\positron-zwcad-20261009-115009.db
-# problemas=236
+# problemas=238
 # area;tipo;tabela;identificador;detalhe
 Desenho;BorneSemFiacao;Fiacao;4DD53;borne do desenho sem ponto de fiação
 ...
-# 236 linha(s)
+# 238 linha(s)
 ```
 
 O total subiu de 107 para **117** (rodada 33) e para **236** (rodada 34) com duas
@@ -575,6 +575,31 @@ elas não indicam projeção errada, e sim dado faltando no desenho:
 
 O relatório continua separando por tipo (`VERIF: por tipo — …`), que é o que mantém o
 número legível: `BorneSemFiacao` e `BorneSemLm` são coisas diferentes.
+
+**Rodada 35 — conexões órfãs (`carregaOrfao`, linha 1311).** É o botão `bt2Orfao` da
+tela, e a regra é mais fina do que a nossa aproximação (`BorneSemFiacao`). O
+`HandleSup` do verificador é `"OK"` por padrão e, nas `Tipo 3`, recebe o campo
+`Handle` do XData — o handle da conexão com que esta se **superpõe**
+(`ClsVerificadorProjetoFiacao:813-833`). A partir daí são dois laços: (1) conexão sem
+sobreposição (`HandleSup` vazio); (2) conexão cujo `Potencial` não aparece em nenhuma
+`Tipo 1`/`2` — potencial isolado — ou cuja sobreposição aponta para um handle que não
+existe **como conexão na mesma página**. O original dedupa por potencial durante o
+segundo laço e compara com o conjunto de handles das conexões; aqui é o mesmo, sem o
+filtro de painéis em uso que a tela aplica.
+
+No desenho real: **2** `SobreposicaoAusente` e **zero** de potencial isolado. O
+`ELETREL` dá os dois com nome e endereço:
+
+```
+Desenho;SobreposicaoAusente;Conexoes;5BA4;sobreposição "52BF" não existe como conexão na página "18" (potencial 159)
+Desenho;SobreposicaoAusente;Conexoes;2163E;sobreposição "215D1" não existe como conexão na página "18" (potencial 1221)
+```
+
+Ou seja: duas `Tipo 3` que apontam para um handle que não é conexão nenhuma na página
+18 — referência pendente no desenho, não na projeção. O total do `VERIF` vai a **238**.
+Como no original, as conexões com `Jumper == "JUMPER"` são **descartadas** antes de
+montar o conjunto (`ClsVerificadorProjetoFiacao:791`) — são do `JMP`, não da fiação; o
+filtro está no código e tem teste (sem efeito neste desenho, que não tem jumper).
 
 O verificador do produto é bem maior que as regras de tabela: a tela tem **14
 checagens** (`bt1Fiacao` … `bt14PortasDiscrepantes`, rótulos em

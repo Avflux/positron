@@ -65,6 +65,12 @@ namespace Positron.Plugin.Fiacao
                         Nome = conexao.Nome,
                         Secao = conexao.Secao,
                         Cor = conexao.Cor,
+                        Handle = entidade.Handle.ToString(),
+                        // `HandleSup` do verificador: "OK" fora do Tipo 3; no Tipo 3, o
+                        // Handle do XData (a conexão com que esta se superpõe).
+                        HandleSuperposto = conexao.Tipo == 3 ? conexao.Handle : "OK",
+                        Pagina = entidade.Layer,
+                        Jumper = conexao.Jumper,
                     });
                 }
 

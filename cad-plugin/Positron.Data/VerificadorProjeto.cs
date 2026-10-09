@@ -68,6 +68,11 @@ namespace Positron.Data
 
         /// <summary>Borne do desenho sem <c>LM</c> (<c>lm == 0</c>): a régua não define LM.</summary>
         BorneSemLm,
+
+        /// <summary>Conexão sem par: sem sobreposição (Tipo 3 com Handle vazio) ou fora do potencial.</summary>
+        ConexaoOrfa,
+        /// <summary>Tipo 3 apontando para um Handle que não existe como conexão na mesma página.</summary>
+        SobreposicaoAusente,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -442,6 +447,132 @@ namespace Positron.Data
         /// o borne é criado (<c>DicionarioBorne.BuscaLMdaRegua</c>): zero significa
         /// que a régua não define LM.
         /// </summary>
+        /// <summary>
+        /// Conexões órfãs — o <c>carregaOrfao</c> do <c>ClsVerificadorProjetoFiacao</c>
+        /// (linha 1311 do reverso), que é o botão "órfão" da tela de verificação.
+        ///
+        /// A regra tem dois laços, como no original:
+        ///
+        /// 1. conexão sem sobreposição (<c>HandleSup</c> vazio — na prática uma
+        ///    <c>Tipo 3</c> cujo campo <c>Handle</c> do XData está em branco);
+        /// 2. conexão cujo <c>Potencial</c> **não** aparece em nenhuma conexão
+        ///    <c>Tipo 1</c>/<c>2</c> (potencial isolado), ou cuja sobreposição aponta
+        ///    para um handle que **não** existe como conexão na mesma página.
+        ///
+        /// O original dedupa por potencial **durante** o segundo laço
+        /// (<c>list2.Add</c>) e compara a sobreposição com o conjunto de handles das
+        /// conexões do desenho; aqui é o mesmo, sem o filtro de painéis em uso que a
+        /// tela aplica (<c>lPn</c>).
+        /// </summary>
+        public static List<Problema> VerificarOrfaos(IEnumerable<ConexaoFiacao> conexoes)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (conexoes == null)
+            {
+                return problemas;
+            }
+
+            List<ConexaoFiacao> todas = new List<ConexaoFiacao>();
+            foreach (ConexaoFiacao conexao in conexoes)
+            {
+                if (conexao == null)
+                {
+                    continue;
+                }
+
+                // O original descarta as conexões de jumper antes de montar o conjunto
+                // (`ClsVerificadorProjetoFiacao:791`): elas são do `JMP`.
+                string jumper = (conexao.Jumper ?? string.Empty).Trim().ToUpperInvariant();
+                if (jumper == "JUMPER")
+                {
+                    continue;
+                }
+
+                todas.Add(conexao);
+            }
+
+            if (todas.Count == 0)
+            {
+                return problemas;
+            }
+
+            // Passo 1 do original: potenciais que têm conexão Tipo 1 ou 2 e o
+            // conjunto de handles das conexões (com a página de cada um).
+            HashSet<int> comTipo12 = new HashSet<int>();
+            List<KeyValuePair<string, string>> handles = new List<KeyValuePair<string, string>>();
+            List<string> vistos = new List<string>();
+            foreach (ConexaoFiacao conexao in todas)
+            {
+                if (conexao.Tipo == 1 || conexao.Tipo == 2)
+                {
+                    comTipo12.Add(conexao.Potencial);
+                }
+
+                string handle = conexao.Handle ?? string.Empty;
+                if (!vistos.Contains(handle))
+                {
+                    vistos.Add(handle);
+                    handles.Add(new KeyValuePair<string, string>(handle, conexao.Pagina ?? string.Empty));
+                }
+            }
+
+            // Laço A: sem sobreposição.
+            foreach (ConexaoFiacao conexao in todas)
+            {
+                if (!string.IsNullOrEmpty(conexao.HandleSuperposto))
+                {
+                    continue;
+                }
+
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.ConexaoOrfa, "Conexoes",
+                    conexao.Handle, "conexão sem sobreposição (potencial " + conexao.Potencial
+                    + ", painel " + conexao.Painel + ", página \"" + (conexao.Pagina ?? string.Empty) + "\")"));
+            }
+
+            // Laço B: potencial isolado ou sobreposição que não resolve.
+            HashSet<int> jaApontados = new HashSet<int>();
+            foreach (ConexaoFiacao conexao in todas)
+            {
+                string sobreposto = conexao.HandleSuperposto ?? string.Empty;
+                if (comTipo12.Contains(conexao.Potencial) || jaApontados.Contains(conexao.Potencial))
+                {
+                    if (sobreposto == "OK")
+                    {
+                        continue;
+                    }
+
+                    bool achou = false;
+                    foreach (KeyValuePair<string, string> par in handles)
+                    {
+                        if (par.Key == sobreposto && par.Value == (conexao.Pagina ?? string.Empty))
+                        {
+                            achou = true;
+                            break;
+                        }
+                    }
+
+                    if (achou)
+                    {
+                        continue;
+                    }
+
+                    problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.SobreposicaoAusente, "Conexoes",
+                        conexao.Handle, "sobreposição \"" + sobreposto + "\" não existe como conexão na página \""
+                        + (conexao.Pagina ?? string.Empty) + "\" (potencial " + conexao.Potencial + ")"));
+                    jaApontados.Add(conexao.Potencial);
+                }
+                else
+                {
+                    problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.ConexaoOrfa, "Conexoes",
+                        conexao.Handle, "potencial " + conexao.Potencial + " sem nenhuma conexão Tipo 1/2"
+                        + " (painel " + conexao.Painel + ", página \"" + (conexao.Pagina ?? string.Empty) + "\")"));
+                    jaApontados.Add(conexao.Potencial);
+                }
+            }
+
+            return problemas;
+        }
+
         public static List<Problema> VerificarBornesSemLm(IEnumerable<PontoBorne> bornes)
         {
             List<Problema> problemas = new List<Problema>();

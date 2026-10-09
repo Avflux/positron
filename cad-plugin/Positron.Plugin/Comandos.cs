@@ -655,6 +655,9 @@ namespace Positron.Plugin
             // Bornes sem LM (`lm == 0`) — a árvore `TreeViewBornesLM` do original.
             problemas.AddRange(VerificadorProjeto.VerificarBornesSemLm(bornesDoDesenho));
 
+            // Conexões órfãs — o botão `bt2Orfao` da tela (`carregaOrfao`).
+            problemas.AddRange(VerificadorProjeto.VerificarOrfaos(ConexoesDoDesenho.Ler()));
+
             List<string> handlesDoDesenho = new List<string>();
             foreach (PontoBorne borne in bornesDoDesenho)
             {
