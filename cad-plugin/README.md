@@ -102,6 +102,7 @@ do original. Configuração por variável de ambiente:
 | `POSITRON_DWG` | índice do desenho (`DWG`), padrão `0` |
 | `POSITRON_REVISAO` | revisão da linha (`Revisao`), padrão vazio |
 | `POSITRON_LOCAL` | documento local (`Documento1`/`Documento2`), padrão vazio |
+| `POSITRON_LOG` | arquivo onde `Plugin.Escrever` anexa cada mensagem (evidência de execução por script) — opcional |
 
 **Bornes/terminais (fase 7).** O `FIA` varre os blocos de borne do desenho
 (XData `Dispositivo` tipo `"B"`) e as réguas do dicionário

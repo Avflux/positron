@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 #if AUTOCAD
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.EditorInput;
@@ -34,6 +36,8 @@ namespace Positron.Plugin
         /// <summary>Escreve uma linha na linha de comando do ZWCAD.</summary>
         internal static void Escrever(string mensagem)
         {
+            RegistrarEmArquivo(mensagem);
+
             Document documento = Application.DocumentManager.MdiActiveDocument;
             if (documento == null)
             {
@@ -43,6 +47,33 @@ namespace Positron.Plugin
 
             Editor editor = documento.Editor;
             editor.WriteMessage("\n" + mensagem);
+        }
+
+        /// <summary>
+        /// Anexa a mensagem em <c>POSITRON_LOG</c> quando a variável existe. A
+        /// linha de comando do CAD não tem stdout: rodando por script
+        /// (<c>ZWCAD.exe /b passo.scr</c>), este arquivo é a evidência de que o
+        /// plugin carregou e o que cada comando gravou.
+        /// </summary>
+        private static void RegistrarEmArquivo(string mensagem)
+        {
+            string caminho = Environment.GetEnvironmentVariable("POSITRON_LOG");
+            if (string.IsNullOrEmpty(caminho))
+            {
+                return;
+            }
+
+            try
+            {
+                File.AppendAllText(caminho, mensagem + Environment.NewLine);
+            }
+            catch (IOException)
+            {
+                // Log de execução não pode derrubar um comando do CAD.
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
         }
     }
 }

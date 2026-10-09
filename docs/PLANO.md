@@ -88,7 +88,7 @@ escopo estrutural do recoder.
   máquina".
 - **Commit:** `docs: ...`
 
-### Etapa 3 — Harness ZWCAD 2026 (fase 4 fecha) · P0
+### Etapa 3 — Harness ZWCAD 2026 (fase 4 fecha) · P0 · **harness pronto**
 
 - **O que:**
   1. `Plugin.Escrever` também anexa a mensagem num arquivo quando
@@ -103,6 +103,12 @@ escopo estrutural do recoder.
   `POSITRON_LOG` a partir de uma execução real do ZWCAD 2026. Requer o ZWCAD
   **fechado** (a segunda instância entrega para a primeira e não herda as
   variáveis de ambiente).
+- **Estado:** o harness (`npm run cad:smoke`) está pronto e validado nas partes
+  que não exigem o CAD (sintaxe do `.ps1`, criação do `.db` pelo `schema.sql`,
+  `plugin:build` 0 avisos). **A execução dentro do ZWCAD segue pendente** — nesta
+  máquina o ZWCAD estava aberto durante o trabalho, e o script recusa rodar
+  assim de propósito (fechar um CAD aberto pode descartar trabalho não salvo).
+  É o único passo manual do plano.
 
 ### Etapa 4 — E2E das fases 5–9 dentro do ZWCAD · P1
 
@@ -176,7 +182,8 @@ a leitura de volta pelo sidecar (Etapa 4).
 | Etapa | Data | Commit | Evidência |
 |---|---|---|---|
 | 0 — Plano e baseline | 2026-10-09 | 24a7c5b | baseline da seção 2 medido nesta máquina |
-| 2 — Saneamento documental | 2026-10-09 | (este commit) | `POSITRON.md` §6/§9, `RUNBOOK.md` (receita ZWCAD + estado de verificação), `README.md` e `cad-plugin/README.md`; contagens 105 testes / 49 módulos |
+| 2 — Saneamento documental | 2026-10-09 | 3673d80 | `POSITRON.md` §6/§9, `RUNBOOK.md` (receita ZWCAD + estado de verificação), `README.md` e `cad-plugin/README.md`; contagens 105 testes / 49 módulos |
+| 3 — Harness ZWCAD (parcial) | 2026-10-09 | (este commit) | `POSITRON_LOG` no `Plugin.Escrever`; `scripts/cad-zwcad-smoke.ps1` + `npm run cad:smoke`; receita no `RUNBOOK.md`; parser do `.ps1` OK e criação do `.db` (31 tabelas) validada — execução no CAD pendente do ZWCAD fechado |
 | 1 — Idempotência da projeção | 2026-10-09 | cbadec5 | `plugin:build` 0 avisos; `plugin:test` **105** aprovados (5 novos em `IdempotenciaTests`); `ProjectStore` apaga `(DWG, Revisão)` antes do INSERT em `Fiacao`, `Interligacao4`, `Portas4F`, `Bornes4F` e `Contatos4F` (mesma transação) |
 
 ## 6. Riscos e armadilhas

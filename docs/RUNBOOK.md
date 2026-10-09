@@ -135,6 +135,19 @@ DLL contra a API **real**; o alvo AutoCAD continua no stub.
    "C:/Program Files/ZWSOFT/ZWCAD 2026/ZWCAD.exe" /nologo /b passo.scr
    ```
 
+   O harness faz isso inteiro — confere o ambiente, recusa rodar com o ZWCAD
+   aberto, cria o `.db` pelo `schema.sql`, escreve o `.scr`, roda e imprime o
+   `POSITRON_LOG`:
+
+   ```bash
+   npm run cad:smoke
+   npm run cad:smoke -- -Comandos ELET,FIA,VERIF -Revisao R1
+   ```
+
+   Ele sai 0 só quando o log tem `"Positron carregado"`. O `.db` e o log ficam
+   no `%TEMP%`; a saída do CAD não tem stdout, então **o log é a evidência**
+   (`Plugin.Escrever` anexa nele quando `POSITRON_LOG` existe).
+
 5. **Confira pelo leitor do app**, não por SQL cru (mesma receita do item 4 do
    AutoCAD abaixo).
 
