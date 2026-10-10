@@ -58,7 +58,7 @@ implementado, verificado e documentado. Os números de hoje:
 | Gate | Resultado |
 |---|---|
 | `npm run plugin:build` (ZWCAD→stub) / `:autocad` (API real) | exit 0, 0 avisos / 0 erros |
-| `npm run plugin:test` | **209** aprovados |
+| `npm run plugin:test` | **219** aprovados |
 | `npm run protocol:gen` | contrato OK (**20 métodos**; 31 tabelas) |
 | `npm run typecheck` / `build:web` | limpo / **57** módulos |
 | `npm run test:sidecar` / `ruff check` | 27 testes / limpo |
@@ -94,12 +94,13 @@ receita no `RUNBOOK.md`):
 `scripts/cad-ab-tabelas.ps1`+`.py` (resumo e detalhe por coluna); idempotência e
 isolamento por desenho com `scripts/cad-dump-tabelas.py`; catálogo e cadastro com
 `scripts/cad-importa-catalogo.ps1`; app com `scripts/app-consultas.py`; `VERIF` com
-`scripts/cad-verif-baseline.py` (linha de base **238** = 107+119+10+2).
+`scripts/cad-verif-baseline.py` (linha de base **249** = 107+119+11+10+2).
 
-**`VERIF`:** regras de tabela + **sete** checagens do desenho (régua do borne, cabo fora
-do catálogo, página ausente, régua vazia, borne sem LM, conexão órfã e painel fora do
-cadastro), no desenho real: **238** problemas — 107 `BorneSemFiacao`, 119 `BorneSemLm`,
-10 `ReguaVazia`, 2 `SobreposicaoAusente`.
+**`VERIF`:** regras de tabela + **oito** checagens do desenho (régua do borne, cabo fora
+do catálogo, página ausente, régua vazia, borne sem LM, conexão órfã, painel fora do
+cadastro e intervalos de borne), no desenho real: **249** problemas — 107
+`BorneSemFiacao`, 119 `BorneSemLm`, 11 `IntervaloBorneInvalido`, 10 `ReguaVazia`, 2
+`SobreposicaoAusente`.
 
 **Único item aberto:** a **Etapa 9** (licença, relatórios, banco), que é decisão do dono
 e tem os três encaixes prontos — `ServicoDeLicenca`/`ILicenca` com gate nos comandos,
@@ -563,6 +564,7 @@ aberto por **cópia no TEMP**).
 | 47 — harness **AutoCAD 2020** (host desta máquina, sem ZWCAD) | 2026-10-09 | (este commit) | a máquina não tem ZWCAD, mas tem o **AutoCAD 2020** (`accoreconsole.exe`); `scripts/cad-autocad-smoke.ps1` é o harness headless espelhando o do ZWCAD (`FILEDIA`/`SECURELOAD`/`NETLOAD`/comandos/`QUIT`, `.db` pelo `schema.sql`, desenho por `/i` numa cópia) e o `csproj` passou a auto-detectar AutoCAD **2020..2023** (antes só 2024..2026, então `plugin:build:autocad` caía no stub); o `cad-projeto-e2e.ps1` ganhou `-Cad AutoCAD` (e invoca o harness direto, contornando o shim `npm.ps1` do npm 11, que mastiga os args depois do `--`); os scripts novos `cad:smoke:acad`/`cad:e2e:acad`/`cad:projeto:acad`; **medido**: `plugin:test` **209**, as duas builds 0 avisos, o smoke carrega a DLL no `accoreconsole`, o E2E sintético dá 2 fios/1 trecho (idempotente) e o ciclo completo no projeto real reproduz o ZWCAD — `FIA` 494 (265/168/70/83/11/15), `INT` 20 (265/216/697/2388), `VERIF` **238** (107+119+10+2), `IDEMPOTENTE` com hash igual |
 | 48 — A/B das tabelas do `FIA` **no AutoCAD 2020** | 2026-10-09 | (este commit) | o A/B de conteúdo (rodada 44) re-rodado com o lado do recoder saindo do **AutoCAD 2020** (`cad:smoke:acad`, `FIA` no `Funcional.dwg`: 494/265/168/70/83/11/15) contra o produto (Access, DWG 63, revisão 3) reproduz o veredito **linha a linha**: **4 idênticas** (`Portas4F` 265, `Contatos4F` 70, `Circuitos4F` 11, `Aplicacao4F` 15) e as 3 divergentes com toda coluna explicada por dado do desenho — `Fiacao` (`TipoBorne` 79, `Ordem` 29, `Potencial`/`Terminal` 19, `Tag` 6, 2 chaves de cada lado), `Bornes4F` (`Tipo` 79, `Ordem` 53, `Borne` 10, `Regua` 6, 33/20 chaves — cópia local, página 1000) e `Dispositivos4F` (`BlocoLayout` 2: `FINDER_56.34+BASE_LAYOUT.DWG` × `RJ-8.dwg`) |
 | 49 — as 2 linhas do `BlocoLayout` (`Dispositivos4F`): dado do desenho, provado | 2026-10-09 | (este commit) | o dump do XData no desenho (`scripts/cad-dump-xdata.lsp`, novo utilitário; `accoreconsole`) nos handles `4D642`/`4D672` mostra `indexModelo = 53` e, no **dicionário** `CONTATOS/MODELOS2`, o modelo 53 = `(56.34)` com `BlocoTopografico=FINDER_58-34.DWG`/`BlocoLayout=FINDER_56.34+BASE_LAYOUT.DWG` — **idêntico ao recoder**; o XData do bloco concorda (`array[17]`/`array[18]`); o `RJ-8.dwg` do produto é o `BlocoLayout` do modelo **6** (`(RJ-8)`), então o par gravado pelo produto é um estado anterior do modelo 53 — **todas as diferenças do A/B do `FIA` ficam atribuídas a dado do desenho** (nenhuma é regra); `plugin:test` **209** segue verde |
+| 51 — regra `IntervaloBorneInvalido` (`bt8intervalos`) portada | 2026-10-09 | (este commit) | porta o `nXnc5R08lF` do `frmVerificadorProjetoFiacao`: por régua **em uso**, junta os bornes do desenho + as reservas (`LeDicBornesReserva`, dedup por `Numero`+`Ordem`), ordena por `Ordem` e aponta o que o original aponta — número indefinido (`"0"` → `"?"`), buraco/queda na sequência numérica e número repetido; fidelidade conferida no reverso: o número é o **`Terminal`** (`Numero` + `NumeroComplem` colado, o que tira os bornes com complemento do teste numérico) e as reservas entram **cruas** (sem o mapeamento do `"0"`); **medido no desenho real**: **11** intervalos (9 na régua #37 e 2 na #487, ambas do painel 9) e a linha de base do `VERIF` vai a **249**; a conferência independente (dump dos **199** bornes do ModelSpace pelo `cad-dump-xdata.lsp` + reconstrução em Python) reproduz os **11 pares exatos** e mostra os 7 que **não** entram: réguas 476/477/481/483/486 são dos painéis 149/154/155/1, fora das réguas em uso; +10 testes (`plugin:test` **219**) |
 | 50 — auditoria de cobertura e backlog (o que falta) | 2026-10-09 | (este commit) | varredura do reverso **limpo** (`decompiled-cleaned`) cruzada com o código: entra a §7 com o backlog por frente — `VERIF` com **7** checagens não portadas e **2** parciais (14 botões) + o verificador da interligação (cabo indefinido/árvore), **4** tabelas do schema fora do recorte (`Aranha4`/`Atributos`/`Exportados`/`Plaquetas4`…), **38** telas de relatório (1 entregue), pendências pequenas e as decisões do dono; o parágrafo obsoleto do `RUNBOOK.md` (que listava órfão/painéis como não portados) foi corrigido |
 
 ## 6. Riscos e armadilhas
@@ -589,20 +591,20 @@ nuclear do recorte; **P2** = expansão do escopo; **P3** = decisão do dono/limp
 ### 7.1 `VERIF` — checagens do original não portadas · P1
 
 A tela do produto tem **14** checagens (`bt1Fiacao` … `bt14PortasDiscrepantes`, em
-`frmVerificadorProjetoFiacao`); o recoder tem **12 regras** (`VerificadorProjeto`), das
-quais **5** casam 1:1 com botões e **2** são parciais:
+`frmVerificadorProjetoFiacao`); o recoder tem **13 regras** (`VerificadorProjeto`), das
+quais **6** casam 1:1 com botões e **2** são parciais:
 
 | Botão | O que checa | Recoder |
 |---|---|---|
 | `bt1Fiacao` | fiação (tabela) | ✅ `VerificarFiacao` (+ `FiacaoDuplicada`) |
 | `bt2Orfao` | conexão órfã (`carregaOrfao`) | ✅ `VerificarOrfaos` |
 | `bt7Reguas` | réguas | ✅ `VerificarReguasVazias` + `VerificarBornesSemRegua` |
+| `bt8intervalos` | intervalos de borne (`nXnc5R08lF`) | ✅ `VerificarIntervalosBornes` |
 | `bt10BornesLM` | bornes sem LM (`GijcRTCGe3`) | ✅ `VerificarBornesSemLm` |
 | `bt11Paineis` | painel fora do cadastro (`lPnAoagado`) | ✅ `VerificarPaineisSemCadastro` |
 | `bt5Terminais` | terminais (`AtualizaTerminais`) | ⚠️ parcial (`VerificarModelos`) |
 | `bt6Portas` | portas | ⚠️ parcial (`VerificarModelos`) |
 | `bt3Principal` / `bt4Auxiliar` | principal × auxiliar | ❌ |
-| `bt8intervalos` | intervalos de borne | ❌ |
 | `bt9Discrepantes` | discrepantes | ❌ |
 | `bt12AMao` | itens feitos à mão (`AtualizaFeitoAMao`) | ❌ |
 | `bt13ReguaMascara` | régua da máscara (`AtualizadgReguaMascara`) | ❌ |
@@ -615,7 +617,9 @@ quais **5** casam 1:1 com botões e **2** são parciais:
 Todas as que faltam dependem da **mesma análise geométrica** (`buscaDadosDeFiacaoDWG`/
 `buscaDadosDoDWG`) que o recoder já monta para o órfão, a régua e o LM — o insumo
 (`ConexaoFiacao`, `PontoBorne`, `TrechoFiacao`) existe, então o custo é menor que o
-número de telas sugere.
+número de telas sugere. O `bt8intervalos` (rodada 51) foi o primeiro dos que faltavam e
+confirmou a previsão: saiu só do que o recoder já lê (o borne do desenho, a reserva da
+régua, a `Ordem` e o dicionário de réguas), sem geometria nova.
 
 ### 7.2 Tabelas do schema sem projeção · P2
 

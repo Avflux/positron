@@ -341,7 +341,9 @@ FIA: 494 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 83 posicao(oes));
      83 dispositivo(s) em Dispositivos4F; 11 circuito(s) em Circuitos4F; 15 tipo(s) em Aplicacao4F
 INT: 20 linha(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I;
      216 borne(s) em Bornes4I; 697 cabo(s) em Cabos4; 2388 veia(s) em Veias4
-VERIF: 238 problema(s) = BorneSemLm 119 + BorneSemFiacao 107 + ReguaVazia 10 + SobreposicaoAusente 2
+VERIF: 249 problema(s) — fiação: 0; interligação: 0; modelos: 0; desenho: 249
+       por tipo — BorneSemLm 119; BorneSemFiacao 107; IntervaloBorneInvalido 11;
+       ReguaVazia 10; SobreposicaoAusente 2
 IDEMPOTENTE: mesmo conteudo (ignorando Data)
 ```
 
@@ -666,14 +668,38 @@ checagens** (`bt1Fiacao` … `bt14PortasDiscrepantes`, rótulos em
 `DeclaracoesGeral.mMensagem[1, id]`) e o motor fica em
 `ClsVerificadorProjetoFiacao.cs` (2.173 linhas), com uma análise própria do desenho
 (`buscaDadosDeFiacaoDWG`, linha 430) que alimenta `carregaOrfao` (1311), `carregaTree`
-(1159) e companhia. O recoder tem **12 regras** (`VerificadorProjeto`); **5** casam 1:1
-com botões do original (fiação, órfão, réguas, bornes sem LM, painel fora do cadastro),
-e **2** são parciais (terminais e portas). O que ainda **não** está portado: principal ×
-auxiliar (`bt3`/`bt4`), intervalos de borne (`bt8`), discrepantes (`bt9`), itens feitos à
-mão (`bt12`), régua da máscara (`bt13`) e portas discrepantes (`bt14`) — todas dependem
-da análise geométrica do desenho, cujo insumo o recoder já monta para o órfão/régua/LM.
+(1159) e companhia. O recoder tem **13 regras** (`VerificadorProjeto`); **6** casam 1:1
+com botões do original (fiação, órfão, réguas, bornes sem LM, painel fora do cadastro e
+intervalos de borne), e **2** são parciais (terminais e portas). O que ainda **não** está
+portado: principal × auxiliar (`bt3`/`bt4`), discrepantes (`bt9`), itens feitos à mão
+(`bt12`), régua da máscara (`bt13`) e portas discrepantes (`bt14`) — todas dependem da
+análise geométrica do desenho, cujo insumo o recoder já monta para o órfão/régua/LM.
 O mapeamento botão a botão está no `PLANO.md` §7.1. O verificador da **interligação**
 (outra tela) ainda não tem o cabo indefinido (`IndefineCabosNaoExistentes`).
+
+**Rodada 51 — intervalos de borne (`bt8intervalos`, o `nXnc5R08lF`).** É a checagem que
+monta a árvore `TreeViewBornes`: por régua, junta os bornes do desenho **e as reservas**
+(`LeDicBornesReserva`), ordena por `Ordem` e aponta três coisas na sequência — número
+indefinido, buraco/queda na numeração e número repetido. Duas sutilezas saíram da leitura
+do original e mudam o resultado:
+
+- o número comparado é `Numero + NumeroComplem` (**o `Terminal`**), colado antes do
+  teste — e `"0"` vira `CaracterTerminalIndefinido` (`"?"`), que é como o desenho grava
+  "sem número". Assim um borne com complemento (`"11A"`) **sai** do teste numérico e o
+  buraco em volta dele fica escondido;
+- as **reservas** entram cruas do dicionário: o mapeamento do `"0"` não é repetido nelas,
+  então uma reserva `"0"` continua numérica (e vira `1 a 0`).
+
+Só as réguas **em uso** entram (o `lPn`/`cOWeaBRTRB` do original = os painéis do desenho),
+e o par `(painel, régua)` é o mesmo que a `ReguaVazia` usa. No desenho real saíram **11**
+intervalos: 9 na régua `#37` (`R6`, painel 9) e 2 na `#487` (`R8`, painel 9) — a linha de
+base do `VERIF` vai a **249**.
+
+A conferência **independente** é o que dá confiança na regra: o dump dos **199** bornes do
+ModelSpace (o modo `POSITRON_XDATA_BORNES=1` do `cad-dump-xdata.lsp`) reconstruído em
+Python **fora do plugin** reproduz os **11 pares exatos**, e mostra os 7 que **não** entram
+— réguas `476`/`477`/`481`/`483`/`486`, dos painéis `149`/`154`/`155`/`1`, fora do filtro
+de réguas em uso (o dicionário `REGUAS/MODELOS2` diz de que painel é cada régua).
 
 O conteúdo é puro (`RelatorioCompilacao`: `Texto()`/`Salvar()`, testado) e o `VERIF`
 passou a compartilhar a mesma montagem (`VerificarRevisao`), então os dois não podem
@@ -716,7 +742,7 @@ INT: 20 linha(s) em Interligacao4; 265 porta(s) em Portas4I; 216 borne(s) em Bor
      697 cabo(s) em Cabos4; 2388 veia(s) em Veias4
 projeto_listar_paineis   480 | fiacao_por_painel 490 | circuitos_por_painel 11
 cabos4_por_revisao       697 | veias4_por_revisao 2388 | materiais 210
-linha de base confere (238 = 107 + 119 + 10 + 2)
+linha de base confere (249 = 107 + 119 + 11 + 10 + 2)
 IDEMPOTENTE: mesmo conteudo (ignorando Data)
 ```
 
@@ -852,7 +878,9 @@ A/B do `FIA` estão atribuídas**.
 
 Separar "bug da projeção" de "dado da cópia do desenho" exige ler o XData **do
 próprio DWG**. O utilitário dumpa os handles pedidos (app `DISPOSITIVO`/`Dispositivo`/
-`MASCARA`) e os dicionários `CONTATOS → "MODELOS2"` e `MASCARAS → "MODELOS2"`:
+`MASCARA`) e os dicionários `CONTATOS → "MODELOS2"`, `MASCARAS → "MODELOS2"` e
+`REGUAS → "MODELOS2"` (régua → painel, que é o que explica por que uma régua fica fora
+das checagens):
 
 ```bash
 # roda dentro do AutoCAD 2020, carregando o utilitario antes do NETLOAD
@@ -864,6 +892,21 @@ A saída vai para `%POSITRON_XDATA%` ou, sem ela, `%TEMP%\positron-xdata.txt`. O
 handles são `*positron-dump-handles*` (padrão `4D642`/`4D672`); ajuste a lista antes do
 `load` para dumpar outros. **Armadilha medida:** AutoLISP **não tem `let`** — o load
 falha em silêncio e nada sai no arquivo; use `setq`.
+
+Com `POSITRON_XDATA_BORNES=1` no ambiente ele também lista **todos** os blocos de borne
+do ModelSpace, um por linha — é o dado bruto para conferir qualquer regra de borne
+(intervalos, réguas, LM) **fora** do plugin:
+
+```text
+BORNE;<handle>;<tipo>;<numero>;<complemento>;<ordem>;<indexRegua>;<layer>
+```
+
+```bash
+POSITRON_XDATA_BORNES=1 POSITRON_XDATA="$TEMP/positron-bornes.txt" \
+  powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 \
+    -Desenho "..\Elet\RCD\Funcional.dwg" -Dwg 63 -Comandos ELET \
+    -Fixture scripts/cad-dump-xdata.lsp
+```
 
 ### Comparação de **conteúdo** (não só de contagem) — `Portas4I`/`Bornes4I`
 
@@ -1234,11 +1277,11 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; nesta máquina (sem ZWCAD) compila
   contra o stub. `npm run plugin:build:autocad` resolve a `AutoCadDir` (detecta o
   **AutoCAD 2020** instalado) e gera a DLL contra a API **real**, sem o stub.
-- `npm run plugin:test` — 209 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 219 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke:acad` / `cad:e2e:acad` — smoke e fixture **dentro do AutoCAD
   2020** (`accoreconsole`), o host CAD desta máquina.
 - `npm run cad:projeto:acad -- -Idempotencia` — o ciclo completo no projeto real
-  pelo AutoCAD 2020: mesma projeção, mesma linha de base (238) e idempotência.
+  pelo AutoCAD 2020: mesma projeção, mesma linha de base (249) e idempotência.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge

@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using Positron.Contract;
 using Positron.Data.Bornes;
 using Positron.Data.Fiacao;
 using Positron.Data.Layout;
+using Positron.Data.Modelos;
 
 namespace Positron.Data
 {
@@ -76,6 +79,15 @@ namespace Positron.Data
         ConexaoOrfa,
         /// <summary>Tipo 3 apontando para um Handle que não existe como conexão na mesma página.</summary>
         SobreposicaoAusente,
+
+        /// <summary>Borne de régua com número <c>"?"</c> (indefinido) — o `bt8intervalos`.</summary>
+        BorneNumeroIndefinido,
+
+        /// <summary>Buraco na sequência numérica dos bornes de uma régua (o `bt8intervalos`).</summary>
+        IntervaloBorneInvalido,
+
+        /// <summary>Dois bornes seguidos da mesma régua com o mesmo número (o `bt8intervalos`).</summary>
+        BorneNumeroRepetido,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -675,6 +687,155 @@ namespace Positron.Data
             return problemas;
         }
 
+        /// <summary>
+        /// Intervalos de borne de uma régua — o botão <c>bt8intervalos</c> da tela
+        /// (<c>TreeViewBornes</c>, o método <c>nXnc5R08lF</c> do reverso).
+        ///
+        /// Para cada régua do dicionário **em uso** (o filtro <c>lPn</c> do
+        /// <c>buscaDadosDeFiacaoDWG</c>), junta os bornes do desenho daquela régua
+        /// mais os **bornes de reserva** ainda ausentes (`LeDicBornesReserva`, dedup
+        /// por `Numero` + `Ordem`), ordena por `Ordem` e percorre a sequência:
+        ///
+        /// - número <c>"?"</c> → <see cref="TipoProblema.BorneNumeroIndefinido"/>;
+        /// - dois números consecutivos **não** adjacentes (`n != seguinte - 1`) e
+        ///   **diferentes** → <see cref="TipoProblema.IntervaloBorneInvalido"/> ("N a M");
+        /// - dois números consecutivos **iguais** → <see cref="TipoProblema.BorneNumeroRepetido"/>.
+        ///
+        /// O número do borne **do desenho** é o do XData com o complemento colado
+        /// (`Numero += NumeroComplem`) e, se sobrar <c>"0"</c>, vira
+        /// <see cref="TerminalIndefinido"/> — as duas coisas que o original faz ao
+        /// montar `m_TodosBornes` (o `"0"` é como o desenho grava "sem número").
+        /// As reservas entram **cruas** do dicionário: o original não repete o
+        /// mapeamento nelas (ver <see cref="NumeroDoDesenho"/>).
+        ///
+        /// Só entram no teste de intervalo os números **numéricos** (como o
+        /// <c>Versioned.IsNumeric</c> do original) — bornes com número textual ("A1",
+        /// ou "11A" de um borne com complemento) ficam de fora. O texto do duplicado
+        /// no original é a mensagem `mMensagem[1, 1629]`, que não é recuperável do
+        /// reverso; aqui sai uma frase legível.
+        /// </summary>
+        public static List<Problema> VerificarIntervalosBornes(
+            ReguasModelo reguas,
+            IEnumerable<PontoBorne> bornes,
+            ICollection<int> paineisEmUso,
+            IReadOnlyDictionary<int, IReadOnlyList<BorneReserva>> reservasPorRegua)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (reguas == null)
+            {
+                return problemas;
+            }
+
+            // O original compara o painel como TEXTO (`cOWeaBRTRB.Contains(...ToString())`).
+            HashSet<string> emUso = null;
+            if (paineisEmUso != null)
+            {
+                emUso = new HashSet<string>();
+                foreach (int painel in paineisEmUso)
+                {
+                    emUso.Add(painel.ToString(CultureInfo.InvariantCulture));
+                }
+            }
+
+            List<PontoBorne> desenho = new List<PontoBorne>();
+            if (bornes != null)
+            {
+                foreach (PontoBorne borne in bornes)
+                {
+                    if (borne != null)
+                    {
+                        desenho.Add(borne);
+                    }
+                }
+            }
+
+            foreach (ReguaInfo regua in reguas.Ordenadas)
+            {
+                if (regua == null)
+                {
+                    continue;
+                }
+
+                if (emUso != null && !emUso.Contains(regua.Painel.ToString(CultureInfo.InvariantCulture)))
+                {
+                    continue;
+                }
+
+                List<BorneDaSequencia> sequencia = new List<BorneDaSequencia>();
+                foreach (PontoBorne borne in desenho)
+                {
+                    if (borne.IndiceRegua == regua.Indice)
+                    {
+                        sequencia.Add(new BorneDaSequencia { Numero = NumeroDoDesenho(borne), Ordem = borne.Ordem });
+                    }
+                }
+
+                IReadOnlyList<BorneReserva> reservas;
+                if (reservasPorRegua != null
+                    && reservasPorRegua.TryGetValue(regua.Indice, out reservas)
+                    && reservas != null)
+                {
+                    foreach (BorneReserva reserva in reservas)
+                    {
+                        if (reserva == null || JaEsta(sequencia, reserva))
+                        {
+                            continue;
+                        }
+
+                        sequencia.Add(new BorneDaSequencia { Numero = reserva.Numero, Ordem = reserva.Ordem });
+                    }
+                }
+
+                // Ordena por `Ordem` (estável, como a bolha do original).
+                sequencia = sequencia.OrderBy(item => item.Ordem).ToList();
+
+                string identificador = "painel " + regua.Painel + ", régua #" + regua.Indice;
+                string nome = regua.Nome ?? string.Empty;
+
+                for (int m = 0; m < sequencia.Count; m++)
+                {
+                    string numero = (sequencia[m].Numero ?? string.Empty).Trim();
+
+                    if (string.Equals(numero, TerminalIndefinido, StringComparison.OrdinalIgnoreCase))
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.BorneNumeroIndefinido, "Bornes",
+                            identificador,
+                            "borne com número indefinido (\"" + TerminalIndefinido + "\") na régua \"" + nome + "\""));
+                    }
+
+                    if (m + 1 >= sequencia.Count)
+                    {
+                        continue;
+                    }
+
+                    double atual;
+                    double seguinte;
+                    if (!Numerico(sequencia[m].Numero, out atual)
+                        || !Numerico(sequencia[m + 1].Numero, out seguinte)
+                        || atual == seguinte - 1.0)
+                    {
+                        continue;
+                    }
+
+                    string proximo = (sequencia[m + 1].Numero ?? string.Empty).Trim();
+                    if (!string.Equals(numero, proximo, StringComparison.OrdinalIgnoreCase))
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.IntervaloBorneInvalido, "Bornes",
+                            identificador,
+                            "intervalo de borne " + numero + " a " + proximo + " na régua \"" + nome + "\""));
+                    }
+                    else
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.BorneNumeroRepetido, "Bornes",
+                            identificador,
+                            "borne " + numero + " repetido na régua \"" + nome + "\""));
+                    }
+                }
+            }
+
+            return problemas;
+        }
+
         public static List<Problema> VerificarBornesSemRegua(
             IEnumerable<PontoBorne> bornes,
             ReguasModelo reguas)
@@ -822,6 +983,54 @@ namespace Positron.Data
             }
 
             return problemas;
+        }
+
+        /// <summary>Um item da sequência de bornes de uma régua (do desenho ou de reserva).</summary>
+        private sealed class BorneDaSequencia
+        {
+            public string Numero { get; set; }
+
+            public double Ordem { get; set; }
+        }
+
+        /// <summary>
+        /// O número do borne como o verifier original guarda em `m_TodosBornes`:
+        /// o <c>Terminal</c> (XData `Numero` + `NumeroComplem` colado) e, se der
+        /// exatamente <c>"0"</c>, o <c>CaracterTerminalIndefinido</c> (<c>"?"</c>).
+        ///
+        /// A ordem importa: o original cola o complemento **antes** de trocar o
+        /// <c>"0"</c>, então <c>"0"</c> + <c>"A"</c> continua <c>"0A"</c> (textual,
+        /// fora do teste de intervalo).
+        /// </summary>
+        private static string NumeroDoDesenho(PontoBorne borne)
+        {
+            string numero = borne.Terminal;
+            return string.Equals(numero, "0", StringComparison.Ordinal) ? TerminalIndefinido : numero;
+        }
+
+        private static bool JaEsta(List<BorneDaSequencia> sequencia, BorneReserva reserva)
+        {
+            foreach (BorneDaSequencia item in sequencia)
+            {
+                if (item.Ordem == reserva.Ordem
+                    && string.Equals(item.Numero, reserva.Numero, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool Numerico(string texto, out double valor)
+        {
+            valor = 0.0;
+            if (string.IsNullOrWhiteSpace(texto))
+            {
+                return false;
+            }
+
+            return double.TryParse(texto.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out valor);
         }
 
         private static string TerminalLimpo(string terminal)

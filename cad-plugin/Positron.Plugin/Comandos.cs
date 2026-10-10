@@ -680,6 +680,22 @@ namespace Positron.Plugin
             problemas.AddRange(VerificadorProjeto.VerificarPaineisSemCadastro(
                 paineisDoDesenho, store.LerIndicesDePaineis()));
 
+            // Intervalos de borne por régua — o `bt8intervalos` da tela (`TreeViewBornes`).
+            // As reservas de cada régua entram na sequência de números (o
+            // `LeDicBornesReserva`); só as réguas **em uso** são lidas, como no original.
+            Dictionary<int, IReadOnlyList<BorneReserva>> reservasPorRegua =
+                new Dictionary<int, IReadOnlyList<BorneReserva>>();
+            foreach (ReguaInfo regua in reguas.Ordenadas)
+            {
+                if (regua != null && paineisDoDesenho.Contains(regua.Painel))
+                {
+                    reservasPorRegua[regua.Indice] = BornesReservaDoDesenho.Ler(regua.Indice);
+                }
+            }
+
+            problemas.AddRange(VerificadorProjeto.VerificarIntervalosBornes(
+                reguas, bornesDoDesenho, paineisDoDesenho, reservasPorRegua));
+
             List<string> handlesDoDesenho = new List<string>();
             foreach (PontoBorne borne in bornesDoDesenho)
             {

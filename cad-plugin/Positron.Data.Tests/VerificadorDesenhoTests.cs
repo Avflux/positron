@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Positron.Data.Bornes;
 using Positron.Data.Fiacao;
+using Positron.Data.Modelos;
 using Xunit;
 
 namespace Positron.Data.Tests
@@ -236,6 +237,205 @@ namespace Positron.Data.Tests
             List<PontoBorne> bornes = new List<PontoBorne> { new PontoBorne { Handle = "H1", IndiceRegua = 5 } };
 
             Assert.Empty(VerificadorProjeto.VerificarBornesSemRegua(bornes, reguas));
+        }
+
+        [Fact]
+        public void Aponta_buraco_na_sequencia_de_bornes_da_regua()
+        {
+            // O `bt8intervalos` (nXnc5R08lF): a régua 5 tem os bornes 1, 2 e 4 — falta
+            // o 3, então a sequência 2 → 4 é um intervalo inválido.
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                Borne("H1", "1", 1),
+                Borne("H2", "2", 2),
+                Borne("H4", "4", 3),
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarIntervalosBornes(
+                reguas, bornes, new List<int> { 3 }, null);
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(AreaVerificacao.Desenho, problema.Area);
+            Assert.Equal(TipoProblema.IntervaloBorneInvalido, problema.Tipo);
+            Assert.Equal("painel 3, régua #5", problema.Identificador);
+            Assert.Contains("2 a 4", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Aponta_numero_de_borne_repetido()
+        {
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                Borne("H1", "1", 1),
+                Borne("H2", "2", 2),
+                Borne("H3", "2", 3),
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarIntervalosBornes(
+                reguas, bornes, new List<int> { 3 }, null);
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(TipoProblema.BorneNumeroRepetido, problema.Tipo);
+            Assert.Contains("borne 2 repetido", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Aponta_numero_de_borne_indefinido()
+        {
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                Borne("H1", "?", 1),
+                Borne("H2", "2", 2),
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarIntervalosBornes(
+                reguas, bornes, new List<int> { 3 }, null);
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(TipoProblema.BorneNumeroIndefinido, problema.Tipo);
+        }
+
+        [Fact]
+        public void Sequencia_continua_nao_aponta()
+        {
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                Borne("H1", "10", 1),
+                Borne("H2", "11", 2),
+                Borne("H3", "12", 3),
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarIntervalosBornes(
+                reguas, bornes, new List<int> { 3 }, null));
+        }
+
+        [Fact]
+        public void Numero_nao_numerico_e_ignorado()
+        {
+            // Só os números numéricos entram no teste de intervalo (o
+            // `Versioned.IsNumeric` do original); "A1"/"A2" passam batido.
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                Borne("H1", "A1", 1),
+                Borne("H2", "A2", 2),
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarIntervalosBornes(
+                reguas, bornes, new List<int> { 3 }, null));
+        }
+
+        [Fact]
+        public void Reserva_preenche_o_buraco_da_sequencia()
+        {
+            // O `LeDicBornesReserva` acrescenta as reservas da régua à sequência:
+            // com a reserva "2" no meio, 1 → 2 → 3 volta a ser contíguo.
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                Borne("H1", "1", 1),
+                Borne("H3", "3", 3),
+            };
+            Dictionary<int, IReadOnlyList<BorneReserva>> reservas =
+                new Dictionary<int, IReadOnlyList<BorneReserva>>
+                {
+                    { 5, new List<BorneReserva> { new BorneReserva { Numero = "2", Ordem = 2 } } },
+                };
+
+            Assert.Empty(VerificadorProjeto.VerificarIntervalosBornes(
+                reguas, bornes, new List<int> { 3 }, reservas));
+        }
+
+        [Fact]
+        public void Regua_de_painel_fora_de_uso_e_ignorada()
+        {
+            // O filtro `lPn` do `buscaDadosDeFiacaoDWG`: só as réguas de painel em uso
+            // entram na checagem.
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                Borne("H1", "1", 1),
+                Borne("H4", "4", 2),
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarIntervalosBornes(
+                reguas, bornes, new List<int> { 9 }, null));
+        }
+
+        [Fact]
+        public void Complemento_do_borne_entra_no_numero()
+        {
+            // O original cola o `NumeroComplem` no `Numero` antes de comparar (o
+            // borne 11 com complemento "A" vira "11A"). Como "11A" não é numérico,
+            // ele fica fora do teste de intervalo — o buraco 10 → 12 fica escondido.
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                Borne("H10", "10", 1),
+                Borne("H11", "11", 2, "A"),
+                Borne("H12", "12", 3),
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarIntervalosBornes(
+                reguas, bornes, new List<int> { 3 }, null));
+        }
+
+        [Fact]
+        public void Numero_zero_do_desenho_e_indefinido()
+        {
+            // O desenho grava "sem número" como "0" e o original troca por
+            // `CaracterTerminalIndefinido` ("?") ao montar a lista de bornes.
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                Borne("H1", "0", 1),
+                Borne("H2", "1", 2),
+            };
+
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarIntervalosBornes(
+                reguas, bornes, new List<int> { 3 }, null));
+            Assert.Equal(TipoProblema.BorneNumeroIndefinido, problema.Tipo);
+        }
+
+        [Fact]
+        public void Reserva_com_numero_zero_nao_vira_indefinido()
+        {
+            // O mapeamento "0" → "?" é feito **só** nos bornes do desenho; o
+            // `LeDicBornesReserva` acrescenta as reservas cruas do dicionário, então
+            // a reserva "0" continua numérica e entra no teste de intervalo como
+            // qualquer outro número (aqui, 1 → 0).
+            ReguasModelo reguas = ReguasModelo.Ler(RegistrosRegua());
+            List<PontoBorne> bornes = new List<PontoBorne> { Borne("H1", "1", 1) };
+            Dictionary<int, IReadOnlyList<BorneReserva>> reservas =
+                new Dictionary<int, IReadOnlyList<BorneReserva>>
+                {
+                    { 5, new List<BorneReserva> { new BorneReserva { Numero = "0", Ordem = 2 } } },
+                };
+
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarIntervalosBornes(
+                reguas, bornes, new List<int> { 3 }, reservas));
+            Assert.Equal(TipoProblema.IntervaloBorneInvalido, problema.Tipo);
+            Assert.Contains("1 a 0", problema.Detalhe);
+        }
+
+        /// <summary>
+        /// Um borne do desenho como o <see cref="PontoBorne.DeBorne"/> monta: o
+        /// <c>Terminal</c> já é o número com o complemento colado.
+        /// </summary>
+        private static PontoBorne Borne(string handle, string numero, double ordem, string complemento = null)
+        {
+            return new PontoBorne
+            {
+                Handle = handle,
+                IndiceRegua = 5,
+                Numero = numero,
+                Terminal = string.IsNullOrEmpty(complemento) ? numero : numero + complemento,
+                Ordem = ordem,
+            };
         }
 
         private static List<TypedXData> RegistrosRegua()
