@@ -672,7 +672,10 @@ botão; 2 são parciais), incluindo as que dependem da análise geométrica do d
 órfão, a régua, o LM, os intervalos de borne, a régua da máscara, as portas discrepantes,
 o principal × auxiliar, os bornes editados (`bt9`, rodada 55) e os blocos duplicados
 (`bt12`, rodada 56). O mapeamento botão a botão está no `PLANO.md` §7.1. O verificador
-da **interligação** (outra tela) ainda não tem o cabo indefinido (`IndefineCabosNaoExistentes`).
+da **interligação** (outra tela) teve a árvore portada na rodada 57 (jumper indefinido,
+jumper duplicado e trecho indefinido, o `carregaTree`); resta só o **cabo indefinido**
+(`IndefineCabosNaoExistentes`), que é uma **ação** — regrava o XData do desenho — e não uma
+checagem read-only.
 
 **Rodada 51 — intervalos de borne (`bt8intervalos`, o `nXnc5R08lF`).** É a checagem que
 monta a árvore `TreeViewBornes`: por régua, junta os bornes do desenho **e as reservas**
@@ -824,6 +827,54 @@ segue **249**. O insumo, porém, é não-trivial e foi conferido **fora do plugi
 cru (`POSITRON_XDATA_BORNES=1`, que passou a dumpar também a linha `ATT;T1=`): os **199**
 bornes do ModelSpace têm o atributo `T1` preenchido (199/199) e **nenhum** diverge do número
 do XData — logo o zero é a cópia estar limpa, não um no-op.
+
+**Rodada 57 — verificador da interligação (`carregaTree`).** A outra tela de verificação
+(`frmVerificadorProjetoInterligacao`) monta **duas** árvores sobre o ModelSpace, e as duas
+saem do mesmo `carregaTree` (`clsVerificadorProjetoInterligacao:352`), alimentado por
+`buscaDadosDoDWG` (linha 44) e pelos convidados da tela de fiação (`lPnApagados`, o
+`LFiacaoTTDuplicada`): **"External Jumper"** (mensagem 703) e **"Interconnection"** (508).
+
+O que cada nó aponta:
+
+- **Jumper indefinido** — jumper é a conexão `CONEXAO` com `Jumper == "JUMPER"`. Entra quando
+  **não tem cabo** (`Cor`) ou **não tem seção** (`Secao`), ou quando o painel está apagado; o
+  original aponta **um por potencial** (`iPotencial_Veia`), mesmo com vários jumpers no mesmo
+  potencial.
+- **Jumper duplicado** — o nó "Duplicates" (1567) sob "External Jumper" não vem do
+  `carregaTree`: vem do `buscaDadosDeFiacaoDWG` no modo `"J"`
+  (`ClsVerificadorProjetoFiacao:797`), que joga no `LFiacaoTTDuplicada` o jumper `Tipo 4`
+  **com as duas pontas ligadas** (`Disp1 & Disp2`) que repete um potencial já visto. O
+  primeiro é o legítimo; do segundo em diante, o handle entra na lista.
+- **Trecho de interligação indefinido** — trecho sem `Tag_Cabo` (o texto vira "Undefined",
+  740) ou em painel apagado, **um por handle**.
+
+Dois pontos de fidelidade que o recoder reproduz:
+
+1. `lPnApagados` **não é do desenho**: a tela de interligação o recebe da tela de fiação, e é
+   o painel referenciado que o cadastro do projeto não conhece (o
+   `Dicionario.BuscaNomeDoPainel` devolveria `"???"`) — o mesmo conjunto de
+   `PainelSemCadastro`, sem o painel `0`.
+2. O verificador da interligação **não filtra a veia indefinida**: o `buscaDadosDoDWG`
+   aceita todo XData válido, inclusive `Num_Veia == -1000` — só o `frmCompilarInterligacao`
+   (linha 1353) descarta esses trechos. Por isso `InterligacaoDoDesenho.Ler` ganhou
+   `incluirVeiaIndefinida: true` (a projeção continua no padrão `false`).
+
+Entram os campos `Disp1`/`Disp2` no `ConexaoFiacao` (o `array[14]`/`[15]` do XData `CONEXAO`,
+que só essa checagem usa) e os três tipos novos (`JumperIndefinido`, `JumperDuplicado`,
+`InterligacaoIndefinida`), todos de **área Desenho**, com as regras puras
+`VerificarJumpersIndefinidos`, `VerificarJumpersDuplicados` e
+`VerificarTrechosInterligacaoIndefinidos`.
+
+**Medido no desenho real:** o `VERIF` loga `0 jumper(s) e 20 trecho(s) de interligação
+lido(s) do desenho` e as três regras saem **vazias** — a linha de base segue **249** e o
+ciclo completo no AutoCAD 2020 (`cad:projeto:acad -- -Idempotencia`) reproduz tudo
+(`IDEMPOTENTE`). O zero tem duas causas, ambas conferidas: o `Funcional.dwg` **não tem
+jumper** (a rodada 35 já registrou isso — "sem efeito neste desenho, que não tem jumper"),
+e os 20 trechos de interligação têm `Tag_Cabo` preenchido e painel dentro do cadastro
+(consulta direta ao banco: `Interligacao4` = 20 linhas, **0** sem `Tag_Cabo`, **0** com
+painel fora de `Paineis`). Ou seja: no lado da interligação o zero é a cópia estar limpa; no
+lado do jumper, o insumo não existe nesta cópia — o que sobra de garantia são os **7 testes**
+unitários das três regras.
 
 **Rodada 56 — blocos duplicados (`bt12AMao`, "Copy made by hand").** É a última checagem da
 tela de fiação. O botão chama `mostraBT`, mas quem monta a grade `dgAMao` é a carga do
@@ -1448,7 +1499,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run plugin:build` — 0 erros/0 avisos; nesta máquina (sem ZWCAD) compila
   contra o stub. `npm run plugin:build:autocad` resolve a `AutoCadDir` (detecta o
   **AutoCAD 2020** instalado) e gera a DLL contra a API **real**, sem o stub.
-- `npm run plugin:test` — 219 testes xunit (net472) do plugin CAD.
+- `npm run plugin:test` — 273 testes xunit (net472) do plugin CAD.
 - `npm run cad:smoke:acad` / `cad:e2e:acad` — smoke e fixture **dentro do AutoCAD
   2020** (`accoreconsole`), o host CAD desta máquina.
 - `npm run cad:projeto:acad -- -Idempotencia` — o ciclo completo no projeto real
