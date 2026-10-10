@@ -731,6 +731,18 @@ powershell -ExecutionPolicy Bypass -File scripts/cad-ab-tabelas.ps1 `
   "$env:TEMP\positron-projeto.db" "$env:TEMP\positron-ab\mdb-..." --nosso-dwg 63 --nosso-revisao R0
 ```
 
+Nesta máquina (sem ZWCAD) o lado do recoder sai do **AutoCAD 2020**:
+
+```bash
+npm run cad:smoke:acad -- -Dwg 63 -Revisao R0 -Comandos ELET,FIA `
+  -Desenho "..\Elet\RCD\Funcional.dwg" -Banco "$TEMP/positron-ab.db"
+```
+
+Rodado em 2026-10-09 (rodada 48), reproduz os vereditos da rodada 44 linha a linha:
+**4 idênticas** (`Portas4F` 265, `Contatos4F` 70, `Circuitos4F` 11, `Aplicacao4F` 15) e
+as 3 restantes com cada coluna divergente já explicada por **dado do desenho** (a
+tabela de veredito por coluna está logo abaixo).
+
 **Normalizações obrigatórias** (cada uma já gerou falso positivo): `None`/vazio → `''`;
 `True`/`False` do Access → o **mesmo formato numérico** (`0.0000`) do SQLite, não `0`;
 números com 4 casas (`Ordem 1.0` × `1`); e o texto do Access desfeito da dupla
