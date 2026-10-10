@@ -98,6 +98,11 @@ namespace Positron.Data.Fiacao
                         Painel = Curto(valores[8].Valor),
                         IndexModelo = Inteiro(valores[12].Valor),
                         Complementar = Booleano(valores[13].Valor),
+                        // LM1/LM2 (`array[21]`/`array[23]`) — os mesmos índices da
+                        // máscara. Sem o campo no XData ficam 0, que é justamente o
+                        // valor que o `bt3Principal` procura.
+                        Lm1 = valores.Count > 21 ? Inteiro(valores[21].Valor) : 0,
+                        Lm2 = valores.Count > 23 ? Inteiro(valores[23].Valor) : 0,
                         Topografico = topografico,
                         Layout = layout,
                     };
@@ -105,7 +110,8 @@ namespace Positron.Data.Fiacao
 
                 case TipoPorta:
                 case TipoAuxiliar:
-                    // Nome1=2, Nome2=3, Alternativo=11, handle da máscara=4, indexModelo=5, indiceDaPorta=6.
+                    // Nome1=2, Nome2=3, Alternativo=11, handle referenciado=4,
+                    // indexModelo=5, indiceDaPorta/indiceContato=6.
                     if (valores.Count < 12)
                     {
                         return false;
@@ -122,6 +128,16 @@ namespace Positron.Data.Fiacao
                         Alternativo = Texto(valores[11].Valor),
                         PainelPendente = true,
                     };
+
+                    if (tipo == TipoAuxiliar)
+                    {
+                        // No `A` o `array[4]` é o **bob** (o dispositivo cujo contato o
+                        // bloco representa) — é dele que sai o painel — e o `array[7]`
+                        // o tipo do contato (`1`/`2`/`3`).
+                        dispositivo.HandleBob = dispositivo.HandleMascara;
+                        dispositivo.TipoDoContato = valores.Count > 7 ? Curto(valores[7].Valor) : (short)0;
+                    }
+
                     return true;
 
                 default:

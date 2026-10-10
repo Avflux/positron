@@ -45,6 +45,31 @@ namespace Positron.Data.Fiacao
         /// <summary>Índice da porta do modelo (o <c>array[6]</c> do XData de <c>E</c>/<c>A</c>); 0 no resto.</summary>
         public int IndiceDaPorta { get; set; }
 
+        /// <summary>
+        /// LM 1 do dispositivo (o <c>array[21]</c> do XData de <c>P</c>/<c>M</c>). É o
+        /// primeiro dos dois "limites de montagem" que o <c>bt3Principal</c> procura
+        /// zerados.
+        /// </summary>
+        public int Lm1 { get; set; }
+
+        /// <summary>LM 2 do dispositivo (o <c>array[23]</c> do XData de <c>P</c>/<c>M</c>).</summary>
+        public int Lm2 { get; set; }
+
+        /// <summary>
+        /// Handle do **bob** do auxiliar — o <c>array[4]</c> do XData de <c>A</c>: o
+        /// dispositivo (<c>P</c>) cujo contato este bloco representa. No <c>E</c> o mesmo
+        /// campo é o handle da **máscara** (<see cref="HandleMascara"/>), e nos dois é
+        /// dele que o painel sai (<c>BuscaPainelDispositivo</c>).
+        /// </summary>
+        public string HandleBob { get; set; }
+
+        /// <summary>
+        /// Tipo do contato do auxiliar (o <c>array[7]</c> do XData de <c>A</c>):
+        /// <c>1</c> = <c>NA</c>, <c>2</c> = <c>NF</c>, <c>3</c> = <c>RV</c>. É o
+        /// <c>TipoDoContato</c> do <c>bt4Auxiliar</c>.
+        /// </summary>
+        public short TipoDoContato { get; set; }
+
         public bool Complementar { get; set; }
 
         /// <summary>

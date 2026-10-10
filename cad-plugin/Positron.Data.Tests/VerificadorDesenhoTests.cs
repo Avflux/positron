@@ -631,6 +631,260 @@ namespace Positron.Data.Tests
             Assert.Single(VerificadorProjeto.VerificarPortasDiscrepantes(modelo, blocos));
         }
 
+        [Fact]
+        public void Principal_sem_lm_e_apontado()
+        {
+            List<Problema> problemas = VerificadorProjeto.VerificarDispositivosPrincipais(
+                new[] { Principal("H1", "K1", 0, 0, "T1=1", "T2=2") });
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(AreaVerificacao.Desenho, problema.Area);
+            Assert.Equal(TipoProblema.PrincipalIncompleto, problema.Tipo);
+            Assert.Equal("Dispositivos", problema.Tabela);
+            Assert.Equal("H1", problema.Identificador);
+            Assert.Contains("sem LM", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Principal_com_terminal_indefinido_e_apontado()
+        {
+            // O `"0"` do atributo vira `CaracterTerminalIndefinido` (`"?"`) no texto.
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarDispositivosPrincipais(
+                new[] { Principal("H1", "K1", 3, 7, "T1=1", "T2=0", "T3=3") }));
+
+            Assert.Contains("terminal indefinido", problema.Detalhe);
+            Assert.DoesNotContain("sem LM", problema.Detalhe);
+            Assert.Contains("\"1, ?, 3\"", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Principal_com_LM_zero_so_no_primeiro_nao_e_apontado()
+        {
+            // A conjunção do original: a lista de handles exige `LM1 == 0 && LM2 == 0`.
+            Assert.Empty(VerificadorProjeto.VerificarDispositivosPrincipais(
+                new[] { Principal("H1", "K1", 0, 5, "T1=1") }));
+            Assert.Empty(VerificadorProjeto.VerificarDispositivosPrincipais(
+                new[] { Principal("H1", "K1", 5, 0, "T1=1") }));
+        }
+
+        [Fact]
+        public void Principal_completo_nao_aponta()
+        {
+            Assert.Empty(VerificadorProjeto.VerificarDispositivosPrincipais(
+                new[] { Principal("H1", "K1", 3, 7, "T1=1", "T2=2") }));
+        }
+
+        [Fact]
+        public void Terminais_do_principal_saem_ordenados_por_tag_e_sem_os_B()
+        {
+            // Ordinal pela tag (`T1` < `T2`), o `B1` fica de fora e o vazio vira `"?"`.
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarDispositivosPrincipais(
+                new[] { Principal("H1", "K1", 0, 0, "T2=B", "T1=A", "B1=X", "T3=") }));
+
+            Assert.Contains("\"A, B, ?\"", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Principal_repetido_aponta_uma_vez()
+        {
+            Assert.Single(VerificadorProjeto.VerificarDispositivosPrincipais(new[]
+            {
+                Principal("H1", "K1", 0, 0, "T1=1"),
+                Principal("H1", "K1", 0, 0, "T1=2"),
+            }));
+        }
+
+        [Fact]
+        public void Auxiliar_NA_com_terminal_divergente_aponta()
+        {
+            List<Problema> problemas = VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                new[] { Auxiliar("H2", "H1", "NA", 1, "T1=9", "T2=2") },
+                new[] { Principal("H1", "K1", 3, 7, "T1=1") },
+                Contatos(1, Contato(1, "1", "2", "")));
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(AreaVerificacao.Desenho, problema.Area);
+            Assert.Equal(TipoProblema.AuxiliarDivergente, problema.Tipo);
+            Assert.Equal("Auxiliares", problema.Tabela);
+            Assert.Equal("H2", problema.Identificador);
+            Assert.Contains("T1 \"9\" ≠ modelo \"1\"", problema.Detalhe);
+            Assert.DoesNotContain("T2", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Auxiliar_com_terminais_iguais_ao_contato_nao_aponta()
+        {
+            // Terminais diferentes do modelo o põem na lista do original, mas o ramo
+            // `NA`/`NA` compara o `T3` do bloco com **vazio** — e ele está vazio.
+            Assert.Empty(VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                new[] { Auxiliar("H2", "H1", "NA", 1, "T1=1", "T2=2") },
+                new[] { Principal("H1", "K1", 3, 7, "T1=1") },
+                Contatos(1, Contato(1, "1", "2", "3"))));
+        }
+
+        [Fact]
+        public void Auxiliar_RV_com_bloco_RV_compara_os_tres_terminais()
+        {
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                new[] { Auxiliar("H2", "H1", "RV", 3, "T1=1", "T2=2", "T3=3") },
+                new[] { Principal("H1", "K1", 3, 7, "T1=1") },
+                Contatos(1, Contato(1, "1", "2", "4"))));
+
+            Assert.Contains("T3 \"3\" ≠ modelo \"4\"", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Auxiliar_RV_com_bloco_NF_compara_so_T1_e_T2()
+        {
+            // `RV` do contato contra `NF` do bloco: o `T3` divergente não é olhado.
+            Assert.Empty(VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                new[] { Auxiliar("H2", "H1", "NF", 3, "T1=1", "T2=2", "T3=9") },
+                new[] { Principal("H1", "K1", 3, 7, "T1=1") },
+                Contatos(1, Contato(1, "1", "2", "7"))));
+        }
+
+        [Fact]
+        public void Auxiliar_RV_com_bloco_NA_compara_T2_com_o_T3_do_modelo()
+        {
+            // O ramo `NA` do bloco: `T1` contra o primeiro e `T2` contra o **terceiro**
+            // terminal do modelo (o `text4 × text8` do original).
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                new[] { Auxiliar("H2", "H1", "NA", 3, "T1=1", "T2=2") },
+                new[] { Principal("H1", "K1", 3, 7, "T1=1") },
+                Contatos(1, Contato(1, "1", "2", "9"))));
+
+            Assert.Contains("T2 \"2\" ≠ modelo \"9\"", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Auxiliar_tipo_de_bloco_desconhecido_nao_aponta()
+        {
+            Assert.Empty(VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                new[] { Auxiliar("H2", "H1", "XX", 3, "T1=1", "T2=9") },
+                new[] { Principal("H1", "K1", 3, 7, "T1=1") },
+                Contatos(1, Contato(1, "1", "2", "3"))));
+        }
+
+        [Fact]
+        public void Auxiliar_NF_com_bloco_NA_nao_aponta()
+        {
+            Assert.Empty(VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                new[] { Auxiliar("H2", "H1", "NA", 2, "T1=1", "T2=9") },
+                new[] { Principal("H1", "K1", 3, 7, "T1=1") },
+                Contatos(1, Contato(1, "1", "2", "3"))));
+        }
+
+        [Fact]
+        public void Auxiliar_sem_principal_conhecido_nao_aponta()
+        {
+            Assert.Empty(VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                new[] { Auxiliar("H2", "H9", "NA", 1, "T1=1", "T2=9") },
+                new[] { Principal("H1", "K1", 3, 7, "T1=1") },
+                Contatos(1, Contato(1, "1", "2", "3"))));
+        }
+
+        [Fact]
+        public void Auxiliar_ignora_maiusculas_no_tipo()
+        {
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                new[] { Auxiliar("H2", "H1", "na", 3, "T1=1", "T2=9") },
+                new[] { Principal("H1", "K1", 3, 7, "T1=1") },
+                Contatos(1, Contato(1, "1", "2", "3"))));
+
+            Assert.Contains("T2", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Auxiliar_NA_reclama_do_T3_do_bloco_que_deveria_estar_vazio()
+        {
+            // No ramo `NA`/`NA` o `T3` do bloco é comparado com **vazio**.
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                new[] { Auxiliar("H2", "H1", "NA", 1, "T1=1", "T2=2", "T3=3") },
+                new[] { Principal("H1", "K1", 3, 7, "T1=1") },
+                Contatos(1, Contato(1, "1", "2", ""))));
+
+            Assert.Contains("T3 \"3\" ≠ modelo \"\"", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Auxiliar_sem_contato_no_dicionario_compara_com_vazio()
+        {
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                new[] { Auxiliar("H2", "H1", "NA", 1, "T1=1") },
+                new[] { Principal("H1", "K1", 3, 7, "T1=1") },
+                Contatos(1, Contato(7, "1", "2", "3"))));
+
+            Assert.Contains("≠ modelo \"\"", problema.Detalhe);
+        }
+
+        /// <summary>Um dispositivo `P` do desenho, com os terminais em <c>T#=valor</c>.</summary>
+        private static DispositivoFiacao Principal(string handle, string nome, int lm1, int lm2, params string[] terminais)
+        {
+            DispositivoFiacao dispositivo = new DispositivoFiacao
+            {
+                Tipo = "P",
+                Handle = handle,
+                Nome1 = nome,
+                Painel = 3,
+                Lm1 = lm1,
+                Lm2 = lm2,
+            };
+
+            AcrescentarTerminais(dispositivo, terminais);
+            return dispositivo;
+        }
+
+        /// <summary>
+        /// Um bloco auxiliar `A` do desenho: o <c>bob</c> (dispositivo cujo contato ele
+        /// representa), o tipo do contato do XData e o nome do bloco — de cujo 5º
+        /// caractere sai o <c>TipoBlocoUsado</c> (<c>Mid(nome, 5, 2)</c>).
+        /// </summary>
+        private static DispositivoFiacao Auxiliar(
+            string handle, string bob, string tipoDoBloco, short tipoDoContato, params string[] terminais)
+        {
+            DispositivoFiacao dispositivo = new DispositivoFiacao
+            {
+                Tipo = "A",
+                Handle = handle,
+                HandleBob = bob,
+                Nome1 = "A1",
+                Painel = 3,
+                IndexModelo = 1,
+                IndiceDaPorta = 1,
+                NomeBloco = "ELET" + tipoDoBloco + "0",
+                TipoDoContato = tipoDoContato,
+            };
+
+            AcrescentarTerminais(dispositivo, terminais);
+            return dispositivo;
+        }
+
+        private static void AcrescentarTerminais(DispositivoFiacao dispositivo, string[] terminais)
+        {
+            foreach (string item in terminais)
+            {
+                int separador = item.IndexOf('=');
+                dispositivo.Terminais.Add(new TerminalDispositivo
+                {
+                    Atributo = item.Substring(0, separador),
+                    Texto = item.Substring(separador + 1),
+                });
+            }
+        }
+
+        private static Dictionary<int, IReadOnlyList<ContatoAuxiliar>> Contatos(int indiceModelo, params ContatoAuxiliar[] contatos)
+        {
+            return new Dictionary<int, IReadOnlyList<ContatoAuxiliar>>
+            {
+                { indiceModelo, new List<ContatoAuxiliar>(contatos) },
+            };
+        }
+
+        private static ContatoAuxiliar Contato(int indice, string t1, string t2, string t3)
+        {
+            return new ContatoAuxiliar { Indice = indice, T1 = t1, T2 = t2, T3 = t3 };
+        }
+
         private static ModeloPorta PortaDoModelo(int modelo, int porta, string terminais, string bornes = "", string regua = "")
         {
             return new ModeloPorta

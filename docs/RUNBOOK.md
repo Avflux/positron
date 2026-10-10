@@ -663,17 +663,16 @@ Como no original, as conexões com `Jumper == "JUMPER"` são **descartadas** ant
 montar o conjunto (`ClsVerificadorProjetoFiacao:791`) — são do `JMP`, não da fiação; o
 filtro está no código e tem teste (sem efeito neste desenho, que não tem jumper).
 
-O verificador do produto é bem maior que as regras de tabela: a tela tem **14
-checagens** (`bt1Fiacao` … `bt14PortasDiscrepantes`, rótulos em
+O verificador do produto é bem maior que as regras de tabela: a tela tem **14 checagens** (`bt1Fiacao` … `bt14PortasDiscrepantes`, rótulos em
 `DeclaracoesGeral.mMensagem[1, id]`) e o motor fica em
 `ClsVerificadorProjetoFiacao.cs` (2.173 linhas), com uma análise própria do desenho
 (`buscaDadosDeFiacaoDWG`, linha 430) que alimenta `carregaOrfao` (1311), `carregaTree`
-(1159) e companhia. O recoder tem **15 regras** (`VerificadorProjeto`); **8** casam 1:1
-com botões do original (fiação, órfão, réguas, bornes sem LM, painel fora do cadastro,
-intervalos de borne, régua da máscara e portas discrepantes), e **2** são parciais
-(terminais e portas). O que ainda **não** está portado: principal × auxiliar
-(`bt3`/`bt4`), discrepantes (`bt9`) e itens feitos à mão (`bt12`) — todos dependem da
-análise geométrica do desenho, cujo insumo o recoder já monta para o órfão/régua/LM.
+(1159) e companhia. O recoder tem **17 regras** (`VerificadorProjeto`); **10** casam
+1:1 com botões do original (fiação, órfão, réguas, bornes sem LM, painel fora do
+cadastro, intervalos de borne, régua da máscara, portas discrepantes e principal ×
+auxiliar), e **2** são parciais (terminais e portas). O que ainda **não** está portado:
+discrepantes (`bt9`) e itens feitos à mão (`bt12`) — todos dependem da análise
+geométrica do desenho, cujo insumo o recoder já monta para o órfão/régua/LM.
 O mapeamento botão a botão está no `PLANO.md` §7.1. O verificador da **interligação**
 (outra tela) ainda não tem o cabo indefinido (`IndefineCabosNaoExistentes`).
 
@@ -740,6 +739,63 @@ dump cru dos `557` INSERTs — e a regra sai **vazia**: os 45 blocos casam com o
 não têm atributos `B*`/`R*` (só `T*`, que bate com o modelo). A reconstrução em Python do
 dump cru, **fora do plugin**, também prevê **0** discrepâncias; a linha de base segue
 **249** e o ciclo completo no AutoCAD 2020 (`cad:projeto:acad`) reproduz tudo.
+
+**Rodada 54 — principal × auxiliar (`bt3Principal`, `bt4Auxiliar`).** Os dois botões
+reusam a grade da tela: `bt3Principal` só chama `mostraBT(2)`, `bt4Auxiliar` chama
+`mostraBT(3)` e `AtualizaAuxiliar()` — quem monta as duas listas é a **carga do
+formulário**, em `MbycXLEWI4()` (a `dgPrincipal`, sobre `zvRejlppGf`, os dispositivos
+`P`) e `XSScUGxu4K()` (a `dgAuxiliar`, sobre `A94eLhaDqZ`, os blocos `A`).
+
+O `bt3` junta os atributos `T*` do bloco num texto só (o `LeOsTerminais`: ordenados
+pela tag, unidos por `", "` e com `"0"`/vazio virando o `CaracterTerminalIndefinido`
+`"?"`) e aponta o dispositivo quando esse texto tem `"?"` **ou** quando
+`LM1 == 0 && LM2 == 0`. **A conjunção do LM é do original e foi reproduzida**: a
+montagem da lista exige `iLM1 == 0 && iLM2 == 0`, e só depois a linha pede `iLM1 == 0`
+— então um dispositivo com `LM1 == 0` e `LM2 != 0` **não** é apontado. Isso parece
+acadêmico até olhar o desenho: **os 73 dispositivos `P` desta cópia têm `LM2 = 0`**
+(o `LM1` está preenchido em todos). Ou seja, um teste disjuntivo acusaria os 73/73; a
+conjunção é o que faz a regra calar.
+
+O `bt4` é o mais intrincado dos portados até aqui, porque a comparação dos terminais
+depende de **dois tipos**:
+
+- o tipo do **contato do modelo** — o `TipoDoContato` do XData do `A` (`array[7]`:
+  `1` = `NA`, `2` = `NF`, `3` = `RV`);
+- o tipo do **bloco usado** — o `TipoBlocoUsado = Mid(Nome, 5, 2)`, que neste desenho
+  sai `NA`/`NF`/`RV` dos nomes `V_A_NA1_ST`, `V_A_NF13_ST`, `V_A_RV1I5_MOD_ST`.
+
+E é a matriz dos dois que decide **quais** terminais contam: `RV`×`RV` compara os três
+(`T1`/`T2`/`T3`), `RV`×`NF` compara dois, `RV`×`NA` compara o `T1` e — a assimetria que
+parece bug e não é — o `T2` do bloco contra o **`T3`** do modelo (é o contato `RV`
+desenhado como bloco `NA`: só dois terminais são desenhados, e o terceiro do modelo é
+pulado), e `NA`×`NA` / `NF`×`NF` comparam `T1`/`T2` e exigem o `T3` do bloco **vazio**.
+Qualquer outra combinação não é apontada. Os terminais do modelo saem do dicionário
+`CONTATOS` (o `LeOsTerminaisdeUmIndiceDeContatosAuxiliar`: `T1` sempre, `T2`/`T3` só
+quando não vazios).
+
+Entraram quatro campos no `DispositivoFiacao` — `Lm1`/`Lm2` (`array[21]`/`array[23]` do
+`P`) e `HandleBob`/`TipoDoContato` (`array[4]`/`array[7]` do `A`) — e **nenhum leitor
+novo**: as duas regras consomem o mesmo `DispositivosDeFiacaoDoDesenho` que a fiação
+já usa, com os terminais de cada bloco. As regras são puras (`VerificarDispositivosPrincipais`,
+`VerificarAuxiliaresDivergentes`) e recebem os contatos por modelo como dicionário, no
+mesmo estilo da régua da máscara.
+
+**Medido no desenho real:** o `VERIF` loga `73 dispositivo(s) principal(is) (P) e 63
+auxiliar(es) (A) lido(s) do desenho` e as duas regras saem **vazias** — a linha de base
+segue **249** e o `cad:projeto:acad` reproduz o ciclo. O que dá confiança não é o zero,
+mas o dado por baixo dele, reconstruído **fora do plugin** a partir do dump cru novo
+(`POSITRON_XDATA_DISPOSITIVOS=1`):
+
+- os 73 `P` não têm nenhum `LM1 = 0` e nenhum `"?"` nos terminais → `bt3` = **0**;
+- no lado `A`, **51** dos 63 blocos têm terminais **diferentes** do contato do modelo
+  (27 bobs, todos dispositivos `P` conhecidos) e mesmo assim a contagem é **0**, porque
+  a matriz de tipos os filtra — e ela está toda exercitada no desenho (`37` `NA`×`RV`,
+  `14` `NF`×`RV`, `6` `RV`×`RV`, `6` `NA`×`NA`).
+
+Exemplo do que a matriz esconde (handle `7367`, bloco `V_A_NA1_ST`): o bloco traz
+`T1 = 21`, `T2 = 24` e o modelo 53/contato 2 tem `21, 22, 24` — o `T2` do bloco casa
+com o **terceiro** terminal do modelo, que é exatamente o caso `RV`×`NA` previsto na
+tela (`21` contra `21`, `24` contra `24`).
 
 O conteúdo é puro (`RelatorioCompilacao`: `Texto()`/`Salvar()`, testado) e o `VERIF`
 passou a compartilhar a mesma montagem (`VerificarRevisao`), então os dois não podem
@@ -933,6 +989,19 @@ A saída vai para `%POSITRON_XDATA%` ou, sem ela, `%TEMP%\positron-xdata.txt`. O
 handles são `*positron-dump-handles*` (padrão `4D642`/`4D672`); ajuste a lista antes do
 `load` para dumpar outros. **Armadilha medida:** AutoLISP **não tem `let`** — o load
 falha em silêncio e nada sai no arquivo; use `setq`.
+
+Com `POSITRON_XDATA_DISPOSITIVOS=1` no ambiente ele lista **todos** os dispositivos `P`
+e os auxiliares `A` do ModelSpace, mais os atributos de cada bloco e os contatos de
+**todos** os modelos do dicionário `CONTATOS` — é o dado bruto das regras de principal
+× auxiliar (`bt3`/`bt4`):
+
+```text
+DISP;<handle>;tipo=<P|A>;bloco=<nome>;mid52=<2 chars>;nome=<nome>;painel=<n>;lm1=<n>;lm2=<n>;bob=<handle>;modelo=<n>;contato=<n>;tipoContato=<1|2|3>
+  ATT;<tag>=<texto>
+```
+
+O `mid52` é o `Mid(Nome, 5, 2)` que o `bt4Auxiliar` compara com o tipo do contato, e os
+`LM` vêm de `vals[20]`/`vals[22]` (o `array[21]`/`array[23]` do leitor).
 
 Com `POSITRON_XDATA_BORNES=1` no ambiente ele também lista **todos** os blocos de borne
 do ModelSpace, um por linha — é o dado bruto para conferir qualquer regra de borne

@@ -705,6 +705,39 @@ namespace Positron.Plugin
             Plugin.Escrever("VERIF: " + portasDeBloco.Count + " bloco(s) de porta (E) lido(s) do desenho.");
             problemas.AddRange(VerificadorProjeto.VerificarPortasDiscrepantes(portasDoModelo, portasDeBloco));
 
+            // Dispositivos principais incompletos (`bt3Principal`) e auxiliares
+            // divergentes (`bt4Auxiliar`): cruzam os blocos `P`/`A` do desenho com o
+            // dicionário de contatos (o `CONTATOS`). O mesmo leitor da fiação já
+            // traz os dois tipos, com os terminais do bloco.
+            List<DispositivoFiacao> dispositivosPrincipais = new List<DispositivoFiacao>();
+            List<DispositivoFiacao> dispositivosAuxiliares = new List<DispositivoFiacao>();
+            foreach (DispositivoFiacao dispositivo in DispositivosDeFiacaoDoDesenho.Ler())
+            {
+                if (string.Equals(dispositivo.Tipo, DispositivoFiacaoXData.TipoDispositivo, StringComparison.Ordinal))
+                {
+                    dispositivosPrincipais.Add(dispositivo);
+                }
+                else if (string.Equals(dispositivo.Tipo, DispositivoFiacaoXData.TipoAuxiliar, StringComparison.Ordinal))
+                {
+                    dispositivosAuxiliares.Add(dispositivo);
+                }
+            }
+
+            Plugin.Escrever("VERIF: " + dispositivosPrincipais.Count + " dispositivo(s) principal(is) (P) e "
+                + dispositivosAuxiliares.Count + " auxiliar(es) (A) lido(s) do desenho.");
+
+            problemas.AddRange(VerificadorProjeto.VerificarDispositivosPrincipais(dispositivosPrincipais));
+
+            Dictionary<int, IReadOnlyList<ContatoAuxiliar>> contatosPorModelo =
+                new Dictionary<int, IReadOnlyList<ContatoAuxiliar>>();
+            foreach (ModeloContato modelo in ContatosDoDesenho.LerModelos())
+            {
+                contatosPorModelo[modelo.Indice] = ContatosDoDesenho.LerAuxiliares(modelo.Indice);
+            }
+
+            problemas.AddRange(VerificadorProjeto.VerificarAuxiliaresDivergentes(
+                dispositivosAuxiliares, dispositivosPrincipais, contatosPorModelo));
+
             // Intervalos de borne por régua — o `bt8intervalos` da tela (`TreeViewBornes`).
             // As reservas de cada régua entram na sequência de números (o
             // `LeDicBornesReserva`); só as réguas **em uso** são lidas, como no original.

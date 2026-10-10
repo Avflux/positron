@@ -31,6 +31,16 @@
 ;;; os atributos uma por linha (`  ATT;<tag>=<texto>`). E o insumo do
 ;;; `bt14PortasDiscrepantes` (bloco x modelo de mascara) e tambem o que confirma
 ;;; as `MASCARA;<indice>;<xrecord>` dumadas sempre.
+;;;
+;;; Com `POSITRON_XDATA_DISPOSITIVOS=1` no ambiente ele duma os dispositivos `P` e
+;;; os auxiliares `A` — uma linha por bloco
+;;;
+;;;   DISP;<handle>;tipo=<P|A>;bloco=<nome>;mid52=<2 chars>;nome=<nome>;painel=<n>;lm1=<n>;lm2=<n>;bob=<handle>;contato=<n>;tipoContato=<1|2|3>
+;;;
+;;; mais os atributos de cada bloco (`  ATT;<tag>=<texto>`) e os contatos dos
+;;; modelos 1..4 do dicionario `CONTATOS`. E o insumo do `bt3Principal` (o `P` sem
+;;; LM ou com `?` nos terminais) e do `bt4Auxiliar` (o `A` cujos terminais divergem
+;;; do contato do modelo).
 
 (setq *positron-dump-handles*
   (if (boundp '*positron-dump-handles*) *positron-dump-handles* '("4D642" "4D672")))
@@ -159,6 +169,75 @@
                                                (vl-princ-to-string (cdr (assoc 1 ad))) "\n"))
                     (setq att (entnext att))))))))))))
 
+;; Os DISPOSITIVOS do desenho (blocos `P` e `A`), uma linha por bloco e uma por
+;; atributo — o insumo do `bt3Principal` (o `P` sem LM ou com terminal indefinido)
+;; e do `bt4Auxiliar` (o `A` cujos terminais divergem do contato do modelo).
+;;
+;; O XData `Dispositivo` sai na ordem "depois do app name" que o C# le como
+;; `array[n+1]`: tipo em vals[0], handle do bob em vals[3] (`array[4]`), modelo em
+;; vals[4] (`array[5]`), indice do contato em vals[5] (`array[6]`), tipo do contato
+;; em vals[6] (`array[7]`), painel em vals[7] (`array[8]`) e os LM em
+;; vals[20]/vals[22] (`array[21]`/`array[23]`). `MID52` e o `Mid(bloco, 5, 2)` que
+;; o `bt4Auxiliar` compara com o tipo do contato.
+(defun pz-dump:dispositivos (f / sel i e d x app vals tipo nome att ad)
+  (setq sel (ssget "_X" '((0 . "INSERT"))))
+  (pz-dump:escreve f (strcat "\nDISPOSITIVOS (INSERT tipo P/A): "
+                             (itoa (if (null sel) 0 (sslength sel))) " bloco(s)\n"))
+  (if (null sel)
+    nil
+    (progn
+      (setq i (sslength sel))
+      (while (> i 0)
+        (setq i (1- i))
+        (setq e (ssname sel i))
+        (setq d (entget e '("Dispositivo" "DISPOSITIVO")))
+        (setq x (cdr (assoc -3 d)))
+        (foreach app x
+          (if (or (= (car app) "Dispositivo") (= (car app) "DISPOSITIVO"))
+            (progn
+              (setq vals (mapcar 'cdr (cdr app)))
+              (setq tipo (strcase (vl-princ-to-string (nth 0 vals))))
+              (if (or (= tipo "P") (= tipo "A"))
+                (progn
+                  (setq nome (cdr (assoc 2 d)))
+                  (pz-dump:escreve f
+                    (strcat "DISP;" (cdr (assoc 5 d))
+                            ";tipo=" tipo
+                            ";bloco=" (vl-princ-to-string nome)
+                            ";mid52=" (substr nome 5 2)
+                            ";nome=" (vl-princ-to-string (nth 1 vals))
+                            ";painel=" (vl-princ-to-string (nth 7 vals))
+                            ";lm1=" (vl-princ-to-string (nth 20 vals))
+                            ";lm2=" (vl-princ-to-string (nth 22 vals))
+                            ";bob=" (vl-princ-to-string (nth 3 vals))
+                            ";modelo=" (vl-princ-to-string (nth 4 vals))
+                            ";contato=" (vl-princ-to-string (nth 5 vals))
+                            ";tipoContato=" (vl-princ-to-string (nth 6 vals)) "\n"))
+                  (setq att (entnext e))
+                  (while (and att (= (cdr (assoc 0 (entget att))) "ATTRIB"))
+                    (setq ad (entget att))
+                    (pz-dump:escreve f (strcat "  ATT;" (cdr (assoc 2 ad)) "="
+                                               (vl-princ-to-string (cdr (assoc 1 ad))) "\n"))
+                    (setq att (entnext att))))))))))))
+
+;; O dicionario CONTATOS: cada entrada e os contatos auxiliares de UM modelo — o
+;; `sTerminaisMod` do `bt4Auxiliar` sai daqui (registros de 8 valores, campos
+;; +1..+3 = T1..T3 e +4 = tipo). Duma **todas** as entradas, porque os modelos que
+;; os auxiliares referenciam nao sao 1..N contiguos.
+(defun pz-dump:contatos (f / d item r)
+  (setq d (dictsearch (namedobjdict) "CONTATOS"))
+  (if (null d)
+    (pz-dump:escreve f "\nCONTATOS: nao existe\n")
+    (foreach item d
+      (if (= (car item) 3)
+        (progn
+          (setq r (dictsearch (cdr (assoc -1 d)) (cdr item)))
+          (pz-dump:escreve f
+            (strcat "\nCONTATOS/" (cdr item) ";"
+                    (if (null r) "NAO EXISTE"
+                        (vl-princ-to-string (entget (cdr (assoc -1 r)))))
+                    "\n")))))))
+
 (defun pz-dump:tudo (caminho / f)
   (setq f (open caminho "w"))
   (if (null f)
@@ -176,6 +255,12 @@
         nil)
       (if (= (getenv "POSITRON_XDATA_PORTAS") "1")
         (pz-dump:portas f)
+        nil)
+      (if (= (getenv "POSITRON_XDATA_DISPOSITIVOS") "1")
+        (progn
+          (pz-dump:dispositivos f)
+          ;; Todos os contatos auxiliares dos modelos do dicionario.
+          (pz-dump:contatos f))
         nil)
       (close f)
       (princ (strcat "cad-dump-xdata: escrito em " caminho)))))

@@ -94,6 +94,12 @@ namespace Positron.Data
 
         /// <summary>Bloco de porta (`E`) do desenho cujo atributo `T`/`B`/`R` diverge do modelo de máscara (o `bt14PortasDiscrepantes`).</summary>
         PortaDiscrepante,
+
+        /// <summary>Dispositivo principal (`P`) sem LM (LM1 e LM2 zerados) ou com terminal indefinido (o `bt3Principal`).</summary>
+        PrincipalIncompleto,
+
+        /// <summary>Bloco auxiliar (`A`) cujos terminais divergem do contato do modelo (o `bt4Auxiliar`).</summary>
+        AuxiliarDivergente,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -1106,6 +1112,448 @@ namespace Positron.Data
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Dispositivos principais incompletos — o <c>bt3Principal</c> da tela
+        /// (<c>MbycXLEWI4</c>, que monta a <c>dgPrincipal</c> a partir de
+        /// <c>zvRejlppGf</c>, os dispositivos <c>P</c> lidos do desenho).
+        ///
+        /// O original junta os atributos <c>T*</c> do bloco num texto só
+        /// (<c>LeOsTerminais</c>: ordenados pela tag, unidos por <c>", "</c> e com
+        /// <c>"0"</c>/vazio virando <c>"?"</c>, o <c>CaracterTerminalIndefinido</c>)
+        /// e aponta o dispositivo quando:
+        /// - o texto tem o caracter indefinido (<c>"?"</c>) — a tela detecta isso
+        ///   comparando o texto com ele mesmo sem o caracter; **ou**
+        /// - <c>LM1 == 0</c> **e** <c>LM2 == 0</c>.
+        ///
+        /// **A conjunção do LM é do original e é reproduzida:** a lista de handles a
+        /// mostrar exige <c>iLM1 == 0 &amp;&amp; iLM2 == 0</c>, então um dispositivo com
+        /// <c>LM1 == 0</c> e <c>LM2 != 0</c> **não** é apontado — embora a grade
+        /// sozinha só exigisse <c>iLM1 == 0</c>. O <c>list3</c> do original, que nunca
+        /// recebe nada, não muda o resultado e é omitido.
+        ///
+        /// O dispositivo é apontado **uma vez** (o <c>list</c> de handles do original),
+        /// ainda que tenha as duas razões ao mesmo tempo.
+        /// </summary>
+        public static List<Problema> VerificarDispositivosPrincipais(IEnumerable<DispositivoFiacao> dispositivos)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (dispositivos == null)
+            {
+                return problemas;
+            }
+
+            HashSet<string> apontados = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (DispositivoFiacao dispositivo in dispositivos)
+            {
+                if (dispositivo == null)
+                {
+                    continue;
+                }
+
+                string terminais = TerminaisTDoBloco(dispositivo.Terminais);
+                bool indefinido = ContemTerminalIndefinido(terminais);
+                bool semLm = dispositivo.Lm1 == 0 && dispositivo.Lm2 == 0;
+
+                if (!indefinido && !semLm)
+                {
+                    continue;
+                }
+
+                string identificador = IdentificadorDoDispositivo(dispositivo);
+                if (!apontados.Add(identificador))
+                {
+                    continue;
+                }
+
+                List<string> motivos = new List<string>();
+                if (indefinido)
+                {
+                    motivos.Add("terminal indefinido (\"" + TerminalIndefinido + "\") em \"" + terminais + "\"");
+                }
+
+                if (dispositivo.Lm1 == 0)
+                {
+                    motivos.Add("sem LM (LM1=" + dispositivo.Lm1 + ", LM2=" + dispositivo.Lm2 + ")");
+                }
+
+                problemas.Add(Novo(
+                    AreaVerificacao.Desenho,
+                    TipoProblema.PrincipalIncompleto,
+                    "Dispositivos",
+                    identificador,
+                    string.Join("; ", motivos.ToArray()) + " (painel " + dispositivo.Painel
+                        + ", \"" + dispositivo.Tag + "\")"));
+            }
+
+            return problemas;
+        }
+
+        /// <summary>
+        /// Auxiliares divergentes — o <c>bt4Auxiliar</c> da tela
+        /// (<c>XSScUGxu4K</c>, que monta a <c>dgAuxiliar</c> a partir de
+        /// <c>A94eLhaDqZ</c>, os blocos <c>A</c> do desenho).
+        ///
+        /// O original compara os terminais do bloco (<c>LeOsTerminais</c>, só os
+        /// <c>T*</c>, como no <c>bt3Principal</c>) com os do **contato do modelo**
+        /// (<c>LeOsTerminaisdeUmIndiceDeContatosAuxiliar</c>, o dicionário
+        /// <c>CONTATOS</c>) e decide pela **tabela de tipos**: o tipo do contato
+        /// (<c>TipoDoContato</c>, o <c>array[7]</c> do XData do <c>A</c>) contra o tipo
+        /// do bloco usado (<c>TipoBlocoUsado = Mid(Nome, 5, 2)</c>).
+        ///
+        /// | tipo do contato | tipo do bloco | terminais comparados |
+        /// |-----------------|---------------|----------------------|
+        /// | `RV` | `RV`          | T1/T2/T3             |
+        /// | `RV` | `NF`          | T1/T2                |
+        /// | `RV` | `NA`          | T1 e T2 contra T1 e **T3** do modelo |
+        /// | `NF` | `NF`          | T1/T2 e T3 contra vazio |
+        /// | `NA` | `NA`          | T1/T2 e T3 contra vazio |
+        ///
+        /// Qualquer outra combinação não é apontada (o <c>else if</c> da tela). Uma
+        /// linha por **bloco auxiliar**, com as células divergentes no detalhe.
+        ///
+        /// O original só olha o bloco cujo <c>HandleBob</c> entrou na lista (aqueles
+        /// com <c>"?"</c> nos terminais ou com terminais diferentes do modelo) e só
+        /// acha o nome/painel quando o bob é um dispositivo <c>P</c> conhecido; sem o
+        /// principal, o auxiliar **não** é apontado — reproduzido aqui.
+        ///
+        /// A comparação é **sem diferenciar maiúsculas** (<c>TextCompare</c> do
+        /// original). Um contato que não existe no dicionário entra com os terminais
+        /// do modelo **vazios** (o <c>text</c> vazio do original).
+        /// </summary>
+        public static List<Problema> VerificarAuxiliaresDivergentes(
+            IEnumerable<DispositivoFiacao> auxiliares,
+            IEnumerable<DispositivoFiacao> principais,
+            IReadOnlyDictionary<int, IReadOnlyList<ContatoAuxiliar>> contatosPorModelo)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (auxiliares == null)
+            {
+                return problemas;
+            }
+
+            List<DispositivoFiacao> blocos = new List<DispositivoFiacao>();
+            foreach (DispositivoFiacao auxiliar in auxiliares)
+            {
+                if (auxiliar != null)
+                {
+                    blocos.Add(auxiliar);
+                }
+            }
+
+            List<DispositivoFiacao> dispositivos = new List<DispositivoFiacao>();
+            if (principais != null)
+            {
+                foreach (DispositivoFiacao principal in principais)
+                {
+                    if (principal != null)
+                    {
+                        dispositivos.Add(principal);
+                    }
+                }
+            }
+
+            // O `list` do original: os bobs (na ordem de entrada) que têm terminal
+            // indefinido ou terminais diferentes do modelo.
+            List<string> bobs = new List<string>();
+            HashSet<string> vistos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (DispositivoFiacao bloco in blocos)
+            {
+                string terminais = TerminaisTDoBloco(bloco.Terminais);
+                string doModelo = TerminaisDoContato(contatosPorModelo, bloco.IndexModelo, bloco.IndiceDaPorta);
+                if (!ContemTerminalIndefinido(terminais) && Igual(terminais, doModelo))
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(bloco.HandleBob) && vistos.Add(bloco.HandleBob))
+                {
+                    bobs.Add(bloco.HandleBob);
+                }
+            }
+
+            foreach (string bob in bobs)
+            {
+                DispositivoFiacao principal = null;
+                foreach (DispositivoFiacao candidato in dispositivos)
+                {
+                    if (Igual(candidato.Handle, bob))
+                    {
+                        principal = candidato;
+                        break;
+                    }
+                }
+
+                if (principal == null)
+                {
+                    continue;
+                }
+
+                foreach (DispositivoFiacao bloco in blocos)
+                {
+                    if (!Igual(bloco.HandleBob, bob))
+                    {
+                        continue;
+                    }
+
+                    List<string> diferencas = DiferencasDoAuxiliar(bloco, contatosPorModelo);
+                    if (diferencas.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    problemas.Add(Novo(
+                        AreaVerificacao.Desenho,
+                        TipoProblema.AuxiliarDivergente,
+                        "Auxiliares",
+                        IdentificadorDoDispositivo(bloco),
+                        string.Join("; ", diferencas.ToArray())
+                            + " (contato \"" + TipoDoContatoTexto(bloco.TipoDoContato) + "\", bloco \""
+                            + (bloco.NomeBloco ?? string.Empty) + "\", bob " + bob
+                            + ", painel " + principal.Painel + ", \"" + principal.Tag + "\")"));
+                }
+            }
+
+            return problemas;
+        }
+
+        /// <summary>
+        /// Os terminais que divergem no <c>bt4Auxiliar</c> — a tabela de tipos do
+        /// original, devolvendo uma entrada por célula que não bate (vazio = não
+        /// aponta). O <c>TipoBlocoUsado</c> é o <c>Mid(Nome, 5, 2)</c> do VB.
+        /// </summary>
+        private static List<string> DiferencasDoAuxiliar(
+            DispositivoFiacao bloco, IReadOnlyDictionary<int, IReadOnlyList<ContatoAuxiliar>> contatosPorModelo)
+        {
+            List<string> diferencas = new List<string>();
+
+            string[] doBloco = PartesPorVirgula(TerminaisTDoBloco(bloco.Terminais));
+            string[] doModelo = PartesPorVirgula(TerminaisDoContato(contatosPorModelo, bloco.IndexModelo, bloco.IndiceDaPorta));
+
+            string t1 = doBloco[0];
+            string t2 = doBloco[1];
+            string t3 = doBloco[2];
+            string m1 = doModelo[0];
+            string m2 = doModelo[1];
+            string m3 = doModelo[2];
+
+            string tipo = TipoDoContatoTexto(bloco.TipoDoContato);
+            string tipoBloco = Mid(bloco.NomeBloco, 5, 2);
+
+            if (!Igual(tipo, "NA"))
+            {
+                if (!Igual(tipo, "NF"))
+                {
+                    if (!Igual(tipo, "RV"))
+                    {
+                        return diferencas;
+                    }
+
+                    if (!Igual(tipoBloco, "NA"))
+                    {
+                        if (!Igual(tipoBloco, "NF"))
+                        {
+                            if (Igual(tipoBloco, "RV"))
+                            {
+                                CompararCelula(diferencas, "T1", t1, m1);
+                                CompararCelula(diferencas, "T2", t2, m2);
+                                CompararCelula(diferencas, "T3", t3, m3);
+                            }
+                        }
+                        else
+                        {
+                            CompararCelula(diferencas, "T1", t1, m1);
+                            CompararCelula(diferencas, "T2", t2, m2);
+                        }
+                    }
+                    else
+                    {
+                        CompararCelula(diferencas, "T1", t1, m1);
+                        CompararCelula(diferencas, "T2", t2, m3);
+                    }
+                }
+                else if (Igual(tipoBloco, "NF"))
+                {
+                    CompararCelula(diferencas, "T1", t1, m1);
+                    CompararCelula(diferencas, "T2", t2, m2);
+                    CompararCelula(diferencas, "T3", t3, string.Empty);
+                }
+            }
+            else if (Igual(tipoBloco, "NA"))
+            {
+                CompararCelula(diferencas, "T1", t1, m1);
+                CompararCelula(diferencas, "T2", t2, m2);
+                CompararCelula(diferencas, "T3", t3, string.Empty);
+            }
+
+            return diferencas;
+        }
+
+        private static void CompararCelula(List<string> diferencas, string rotulo, string doBloco, string doModelo)
+        {
+            if (!Igual(doBloco, doModelo))
+            {
+                diferencas.Add(rotulo + " \"" + doBloco + "\" ≠ modelo \"" + doModelo + "\"");
+            }
+        }
+
+        /// <summary>
+        /// Os terminais <c>T*</c> de um bloco, como o <c>LeOsTerminais</c> do original:
+        /// aceita a tag <c>T</c> + sufixo numérico (sem diferenciar maiúsculas),
+        /// ordena pela tag e junta com <c>", "</c>, trocando <c>"0"</c>/vazio por
+        /// <see cref="TerminalIndefinido"/>. Os <c>B*</c> e o <c>R1</c> que o original
+        /// também lê não entram nas duas regras.
+        /// </summary>
+        private static string TerminaisTDoBloco(IEnumerable<TerminalDispositivo> terminais)
+        {
+            List<TerminalDispositivo> lista = new List<TerminalDispositivo>();
+            if (terminais != null)
+            {
+                foreach (TerminalDispositivo terminal in terminais)
+                {
+                    if (terminal == null || string.IsNullOrEmpty(terminal.Atributo) || terminal.Atributo.Length < 2)
+                    {
+                        continue;
+                    }
+
+                    if (!string.Equals(terminal.Atributo.Substring(0, 1), "T", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (!Numerico(terminal.Atributo.Substring(1), out _))
+                    {
+                        continue;
+                    }
+
+                    lista.Add(terminal);
+                }
+            }
+
+            // Bolha do original (ordem crescente pela tag, comparação binária).
+            lista.Sort((esquerda, direita) => string.CompareOrdinal(esquerda.Atributo, direita.Atributo));
+
+            string texto = string.Empty;
+            foreach (TerminalDispositivo terminal in lista)
+            {
+                string valor = terminal.Texto ?? string.Empty;
+                string limpo = valor.Trim();
+                if (string.Equals(limpo, "0", StringComparison.Ordinal) || limpo.Length == 0)
+                {
+                    valor = TerminalIndefinido;
+                }
+
+                texto = texto.Trim().Length != 0 ? texto + ", " + valor : valor;
+            }
+
+            return texto;
+        }
+
+        /// <summary>
+        /// O <c>sTerminaisMod</c> do original
+        /// (<c>LeOsTerminaisdeUmIndiceDeContatosAuxiliar</c>): os terminais do contato
+        /// <paramref name="indiceContato"/> do modelo <paramref name="indiceModelo"/>
+        /// no dicionário <c>CONTATOS</c>, com o <c>T1</c> entrando sempre e o
+        /// <c>T2</c>/<c>T3</c> só quando **não vazios** (e sem <c>Trim</c>, como lá).
+        /// </summary>
+        private static string TerminaisDoContato(
+            IReadOnlyDictionary<int, IReadOnlyList<ContatoAuxiliar>> contatosPorModelo, int indiceModelo, int indiceContato)
+        {
+            if (contatosPorModelo == null)
+            {
+                return string.Empty;
+            }
+
+            IReadOnlyList<ContatoAuxiliar> contatos;
+            if (!contatosPorModelo.TryGetValue(indiceModelo, out contatos) || contatos == null)
+            {
+                return string.Empty;
+            }
+
+            foreach (ContatoAuxiliar contato in contatos)
+            {
+                if (contato == null || contato.Indice != indiceContato)
+                {
+                    continue;
+                }
+
+                string texto = contato.T1 ?? string.Empty;
+                if (!string.IsNullOrEmpty(contato.T2))
+                {
+                    texto = texto + ", " + contato.T2;
+                }
+
+                if (!string.IsNullOrEmpty(contato.T3))
+                {
+                    texto = texto + ", " + contato.T3;
+                }
+
+                return texto;
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>O teste de terminal indefinido do original: o texto muda ao remover o caracter.</summary>
+        private static bool ContemTerminalIndefinido(string texto)
+        {
+            return (texto ?? string.Empty).Contains(TerminalIndefinido);
+        }
+
+        /// <summary>
+        /// Divide por <c>,</c> como o <c>Split(',')</c> do original e devolve sempre
+        /// **três** posições (as que faltarem ficam vazias), já sem espaços — o
+        /// <c>Trim</c> de cada <c>text3</c>..<c>text8</c>.
+        /// </summary>
+        private static string[] PartesPorVirgula(string texto)
+        {
+            string[] partes = (texto ?? string.Empty).Split(',');
+            string[] resultado = new string[3];
+            for (int i = 0; i < 3; i++)
+            {
+                resultado[i] = i < partes.Length ? partes[i].Trim() : string.Empty;
+            }
+
+            return resultado;
+        }
+
+        /// <summary>O <c>Mid</c> do VB (base 1): <c>Mid(Nome, 5, 2)</c> é o <c>TipoBlocoUsado</c>.</summary>
+        private static string Mid(string texto, int inicio, int tamanho)
+        {
+            if (string.IsNullOrEmpty(texto) || inicio < 1 || tamanho <= 0 || inicio > texto.Length)
+            {
+                return string.Empty;
+            }
+
+            return texto.Substring(inicio - 1, Math.Min(tamanho, texto.Length - (inicio - 1)));
+        }
+
+        /// <summary>O tipo do contato do auxiliar como a tela mostra: <c>1</c>=<c>NA</c>, <c>2</c>=<c>NF</c>, <c>3</c>=<c>RV</c>.</summary>
+        private static string TipoDoContatoTexto(short tipo)
+        {
+            switch (tipo)
+            {
+                case 1:
+                    return "NA";
+                case 2:
+                    return "NF";
+                case 3:
+                    return "RV";
+                default:
+                    return string.Empty;
+            }
+        }
+
+        /// <summary>O handle do bloco como identificador; sem ele, o nome do dispositivo.</summary>
+        private static string IdentificadorDoDispositivo(DispositivoFiacao dispositivo)
+        {
+            if (!string.IsNullOrWhiteSpace(dispositivo.Handle))
+            {
+                return dispositivo.Handle;
+            }
+
+            return string.IsNullOrWhiteSpace(dispositivo.Tag) ? "sem handle" : dispositivo.Tag;
         }
 
         /// <summary>Divide um campo do modelo por <c>;</c> — o <c>Split</c> do VB, que devolve ao menos um item.</summary>
