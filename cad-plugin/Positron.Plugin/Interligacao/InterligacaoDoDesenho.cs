@@ -21,12 +21,23 @@ namespace Positron.Plugin.Interligacao
     ///
     /// Mesma varredura do original (<c>frmCompilarInterligacao</c>): uma
     /// transação, BlockTable/ModelSpace e leitura do XData por entidade.
-    /// Trechos com <c>Num_Veia == -1000</c> (veia indefinida) são descartados,
-    /// como no original.
+    ///
+    /// Trechos com <c>Num_Veia == -1000</c> (veia indefinida) são descartados por
+    /// omissão, como no <c>frmCompilarInterligacao</c> (linha 1353 do reverso) — a
+    /// projeção não grava veia indefinida. O <b>verificador</b>, porém, olha esses
+    /// trechos: o <c>buscaDadosDoDWG</c> do <c>clsVerificadorProjetoInterligacao</c>
+    /// aceita <b>todo</b> XData válido, sem filtrar a veia. Para esse caso,
+    /// <see cref="Ler(bool)"/> com <paramref name="incluirVeiaIndefinida"/>
+    /// <c>true</c> devolve os trechos que a projeção descarta.
     /// </summary>
     public static class InterligacaoDoDesenho
     {
-        public static IReadOnlyList<PontoInterligacao> Ler()
+        /// <summary>
+        /// Lê os trechos do ModelSpace. <paramref name="incluirVeiaIndefinida"/>
+        /// <c>false</c> (o padrão da projeção) descarta <c>Num_Veia == -1000</c>;
+        /// o verificador usa <c>true</c> para enxergar o que a projeção ignorou.
+        /// </summary>
+        public static IReadOnlyList<PontoInterligacao> Ler(bool incluirVeiaIndefinida = false)
         {
             List<PontoInterligacao> pontos = new List<PontoInterligacao>();
 
@@ -67,7 +78,7 @@ namespace Positron.Plugin.Interligacao
                         continue;
                     }
 
-                    if (ilig.NumVeia == InterligacaoXData.NumVeiaIndefinido)
+                    if (!incluirVeiaIndefinida && ilig.NumVeia == InterligacaoXData.NumVeiaIndefinido)
                     {
                         continue;
                     }

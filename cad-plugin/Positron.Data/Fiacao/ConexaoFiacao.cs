@@ -44,5 +44,16 @@ namespace Positron.Data.Fiacao
         /// (<c>ClsVerificadorProjetoFiacao:791</c>): elas são do <c>JMP</c>, não da fiação.
         /// </summary>
         public string Jumper { get; set; }
+
+        /// <summary>
+        /// Campo <c>Disp1</c> do XData (ponta 1 ligada). Só o verificador da
+        /// interligação usa: o jumper só entra na checagem de duplicados quando
+        /// <c>Tipo == 4</c> e <b>as duas</b> pontas estão ligadas
+        /// (<c>ClsVerificadorProjetoFiacao:791</c>, modo <c>"J"</c>).
+        /// </summary>
+        public bool Disp1 { get; set; }
+
+        /// <summary>Campo <c>Disp2</c> do XData (ponta 2 ligada) — espelho de <see cref="Disp1"/>.</summary>
+        public bool Disp2 { get; set; }
     }
 }

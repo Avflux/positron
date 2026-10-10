@@ -71,6 +71,8 @@ namespace Positron.Plugin.Fiacao
                         HandleSuperposto = conexao.Tipo == 3 ? conexao.Handle : "OK",
                         Pagina = entidade.Layer,
                         Jumper = conexao.Jumper,
+                        Disp1 = conexao.Disp1,
+                        Disp2 = conexao.Disp2,
                     });
                 }
 

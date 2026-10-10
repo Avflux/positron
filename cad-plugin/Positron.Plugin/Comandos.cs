@@ -681,8 +681,47 @@ namespace Positron.Plugin
                 paineisDoDesenho.Add(conexao.Painel);
             }
 
+            HashSet<int> cadastroDePaineis = new HashSet<int>(store.LerIndicesDePaineis());
             problemas.AddRange(VerificadorProjeto.VerificarPaineisSemCadastro(
-                paineisDoDesenho, store.LerIndicesDePaineis()));
+                paineisDoDesenho, cadastroDePaineis));
+
+            // O `lPnApagados` da tela de verificação: painel referenciado no desenho
+            // que não existe no cadastro do projeto (o dicionário devolveria "???").
+            // É o insumo do `bPnApagado` das checagens do `carregaTree` da
+            // interligação (o mesmo conjunto que `VerificarPaineisSemCadastro` aponta,
+            // sem o painel 0, que é "não definido" e não um cadastro ausente).
+            HashSet<int> paineisApagados = new HashSet<int>();
+            foreach (int painel in paineisDoDesenho)
+            {
+                if (painel > 0 && !cadastroDePaineis.Contains(painel))
+                {
+                    paineisApagados.Add(painel);
+                }
+            }
+
+            // O `carregaTree` do verificador da interligação: jumper sem cabo/seção ou
+            // em painel apagado (nó "External Jumper"), jumper de duas pontas repetindo
+            // potencial ("Duplicates") e trecho sem Tag_Cabo ou em painel apagado
+            // ("Interconnection"). Os trechos são lidos **com** os de veia indefinida
+            // (`Num_Veia == -1000`), como o `buscaDadosDoDWG` do original — a projeção
+            // os descarta, o verificador não.
+            IReadOnlyList<PontoInterligacao> trechosDoDesenho =
+                InterligacaoDoDesenho.Ler(incluirVeiaIndefinida: true);
+            int quantosJumpers = 0;
+            foreach (ConexaoFiacao conexao in conexoes)
+            {
+                if (string.Equals((conexao.Jumper ?? string.Empty).Trim(), "JUMPER", StringComparison.OrdinalIgnoreCase))
+                {
+                    quantosJumpers++;
+                }
+            }
+
+            Plugin.Escrever("VERIF: " + quantosJumpers + " jumper(s) e " + trechosDoDesenho.Count
+                + " trecho(s) de interligação lido(s) do desenho.");
+            problemas.AddRange(VerificadorProjeto.VerificarJumpersIndefinidos(conexoes, paineisApagados));
+            problemas.AddRange(VerificadorProjeto.VerificarJumpersDuplicados(conexoes));
+            problemas.AddRange(VerificadorProjeto.VerificarTrechosInterligacaoIndefinidos(
+                trechosDoDesenho, paineisApagados));
 
             // Régua da máscara (`bt13ReguaMascara`, `AC1cAJLSDI`): porta de um modelo
             // cujo campo Régua traz separador que não fecha com a contagem de bornes.

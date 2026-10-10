@@ -5,6 +5,7 @@ using System.Linq;
 using Positron.Contract;
 using Positron.Data.Bornes;
 using Positron.Data.Fiacao;
+using Positron.Data.Interligacao;
 using Positron.Data.Layout;
 using Positron.Data.Modelos;
 
@@ -106,6 +107,15 @@ namespace Positron.Data
 
         /// <summary>Bloco do desenho repetido — dois blocos do mesmo item (o `bt12AMao`, "Copy made by hand").</summary>
         BlocoDuplicado,
+
+        /// <summary>Jumper do desenho sem cabo (<c>Cor</c>) ou sem seção, ou em painel apagado (o `carregaTree` da interligação, nó "External Jumper").</summary>
+        JumperIndefinido,
+
+        /// <summary>Jumper <c>Tipo 4</c> com as duas pontas ligadas repetindo o mesmo potencial — o `LFiacaoTTDuplicada` no modo `"J"`, nó "Duplicates".</summary>
+        JumperDuplicado,
+
+        /// <summary>Trecho de interligação do desenho sem <c>Tag_Cabo</c>, ou em painel apagado (o `carregaTree`, nó "Interconnection").</summary>
+        InterligacaoIndefinida,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -145,6 +155,15 @@ namespace Positron.Data
     /// régua/borne; borne sem régua/número; terminal indefinido; terminal
     /// repetido no mesmo modelo. Corresponde ao <c>buscaReguasVazias</c> e às
     /// conferências de porta/contato do original.
+    ///
+    /// **Interligação — desenho**: o <c>carregaTree</c> do
+    /// <c>clsVerificadorProjetoInterligacao</c> monta duas árvores sobre o
+    /// ModelSpace: "External Jumper" (jumper sem cabo/seção ou em painel apagado,
+    /// um por potencial) e "Interconnection" (trecho sem <c>Tag_Cabo</c> ou em
+    /// painel apagado, um por handle). É o par do `bt1Fiacao`/`bt2Orfao` do lado da
+    /// interligação — ver <see cref="VerificarJumpersIndefinidos"/>,
+    /// <see cref="VerificarJumpersDuplicados"/> e
+    /// <see cref="VerificarTrechosInterligacaoIndefinidos"/>.
     ///
     /// O que **não** está aqui: os erros que o verifier original lê **do desenho**
     /// (geometria, páginas apagadas, cabos referenciados que não existem no
@@ -642,6 +661,169 @@ namespace Positron.Data
             }
 
             return problemas;
+        }
+
+        /// <summary>
+        /// Jumpers do desenho "indefinidos" — o nó "External Jumper" do
+        /// <c>carregaTree</c> (<c>clsVerificadorProjetoInterligacao:352</c>).
+        ///
+        /// Um jumper é uma conexão <c>CONEXAO</c> com <c>Jumper == "JUMPER"</c>. Ele
+        /// entra na lista quando <b>não</b> tem cabo (<c>Cor</c>) ou não tem seção
+        /// (<c>Secao</c>), ou quando o painel dele está apagado — e o original aponta
+        /// **um por potencial** (<c>iPotencial_Veia</c>), mesmo que vários jumpers
+        /// compartilhem o potencial.
+        ///
+        /// <paramref name="paineisApagados"/> é o <c>lPnApagados</c> da tela: o painel
+        /// referenciado no desenho que não existe no cadastro do projeto (o
+        /// <c>Dicionario.BuscaNomeDoPainel</c> devolveria <c>"???"</c>) — o mesmo
+        /// conjunto de <see cref="VerificarPaineisSemCadastro"/>.
+        /// </summary>
+        public static List<Problema> VerificarJumpersIndefinidos(
+            IEnumerable<ConexaoFiacao> conexoes,
+            ICollection<int> paineisApagados)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (conexoes == null)
+            {
+                return problemas;
+            }
+
+            HashSet<int> jaApontados = new HashSet<int>();
+            foreach (ConexaoFiacao conexao in conexoes)
+            {
+                if (conexao == null || !EhJumper(conexao))
+                {
+                    continue;
+                }
+
+                bool semCabo = string.IsNullOrWhiteSpace(conexao.Cor);
+                bool semSecao = string.IsNullOrWhiteSpace(conexao.Secao);
+                bool apagado = paineisApagados != null && paineisApagados.Contains(conexao.Painel);
+                if (!semCabo && !semSecao && !apagado)
+                {
+                    continue;
+                }
+
+                // O original dedupa pelo potencial (`list3`/`list2`); o texto do nó é
+                // `Cor + " - " + Secao`.
+                if (!jaApontados.Add(conexao.Potencial))
+                {
+                    continue;
+                }
+
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.JumperIndefinido, "Conexao",
+                    "potencial " + conexao.Potencial,
+                    "jumper com " + (semCabo ? "cabo" : "seção") + " indefinido"
+                    + (apagado ? " e painel apagado" : "")));
+            }
+
+            return problemas;
+        }
+
+        /// <summary>
+        /// Jumper <c>Tipo 4</c> com as duas pontas ligadas (<c>Disp1</c> e <c>Disp2</c>)
+        /// repetindo o mesmo potencial — o nó "Duplicates" sob "External Jumper" no
+        /// <c>carregaTree</c>. Vem do <c>buscaDadosDeFiacaoDWG</c> no modo <c>"J"</c>
+        /// (<c>ClsVerificadorProjetoFiacao:797</c>), que alimenta o
+        /// <c>LFiacaoTTDuplicada</c>: o primeiro jumper do potencial é o legítimo, o
+        /// segundo em diante entra na lista pelo handle.
+        /// </summary>
+        public static List<Problema> VerificarJumpersDuplicados(IEnumerable<ConexaoFiacao> conexoes)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (conexoes == null)
+            {
+                return problemas;
+            }
+
+            HashSet<int> potencialVisto = new HashSet<int>();
+            foreach (ConexaoFiacao conexao in conexoes)
+            {
+                if (conexao == null || !EhJumper(conexao))
+                {
+                    continue;
+                }
+
+                // Só o jumper de duas pontas entra (o `Tipo == 4 & Disp1 & Disp2`).
+                if (conexao.Tipo != 4 || !conexao.Disp1 || !conexao.Disp2)
+                {
+                    continue;
+                }
+
+                if (potencialVisto.Add(conexao.Potencial))
+                {
+                    continue;
+                }
+
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.JumperDuplicado, "Conexao",
+                    conexao.Handle,
+                    "jumper repetido no potencial " + conexao.Potencial));
+            }
+
+            return problemas;
+        }
+
+        /// <summary>
+        /// Trechos de interligação "indefinidos" — o nó "Interconnection" do
+        /// <c>carregaTree</c>.
+        ///
+        /// Um trecho entra quando não tem <c>Tag_Cabo</c> (o original troca o texto
+        /// por "Undefined", mensagem 740) ou quando um dos painéis está apagado. O
+        /// original aponta **um por handle** (<c>list2.Connections(mlig[k].Handle)</c>).
+        ///
+        /// Os trechos vêm do desenho <b>com</b> os de veia indefinida
+        /// (<c>Num_Veia == -1000</c>): o <c>buscaDadosDoDWG</c> do verificador aceita
+        /// todo XData válido, ao contrário da projeção — ver
+        /// <c>InterligacaoDoDesenho.Ler(incluirVeiaIndefinida: true)</c>.
+        /// </summary>
+        public static List<Problema> VerificarTrechosInterligacaoIndefinidos(
+            IEnumerable<PontoInterligacao> trechos,
+            ICollection<int> paineisApagados)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (trechos == null)
+            {
+                return problemas;
+            }
+
+            HashSet<string> jaApontados = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (PontoInterligacao trecho in trechos)
+            {
+                if (trecho == null)
+                {
+                    continue;
+                }
+
+                bool semCabo = string.IsNullOrWhiteSpace(trecho.Tag_Cabo);
+                bool apagado = paineisApagados != null
+                    && (paineisApagados.Contains(trecho.Painel1) || paineisApagados.Contains(trecho.Painel2));
+                if (!semCabo && !apagado)
+                {
+                    continue;
+                }
+
+                if (!jaApontados.Add(trecho.Handle ?? string.Empty))
+                {
+                    continue;
+                }
+
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.InterligacaoIndefinida, "Interligacao",
+                    string.IsNullOrWhiteSpace(trecho.Handle) ? "veia " + trecho.NumVeia : trecho.Handle,
+                    "trecho com " + (semCabo ? "Tag_Cabo" : "painel") + " indefinido"
+                    + (apagado ? " (painel apagado)" : "")
+                    + ", veia " + trecho.NumVeia));
+            }
+
+            return problemas;
+        }
+
+        /// <summary>O <c>conex.Jumper.ToUpper() == "JUMPER"</c> do original.</summary>
+        private static bool EhJumper(ConexaoFiacao conexao)
+        {
+            return string.Equals(
+                (conexao.Jumper ?? string.Empty).Trim(),
+                "JUMPER",
+                StringComparison.OrdinalIgnoreCase);
         }
 
         public static List<Problema> VerificarBornesSemLm(IEnumerable<PontoBorne> bornes)

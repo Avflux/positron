@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Positron.Data.Bornes;
 using Positron.Data.Fiacao;
+using Positron.Data.Interligacao;
 using Positron.Data.Modelos;
 using Xunit;
 
@@ -1196,6 +1197,122 @@ namespace Positron.Data.Tests
             }
 
             return bloco;
+        }
+
+        // ───────────────────────── verificador da interligação ─────────────────
+        // O `carregaTree` do `clsVerificadorProjetoInterligacao`: as duas árvores
+        // sobre o desenho ("External Jumper" e "Interconnection").
+
+        [Fact]
+        public void Aponta_jumper_sem_cabo_ou_sem_secao()
+        {
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
+            {
+                new ConexaoFiacao { Jumper = "JUMPER", Cor = "", Secao = "3F", Potencial = 11, Painel = 503 },
+                new ConexaoFiacao { Jumper = "JUMPER", Cor = "CABO1", Secao = "", Potencial = 12, Painel = 503 },
+                new ConexaoFiacao { Jumper = "JUMPER", Cor = "CABO1", Secao = "3F", Potencial = 13, Painel = 503 },
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarJumpersIndefinidos(conexoes, null);
+
+            Assert.Equal(2, problemas.Count);
+            Assert.All(problemas, p => Assert.Equal(TipoProblema.JumperIndefinido, p.Tipo));
+            Assert.Equal("potencial 11", problemas[0].Identificador);
+            Assert.Equal("potencial 12", problemas[1].Identificador);
+        }
+
+        [Fact]
+        public void Aponta_jumper_indefinido_uma_vez_por_potencial()
+        {
+            // O original dedupa por `iPotencial_Veia` (list3/list2): um só apontamento
+            // mesmo com vários jumpers sem cabo no mesmo potencial.
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
+            {
+                new ConexaoFiacao { Jumper = "JUMPER", Cor = "", Secao = "", Potencial = 7, Painel = 503 },
+                new ConexaoFiacao { Jumper = "JUMPER", Cor = "", Secao = "", Potencial = 7, Painel = 503 },
+            };
+
+            Assert.Single(VerificadorProjeto.VerificarJumpersIndefinidos(conexoes, null));
+        }
+
+        [Fact]
+        public void Aponta_jumper_em_painel_apagado()
+        {
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
+            {
+                new ConexaoFiacao { Jumper = "JUMPER", Cor = "CABO1", Secao = "3F", Potencial = 5, Painel = 909 },
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarJumpersIndefinidos(
+                conexoes, new List<int> { 909 });
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(TipoProblema.JumperIndefinido, problema.Tipo);
+            Assert.Contains("apagado", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Conexao_de_fiacao_nao_entra_como_jumper()
+        {
+            // A mesma varredura do `buscaDadosDoDWG` só aceita `Jumper == "JUMPER"`.
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
+            {
+                new ConexaoFiacao { Jumper = "", Cor = "", Secao = "", Potencial = 1, Painel = 503 },
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarJumpersIndefinidos(conexoes, null));
+        }
+
+        [Fact]
+        public void Aponta_jumper_de_duas_pontas_com_potencial_repetido()
+        {
+            // O `LFiacaoTTDuplicada` no modo "J": `Tipo == 4 & Disp1 & Disp2`.
+            List<ConexaoFiacao> conexoes = new List<ConexaoFiacao>
+            {
+                new ConexaoFiacao { Jumper = "JUMPER", Tipo = 4, Disp1 = true, Disp2 = true, Potencial = 3, Handle = "H1" },
+                new ConexaoFiacao { Jumper = "JUMPER", Tipo = 4, Disp1 = true, Disp2 = true, Potencial = 3, Handle = "H2" },
+                new ConexaoFiacao { Jumper = "JUMPER", Tipo = 4, Disp1 = true, Disp2 = false, Potencial = 3, Handle = "H3" },
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarJumpersDuplicados(conexoes);
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(TipoProblema.JumperDuplicado, problema.Tipo);
+            Assert.Equal("H2", problema.Identificador);
+        }
+
+        [Fact]
+        public void Aponta_trecho_de_interligacao_sem_tag_de_cabo()
+        {
+            List<PontoInterligacao> trechos = new List<PontoInterligacao>
+            {
+                new PontoInterligacao { Handle = "H1", Tag_Cabo = "", NumVeia = -1000, Painel1 = 503 },
+                new PontoInterligacao { Handle = "H2", Tag_Cabo = "CABO1", NumVeia = 1, Painel1 = 503 },
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarTrechosInterligacaoIndefinidos(trechos, null);
+
+            Problema problema = Assert.Single(problemas);
+            Assert.Equal(TipoProblema.InterligacaoIndefinida, problema.Tipo);
+            Assert.Equal("H1", problema.Identificador);
+        }
+
+        [Fact]
+        public void Aponta_trecho_uma_vez_por_handle_e_por_painel_apagado()
+        {
+            List<PontoInterligacao> trechos = new List<PontoInterligacao>
+            {
+                new PontoInterligacao { Handle = "H1", Tag_Cabo = "", Painel1 = 503 },
+                new PontoInterligacao { Handle = "H1", Tag_Cabo = "", Painel1 = 503 },
+                new PontoInterligacao { Handle = "H2", Tag_Cabo = "CABO1", Painel2 = 909 },
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarTrechosInterligacaoIndefinidos(
+                trechos, new List<int> { 909 });
+
+            Assert.Equal(2, problemas.Count);
+            Assert.Equal("H1", problemas[0].Identificador);
+            Assert.Equal("H2", problemas[1].Identificador);
         }
 
         private static ModeloMascara ModeloMascara(int indice, string nome)
