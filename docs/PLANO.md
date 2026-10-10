@@ -50,7 +50,7 @@ segunda execução de `FIA`/`INT` duplica linhas e o `ReordenarOrdemFiacao`
 passa a reescrever a `Ordem` das duas cópias (medido no `RUNBOOK.md`: `Fiacao`
 3→6, `Bornes4F` 2→4). **Corrigido na Etapa 1.**
 
-## 2.2 Estado atual (rodada 46)
+## 2.2 Estado atual (até a rodada 57)
 
 O recorte do plano — **9 comandos, 13 tabelas do diagrama, app lendo tudo** — está
 implementado, verificado e documentado. Os números de hoje:
@@ -110,10 +110,15 @@ insumo existe e foi conferido no dump cru, mas a cópia está limpa. Com o `bt12
 verificador da **interligação** (`carregaTree`) entrou na rodada 57, e resta dela só a
 **ação** `IndefineCabosNaoExistentes` (que regrava XData — não é checagem read-only).
 
-**Único item aberto:** a **Etapa 9** (licença, relatórios, banco), que é decisão do dono
-e tem os três encaixes prontos — `ServicoDeLicenca`/`ILicenca` com gate nos comandos,
-o relatório em texto (`ELETREL`/`ELETCMP`) como base dos 37 relatórios, e o SQL isolado
-no `ProjectStore` para o dia do SQL Server.
+**Pendências abertas:** as frentes da §7 estão **marcadas com ⏳** — nenhuma é regra de
+verificação **ausente** (as **14** checagens da fiação e as **3** da interligação estão
+portadas). No P1 restam duas: as **2 checagens parciais** do `VERIF`
+(`bt5Terminais`/`bt6Portas`) e a **ação** `IndefineCabosNaoExistentes` da interligação (que
+regrava XData — é comando, não checagem). O resto é expansão de escopo (tabelas do schema
+fora do recorte e os 37 relatórios) ou **decisão do dono** — a **Etapa 9** (licença,
+relatórios, banco), que tem os três encaixes prontos — `ServicoDeLicenca`/`ILicenca` com
+gate nos comandos, o relatório em texto (`ELETREL`/`ELETCMP`) como base dos 37 relatórios,
+e o SQL isolado no `ProjectStore` para o dia do SQL Server.
 
 ## 3. Etapas
 
@@ -598,6 +603,19 @@ aberto por **cópia no TEMP**).
 
 ## 7. Backlog verificado (o que ainda não está coberto)
 
+**Pendências abertas (⏳ = pendente)** — nada aqui é regra de verificação **ausente**: as
+**14** checagens da fiação estão portadas (**2** delas só parciais, o 7.1a) e as **3** da
+interligação também. O que fica aberto:
+
+| # | Pendência | Prioridade | Situação |
+|---|---|---|---|
+| 7.1a | `bt5Terminais` / `bt6Portas` — 2 das 14 checagens são **parciais** (`VerificarModelos`) | P1 | ⏳ pendente |
+| 7.1b | `IndefineCabosNaoExistentes` — **ação** da interligação (regrava o XData; comando, não checagem) | P1 | ⏳ pendente |
+| 7.2 | Tabelas do schema fora do recorte (`Aranha4`, `Atributos`/`Exportados`, `Plaquetas4`/`ListaMateriais`/`Sinais`/`Correcao`) | P2 | ⏳ pendente |
+| 7.3 | Relatórios: **37** de 38 telas `frmRelatorio_*` (entregue só a verificação em texto) | P2 | ⏳ pendente |
+| 7.4 | Fixture sintética com blocos (o CAD hoje prova as fases 7–9 só no desenho real) | P3 | ⏳ pendente |
+| 7.5 | Decisões do dono — **Etapa 9** (licença, relatórios, banco) | P3 | ⏳ pendente |
+
 Auditoria de 2026-10-09 sobre `..\..\Elet\Eletron4_ZWcad\decompiled-cleaned` (o
 reverso limpo) cruzada com o código do recorte. Prioridade: **P1** = fecha o valor
 nuclear do recorte; **P2** = expansão do escopo; **P3** = decisão do dono/limpeza.
@@ -617,8 +635,8 @@ parte delas também olhando as tabelas gravadas:
 | `bt8intervalos` | intervalos de borne (`nXnc5R08lF`) | ✅ `VerificarIntervalosBornes` |
 | `bt10BornesLM` | bornes sem LM (`GijcRTCGe3`) | ✅ `VerificarBornesSemLm` |
 | `bt11Paineis` | painel fora do cadastro (`lPnAoagado`) | ✅ `VerificarPaineisSemCadastro` |
-| `bt5Terminais` | terminais (`AtualizaTerminais`) | ⚠️ parcial (`VerificarModelos`) |
-| `bt6Portas` | portas | ⚠️ parcial (`VerificarModelos`) |
+| `bt5Terminais` | terminais (`AtualizaTerminais`) | ⚠️ parcial (`VerificarModelos`) — ⏳ pendente |
+| `bt6Portas` | portas | ⚠️ parcial (`VerificarModelos`) — ⏳ pendente |
 | `bt3Principal` / `bt4Auxiliar` | principal × auxiliar | ✅ `VerificarDispositivosPrincipais` + `VerificarAuxiliaresDivergentes` |
 | `bt9Discrepantes` | bornes editados (atributo `T1` ≠ número da régua) | ✅ `VerificarBornesEditados` |
 | `bt12AMao` | blocos duplicados / itens feitos à mão (`clsBlocos.VerificaDuplicados`) | ✅ `VerificarBlocosDuplicados` |
@@ -629,7 +647,7 @@ parte delas também olhando as tabelas gravadas:
 de jumpers/interligação (**`carregaTree`**) foi portada na rodada 57 — jumper indefinido
 (`JumperIndefinido`), jumper de duas pontas repetindo potencial (`JumperDuplicado`) e
 trecho sem `Tag_Cabo`/em painel apagado (`InterligacaoIndefinida`). O que resta é a
-**ação** `IndefineCabosNaoExistentes`, que varre as polylines de interligação e, quando o
+**ação** `IndefineCabosNaoExistentes` — ⏳ **pendente** (7.1b) —, que varre as polylines de interligação e, quando o
 `Tag_Cabo` não está no catálogo, **limpa e regrava o XData** (`UpgradeOpen`/
 `AtualizaXDataInterligacao`) — é o botão "Corrigir" da tela, não uma checagem read-only,
 e vale tratar como comando próprio (como `JMP`/`ELETCMP`), não como regra do `VERIF`.
@@ -667,28 +685,34 @@ O plugin escreve **13** tabelas; o schema tem **31**. As demais:
 
 | Tabela(s) | Fluxo no original | Situação |
 |---|---|---|
-| `Aranha4` | relatório de cabos (ArqNet/DI, 5 telas) | fora do recorte (é paginação de relatório — §9b) |
-| `Atributos`, `Exportados` | exportar/importar projeto cross-DWG | fora do recorte |
-| `Plaquetas4`, `ListaMateriais`, `Sinais`, `Correcao` | fluxos próprios (referenciados no reverso) | fora do recorte |
+| `Aranha4` | relatório de cabos (ArqNet/DI, 5 telas) | ⏳ pendente — fora do recorte (é paginação de relatório — §9b) |
+| `Atributos`, `Exportados` | exportar/importar projeto cross-DWG | ⏳ pendente — fora do recorte |
+| `Plaquetas4`, `ListaMateriais`, `Sinais`, `Correcao` | fluxos próprios (referenciados no reverso) | ⏳ pendente — fora do recorte |
 | `Cabos`, `Veias`, `Materiais`, `ModelosCabos`, `Paineis` | catálogo/cadastro importados do Access | ✅ o importador cobre |
 | `DWG`, `DWGH`, `PaineisH`, `Preferencias`, `Configuracoes`, `Comandos` | metadados do projeto/app | domínio do sidecar/app |
 
 ### 7.3 Relatórios · P2 (decisão 9b)
 
 **38** telas `frmRelatorio_*` no original; o recoder entrega **1** (a verificação, em
-texto, `ELETREL`). O começo recomendado são os **4 tabulares** (Fiação, Interligação,
-Materiais, Veias) no app Python — a consulta já existe e o custo é o layout.
+texto, `ELETREL`) — ⏳ **pendente: 37**. O começo recomendado são os **4 tabulares** (Fiação,
+Interligação, Materiais, Veias) no app Python — a consulta já existe e o custo é o layout.
 
 ### 7.4 Pendências pequenas · P3
 
-- **Fixture sintética sem blocos** — as fases 7–9 dentro do CAD hoje são provadas pelo
+**Pendência (⏳):**
+
+- ⏳ **Fixture sintética sem blocos** — as fases 7–9 dentro do CAD hoje são provadas pelo
   **desenho real** (que é o que acha defeito), mas o `cad-fixture.lsp` continua sem
   bornes/máscaras/contatos; uma fixture com blocos fecharia o ciclo sintético.
+
+**Não são pendências** (fatos conferidos, nada a fazer):
+
 - **`ModelosCabos`** vazia no Access do projeto (nada a importar).
 - **`TipoBorne`/`Tipo`** (79 bornes com `tipo = 0`) e o **`BlocoLayout`** (2 linhas):
   diferenças de **dado** do desenho local, já provadas.
 
 ### 7.5 Decisões do dono (Etapa 9) · P3
 
-Licença (escolher o provedor), relatórios (formato/entrega) e banco (SQL Server) — os
-três encaixes já existem e nenhum bloqueia o recorte atual.
+⏳ **Pendente (decisão do dono):** licença (escolher o provedor), relatórios
+(formato/entrega) e banco (SQL Server) — os três encaixes já existem e nenhum bloqueia o
+recorte atual.
