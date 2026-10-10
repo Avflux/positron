@@ -655,6 +655,10 @@ namespace Positron.Plugin
             // Bornes sem LM (`lm == 0`) — a árvore `TreeViewBornesLM` do original.
             problemas.AddRange(VerificadorProjeto.VerificarBornesSemLm(bornesDoDesenho));
 
+            // Bornes editados (`bt9Discrepantes`, `QU5c0lgjBd`): o atributo `T1`
+            // (número visível no bloco) que contradiz o número da régua/XData.
+            problemas.AddRange(VerificadorProjeto.VerificarBornesEditados(bornesDoDesenho));
+
             // Conexões órfãs — o botão `bt2Orfao` da tela (`carregaOrfao`).
             IReadOnlyList<ConexaoFiacao> conexoes = ConexoesDoDesenho.Ler();
             problemas.AddRange(VerificadorProjeto.VerificarOrfaos(conexoes));

@@ -183,6 +183,62 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void Aponta_borne_com_numero_visivel_diferente_da_regua()
+        {
+            // O `bt9Discrepantes` (QU5c0lgjBd): o atributo `T1` do bloco é o número
+            // visível; quando difere do número da régua/XData o borne foi editado à mão.
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                new PontoBorne { Handle = "H1", IndiceRegua = 5, Painel = 3, Numero = "11", Terminal = "11", NumeroVisivel = "12" },
+            };
+
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarBornesEditados(bornes));
+            Assert.Equal(AreaVerificacao.Desenho, problema.Area);
+            Assert.Equal(TipoProblema.BorneEditado, problema.Tipo);
+            Assert.Equal("Bornes", problema.Tabela);
+            Assert.Equal("H1", problema.Identificador);
+            Assert.Contains("12", problema.Detalhe);
+            Assert.Contains("11", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Borne_com_numero_visivel_igual_ao_da_regua_nao_aponta()
+        {
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                new PontoBorne { Handle = "H1", IndiceRegua = 5, Numero = "11", Terminal = "11", NumeroVisivel = "11" },
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarBornesEditados(bornes));
+        }
+
+        [Fact]
+        public void Borne_sem_atributo_T1_nao_aponta()
+        {
+            // O `TiraNothing`: sem atributo (ou vazio) não há edição a apontar.
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                new PontoBorne { Handle = "H1", IndiceRegua = 5, Numero = "11", Terminal = "11", NumeroVisivel = null },
+                new PontoBorne { Handle = "H2", IndiceRegua = 5, Numero = "12", Terminal = "12", NumeroVisivel = "" },
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarBornesEditados(bornes));
+        }
+
+        [Fact]
+        public void Numero_visivel_do_borne_ignora_maiusculas()
+        {
+            // O `TextCompare` do original: o complemento colado entra no número e a
+            // comparação não diferencia maiúsculas de minúsculas.
+            List<PontoBorne> bornes = new List<PontoBorne>
+            {
+                new PontoBorne { Handle = "H1", IndiceRegua = 5, Numero = "11", Terminal = "11A", NumeroVisivel = "11a" },
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarBornesEditados(bornes));
+        }
+
+        [Fact]
         public void Aponta_regua_do_dicionario_sem_borne()
         {
             // O `buscaReguasVazias` do reverso: para cada régua do dicionário, se o

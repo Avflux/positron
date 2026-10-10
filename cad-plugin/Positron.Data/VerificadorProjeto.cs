@@ -72,6 +72,9 @@ namespace Positron.Data
         /// <summary>Borne do desenho sem <c>LM</c> (<c>lm == 0</c>): a régua não define LM.</summary>
         BorneSemLm,
 
+        /// <summary>Borne do desenho cujo atributo <c>T1</c> (número visível) difere do número definido pela régua (o <c>bt9Discrepantes</c>).</summary>
+        BorneEditado,
+
         /// <summary>Painel usado no desenho que não existe no cadastro do projeto (<c>lPnAoagado</c>).</summary>
         PainelSemCadastro,
 
@@ -657,6 +660,58 @@ namespace Positron.Data
                     borne.Handle,
                     "borne sem LM (painel " + borne.Painel + ", régua #" + borne.IndiceRegua
                     + ", borne " + (borne.Numero ?? string.Empty).Trim() + ")"));
+            }
+
+            return problemas;
+        }
+
+        /// <summary>
+        /// Bornes editados — o <c>bt9Discrepantes</c> da tela de verificação
+        /// (<c>QU5c0lgjBd</c>): o borne do desenho cujo atributo <c>T1</c> (o número
+        /// **visível** impresso no bloco) difere do número que a régua/XData define.
+        ///
+        /// O original monta <c>m_TodosBornes</c> com o número do XData (o complemento
+        /// colado e o <c>"0"</c> virando <c>"?"</c>) e depois **substitui** o
+        /// <c>NumeroComplem</c> pelo atributo <c>T1</c> do bloco; quando o atributo é
+        /// igual ao número, ele é zerado (não é edição). A grade
+        /// <c>dgBornesEditados</c> lista exatamente os que sobram — o número visível
+        /// contradiz o dado. A comparação é sem diferenciar maiúsculas (<c>TextCompare</c>)
+        /// e sem <c>Trim</c>, como no original.
+        /// </summary>
+        public static List<Problema> VerificarBornesEditados(IEnumerable<PontoBorne> bornes)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (bornes == null)
+            {
+                return problemas;
+            }
+
+            foreach (PontoBorne borne in bornes)
+            {
+                if (borne == null)
+                {
+                    continue;
+                }
+
+                // `clsTextos.TiraNothing`: ausência de atributo não é edição.
+                string visivel = borne.NumeroVisivel ?? string.Empty;
+                if (visivel.Length == 0)
+                {
+                    continue;
+                }
+
+                string numero = NumeroDoDesenho(borne);
+                if (Igual(visivel, numero))
+                {
+                    continue;
+                }
+
+                string identificador = string.IsNullOrWhiteSpace(borne.Handle)
+                    ? "régua #" + borne.IndiceRegua
+                    : borne.Handle;
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.BorneEditado, "Bornes", identificador,
+                    "número visível \"" + visivel + "\" ≠ número da régua \"" + numero
+                    + "\" (painel " + borne.Painel + ", régua #" + borne.IndiceRegua + ")"));
             }
 
             return problemas;

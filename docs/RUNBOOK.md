@@ -806,6 +806,27 @@ mostrada numa `DataGridView` (área, tipo, tabela, identificador, detalhe) com b
 Salvar. Ela é **modal** — como o `ELETCFG`, não entra em script, e é por isso que a
 verificação automatizada usa o `ELETREL`; o conteúdo dos dois é o mesmo objeto.
 
+**Rodada 55 — bornes editados (`bt9Discrepantes`, o `QU5c0lgjBd`).** O botão lista a grade
+`dgBornesEditados`: os bornes cujo **número visível** no bloco contradiz o número que a
+régua/XData define. A regra nasce na montagem de `m_TodosBornes`, no
+`buscaDadosDeFiacaoDWG` (linhas 743-757): o original parte do número do XData (o `Numero`
+com o `NumeroComplem` colado e o `"0"` virando `CaracterTerminalIndefinido`),
+**substitui** o `NumeroComplem` pelo atributo `T1` do bloco (`clsBlocos.LeUmAtributoDeUmBloco`)
+e o zera quando coincide com o número; a grade mostra exatamente os que sobram. A
+comparação é sem diferenciar maiúsculas (`TextCompare`) e sem `Trim`, e a tag é casada
+ignorando caixa.
+
+Entrou um campo no `PontoBorne` — `NumeroVisivel`, lido do atributo `T1` no
+`BornesDoDesenho.Ler` (na mesma transação e na mesma varredura dos bornes) — e a regra pura
+`VerificarBornesEditados`. Nenhum leitor novo de entidade: o `T1` sai da
+`AttributeCollection` que o adapter de dispositivos já percorria.
+
+**Medido no desenho real:** a regra sai **vazia** — nenhum `BorneEditado`, e a linha de base
+segue **249**. O insumo, porém, é não-trivial e foi conferido **fora do plugin** com o dump
+cru (`POSITRON_XDATA_BORNES=1`, que passou a dumpar também a linha `ATT;T1=`): os **199**
+bornes do ModelSpace têm o atributo `T1` preenchido (199/199) e **nenhum** diverge do número
+do XData — logo o zero é a cópia estar limpa, não um no-op.
+
 ### O ciclo completo no projeto real (`npm run cad:projeto`)
 
 Um comando roda o caminho inteiro sobre os arquivos do dono — projeta, carrega o

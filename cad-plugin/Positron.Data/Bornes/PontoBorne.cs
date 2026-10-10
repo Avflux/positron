@@ -30,6 +30,14 @@ namespace Positron.Data.Bornes
         /// <summary>Número do borne (sem complemento).</summary>
         public string Numero { get; set; }
 
+        /// <summary>
+        /// Texto do atributo <c>T1</c> do bloco — o número **visível** no desenho.
+        /// O verifier original o compara com o número definido pela régua/XData
+        /// (<c>bt9Discrepantes</c>): quando difere, o borne foi editado à mão.
+        /// Vazio/nulo quando o bloco não tem o atributo.
+        /// </summary>
+        public string NumeroVisivel { get; set; }
+
         public int Lm { get; set; }
 
         public string Orientacao { get; set; }

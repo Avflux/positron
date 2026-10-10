@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Positron.Data.Bornes;
 #if AUTOCAD
@@ -80,6 +81,10 @@ namespace Positron.Plugin.Bornes
                     // Nome do bloco (chave da tabela de deslocamento) e a
                     // bounding-box (filtro ±0,25 do casamento).
                     ponto.NomeBloco = bloco.Name;
+
+                    // Número visível (atributo `T1`): base do `bt9Discrepantes`, que
+                    // compara o que está impresso no bloco com o número da régua.
+                    ponto.NumeroVisivel = LerAtributo(transacao, bloco, "T1");
                     Extents3d? bounds = ((Drawable)bloco).Bounds;
                     if (bounds.HasValue)
                     {
@@ -97,6 +102,25 @@ namespace Positron.Plugin.Bornes
             }
 
             return bornes;
+        }
+
+        /// <summary>
+        /// Lê o texto de um atributo do bloco pela tag (sem diferenciar maiúsculas),
+        /// como o <c>clsBlocos.LeUmAtributoDeUmBloco</c> do original: devolve vazio
+        /// quando a tag não existe.
+        /// </summary>
+        private static string LerAtributo(Transaction transacao, BlockReference bloco, string tag)
+        {
+            foreach (ObjectId idAtributo in bloco.AttributeCollection)
+            {
+                AttributeReference atributo = transacao.GetObject(idAtributo, OpenMode.ForRead) as AttributeReference;
+                if (atributo != null && string.Equals(atributo.Tag, tag, StringComparison.OrdinalIgnoreCase))
+                {
+                    return atributo.TextString ?? string.Empty;
+                }
+            }
+
+            return string.Empty;
         }
     }
 }

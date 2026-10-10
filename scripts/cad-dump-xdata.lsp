@@ -20,7 +20,10 @@
 ;;; ele duma **todos** os blocos de borne do desenho, um por linha:
 ;;;
 ;;;   BORNE;<handle>;<tipo>;<numero>;<complemento>;<ordem>;<indexRegua>;<layer>
+;;;     ATT;T1=<texto>
 ;;;
+;;; A linha `ATT;T1=` e o numero **visivel** do bloco — o insumo do
+;;; `bt9Discrepantes` (o borne cujo T1 difere do numero da regua/XData).
 ;;; E o que permite reconstruir a sequencia de bornes de uma regua **fora do
 ;;; plugin** e conferir a checagem de intervalos (`bt8intervalos`) contra o dado
 ;;; bruto do desenho. So entram os blocos do ModelSpace — a mesma varredura do
@@ -113,7 +116,7 @@
             ";" (vl-princ-to-string (cdr (assoc 8 d))) "\n")
     nil))
 
-(defun pz-dump:bornes (f / sel i e d x linha)
+(defun pz-dump:bornes (f / sel i e d x linha att ad)
   (setq sel (ssget "_X" '((0 . "INSERT"))))
   (pz-dump:escreve f (strcat "\nBORNES (INSERT com XData Dispositivo): "
                              (itoa (if (null sel) 0 (sslength sel))) " bloco(s)\n"))
@@ -132,7 +135,15 @@
               (setq linha (pz-dump:linha-borne e d app))
               (if (null linha)
                 nil
-                (pz-dump:escreve f linha)))))))))
+                (progn
+                  (pz-dump:escreve f linha)
+                  ;; O atributo T1 (numero visivel) — insumo do `bt9Discrepantes`.
+                  (setq att (entnext e))
+                  (while (and att (= (cdr (assoc 0 (entget att))) "ATTRIB"))
+                    (setq ad (entget att))
+                    (if (= (strcase (cdr (assoc 2 ad))) "T1")
+                      (pz-dump:escreve f (strcat "  ATT;T1=" (vl-princ-to-string (cdr (assoc 1 ad))) "\n")))
+                    (setq att (entnext att))))))))))))
 
 ;; As PORTAS inseridas no desenho (blocos `E`), uma linha por porta e uma por
 ;; atributo — o insumo do `bt14PortasDiscrepantes`, que cruza o modelo (MASCARAS)
