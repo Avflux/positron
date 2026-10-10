@@ -742,6 +742,12 @@ namespace Positron.Plugin
             problemas.AddRange(VerificadorProjeto.VerificarAuxiliaresDivergentes(
                 dispositivosAuxiliares, dispositivosPrincipais, contatosPorModelo));
 
+            // Blocos duplicados (`bt12AMao`, "Copy made by hand"): a varredura de
+            // `clsBlocos.VerificaDuplicados` — dois blocos do mesmo item, por tipo.
+            IReadOnlyList<BlocoDuplicavel> blocosDuplicaveis = BlocosDuplicaveisDoDesenho.Ler(reguas);
+            Plugin.Escrever("VERIF: " + blocosDuplicaveis.Count + " bloco(s) lido(s) para a checagem de duplicados.");
+            problemas.AddRange(VerificadorProjeto.VerificarBlocosDuplicados(blocosDuplicaveis, paineisDoDesenho));
+
             // Intervalos de borne por régua — o `bt8intervalos` da tela (`TreeViewBornes`).
             // As reservas de cada régua entram na sequência de números (o
             // `LeDicBornesReserva`); só as réguas **em uso** são lidas, como no original.

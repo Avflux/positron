@@ -873,6 +873,227 @@ namespace Positron.Data.Tests
             Assert.Contains("≠ modelo \"\"", problema.Detalhe);
         }
 
+        [Fact]
+        public void Aponta_mascara_duplicada()
+        {
+            // O `bt12AMao` ("Copy made by hand"): dois blocos `M` com a mesma
+            // identidade (painel/nome/alt), no mesmo painel em uso.
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Mascara("M1", 3, "R1"),
+                Mascara("M2", 3, "R1"),
+            };
+
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 3 }));
+            Assert.Equal(AreaVerificacao.Desenho, problema.Area);
+            Assert.Equal(TipoProblema.BlocoDuplicado, problema.Tipo);
+            Assert.Equal("Blocos", problema.Tabela);
+            Assert.Equal("M2", problema.Identificador);
+            Assert.Contains("Mask", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Mascara_complementar_nao_aponta()
+        {
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Mascara("M1", 3, "R1"),
+                Mascara("M2", 3, "R1"),
+            };
+            blocos[1].Complementar = true;
+
+            Assert.Empty(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 3 }));
+        }
+
+        [Fact]
+        public void Bloco_duplicado_de_painel_fora_de_uso_nao_aponta()
+        {
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Mascara("M1", 3, "R1"),
+                Mascara("M2", 3, "R1"),
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 9 }));
+        }
+
+        [Fact]
+        public void Aponta_dispositivo_duplicado()
+        {
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Bloco("P", "P1", 3, "K1"),
+                Bloco("P", "P2", 3, "K1"),
+            };
+
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 3 }));
+            Assert.Contains("Main Device", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Aponta_porta_duplicada_da_mesma_mascara()
+        {
+            // A chave do `E` é a identidade da **máscara** + o índice da porta.
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Porta("E1", 3, "M1", 2),
+                Porta("E2", 3, "M1", 2),
+            };
+
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 3 }));
+            Assert.Contains("Door", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Porta_sem_indice_nao_aponta()
+        {
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Porta("E1", 3, "M1", 0),
+                Porta("E2", 3, "M1", 0),
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 3 }));
+        }
+
+        [Fact]
+        public void Aponta_borne_duplicado()
+        {
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Terminal("B1", 3, 5, "11"),
+                Terminal("B2", 3, 5, "11"),
+            };
+
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 3 }));
+            Assert.Contains("Terminal", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Borne_sem_numero_duplicado_nao_aponta()
+        {
+            // O desenho grava "sem número" como "?"/"0"; o original não aponta esses.
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Terminal("B1", 3, 5, "0"),
+                Terminal("B2", 3, 5, "0"),
+            };
+
+            Assert.Empty(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 3 }));
+        }
+
+        [Fact]
+        public void Aponta_auxiliar_duplicado()
+        {
+            // O filtro do auxiliar usa o painel do último borne: sem um borne antes,
+            // o painel seria 0 e nada apareceria (o bug do original).
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Terminal("B1", 3, 5, "1"),
+                Auxiliar("A1", 3, "K1", 7),
+                Auxiliar("A2", 3, "K1", 7),
+            };
+
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 3 }));
+            Assert.Contains("Auxiliary Contacts", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Auxiliar_usa_o_painel_do_ultimo_borne_no_filtro()
+        {
+            // O bug do original, reproduzido: o filtro do auxiliar usa o `indexPainel`
+            // do último borne processado — não o painel do bob (3).
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Terminal("B1", 9, 5, "1"),
+                Auxiliar("A1", 3, "K1", 7),
+                Auxiliar("A2", 3, "K1", 7),
+            };
+
+            Assert.Single(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 9 }));
+            Assert.Empty(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 3 }));
+        }
+
+        [Fact]
+        public void Aponta_definicao_duplicada()
+        {
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Definicao("T1", 3, "4D642", 53, 2),
+                Definicao("T2", 3, "4D642", 53, 2),
+            };
+
+            Problema problema = Assert.Single(VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 3 }));
+            Assert.Contains("Definition", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Tres_copias_apontam_as_duas_ultimas()
+        {
+            // O original aponta toda cópia a partir da segunda (a chave fica no `list`).
+            List<BlocoDuplicavel> blocos = new List<BlocoDuplicavel>
+            {
+                Mascara("M1", 3, "R1"),
+                Mascara("M2", 3, "R1"),
+                Mascara("M3", 3, "R1"),
+            };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarBlocosDuplicados(blocos, new[] { 3 });
+            Assert.Equal(2, problemas.Count);
+            Assert.Equal("M2", problemas[0].Identificador);
+            Assert.Equal("M3", problemas[1].Identificador);
+        }
+
+        private static BlocoDuplicavel Bloco(string tipo, string handle, short painel, string nome1, string nome2 = null, string alternativo = null)
+        {
+            return new BlocoDuplicavel
+            {
+                Tipo = tipo,
+                Handle = handle,
+                Pagina = "8",
+                Painel = painel,
+                Nome1 = nome1,
+                Nome2 = nome2,
+                Alternativo = alternativo,
+            };
+        }
+
+        private static BlocoDuplicavel Mascara(string handle, short painel, string nome1)
+        {
+            return Bloco("M", handle, painel, nome1);
+        }
+
+        private static BlocoDuplicavel Porta(string handle, short painel, string nome1, int indiceDaPorta)
+        {
+            BlocoDuplicavel bloco = Bloco("E", handle, painel, nome1);
+            bloco.IndiceDaPorta = indiceDaPorta;
+            return bloco;
+        }
+
+        private static BlocoDuplicavel Terminal(string handle, short painel, int indiceRegua, string numero)
+        {
+            BlocoDuplicavel bloco = Bloco("B", handle, painel, null);
+            bloco.IndiceRegua = indiceRegua;
+            bloco.Numero = numero;
+            return bloco;
+        }
+
+        private static BlocoDuplicavel Auxiliar(string handle, short painel, string nome1, int indexContato)
+        {
+            BlocoDuplicavel bloco = Bloco("A", handle, painel, nome1);
+            bloco.IndexContato = indexContato;
+            return bloco;
+        }
+
+        private static BlocoDuplicavel Definicao(string handle, short painel, string handleMascara, int indiceModelo, int indiceDaPorta)
+        {
+            BlocoDuplicavel bloco = Bloco("D", handle, painel, null);
+            bloco.HandleMascara = handleMascara;
+            bloco.IndiceModelo = indiceModelo;
+            bloco.IndiceDaPorta = indiceDaPorta;
+            return bloco;
+        }
+
         /// <summary>Um dispositivo `P` do desenho, com os terminais em <c>T#=valor</c>.</summary>
         private static DispositivoFiacao Principal(string handle, string nome, int lm1, int lm2, params string[] terminais)
         {

@@ -35,6 +35,17 @@
 ;;; `bt14PortasDiscrepantes` (bloco x modelo de mascara) e tambem o que confirma
 ;;; as `MASCARA;<indice>;<xrecord>` dumadas sempre.
 ;;;
+;;; Com `POSITRON_XDATA_DUPLICADOS=1`, dumpar a **identidade** de cada bloco/texto do
+;;; ModelSpace como o `clsBlocos.VerificaDuplicados` a monta (o insumo do
+;;; `bt12AMao`), uma linha por item:
+;;;
+;;;   DUP;<tipo>;<chave>;<handle>
+;;;
+;;; A identidade da mascara (porta `E`) e do bob (auxiliar `A`) e resolvida pelo
+;;; handle referenciado; a chave do borne (`B`) usa o **indice da regua** no lugar
+;;; do painel (a regua tem painel unico no dicionario, entao a chave e equivalente).
+;;; E o que permite contar os duplicados **fora do plugin** e conferir a regra.
+;;;
 ;;; Com `POSITRON_XDATA_DISPOSITIVOS=1` no ambiente ele duma os dispositivos `P` e
 ;;; os auxiliares `A` — uma linha por bloco
 ;;;
@@ -231,6 +242,78 @@
                                                (vl-princ-to-string (cdr (assoc 1 ad))) "\n"))
                     (setq att (entnext att))))))))))))
 
+;; A identidade do `clsBlocos.VerificaDuplicados`: `painel_nome1_nome2_alternativo`.
+;; `Nothing` vira vazio (como `Conversions.ToString`), nao o literal "nil".
+(defun pz-dump:texto (v)
+  (if (null v)
+    ""
+    (if (= (type v) 'STR) v (vl-princ-to-string v))))
+
+(defun pz-dump:identidade-ref (h / e d x vals achou)
+  (setq e (if (null h) nil (handent h)))
+  (if (null e)
+    "0___"
+    (progn
+      (setq d (entget e '("Dispositivo" "DISPOSITIVO")))
+      (setq vals nil)
+      (foreach app (cdr (assoc -3 d))
+        (if (and (null vals)
+                 (or (= (car app) "Dispositivo") (= (car app) "DISPOSITIVO")))
+          (setq vals (mapcar 'cdr (cdr app)))))
+      (if (null vals)
+        "0___"
+        (strcat (pz-dump:texto (nth 7 vals)) "_"
+                (pz-dump:texto (nth 1 vals)) "_"
+                (pz-dump:texto (nth 2 vals)) "_"
+                (pz-dump:texto (nth 3 vals)))))))
+
+(defun pz-dump:duplicados (f / sel i e d x app vals tipo k)
+  (setq sel (ssget "_X" '((0 . "INSERT,TEXT"))))
+  (pz-dump:escreve f (strcat "\nDUPLICADOS (blocos e textos): "
+                             (itoa (if (null sel) 0 (sslength sel))) " item(ns)\n"))
+  (if (null sel)
+    nil
+    (progn
+      (setq i (sslength sel))
+      (while (> i 0)
+        (setq i (1- i))
+        (setq e (ssname sel i))
+        (setq d (entget e))
+        (if (= (cdr (assoc 0 d)) "INSERT")
+          (progn
+            (setq d (entget e '("Dispositivo" "DISPOSITIVO")))
+            (foreach app (cdr (assoc -3 d))
+              (if (or (= (car app) "Dispositivo") (= (car app) "DISPOSITIVO"))
+                (progn
+                  (setq vals (mapcar 'cdr (cdr app)))
+                  (setq tipo (strcase (pz-dump:texto (nth 0 vals))))
+                  (if (or (= tipo "M") (= tipo "P"))
+                    (pz-dump:escreve f (strcat "DUP;" tipo ";"
+                      (pz-dump:texto (nth 7 vals)) "_" (pz-dump:texto (nth 1 vals)) "_"
+                      (pz-dump:texto (nth 2 vals)) "_" (pz-dump:texto (nth 3 vals))
+                      ";" (cdr (assoc 5 d))
+                      ";" (pz-dump:texto (nth 12 vals)) "\n"))
+                    (if (= tipo "E")
+                      (pz-dump:escreve f (strcat "DUP;E;" (pz-dump:identidade-ref (nth 3 vals))
+                        "_" (pz-dump:texto (nth 5 vals)) ";" (cdr (assoc 5 d)) "\n"))
+                      (if (= tipo "A")
+                        (pz-dump:escreve f (strcat "DUP;A;" (pz-dump:identidade-ref (nth 3 vals))
+                          "_" (pz-dump:texto (nth 5 vals)) ";" (cdr (assoc 5 d)) "\n"))
+                        (if (= tipo "B")
+                          (pz-dump:escreve f (strcat "DUP;B;" (pz-dump:texto (nth 7 vals)) "_"
+                            (pz-dump:texto (nth 4 vals)) ";" (cdr (assoc 5 d)) "\n"))
+                          nil))))))))          (progn
+            (setq d (entget e '("Definicao" "DEFINICAO")))
+            (foreach app (cdr (assoc -3 d))
+              ;; O app name e o `(car app)`; os valores (apos o 1001) sao
+              ;; handleDaMascara, indiceDoModelo e indiceDaPorta.
+              (if (= (strcase (pz-dump:texto (car app))) "DEFINICAO")
+                (progn
+                  (setq vals (mapcar 'cdr (cdr app)))
+                  (pz-dump:escreve f (strcat "DUP;D;" (pz-dump:texto (nth 0 vals)) "_"
+                    (pz-dump:texto (nth 1 vals)) "_" (pz-dump:texto (nth 2 vals))
+                    ";" (cdr (assoc 5 d)) "\n")))))))))) ) 
+
 ;; O dicionario CONTATOS: cada entrada e os contatos auxiliares de UM modelo — o
 ;; `sTerminaisMod` do `bt4Auxiliar` sai daqui (registros de 8 valores, campos
 ;; +1..+3 = T1..T3 e +4 = tipo). Duma **todas** as entradas, porque os modelos que
@@ -272,6 +355,9 @@
           (pz-dump:dispositivos f)
           ;; Todos os contatos auxiliares dos modelos do dicionario.
           (pz-dump:contatos f))
+        nil)
+      (if (= (getenv "POSITRON_XDATA_DUPLICADOS") "1")
+        (pz-dump:duplicados f)
         nil)
       (close f)
       (princ (strcat "cad-dump-xdata: escrito em " caminho)))))

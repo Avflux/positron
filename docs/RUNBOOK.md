@@ -667,14 +667,12 @@ O verificador do produto é bem maior que as regras de tabela: a tela tem **14 c
 `DeclaracoesGeral.mMensagem[1, id]`) e o motor fica em
 `ClsVerificadorProjetoFiacao.cs` (2.173 linhas), com uma análise própria do desenho
 (`buscaDadosDeFiacaoDWG`, linha 430) que alimenta `carregaOrfao` (1311), `carregaTree`
-(1159) e companhia. O recoder tem **17 regras** (`VerificadorProjeto`); **10** casam
-1:1 com botões do original (fiação, órfão, réguas, bornes sem LM, painel fora do
-cadastro, intervalos de borne, régua da máscara, portas discrepantes e principal ×
-auxiliar), e **2** são parciais (terminais e portas). O que ainda **não** está portado:
-discrepantes (`bt9`) e itens feitos à mão (`bt12`) — todos dependem da análise
-geométrica do desenho, cujo insumo o recoder já monta para o órfão/régua/LM.
-O mapeamento botão a botão está no `PLANO.md` §7.1. O verificador da **interligação**
-(outra tela) ainda não tem o cabo indefinido (`IndefineCabosNaoExistentes`).
+(1159) e companhia. O recoder cobre **as 14** checagens da tela (12 casam 1:1 com um
+botão; 2 são parciais), incluindo as que dependem da análise geométrica do desenho — o
+órfão, a régua, o LM, os intervalos de borne, a régua da máscara, as portas discrepantes,
+o principal × auxiliar, os bornes editados (`bt9`, rodada 55) e os blocos duplicados
+(`bt12`, rodada 56). O mapeamento botão a botão está no `PLANO.md` §7.1. O verificador
+da **interligação** (outra tela) ainda não tem o cabo indefinido (`IndefineCabosNaoExistentes`).
 
 **Rodada 51 — intervalos de borne (`bt8intervalos`, o `nXnc5R08lF`).** É a checagem que
 monta a árvore `TreeViewBornes`: por régua, junta os bornes do desenho **e as reservas**
@@ -826,6 +824,48 @@ segue **249**. O insumo, porém, é não-trivial e foi conferido **fora do plugi
 cru (`POSITRON_XDATA_BORNES=1`, que passou a dumpar também a linha `ATT;T1=`): os **199**
 bornes do ModelSpace têm o atributo `T1` preenchido (199/199) e **nenhum** diverge do número
 do XData — logo o zero é a cópia estar limpa, não um no-op.
+
+**Rodada 56 — blocos duplicados (`bt12AMao`, "Copy made by hand").** É a última checagem da
+tela de fiação. O botão chama `mostraBT`, mas quem monta a grade `dgAMao` é a carga do
+formulário (`mqVcgNjXuh`), **sobre o `jhleNuAtKc`** — o array que o
+`clsBlocos.VerificaDuplicados` preenche numa varredura do ModelSpace. Ou seja: não é uma
+tela de cálculo própria, é o **detector de duplicados** do desenho.
+
+A regra do original: por bloco, monta uma **chave de identidade** conforme o tipo e, quando
+a chave já apareceu, o bloco é um duplicado. O `list` de chaves é **um só** para todos os
+tipos (compartilhado), a comparação é **ordinal**, e a grade mostra só os de **painel em
+uso** (`cOWeaBRTRB`). As chaves, que é o que importa portar:
+
+| tipo | chave | rótulo |
+|------|-------|--------|
+| máscara (`M`) | `painel_nome1_nome2_alternativo` (pula complementar) | `Mask` |
+| dispositivo (`P`) | idem (pula complementar) | `Main Device` |
+| porta (`E`) | identidade da **máscara** apontada + `indiceDaPorta` | `Door` |
+| borne (`B`) | `painel_indiceRegua_numero` (pula `"?"`/`"0"` no duplicado) | `Terminal` |
+| auxiliar (`A`) | identidade do **bob** apontado + `IndexContato` | `Auxiliary Contacts` |
+| definição (`D`, `DBText`) | `handleMascara_indiceModelo_indiceDaPorta` | `Definition` |
+
+Dois detalhes do original foram reproduzidos de propósito: o **complemento do número do
+borne não entra** na chave (é o `Numero` cru, não o `Terminal`), e o **filtro do auxiliar
+usa o `indexPainel` do último borne processado** — não o do bob (a variável `structureBorne`
+é reaproveitada fora do laço). É um bug do original, e o zero desta cópia não o esconde: a
+regra unitária o exercita.
+
+Entrou um leitor novo numa **passada só** (`BlocosDuplicaveisDoDesenho`) — a ordem do
+ModelSpace importa, porque é ela que decide qual cópia vira apontamento e qual painel o
+auxiliar vê. Ele resolve as referências da porta e do auxiliar pelo handle (`array[4]`) e o
+texto de definição pelo XData `Definicao`; a identidade da máscara/bob sai do mesmo
+`DispositivoFiacaoXData` da fiação. A regra pura é `VerificarBlocosDuplicados` e o tipo novo
+é `BlocoDuplicado`.
+
+**Medido no desenho real:** o `VERIF` loga `406 bloco(s) lido(s) para a checagem de
+duplicados` e a regra sai **vazia** — a linha de base segue **249** e o ciclo completo no
+AutoCAD 2020 (`cad:projeto:acad -- -Idempotencia`) reproduz tudo (`IDEMPOTENTE`). O que dá
+confiança é a conferência **independente**: o modo novo `POSITRON_XDATA_DUPLICADOS=1` do
+`cad-dump-xdata.lsp` dumpar identidade por item e a reconstrução em Python **fora do
+plugin** fecha **406 itens** (199 `B`, 73 `P`, 63 `A`, 45 `E`, 10 `M`, 16 `D`) com **406
+chaves distintas** — logo o zero é a cópia estar limpa, não um no-op, e o leitor concorda
+com o dump item a item.
 
 ### O ciclo completo no projeto real (`npm run cad:projeto`)
 

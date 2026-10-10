@@ -232,6 +232,15 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         public bool Invisible { get; set; }
     }
 
+    /// <summary>
+    /// Texto simples (o <c>DBText</c> da definição de porta, lida na checagem de
+    /// duplicados, <c>bt12AMao</c>). O stub só precisa da superfície que o plugin
+    /// usa: a identidade de objeto (handle/layer) e o XData.
+    /// </summary>
+    public class DBText : Entity
+    {
+    }
+
     public class Xrecord : DBObject
     {
         public ResultBuffer Data { get; set; }

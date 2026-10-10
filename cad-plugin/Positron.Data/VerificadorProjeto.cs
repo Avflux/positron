@@ -103,6 +103,9 @@ namespace Positron.Data
 
         /// <summary>Bloco auxiliar (`A`) cujos terminais divergem do contato do modelo (o `bt4Auxiliar`).</summary>
         AuxiliarDivergente,
+
+        /// <summary>Bloco do desenho repetido — dois blocos do mesmo item (o `bt12AMao`, "Copy made by hand").</summary>
+        BlocoDuplicado,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -715,6 +718,179 @@ namespace Positron.Data
             }
 
             return problemas;
+        }
+
+        /// <summary>
+        /// Blocos duplicados — o <c>bt12AMao</c> da tela de verificação ("Copy made by
+        /// hand", a grade <c>dgAMao</c>), alimentado pelo
+        /// <c>clsBlocos.VerificaDuplicados</c>.
+        ///
+        /// O original varre o ModelSpace e, por bloco, monta uma **chave de
+        /// identidade** conforme o tipo; quando a chave já apareceu, o bloco é um
+        /// **duplicado** (dois blocos do mesmo item) e vira uma linha. A lista de
+        /// chaves é **uma só** para todos os tipos (um <c>List&lt;string&gt;</c>
+        /// compartilhado):
+        ///
+        /// | tipo | chave | rótulo |
+        /// |------|-------|--------|
+        /// | máscara (`M`) | `painel_nome1_nome2_alternativo` | `Mask` |
+        /// | dispositivo (`P`) | `painel_nome1_nome2_alternativo` | `Main Device` |
+        /// | porta (`E`) | `painel_nome1_nome2_alternativo_indiceDaPorta` (identidade da **máscara**) | `Door` |
+        /// | borne (`B`) | `painel_indiceRegua_numero` | `Terminal` |
+        /// | auxiliar (`A`) | `painel_nome1_nome2_alternativo_indexContato` (identidade do **bob**) | `Auxiliary Contacts` |
+        /// | definição (`D`) | `handleMascara_indiceModelo_indiceDaPorta` | `Definition` |
+        ///
+        /// Regras fiéis: máscara/dispositivo **complementar** não entram; porta com
+        /// `indiceDaPorta == 0` não entra; borne com número `"?"`/`"0"` é pulado (o
+        /// desenho grava "sem número" assim); a comparação das chaves é **ordinal**
+        /// (sensível a caixa), e o complemento do número do borne **não** entra na
+        /// chave (o original usa o `Numero` cru, não o `Terminal`).
+        ///
+        /// Só aparecem os blocos cujo **painel está em uso** (o <c>cOWeaBRTRB</c> do
+        /// original). No auxiliar o painel do filtro é o **bug do original**: usa o
+        /// `indexPainel` do **último borne processado**, não o do bob — reproduzido.
+        /// </summary>
+        public static List<Problema> VerificarBlocosDuplicados(
+            IEnumerable<BlocoDuplicavel> blocos,
+            ICollection<int> paineisEmUso)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (blocos == null)
+            {
+                return problemas;
+            }
+
+            HashSet<string> emUso = null;
+            if (paineisEmUso != null)
+            {
+                emUso = new HashSet<string>();
+                foreach (int painel in paineisEmUso)
+                {
+                    emUso.Add(painel.ToString(CultureInfo.InvariantCulture));
+                }
+            }
+
+            // O `list` do original é UM só para todos os tipos (compartilhado).
+            HashSet<string> vistos = new HashSet<string>(StringComparer.Ordinal);
+
+            // O filtro do auxiliar usa o `indexPainel` do **último borne** processado
+            // (variável reaproveitada no original) — reproduzido.
+            int ultimoPainelBorne = 0;
+
+            foreach (BlocoDuplicavel bloco in blocos)
+            {
+                if (bloco == null)
+                {
+                    continue;
+                }
+
+                string tipo = (bloco.Tipo ?? string.Empty).Trim().ToUpperInvariant();
+                string chave;
+                string rotulo;
+                int painel;
+
+                switch (tipo)
+                {
+                    case "M":
+                        if (bloco.Complementar)
+                        {
+                            continue;
+                        }
+
+                        chave = Identidade(bloco);
+                        rotulo = "Mask";
+                        painel = bloco.Painel;
+                        break;
+                    case "P":
+                        if (bloco.Complementar)
+                        {
+                            continue;
+                        }
+
+                        chave = Identidade(bloco);
+                        rotulo = "Main Device";
+                        painel = bloco.Painel;
+                        break;
+                    case "E":
+                        if (bloco.IndiceDaPorta <= 0)
+                        {
+                            continue;
+                        }
+
+                        chave = Identidade(bloco) + "_" + bloco.IndiceDaPorta.ToString(CultureInfo.InvariantCulture);
+                        rotulo = "Door";
+                        painel = bloco.Painel;
+                        break;
+                    case "B":
+                        chave = bloco.Painel.ToString(CultureInfo.InvariantCulture) + "_"
+                            + bloco.IndiceRegua.ToString(CultureInfo.InvariantCulture) + "_"
+                            + (bloco.Numero ?? string.Empty);
+                        rotulo = "Terminal";
+                        painel = bloco.Painel;
+                        ultimoPainelBorne = bloco.Painel;
+                        if (!vistos.Contains(chave))
+                        {
+                            vistos.Add(chave);
+                            continue;
+                        }
+
+                        // O desenho grava "sem número" como "?"/0: o original não aponta esses.
+                        if (NumeroIndefinidoDoBorne(bloco.Numero))
+                        {
+                            continue;
+                        }
+
+                        break;
+                    case "A":
+                        chave = Identidade(bloco) + "_" + bloco.IndexContato.ToString(CultureInfo.InvariantCulture);
+                        rotulo = "Auxiliary Contacts";
+                        painel = ultimoPainelBorne;
+                        break;
+                    case "D":
+                        chave = (bloco.HandleMascara ?? string.Empty) + "_"
+                            + bloco.IndiceModelo.ToString(CultureInfo.InvariantCulture) + "_"
+                            + bloco.IndiceDaPorta.ToString(CultureInfo.InvariantCulture);
+                        rotulo = "Definition";
+                        painel = bloco.Painel;
+                        break;
+                    default:
+                        continue;
+                }
+
+                if (!vistos.Contains(chave))
+                {
+                    vistos.Add(chave);
+                    continue;
+                }
+
+                if (emUso != null && !emUso.Contains(painel.ToString(CultureInfo.InvariantCulture)))
+                {
+                    continue;
+                }
+
+                problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.BlocoDuplicado, "Blocos",
+                    bloco.Handle,
+                    "duplicado: " + rotulo + " (painel " + painel + ", página \"" + (bloco.Pagina ?? string.Empty) + "\")"));
+            }
+
+            return problemas;
+        }
+
+        /// <summary>A identidade do original: <c>painel_nome1_nome2_alternativo</c>, com <c>Nothing</c> virando vazio.</summary>
+        private static string Identidade(BlocoDuplicavel bloco)
+        {
+            return bloco.Painel.ToString(CultureInfo.InvariantCulture) + "_"
+                + (bloco.Nome1 ?? string.Empty) + "_"
+                + (bloco.Nome2 ?? string.Empty) + "_"
+                + (bloco.Alternativo ?? string.Empty);
+        }
+
+        /// <summary>O número "sem valor" do borne desenhado: <c>"?"</c> ou <c>"0"</c>.</summary>
+        private static bool NumeroIndefinidoDoBorne(string numero)
+        {
+            string texto = (numero ?? string.Empty).Trim();
+            return string.Equals(texto, TerminalIndefinido, StringComparison.Ordinal)
+                || string.Equals(texto, "0", StringComparison.Ordinal);
         }
 
         public static List<Problema> VerificarReguasVazias(
