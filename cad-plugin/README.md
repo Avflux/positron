@@ -45,10 +45,10 @@ dotnet build Positron.Plugin/Positron.Plugin.csproj -p:CadPlatform=ZWCAD
 Nesse caso o `Positron.Plugin` compila contra o **stub** (`Positron.CadStub`),
 que reproduz a fatia mínima da API. Serve para o build não quebrar em máquinas sem CAD e para o CI ter um gate.
 
-> **Nesta máquina o ZWCAD 2026 está instalado**, então `npm run plugin:build` cai
-> no primeiro caso: gera `Positron.Plugin.ZWCAD.dll` contra a API **real**
-> (referencia `ZwManaged`/`ZwDatabaseMgd` 26.0.26.0) e **sem** o stub na saída —
-> é um assembly carregável por `NETLOAD`. O stub só entra em CI/máquinas sem CAD.
+> **Nesta máquina o ZWCAD não está instalado**, então `npm run plugin:build`
+> (ZWCAD) cai no segundo caso: compila contra o stub. O alvo ZWCAD continua sendo
+> o do produto; a DLL real (`Positron.Plugin.ZWCAD.dll`, contra
+> `ZwManaged`/`ZwDatabaseMgd`) sai onde o ZWCAD estiver instalado.
 
 ### 2. AutoCAD
 
@@ -66,11 +66,13 @@ npm run plugin:build:autocad
 dotnet build Positron.Plugin/Positron.Plugin.csproj -p:CadPlatform=AutoCAD
 ```
 
-> O **AutoCAD 2020** dos ensaios originais (positivos: `INT`/`FIA` rodaram no
-> `accoreconsole`) **não está nesta máquina**, então aqui o alvo AutoCAD fica no
-> stub. Continua valendo o alvo net472: AutoCAD 2018–2024. AutoCAD **2025+** e o
-> `accoreconsole` do DWG TrueView 2027 usam .NET 8/10 e **não** carregam um plugin
-> net472. Os ensaios no AutoCAD 2020 ficam documentados no `../docs/RUNBOOK.md`.
+> **Nesta máquina o AutoCAD 2020 está instalado**, então `npm run plugin:build:autocad`
+> cai no primeiro caso e gera `Positron.Plugin.AutoCAD.dll` contra a API **real**
+> (o `csproj` auto-detecta 2020–2026) — carregável pelo `accoreconsole` do próprio
+> AutoCAD (harness `npm run cad:smoke:acad`). Continua valendo o alvo net472:
+> AutoCAD 2018–2024. AutoCAD **2025+** e o `accoreconsole` do DWG TrueView 2027
+> usam .NET 8/10 e **não** carregam um plugin net472. Receita e números no
+> `../docs/RUNBOOK.md`.
 
 ### 3. Build de ambos
 

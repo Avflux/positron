@@ -21,6 +21,10 @@
     <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2026')">$(ProgramFiles)\Autodesk\AutoCAD 2026</AutoCadDir>
     <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2025')">$(ProgramFiles)\Autodesk\AutoCAD 2025</AutoCadDir>
     <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2024')">$(ProgramFiles)\Autodesk\AutoCAD 2024</AutoCadDir>
+    <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2023')">$(ProgramFiles)\Autodesk\AutoCAD 2023</AutoCadDir>
+    <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2022')">$(ProgramFiles)\Autodesk\AutoCAD 2022</AutoCadDir>
+    <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2021')">$(ProgramFiles)\Autodesk\AutoCAD 2021</AutoCadDir>
+    <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2020')">$(ProgramFiles)\Autodesk\AutoCAD 2020</AutoCadDir>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(CadPlatform)' == 'AutoCAD' And '$(AutoCadDir)' != ''">

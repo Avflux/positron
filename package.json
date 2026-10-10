@@ -33,7 +33,10 @@
     "plugin:test": "dotnet test cad-plugin/Positron.Data.Tests/Positron.Data.Tests.csproj",
     "cad:smoke": "powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1",
     "cad:e2e": "powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Fixture scripts/cad-fixture.lsp -Comandos ELET,FIA,INT,SYNCD,VERIF",
-    "cad:projeto": "powershell -ExecutionPolicy Bypass -File scripts/cad-projeto-e2e.ps1"
+    "cad:smoke:acad": "powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1",
+    "cad:e2e:acad": "powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 -Fixture scripts/cad-fixture.lsp -Comandos ELET,FIA,INT,SYNCD,VERIF",
+    "cad:projeto": "powershell -ExecutionPolicy Bypass -File scripts/cad-projeto-e2e.ps1",
+    "cad:projeto:acad": "powershell -ExecutionPolicy Bypass -File scripts/cad-projeto-e2e.ps1 -Cad AutoCAD"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

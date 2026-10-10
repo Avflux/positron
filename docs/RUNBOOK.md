@@ -95,9 +95,11 @@ com um erro de compilação vermelho só atrapalha. `cargo check` é o gate.
 ## Rodar o plugin dentro de um CAD de verdade
 
 O `plugin:build` compila contra o **stub** quando não acha o CAD — isso valida a
-sintaxe, mas **não** prova que o plugin carrega. Nesta máquina o **ZWCAD 2026 está
-instalado**, então `npm run plugin:build` resolve o `ZWCadDir` sozinho e gera a
-DLL contra a API **real**; o alvo AutoCAD continua no stub.
+sintaxe, mas **não** prova que o plugin carrega. Nesta máquina **não há ZWCAD** e o
+host CAD verificado é o **AutoCAD 2020**: `npm run plugin:build:autocad` resolve a
+`AutoCadDir` (auto-detecção 2020–2026) e gera a DLL contra a API **real**, e o
+`accoreconsole` carrega o plugin sem interface (seção "AutoCAD 2020"). O alvo
+ZWCAD continua suportado, mas aqui compila contra o stub.
 
 ### ZWCAD 2026 (alvo principal)
 
@@ -300,17 +302,57 @@ caminho): `fiacao_por_painel(1)` traz os dois fios (`Pagina` = layer `12`,
 não tem blocos: bornes, máscaras e contatos saem vazios — é o que falta para
 exercitar as fases 7–9 num CAD.
 
-### AutoCAD (evidência histórica; alvo net472)
+### AutoCAD 2020 (host verificado nesta máquina)
 
-Os ensaios de `FIA`/`INT` no `accoreconsole` do **AutoCAD 2020** foram feitos pelo
-dono do projeto e **deram positivo** — o `INT` gravou `Interligacao4` de verdade e
-o `FIA` gravou `Fiacao`/`Bornes4F`. O AutoCAD 2020 **não está instalado nesta
-máquina**, então a receita abaixo é referência (o alvo AutoCAD builda só contra o
-stub aqui). Vale para AutoCAD 2018–2024; 2025+ e o TrueView 2027 são .NET 8/10 e
-**não** carregam um plugin net472.
+O AutoCAD 2020 **está instalado** (`C:\Program Files\Autodesk\AutoCAD 2020`) e o
+`accoreconsole.exe` roda o plugin **headless** — é o host CAD desta máquina, já que
+não há ZWCAD. O harness `scripts/cad-autocad-smoke.ps1` faz o ciclo inteiro (confere
+o AutoCAD, cria o `.db` pelo `schema.sql`, escreve o `.scr`, roda e imprime o
+`POSITRON_LOG`):
+
+```bash
+npm run plugin:build:autocad                 # DLL contra a API real (auto-detecta 2020..2026)
+npm run cad:smoke:acad                        # carrega a DLL num desenho vazio (ELET)
+npm run cad:e2e:acad                          # fixture sintética (scripts/cad-fixture.lsp)
+npm run cad:projeto:acad -- -Idempotencia     # projeto real + catálogo + app + baseline
+```
+
+Diferenças em relação ao ZWCAD, todas medidas aqui:
+
+- o `accoreconsole.exe` é um **processo separado** — não há instância única nem a
+  necessidade de fechar o CAD antes (o harness do ZWCAD exige isso);
+- o script vai no `/s` com o **caminho completo e a extensão `.scr`** (é o ZWCAD
+  que exige o caminho **sem** extensão no `/b`);
+- o desenho entra por `/i <cópia>` (cópia no TEMP; o original nunca é tocado);
+- a saída do `accoreconsole` é **UTF-16LE** e ele redireciona o próprio stdout para
+  um arquivo, então o `POSITRON_LOG` continua sendo a evidência primária;
+- ao rodar pelo **npm dentro do PowerShell**, o shim `npm.ps1` (npm 11.18 nesta
+  máquina) mastiga os argumentos depois do `--` (`-Revisao`/`-Comandos` viram cli
+  config e o harness recebe os parâmetros errados). Chame o `.ps1` direto — é o que
+  o `cad-projeto-e2e.ps1` faz — ou use o `npm run` pelo **bash**, onde o `--` é
+  repassado certo.
+
+**O `-Cad AutoCAD` do `cad-projeto-e2e.ps1` troca o harness e roda tudo sem ZWCAD.**
+Medido nesta máquina, o ciclo completo reproduz o alvo ZWCAD linha a linha:
+
+```text
+FIA: 494 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 83 posicao(oes));
+     265 porta(s) em Portas4F; 168 borne(s) em Bornes4F; 70 contato(s) em Contatos4F;
+     83 dispositivo(s) em Dispositivos4F; 11 circuito(s) em Circuitos4F; 15 tipo(s) em Aplicacao4F
+INT: 20 linha(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I;
+     216 borne(s) em Bornes4I; 697 cabo(s) em Cabos4; 2388 veia(s) em Veias4
+VERIF: 238 problema(s) = BorneSemLm 119 + BorneSemFiacao 107 + ReguaVazia 10 + SobreposicaoAusente 2
+IDEMPOTENTE: mesmo conteudo (ignorando Data)
+```
+
+A regra do stub vale igual: se o build contra a **API real** falhar onde o stub
+passa, é o **stub** que está errado. A receita manual abaixo é a mesma que o
+harness executa. Vale para AutoCAD 2018–2024; 2025+ e o TrueView 2027 são .NET
+8/10 e **não** carregam um plugin net472.
 
 1. **Compile contra a API real.** Sem `AutoCadDir` o `csproj` procura
-   AutoCAD 2026/2025/2024; numa máquina com outra versão, passe o caminho:
+   AutoCAD 2026…2020; numa máquina com outra versão (ou fora do `Program Files`),
+   passe o caminho:
 
    ```bash
    npm run plugin:build:autocad -- -p:AutoCadDir="C:\\Program Files\\Autodesk\\AutoCAD 2020"
@@ -1138,10 +1180,14 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 
 - `pytest` — 27 testes passando, com DEALER/ROUTER e SUB/PUB reais e leitura do
   SQLite do projeto.
-- `npm run plugin:build` — 0 erros/0 avisos; o alvo ZWCAD resolve o `ZWCadDir`
-  instalado e gera a DLL contra a API **real** (`ZwManaged`/`ZwDatabaseMgd`
-  26.0.26.0), sem o stub na saída.
-- `npm run plugin:test` — 194 testes xunit (net472) do plugin CAD.
+- `npm run plugin:build` — 0 erros/0 avisos; nesta máquina (sem ZWCAD) compila
+  contra o stub. `npm run plugin:build:autocad` resolve a `AutoCadDir` (detecta o
+  **AutoCAD 2020** instalado) e gera a DLL contra a API **real**, sem o stub.
+- `npm run plugin:test` — 209 testes xunit (net472) do plugin CAD.
+- `npm run cad:smoke:acad` / `cad:e2e:acad` — smoke e fixture **dentro do AutoCAD
+  2020** (`accoreconsole`), o host CAD desta máquina.
+- `npm run cad:projeto:acad -- -Idempotencia` — o ciclo completo no projeto real
+  pelo AutoCAD 2020: mesma projeção, mesma linha de base (238) e idempotência.
 - `python -m sidecar` ponta a ponta: handshake em stdout, `ping` por DEALER,
   `heartbeat` recebido no SUB, `GET /health` e `POST /rpc/echo` respondendo.
 - `npm run protocol:gen` — passa, e falha com exit 1 quando o contrato diverge
@@ -1149,16 +1195,17 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
 - `npm run typecheck` — `tsc --noEmit` limpo nos dois workspaces.
 - `npm run build` — gera `apps/web/dist` (57 módulos).
 - `ruff check .` no sidecar — limpo.
-- **Dentro do ZWCAD 2026 com um desenho real** — `-Desenho ..\Elet\RCD\Funcional.dwg`:
-  `FIA` grava 365 linhas (199 bornes, 191 dispositivos), `INT` 20 trechos, o
+- **No alvo ZWCAD 2026 (máquina que o tinha; aqui não reproduzível) com um desenho
+  real** — `-Desenho ..\Elet\RCD\Funcional.dwg`:
+  `FIA` grava 494 linhas (199 bornes, 191 dispositivos), `INT` 20 trechos, o
   `SYNCD` repete sem duplicar e as tabelas derivadas (portas, contatos,
   dispositivos, circuitos, aplicações) saem preenchidas. Foi esta rodada que achou
   o `FormatException` do `ReguasModelo` (ver armadilha abaixo).
-- **Dentro do ZWCAD 2026 com dados sintéticos** — `npm run cad:e2e` (fixture `scripts/cad-fixture.lsp`):
+- **No alvo ZWCAD 2026 (histórico) com dados sintéticos** — `npm run cad:e2e` (fixture `scripts/cad-fixture.lsp`):
   `FIA` grava 2 linhas em `Fiacao` + 2 circuitos, `INT` grava 1 `Interligacao4`, o
   `SYNCD` repete e **não duplica** (idempotência no CAD) e o sidecar lê as mesmas
   linhas do `.db`.
-- **Dentro do ZWCAD 2026** — `npm run cad:smoke` carrega a DLL por `NETLOAD` e roda
+- **No alvo ZWCAD 2026 (histórico)** — `npm run cad:smoke` carrega a DLL por `NETLOAD` e roda
   os comandos num desenho vazio. O `POSITRON_LOG` traz `Positron carregado.`,
   a resposta do `ELET`, `FIA: nenhuma LWPOLYLINE com XData CONEXAO no desenho.`,
   `INT: nenhuma LWPOLYLINE com XData INTERLIGACAO no desenho.`, o `SYNCD` (as
@@ -1176,7 +1223,7 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
   teste unitário, não dentro do CAD. **Obstáculo medido** (ver a armadilha do
   INSERT abaixo): carimbar XData num `INSERT` pelo LISP não funciona neste ZWCAD,
   então a fixture com blocos tem que vir de um DWG pronto.
-- **AutoCAD** — o AutoCAD 2020 dos ensaios de `FIA`/`INT` (positivos) não está
-  instalado aqui; o alvo AutoCAD builda contra o stub (`Positron.CadStub`) e não
-  carrega por `NETLOAD`.
+- **ZWCAD** — não está instalado nesta máquina; o alvo ZWCAD compila contra o stub
+  (`Positron.CadStub`) e não foi carregado por `NETLOAD` aqui. As execuções no ZWCAD
+  2026 acima são **evidência histórica** da máquina que o tinha.
 - `npm run sidecar:build` (PyInstaller) — não executado aqui.

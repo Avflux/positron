@@ -314,15 +314,12 @@ detalhes do harness que custaram tempo e ficaram documentados no `RUNBOOK.md`: o
 `/b` do ZWCAD espera o caminho **sem** a extensão `.scr`, e o `-Db` do script
 colide com o alias de `-Debug` (é `-Banco`).
 
-Os alvos **AutoCAD** continuam buildando contra o stub nesta máquina: o
-`AutoCAD 2020` usado nos ensaios originais **não está instalado aqui** (há
-2010/2011/2013 e o DWG TrueView 2027). Os ensaios de `FIA`/`INT` no
-`accoreconsole` 2020 foram feitos pelo dono do projeto e **deram positivo** — o
-`INT` gravou `Interligacao4` de verdade e o `FIA` gravou `Fiacao`/`Bornes4F` —
-e ficam registrados no `RUNBOOK.md` como evidência histórica. Atenção: o
-`csproj` procura 2026/2025/2024; numa máquina com 2020 o caminho precisa ser
-passado à mão, e AutoCAD 2025+/TrueView 2027 (API .NET 8/10) **não** carregam um
-plugin net472.
+O alvo **AutoCAD** é host verificado nesta máquina: o `AutoCAD 2020` está
+instalado, o `csproj` auto-detecta 2020–2026, `npm run plugin:build:autocad` gera
+a DLL contra a API **real** e o `accoreconsole` carrega o plugin (harness
+`npm run cad:smoke:acad`; receita e números no `RUNBOOK.md`). O alvo **ZWCAD** (o
+alvo do produto) compila contra o stub aqui, porque não há ZWCAD nesta máquina.
+AutoCAD 2025+/TrueView 2027 (API .NET 8/10) **não** carregam um plugin net472.
 
 A fase 5 está **fechada** (registro da época: *parcial*). Já existem e são testados: o comando `FIA`, o
 leitor do XData `CONEXAO`, a projeção para `Fiacao` (INSERT canônico) e a leitura
@@ -533,10 +530,10 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
 - **Catálogo real:** `scripts/cad-importa-catalogo.ps1` carrega `Cabos`/`Veias`/
   `Materiais` do Access (697/2.388/210) e o app passa a devolver esses dados
   (`cabos4_por_revisao` 697, `catalogo_listar_materiais` 210, …).
-- **Harness:** `npm run cad:smoke` (desenho de verdade, com `-Desenho`), `npm run
-  cad:e2e` (fixture sintético) e os dois builds de plugin (`plugin:build` ZWCAD e
-  `plugin:build:autocad`, contra o stub). Ensaios em **AutoCAD 2020** feitos pelo dono
-  ficam como evidência histórica.
+- **Harness:** `npm run cad:smoke:acad`/`cad:e2e:acad`/`cad:projeto:acad` rodam no
+  **AutoCAD 2020** (`accoreconsole`), o host CAD desta máquina; o harness do ZWCAD
+  (`cad:smoke`/`cad:e2e`) segue para uma máquina com ZWCAD. Os dois builds de plugin
+  (`plugin:build` ZWCAD→stub aqui, `plugin:build:autocad`→API real).
 
 **Backlog do que ainda falta** (não é ordem obrigatória):
 
@@ -576,8 +573,8 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
    tabela. Os três restantes vêm de telas de relatório e de importação/exportação —
    a receita de cada um está no `PLANO.md`.
 4. **Pendências menores:** `ModelosCabos` está vazia no Access do projeto (nada a
-   importar); os ensaios de `FIA`/`INT` no AutoCAD 2020 seguem no `RUNBOOK.md` como
-   evidência histórica; o detalhe de cada tabela fora do recorte está no `PLANO.md`.
+   importar); o ciclo completo roda no AutoCAD 2020 (`npm run cad:projeto:acad`,
+   ver `RUNBOOK.md`); o detalhe de cada tabela fora do recorte está no `PLANO.md`.
 
 **Convenções que não podem ser esquecidas**
 
@@ -594,7 +591,7 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
 
 ```bash
 npm run plugin:build      # C# do plugin compila (0 avisos)
-npm run plugin:test       # xunit, net472 (hoje 194 testes)
+npm run plugin:test       # xunit, net472 (hoje 209 testes)
 npm run protocol:gen      # contrato Python↔TS e tipos do schema em sincronia
 npm run typecheck
 npm run build             # web

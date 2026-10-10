@@ -22,9 +22,17 @@
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File scripts/cad-projeto-e2e.ps1 -Idempotencia
+
+.EXAMPLE
+  # host AutoCAD 2020 (accoreconsole) em vez do ZWCAD
+  powershell -ExecutionPolicy Bypass -File scripts/cad-projeto-e2e.ps1 -Cad AutoCAD -Idempotencia
 #>
 [CmdletBinding()]
 param(
+    # Host CAD que roda os comandos. `ZWCAD` e o alvo do produto; `AutoCAD` usa o
+    # `accoreconsole` do AutoCAD 2020 (harness `cad-autocad-smoke.ps1`).
+    [ValidateSet('ZWCAD', 'AutoCAD')]
+    [string] $Cad = 'ZWCAD',
     [string] $Desenho = "..\Elet\RCD\Funcional.dwg",
     [string] $Mdb = "..\Elet\RCD\RCD.mdb",
     [string] $Banco = "$env:TEMP\positron-projeto.db",
@@ -35,6 +43,12 @@ param(
     [switch] $ExigirBaseline
 )
 
+# Script do harness conforme o host. O ZWCAD continua o padrao.
+# Invocamos o .ps1 DIRETO (nao por `npm run`): o shim `npm.ps1` do PowerShell
+# mastiga os argumentos depois do `--` (npm 11 le `-Revisao`/`-Comandos` como
+# cli config) e o harness recebe os parametros errados.
+$smokeScript = Join-Path $PSScriptRoot $(if ($Cad -eq 'AutoCAD') { 'cad-autocad-smoke.ps1' } else { 'cad-zwcad-smoke.ps1' })
+
 $ErrorActionPreference = "Stop"
 $raiz = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $raiz 'services\sidecar\.venv\Scripts\python.exe'
@@ -43,7 +57,7 @@ $relatorio = Join-Path $env:TEMP 'positron-relatorio.txt'
 if (-not (Test-Path $Desenho)) { throw "nao encontrei o desenho em '$Desenho'" }
 if (-not (Test-Path $Mdb)) { throw "nao encontrei o .mdb em '$Mdb'" }
 if (-not (Test-Path $python)) { throw "nao encontrei o python do sidecar em '$python'" }
-if (Get-Process ZWCAD -ErrorAction SilentlyContinue) {
+if ($Cad -eq 'ZWCAD' -and (Get-Process ZWCAD -ErrorAction SilentlyContinue)) {
     throw "ZWCAD esta aberto; feche-o (instancia unica e nao herda POSITRON_*)"
 }
 
@@ -52,7 +66,7 @@ Remove-Item $Banco -ErrorAction SilentlyContinue
 Write-Host "  banco: $Banco"
 
 Write-Host "=== 2/7 projecao ($Desenho / DWG $Dwg / $Revisao) ===" -ForegroundColor Cyan
-& npm run cad:smoke -- -Dwg $Dwg -Revisao $Revisao -Comandos ELET,FIA,INT `
+& powershell -NoProfile -ExecutionPolicy Bypass -File $smokeScript -Dwg $Dwg -Revisao $Revisao -Comandos ELET,FIA,INT `
     -Desenho $Desenho -Banco $Banco 2>&1 | Select-String -Pattern "FIA:|INT:" | ForEach-Object { "  " + $_.Line }
 if ($LASTEXITCODE -ne 0) { throw "cad:smoke falhou (exit $LASTEXITCODE)" }
 
@@ -62,7 +76,7 @@ powershell -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'cad-importa-c
 if ($LASTEXITCODE -ne 0) { throw "a importacao falhou (exit $LASTEXITCODE)" }
 
 Write-Host "=== 4/7 INT de novo, com o catalogo carregado (+ VERIF/ELETREL) ===" -ForegroundColor Cyan
-& npm run cad:smoke -- -Dwg $Dwg -Revisao $Revisao -Comandos INT,VERIF,ELETREL `
+& powershell -NoProfile -ExecutionPolicy Bypass -File $smokeScript -Dwg $Dwg -Revisao $Revisao -Comandos INT,VERIF,ELETREL `
     -Desenho $Desenho -Banco $Banco 2>&1 | Select-String -Pattern "INT:|VERIF:|ELETREL:" | ForEach-Object { "  " + $_.Line }
 if ($LASTEXITCODE -ne 0) { throw "a segunda passada de INT falhou (exit $LASTEXITCODE)" }
 
@@ -78,12 +92,12 @@ if (-not $baselineOk -and $ExigirBaseline) { throw 'o relatorio saiu da linha de
 
 if ($Idempotencia) {
     Write-Host "=== 7/7 idempotencia (3a passada e comparacao de conteudo) ===" -ForegroundColor Cyan
-    & npm run cad:smoke -- -Dwg $Dwg -Revisao $Revisao -Comandos FIA,INT -Desenho $Desenho -Banco $Banco 2>&1 |
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $smokeScript -Dwg $Dwg -Revisao $Revisao -Comandos FIA,INT -Desenho $Desenho -Banco $Banco 2>&1 |
         Select-String -Pattern "FIA:|INT:" | ForEach-Object { "  " + $_.Line }
     $dumpA = Join-Path $env:TEMP 'positron-e2e-a.txt'
     $dumpB = Join-Path $env:TEMP 'positron-e2e-b.txt'
     & $python (Join-Path $PSScriptRoot 'cad-dump-tabelas.py') dump $Banco $Dwg $dumpA | ForEach-Object { "  $_" }
-    & npm run cad:smoke -- -Dwg $Dwg -Revisao $Revisao -Comandos FIA,INT -Desenho $Desenho -Banco $Banco 2>&1 | Out-Null
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $smokeScript -Dwg $Dwg -Revisao $Revisao -Comandos FIA,INT -Desenho $Desenho -Banco $Banco 2>&1 | Out-Null
     & $python (Join-Path $PSScriptRoot 'cad-dump-tabelas.py') dump $Banco $Dwg $dumpB | ForEach-Object { "  $_" }
     & $python (Join-Path $PSScriptRoot 'cad-dump-tabelas.py') comparar $dumpA $dumpB --ignorar Data | ForEach-Object { "  $_" }
     if ($LASTEXITCODE -ne 0) { throw 'a projecao nao foi idempotente' }

@@ -57,12 +57,20 @@ implementado, verificado e documentado. Os números de hoje:
 
 | Gate | Resultado |
 |---|---|
-| `npm run plugin:build` (ZWCAD) / `:autocad` | exit 0, 0 avisos / 0 erros |
+| `npm run plugin:build` (ZWCAD→stub) / `:autocad` (API real) | exit 0, 0 avisos / 0 erros |
 | `npm run plugin:test` | **209** aprovados |
 | `npm run protocol:gen` | contrato OK (**20 métodos**; 31 tabelas) |
 | `npm run typecheck` / `build:web` | limpo / **57** módulos |
 | `npm run test:sidecar` / `ruff check` | 27 testes / limpo |
 | `npm run cad:projeto` (`-Idempotencia`) | verde nos 7 passos — projeção, cadastro, app, relatório, idempotência |
+
+**Host CAD desta máquina (rodada 47):** **não há ZWCAD**; o host verificado é o
+**AutoCAD 2020** via `accoreconsole.exe`, com o harness novo
+`scripts/cad-autocad-smoke.ps1` (`npm run cad:smoke:acad` / `cad:e2e:acad`) e o
+`cad:projeto:acad` (`-Cad AutoCAD` no `cad-projeto-e2e.ps1`). O alvo ZWCAD segue
+suportado, mas aqui compila contra o stub. O ciclo completo
+(`npm run cad:projeto:acad -- -Idempotencia`) reproduz o alvo linha a linha — ver
+§5, rodada 47.
 
 **Projeção — matriz do A/B contra o banco do produto** (`Funcional.dwg`, DWG 63;
 receita no `RUNBOOK.md`):
@@ -552,6 +560,7 @@ aberto por **cópia no TEMP**).
 | 44 — A/B fecha com veredito por coluna | 2026-10-09 | 61bee12 | `cad-ab-tabelas.py --detalhe` casa as linhas por `Handle` e mostra as divergências **por coluna**: as 4 tabelas idênticas não têm nenhuma; `Fiacao` (`TipoBorne` 79, `Ordem` 29, `Potencial`/`Terminal` 19, `Tag` 6), `Bornes4F` (`Tipo` 79, `Ordem` 53, `Borne` 10, `Regua` 6) e `Dispositivos4F` (2) têm **todas as diferenças com causa identificada** — dado do desenho, com o XData conferido onde a dúvida era regra × dado |
 | 45 — regra `PainelSemCadastro` (painéis fora do cadastro) | 2026-10-09 | b90c435 | o `lPnAoagado` do verificador: o dicionário de painéis do original mora no **banco** (`cDadosAccess.carregaPainelDicionario`), não no desenho — a regra lê a tabela `Paineis` (o `LerIndicesDePaineis` novo) e aponta painel usado no desenho sem cadastro; provada dos dois lados: sem cadastro **240** problemas (`PainelSemCadastro: 2`), com os 480 painéis importados **238** (a linha de base); +2 testes (`plugin:test` **209**) |
 | 46 — estado atual do recorte no topo do plano (§2.2) | 2026-10-09 | 2204296 | a §2 ("Estado de partida") fica marcada como **histórica** e entra a §2.2 com o estado de hoje: gates (209 testes, 20 métodos, 57 módulos), a **matriz do A/B** tabela a tabela com o veredito, as ferramentas de verificação e o único item aberto (Etapa 9) — quem abrir o plano vê o estado sem ler 52 linhas de registro |
+| 47 — harness **AutoCAD 2020** (host desta máquina, sem ZWCAD) | 2026-10-09 | (este commit) | a máquina não tem ZWCAD, mas tem o **AutoCAD 2020** (`accoreconsole.exe`); `scripts/cad-autocad-smoke.ps1` é o harness headless espelhando o do ZWCAD (`FILEDIA`/`SECURELOAD`/`NETLOAD`/comandos/`QUIT`, `.db` pelo `schema.sql`, desenho por `/i` numa cópia) e o `csproj` passou a auto-detectar AutoCAD **2020..2023** (antes só 2024..2026, então `plugin:build:autocad` caía no stub); o `cad-projeto-e2e.ps1` ganhou `-Cad AutoCAD` (e invoca o harness direto, contornando o shim `npm.ps1` do npm 11, que mastiga os args depois do `--`); os scripts novos `cad:smoke:acad`/`cad:e2e:acad`/`cad:projeto:acad`; **medido**: `plugin:test` **209**, as duas builds 0 avisos, o smoke carrega a DLL no `accoreconsole`, o E2E sintético dá 2 fios/1 trecho (idempotente) e o ciclo completo no projeto real reproduz o ZWCAD — `FIA` 494 (265/168/70/83/11/15), `INT` 20 (265/216/697/2388), `VERIF` **238** (107+119+10+2), `IDEMPOTENTE` com hash igual |
 
 ## 6. Riscos e armadilhas
 

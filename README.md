@@ -115,7 +115,7 @@ npm run build:all        # protocol:gen → build:web → build:desktop (tudo)
 | `npm run protocol:gen` | Falha se o contrato divergir: métodos Python↔TS **ou** os tipos gerados do schema |
 | `npm run schema:sync` | Regrava os tipos TS/C# a partir de `services/sidecar/src/sidecar/db/schema.sql` |
 | `npm run plugin:build` | Compila o plugin CAD (ZWCAD padrão, ou AutoCAD via `plugin:build:autocad`) |
-| `npm run plugin:test` | Roda os 194 testes xunit do plugin |
+| `npm run plugin:test` | Roda os 209 testes xunit do plugin |
 
 ## Estado atual
 
@@ -126,23 +126,22 @@ processo ponta a ponta, `typecheck` limpo e build do web gerando `dist`.
 A reconstrução do Eletron4Z sobre este esqueleto (dois frontends, contrato de
 dados) está em `docs/POSITRON.md`.
 
-O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (194 testes xunit; veja
+O **plugin CAD** (C# net472, compatível com ZWCAD e AutoCAD) também está funcional e testado (209 testes xunit; veja
 `cad-plugin/README.md` e `docs/POSITRON.md`). Ele builda com `npm run plugin:build`
 e testa com `npm run plugin:test`.
 
-O **ZWCAD 2026 está instalado** nesta máquina, então o build ZWCAD resolve
-`ZWCadDir` sozinho e gera `Positron.Plugin.ZWCAD.dll` contra a API **real**, e o
-`NETLOAD` **já foi executado** dentro do ZWCAD (`npm run cad:smoke`: a DLL carrega
-e `ELET`/`FIA`/`JMP`/`INT`/`SYNCD`/`VERIF` respondem, mais `ELETCFG` (tela de
-configuração) e `ELETREL` (relatório da verificação em arquivo) — e o ciclo completo
-já foi rodado num **desenho real** (`-Desenho`), ver `docs/RUNBOOK.md`). O
-**AutoCAD** continua no stub
-(`Positron.CadStub`), porque o AutoCAD 2020 dos ensaios originais não está nesta
-máquina. Os ensaios de `FIA`/`INT` no `accoreconsole` do AutoCAD 2020 foram
-positivos (gravaram `Interligacao4`/`Fiacao`) e ficam no `RUNBOOK.md`. O Rust
-**está** instalado nesta máquina e a lib do desktop compila (`cargo build`), mas o
-`tauri dev`/`build` completo ainda exige CMake + MSVC. A lista completa do que foi
-e do que não foi executado está no fim de `docs/RUNBOOK.md`.
+Nesta máquina o host CAD disponível é o **AutoCAD 2020** (não há ZWCAD):
+`npm run plugin:build:autocad` resolve a `AutoCadDir` e gera
+`Positron.Plugin.AutoCAD.dll` contra a API **real**, e o `accoreconsole` (harness
+`npm run cad:smoke:acad`, headless) carrega a DLL por `NETLOAD` — `ELET`/`FIA`/
+`JMP`/`INT`/`SYNCD`/`VERIF` respondem, mais `ELETCFG` (tela de configuração) e
+`ELETREL` (relatório da verificação em arquivo). O ciclo completo roda num **desenho
+real** (`npm run cad:projeto:acad`) com os **mesmos números** do alvo ZWCAD — ver
+`docs/RUNBOOK.md`. O alvo **ZWCAD** continua suportado (é o alvo do produto), mas
+nesta máquina compila contra o stub (`Positron.CadStub`), porque o ZWCAD não está
+instalado. O Rust **está** instalado e a lib do desktop compila (`cargo build`),
+mas o `tauri dev`/`build` completo ainda exige CMake + MSVC. A lista completa do que
+foi e do que não foi executado está no fim de `docs/RUNBOOK.md`.
 
 ## O que trocar primeiro
 
