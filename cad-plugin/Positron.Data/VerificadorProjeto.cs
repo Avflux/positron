@@ -88,6 +88,9 @@ namespace Positron.Data
 
         /// <summary>Dois bornes seguidos da mesma régua com o mesmo número (o `bt8intervalos`).</summary>
         BorneNumeroRepetido,
+
+        /// <summary>Porta de modelo de máscara com o campo `Régua` separado por `;` fora de par com os bornes (o `bt13ReguaMascara`).</summary>
+        ReguaMascara,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -834,6 +837,125 @@ namespace Positron.Data
             }
 
             return problemas;
+        }
+
+        /// <summary>
+        /// Régua da máscara — o <c>bt13ReguaMascara</c> da tela de verificação
+        /// (<c>AC1cAJLSDI</c>): porta de um **modelo de máscara** cujo campo
+        /// <c>Régua</c> traz o separador (<c>;</c>) sem que a contagem de réguas
+        /// feche com a de bornes.
+        ///
+        /// O original divide o campo <c>Régua</c> (<c>sRegua</c>) e o campo
+        /// <c>Bornes</c> (<c>sBornes</c>) em itens e decide assim:
+        /// - contagens **iguais** → o multi-régua é legítimo (uma régua por borne);
+        /// - <c>régua == 1</c> e <c>bornes &gt; 1</c> → legítimo (a mesma régua para
+        ///   todos os bornes);
+        /// - qualquer outro caso **com separador** no campo da régua → discrepância.
+        ///
+        /// Portas sem separador no campo <c>Régua</c> nunca são apontadas (o caso
+        /// comum). O item apontado é o texto **cru** da régua, sem repetir dentro do
+        /// mesmo modelo — como o <c>if list.Contains(...)</c> do original.
+        ///
+        /// A contagem segue o <c>Geral.DivideTerminais(..., bRepete: true)</c>: a
+        /// última <c>;</c> é descartada **uma vez** e cada trecho vira um item (mesmo
+        /// vazio), então o total é o número de trechos. Não reutiliza
+        /// <see cref="Terminais.Dividir"/> de propósito: ele descarta **todas** as
+        /// <c>;</c> finais, o que divergiria de <c>"A;;"</c> (o original conta 2).
+        /// </summary>
+        public static List<Problema> VerificarReguasMascara(
+            IEnumerable<ModeloMascara> modelos,
+            IReadOnlyDictionary<int, IReadOnlyList<ModeloPorta>> portasPorModelo)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (modelos == null || portasPorModelo == null)
+            {
+                return problemas;
+            }
+
+            foreach (ModeloMascara modelo in modelos)
+            {
+                if (modelo == null)
+                {
+                    continue;
+                }
+
+                IReadOnlyList<ModeloPorta> portas;
+                if (!portasPorModelo.TryGetValue(modelo.Indice, out portas) || portas == null)
+                {
+                    continue;
+                }
+
+                // O `list` do original é por MODELO: a mesma régua só é apontada
+                // uma vez dentro do modelo.
+                List<string> apontadas = new List<string>();
+                foreach (ModeloPorta porta in portas)
+                {
+                    if (porta == null)
+                    {
+                        continue;
+                    }
+
+                    string regua = porta.Regua ?? string.Empty;
+                    string semSeparador = regua.Replace(";", string.Empty);
+                    int quantasReguas = ContarPartes(regua);
+                    int quantosBornes = ContarPartes(porta.Bornes);
+
+                    bool fecha = false;
+                    if (quantasReguas > 0)
+                    {
+                        if (quantasReguas != quantosBornes)
+                        {
+                            if (quantasReguas == 1 && quantosBornes > 1)
+                            {
+                                fecha = true;
+                            }
+                        }
+                        else
+                        {
+                            fecha = true;
+                        }
+                    }
+
+                    if (fecha
+                        || string.Equals(regua, semSeparador, StringComparison.Ordinal)
+                        || apontadas.Contains(regua))
+                    {
+                        continue;
+                    }
+
+                    apontadas.Add(regua);
+                    problemas.Add(Novo(
+                        AreaVerificacao.Modelos,
+                        TipoProblema.ReguaMascara,
+                        "Mascaras",
+                        Modelo(modelo.Nome, modelo.Indice),
+                        "régua do modelo com separador inconsistente (Régua \"" + regua
+                            + "\", " + quantasReguas + " × " + quantosBornes + " bornes)"));
+                }
+            }
+
+            return problemas;
+        }
+
+        /// <summary>
+        /// Conta os itens de um campo separado por <c>;</c> como o
+        /// <c>Geral.DivideTerminais(..., bRepete: true)</c>: <c>null</c> vira um item;
+        /// descarta **uma** <c>;</c> final e conta os trechos (o <c>Split</c> sempre
+        /// devolve ao menos 1).
+        /// </summary>
+        private static int ContarPartes(string texto)
+        {
+            if (texto == null)
+            {
+                return 1;
+            }
+
+            if (texto.EndsWith(";", StringComparison.Ordinal))
+            {
+                texto = texto.Substring(0, texto.Length - 1);
+            }
+
+            return texto.Split(';').Length;
         }
 
         public static List<Problema> VerificarBornesSemRegua(

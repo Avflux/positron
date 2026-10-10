@@ -680,6 +680,19 @@ namespace Positron.Plugin
             problemas.AddRange(VerificadorProjeto.VerificarPaineisSemCadastro(
                 paineisDoDesenho, store.LerIndicesDePaineis()));
 
+            // Régua da máscara (`bt13ReguaMascara`, `AC1cAJLSDI`): porta de um modelo
+            // cujo campo Régua traz separador que não fecha com a contagem de bornes.
+            // Sai do dicionário de máscaras do desenho (MASCARAS), não das tabelas.
+            List<ModeloMascara> modelosDeMascara = ModelosMascaraDoDesenho.LerModelos();
+            Dictionary<int, IReadOnlyList<ModeloPorta>> portasDeMascara =
+                new Dictionary<int, IReadOnlyList<ModeloPorta>>();
+            foreach (ModeloMascara modelo in modelosDeMascara)
+            {
+                portasDeMascara[modelo.Indice] = ModelosMascaraDoDesenho.LerPortas(modelo.Indice, modelo.Nome);
+            }
+
+            problemas.AddRange(VerificadorProjeto.VerificarReguasMascara(modelosDeMascara, portasDeMascara));
+
             // Intervalos de borne por régua — o `bt8intervalos` da tela (`TreeViewBornes`).
             // As reservas de cada régua entram na sequência de números (o
             // `LeDicBornesReserva`); só as réguas **em uso** são lidas, como no original.

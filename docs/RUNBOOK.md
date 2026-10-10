@@ -668,12 +668,12 @@ checagens** (`bt1Fiacao` … `bt14PortasDiscrepantes`, rótulos em
 `DeclaracoesGeral.mMensagem[1, id]`) e o motor fica em
 `ClsVerificadorProjetoFiacao.cs` (2.173 linhas), com uma análise própria do desenho
 (`buscaDadosDeFiacaoDWG`, linha 430) que alimenta `carregaOrfao` (1311), `carregaTree`
-(1159) e companhia. O recoder tem **13 regras** (`VerificadorProjeto`); **6** casam 1:1
-com botões do original (fiação, órfão, réguas, bornes sem LM, painel fora do cadastro e
-intervalos de borne), e **2** são parciais (terminais e portas). O que ainda **não** está
-portado: principal × auxiliar (`bt3`/`bt4`), discrepantes (`bt9`), itens feitos à mão
-(`bt12`), régua da máscara (`bt13`) e portas discrepantes (`bt14`) — todas dependem da
-análise geométrica do desenho, cujo insumo o recoder já monta para o órfão/régua/LM.
+(1159) e companhia. O recoder tem **14 regras** (`VerificadorProjeto`); **7** casam 1:1
+com botões do original (fiação, órfão, réguas, bornes sem LM, painel fora do cadastro,
+intervalos de borne e régua da máscara), e **2** são parciais (terminais e portas). O que
+ainda **não** está portado: principal × auxiliar (`bt3`/`bt4`), discrepantes (`bt9`), itens
+feitos à mão (`bt12`) e portas discrepantes (`bt14`) — todas dependem da análise
+geométrica do desenho, cujo insumo o recoder já monta para o órfão/régua/LM.
 O mapeamento botão a botão está no `PLANO.md` §7.1. O verificador da **interligação**
 (outra tela) ainda não tem o cabo indefinido (`IndefineCabosNaoExistentes`).
 
@@ -700,6 +700,24 @@ ModelSpace (o modo `POSITRON_XDATA_BORNES=1` do `cad-dump-xdata.lsp`) reconstru�
 Python **fora do plugin** reproduz os **11 pares exatos**, e mostra os 7 que **não** entram
 — réguas `476`/`477`/`481`/`483`/`486`, dos painéis `149`/`154`/`155`/`1`, fora do filtro
 de réguas em uso (o dicionário `REGUAS/MODELOS2` diz de que painel é cada régua).
+
+**Rodada 52 — régua da máscara (`bt13ReguaMascara`, o `AC1cAJLSDI`).** A mais simples
+das que faltavam: **não** toca o desenho, só o dicionário `MASCARAS`. Para cada modelo de
+máscara, divide o campo `Régua` e o campo `Bornes` da porta em itens e aponta a régua
+**com separador** (`;`) quando a contagem não fecha — contagens iguais (uma régua por
+borne) ou `1 régua × N bornes` são o caso legítimo; qualquer outro par com `;` é
+discrepância. O dedup é **por modelo** (o `list` do original) e o item apontado é o texto
+cru da régua. A contagem espelha o `Geral.DivideTerminais(bRepete: true)` — descarta
+**uma** `;` final e conta os trechos — e **não** reusa o `Terminais.Dividir`, que descarta
+**todas** as `;` finais (divergiria de `"A;;"`, que o original conta como 2).
+
+A regra sai **vazia** neste desenho, e o dump cru diz por quê: o `cad-dump-xdata.lsp`
+ganhou uma linha por modelo (`MASCARA;<indice>;<xrecord>`) e, reconstruindo o XRecord com
+o layout de 8 valores do leitor, **todos** os modelos desta cópia têm o campo `Régua`
+vazio — o separador `;` mora no campo **`Terminais`** (o insumo do `bt14PortasDiscrepantes`,
+que entra numa próxima rodada). Ou seja: a regra está fiel, mas este dado não a dispara;
+por isso a linha de base do `VERIF` segue em **249** e o ciclo completo no AutoCAD 2020
+(`cad:projeto:acad`) reproduz tudo sem regressão.
 
 O conteúdo é puro (`RelatorioCompilacao`: `Texto()`/`Salvar()`, testado) e o `VERIF`
 passou a compartilhar a mesma montagem (`VerificarRevisao`), então os dois não podem
@@ -878,9 +896,10 @@ A/B do `FIA` estão atribuídas**.
 
 Separar "bug da projeção" de "dado da cópia do desenho" exige ler o XData **do
 próprio DWG**. O utilitário dumpa os handles pedidos (app `DISPOSITIVO`/`Dispositivo`/
-`MASCARA`) e os dicionários `CONTATOS → "MODELOS2"`, `MASCARAS → "MODELOS2"` e
+`MASCARA`) e os dicionários `CONTATOS → "MODELOS2"`, `MASCARAS → "MODELOS2"`,
 `REGUAS → "MODELOS2"` (régua → painel, que é o que explica por que uma régua fica fora
-das checagens):
+das checagens) e as **portas de cada modelo de máscara**, uma linha por modelo
+(`MASCARA;<indice>;<xrecord>`, o insumo da régua da máscara — `bt13ReguaMascara`):
 
 ```bash
 # roda dentro do AutoCAD 2020, carregando o utilitario antes do NETLOAD

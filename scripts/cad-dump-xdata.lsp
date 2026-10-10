@@ -63,6 +63,24 @@
         (pz-dump:escreve f (strcat "\nDIC " nome "/" sub " (Xrecord):\n"
                                    (vl-princ-to-string (entget (cdr (assoc -1 r)))) "\n"))))))
 
+;; As PORTAS de cada modelo de mascara (MASCARAS/<indice>), um registro por linha,
+;; no layout de 8 valores do leitor (indice da porta, orientacao, EFC, terminais,
+;; bornes, +5 nao usado, regua, +7 nao usado). E o insumo da regua da mascara
+;; (`bt13ReguaMascara`): o campo Regua do registro indice+6.
+(defun pz-dump:modelos-mascara (f / d item r)
+  (setq d (dictsearch (namedobjdict) "MASCARAS"))
+  (if (null d)
+    (pz-dump:escreve f "\nMASCARAS: nao existe\n")
+    (foreach item d
+      (if (= (car item) 3)
+        (progn
+          (setq r (dictsearch (cdr (assoc -1 d)) (cdr item)))
+          (pz-dump:escreve f
+            (strcat "\nMASCARA;" (cdr item) ";"
+                    (if (null r) "NAO EXISTE"
+                        (vl-princ-to-string (entget (cdr (assoc -1 r)))))
+                    "\n")))))))
+
 ;; Um bloco de borne por linha. O XData e lido pelo app name `Dispositivo` (o
 ;; legado `DISPOSITIVO` tambem vale) e os valores saem na ordem do layout do
 ;; `BorneXData`: tipo, Numero, NumeroComplem, Ordem, IndiceRegua — o mesmo indice
@@ -108,6 +126,7 @@
       (foreach h *positron-dump-handles* (pz-dump:entidade h f))
       (pz-dump:dicionario "CONTATOS" "MODELOS2" f)
       (pz-dump:dicionario "MASCARAS" "MODELOS2" f)
+      (pz-dump:modelos-mascara f)
       ;; Reguas: e o dicionario que diz de que painel e cada regua — o que
       ;; explica por que a checagem de intervalos ignora uma regua.
       (pz-dump:dicionario "REGUAS" "MODELOS2" f)

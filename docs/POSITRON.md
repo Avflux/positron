@@ -542,22 +542,15 @@ snapshot de catálogo (`Cabos4`/`Veias4`). O `VERIF` aponta **107** problemas, t
    o provedor; (b) **relatórios**, hoje só o de verificação em texto (`ELETREL`), com
    a recomendação de começar pelos 4 tabulares no app; (c) **banco**, SQLite hoje,
    SQL Server quando/quando — o SQL está isolado no `ProjectStore`.
-2. **`VERIF` no desenho (parcial):** já portadas as regras de tabela e **cinco** do
-   desenho — régua do borne, cabo fora do catálogo, página ausente e as duas de
-   higiene (`ReguaVazia` = `buscaReguasVazias`, 10; `BorneSemLm` = `GijcRTCGe3`, 119)
-   —, e o `VERIF` fecha em **236** problemas no desenho real. O que falta é o que
-   depende da análise geométrica do
-   `ClsVerificadorProjetoFiacao` (`buscaDadosDeFiacaoDWG`, 2.173 linhas no total):
-   órfão por `HandleSup`, intervalos, bornes de LM, painéis, à mão, régua da máscara e
-   discrepantes principal/auxiliar. As telas originais
-   (`frmVerificadorProjetoFiacao`/`frmVerificadorProjetoInterligacao`, ~3 mil
-   linhas) também pintam erros lidos do **desenho**. O `VERIF` já valida as
-   tabelas gravadas **e** três regras do desenho — o borne cuja régua não resolve
-   no dicionário, o cabo referenciado que não existe no catálogo e a **página
-   gravada que não está na `LayerTable`**
-   (`VerificarBornesSemRegua`/`VerificarCabosSemCatalogo`/`VerificarPaginasAusentes`,
-   área `Desenho`).
-   Falta o que depende de **geometria**. A **matriz de páginas** já é lida do
+2. **`VERIF` no desenho:** já portadas as regras de tabela e **nove** do desenho —
+   régua do borne, cabo fora do catálogo, página ausente, `ReguaVazia`
+   (`buscaReguasVazias`, 10), `BorneSemLm` (`GijcRTCGe3`, 119), órfão por `HandleSup`
+   (`carregaOrfao`, 2), painel fora do cadastro (`lPnAoagado`), intervalos de borne
+   (`bt8intervalos`, 11) e régua da máscara (`bt13ReguaMascara`, 0) —, e o `VERIF`
+   fecha em **249** problemas no desenho real. O que falta é o que depende da análise
+   geométrica do `ClsVerificadorProjetoFiacao` (`buscaDadosDeFiacaoDWG`, 2.173 linhas
+   no total): à mão (`bt12`), discrepantes principal/auxiliar (`bt3`/`bt4`), portas
+   discrepantes (`bt14`) e o verificador da interligação. A **matriz de páginas** já é lida do
    desenho (`PaginaMatrix`/`PaginasDoDesenho`, montada da `LayerTable` como o
    `Pagina.CarregaPaginas`) e alimenta a regra de **página ausente**
    (`VerificarPaginasAusentes`) e a coluna `Pagina` (`ColunaPagina`, o switch

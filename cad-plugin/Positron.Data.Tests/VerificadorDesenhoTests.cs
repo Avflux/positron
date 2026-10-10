@@ -422,6 +422,126 @@ namespace Positron.Data.Tests
             Assert.Contains("1 a 0", problema.Detalhe);
         }
 
+        [Fact]
+        public void Aponta_regua_da_mascara_com_separador_inconsistente()
+        {
+            // O `bt13ReguaMascara` (AC1cAJLSDI): a porta tem duas réguas ("R1;R2")
+            // para um só borne — o separador não fecha com a contagem de bornes.
+            ModeloMascara modelo = ModeloMascara(3, "MOD");
+            Dictionary<int, IReadOnlyList<ModeloPorta>> portas =
+                new Dictionary<int, IReadOnlyList<ModeloPorta>>
+                {
+                    { 3, new List<ModeloPorta> { ModeloPorta("R1;R2", "B1") } },
+                };
+
+            Problema problema = Assert.Single(
+                VerificadorProjeto.VerificarReguasMascara(new[] { modelo }, portas));
+
+            Assert.Equal(AreaVerificacao.Modelos, problema.Area);
+            Assert.Equal(TipoProblema.ReguaMascara, problema.Tipo);
+            Assert.Equal("Mascaras", problema.Tabela);
+            Assert.Equal("MOD #3", problema.Identificador);
+            Assert.Contains("R1;R2", problema.Detalhe);
+            Assert.Contains("2 × 1", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Reguas_e_bornes_em_mesma_conta_nao_apontam()
+        {
+            // Duas réguas para dois bornes é o multi-régua legítimo (uma por borne).
+            ModeloMascara modelo = ModeloMascara(3, "MOD");
+            Dictionary<int, IReadOnlyList<ModeloPorta>> portas =
+                new Dictionary<int, IReadOnlyList<ModeloPorta>>
+                {
+                    { 3, new List<ModeloPorta> { ModeloPorta("R1;R2", "B1;B2") } },
+                };
+
+            Assert.Empty(VerificadorProjeto.VerificarReguasMascara(new[] { modelo }, portas));
+        }
+
+        [Fact]
+        public void Regua_unica_para_varios_bornes_nao_aponta()
+        {
+            // Uma régua para N bornes é o outro caso legítimo do original.
+            ModeloMascara modelo = ModeloMascara(3, "MOD");
+            Dictionary<int, IReadOnlyList<ModeloPorta>> portas =
+                new Dictionary<int, IReadOnlyList<ModeloPorta>>
+                {
+                    { 3, new List<ModeloPorta> { ModeloPorta("R1", "B1;B2;B3") } },
+                };
+
+            Assert.Empty(VerificadorProjeto.VerificarReguasMascara(new[] { modelo }, portas));
+        }
+
+        [Fact]
+        public void Regua_com_separador_e_sem_bornes_aponta()
+        {
+            // Sem bornes (o campo vazio também conta 1 item) a conta 2 × 1 não fecha.
+            ModeloMascara modelo = ModeloMascara(3, "MOD");
+            Dictionary<int, IReadOnlyList<ModeloPorta>> portas =
+                new Dictionary<int, IReadOnlyList<ModeloPorta>>
+                {
+                    { 3, new List<ModeloPorta> { ModeloPorta("R1;R2", null) } },
+                };
+
+            Assert.Single(VerificadorProjeto.VerificarReguasMascara(new[] { modelo }, portas));
+        }
+
+        [Fact]
+        public void Regua_repetida_no_modelo_aponta_uma_vez_e_por_modelo()
+        {
+            // O `list` do original é por MODELO: a mesma régua só sai uma vez dentro
+            // do modelo, mas cada modelo inconsistente vira uma linha própria.
+            List<ModeloMascara> modelos = new List<ModeloMascara>
+            {
+                ModeloMascara(3, "MOD3"),
+                ModeloMascara(4, "MOD4"),
+            };
+            Dictionary<int, IReadOnlyList<ModeloPorta>> portas =
+                new Dictionary<int, IReadOnlyList<ModeloPorta>>
+                {
+                    { 3, new List<ModeloPorta> { ModeloPorta("R1;R2", "B1"), ModeloPorta("R1;R2", "B1") } },
+                    { 4, new List<ModeloPorta> { ModeloPorta("R3;R4", "B1") } },
+                };
+
+            List<Problema> problemas = VerificadorProjeto.VerificarReguasMascara(modelos, portas);
+
+            Assert.Equal(2, problemas.Count);
+            Assert.Equal("MOD3 #3", problemas[0].Identificador);
+            Assert.Equal("MOD4 #4", problemas[1].Identificador);
+        }
+
+        [Fact]
+        public void Regua_sem_separador_nao_aponta()
+        {
+            // Sem `;` no campo Régua o original nunca aponta (o `sRegua != right`).
+            ModeloMascara modelo = ModeloMascara(3, "MOD");
+            Dictionary<int, IReadOnlyList<ModeloPorta>> portas =
+                new Dictionary<int, IReadOnlyList<ModeloPorta>>
+                {
+                    { 3, new List<ModeloPorta> { ModeloPorta("R2", "B1;B2;B3") } },
+                };
+
+            Assert.Empty(VerificadorProjeto.VerificarReguasMascara(new[] { modelo }, portas));
+        }
+
+        private static ModeloMascara ModeloMascara(int indice, string nome)
+        {
+            return new ModeloMascara { Indice = indice, Nome = nome };
+        }
+
+        private static ModeloPorta ModeloPorta(string regua, string bornes)
+        {
+            return new ModeloPorta
+            {
+                IndiceDaPorta = 1,
+                IndiceModelo = 3,
+                NomeModelo = "MOD",
+                Regua = regua,
+                Bornes = bornes,
+            };
+        }
+
         /// <summary>
         /// Um borne do desenho como o <see cref="PontoBorne.DeBorne"/> monta: o
         /// <c>Terminal</c> já é o número com o complemento colado.
