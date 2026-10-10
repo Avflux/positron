@@ -525,6 +525,148 @@ namespace Positron.Data.Tests
             Assert.Empty(VerificadorProjeto.VerificarReguasMascara(new[] { modelo }, portas));
         }
 
+        [Fact]
+        public void Aponta_terminal_da_porta_diferente_do_modelo()
+        {
+            // O `bt14PortasDiscrepantes`: o bloco `E` traz T1=9 e o modelo 1/porta 1
+            // define o terminal "1".
+            List<ModeloPorta> modelo = new List<ModeloPorta> { PortaDoModelo(1, 1, "1;3") };
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho> { BlocoDePorta(1, 1, "H1", "T1=9") };
+
+            Problema problema = Assert.Single(
+                VerificadorProjeto.VerificarPortasDiscrepantes(modelo, blocos));
+
+            Assert.Equal(AreaVerificacao.Desenho, problema.Area);
+            Assert.Equal(TipoProblema.PortaDiscrepante, problema.Tipo);
+            Assert.Equal("Portas", problema.Tabela);
+            Assert.Equal("H1", problema.Identificador);
+            Assert.Contains("T1", problema.Detalhe);
+            Assert.Contains("9", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Porta_igual_ao_modelo_nao_aponta()
+        {
+            List<ModeloPorta> modelo = new List<ModeloPorta> { PortaDoModelo(1, 1, "1;3") };
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho> { BlocoDePorta(1, 1, "H1", "T1=1", "T2=3") };
+
+            Assert.Empty(VerificadorProjeto.VerificarPortasDiscrepantes(modelo, blocos));
+        }
+
+        [Fact]
+        public void Terminal_fora_do_modelo_aponta()
+        {
+            // O modelo só define um terminal; o bloco tem T2.
+            List<ModeloPorta> modelo = new List<ModeloPorta> { PortaDoModelo(1, 1, "1") };
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho> { BlocoDePorta(1, 1, "H1", "T2=5") };
+
+            Problema problema = Assert.Single(
+                VerificadorProjeto.VerificarPortasDiscrepantes(modelo, blocos));
+            Assert.Contains("fora do modelo", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Aponta_borne_da_porta_diferente_do_modelo()
+        {
+            List<ModeloPorta> modelo = new List<ModeloPorta> { PortaDoModelo(1, 1, "", "2;4") };
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho> { BlocoDePorta(1, 1, "H1", "B1=2", "B2=9") };
+
+            Problema problema = Assert.Single(
+                VerificadorProjeto.VerificarPortasDiscrepantes(modelo, blocos));
+            Assert.Contains("B2", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Asterisco_do_modelo_e_removido_no_borne()
+        {
+            // O `*` do modelo marca "repete" e é removido antes de comparar.
+            List<ModeloPorta> modelo = new List<ModeloPorta> { PortaDoModelo(1, 1, "", "2*") };
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho> { BlocoDePorta(1, 1, "H1", "B1=2") };
+
+            Assert.Empty(VerificadorProjeto.VerificarPortasDiscrepantes(modelo, blocos));
+        }
+
+        [Fact]
+        public void Aponta_regua_da_porta_diferente_do_modelo()
+        {
+            List<ModeloPorta> modelo = new List<ModeloPorta> { PortaDoModelo(1, 1, "", "", "R1") };
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho> { BlocoDePorta(1, 1, "H1", "R1=R2") };
+
+            Problema problema = Assert.Single(
+                VerificadorProjeto.VerificarPortasDiscrepantes(modelo, blocos));
+            Assert.Contains("R1", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Regua_invisivel_no_borne_repetido_aponta_mesmo_igual()
+        {
+            // O ramo do `list`/visibilidade do original: borne marcado com `*` cuja
+            // régua correspondente está invisível — aponta ainda que o texto seja igual.
+            List<ModeloPorta> modelo = new List<ModeloPorta> { PortaDoModelo(1, 1, "", "1*", "") };
+            PortaNoDesenho bloco = BlocoDePorta(1, 1, "H1", "B1=1", "R1=");
+            foreach (AtributoPorta atributo in bloco.Atributos)
+            {
+                if (atributo.Tag == "R1")
+                {
+                    atributo.Visivel = false;
+                }
+            }
+
+            Problema problema = Assert.Single(
+                VerificadorProjeto.VerificarPortasDiscrepantes(modelo, new[] { bloco }));
+            Assert.Contains("invisível", problema.Detalhe);
+        }
+
+        [Fact]
+        public void Porta_sem_modelo_ou_sem_indice_e_ignorada()
+        {
+            List<ModeloPorta> modelo = new List<ModeloPorta> { PortaDoModelo(1, 1, "1") };
+            List<PortaNoDesenho> blocos = new List<PortaNoDesenho>
+            {
+                BlocoDePorta(1, 1, "H1", "T1=9"),   // casa
+                BlocoDePorta(9, 1, "H9", "T1=9"),   // modelo inexistente
+                BlocoDePorta(1, 0, "H0", "T1=9"),   // indiceDaPorta 0
+            };
+
+            Assert.Single(VerificadorProjeto.VerificarPortasDiscrepantes(modelo, blocos));
+        }
+
+        private static ModeloPorta PortaDoModelo(int modelo, int porta, string terminais, string bornes = "", string regua = "")
+        {
+            return new ModeloPorta
+            {
+                IndiceModelo = modelo,
+                IndiceDaPorta = porta,
+                NomeModelo = "MOD" + modelo,
+                Terminais = terminais,
+                Bornes = bornes,
+                Regua = regua,
+            };
+        }
+
+        private static PortaNoDesenho BlocoDePorta(int modelo, int porta, string handle, params string[] atributos)
+        {
+            PortaNoDesenho bloco = new PortaNoDesenho
+            {
+                Handle = handle,
+                IndiceModelo = modelo,
+                IndiceDaPorta = porta,
+            };
+
+            foreach (string item in atributos)
+            {
+                int separador = item.IndexOf('=');
+                bloco.Atributos.Add(new AtributoPorta
+                {
+                    Tag = item.Substring(0, separador),
+                    Texto = item.Substring(separador + 1),
+                    Visivel = true,
+                });
+            }
+
+            return bloco;
+        }
+
         private static ModeloMascara ModeloMascara(int indice, string nome)
         {
             return new ModeloMascara { Indice = indice, Nome = nome };

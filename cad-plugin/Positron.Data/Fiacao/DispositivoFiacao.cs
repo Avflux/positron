@@ -42,6 +42,9 @@ namespace Positron.Data.Fiacao
 
         public int IndexModelo { get; set; }
 
+        /// <summary>Índice da porta do modelo (o <c>array[6]</c> do XData de <c>E</c>/<c>A</c>); 0 no resto.</summary>
+        public int IndiceDaPorta { get; set; }
+
         public bool Complementar { get; set; }
 
         /// <summary>

@@ -227,6 +227,9 @@ namespace ZwSoft.ZwCAD.DatabaseServices
 
         /// <summary>Ponto de inserção do texto.</summary>
         public Point3d Position { get; set; }
+
+        /// <summary>Atributo invisível (o `bt14PortasDiscrepantes` usa no ramo da régua).</summary>
+        public bool Invisible { get; set; }
     }
 
     public class Xrecord : DBObject

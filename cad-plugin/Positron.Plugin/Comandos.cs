@@ -693,6 +693,18 @@ namespace Positron.Plugin
 
             problemas.AddRange(VerificadorProjeto.VerificarReguasMascara(modelosDeMascara, portasDeMascara));
 
+            // Portas discrepantes (`bt14PortasDiscrepantes`): cruza os blocos `E` do
+            // desenho com a definição do modelo (os mesmos modelos de máscara acima).
+            List<ModeloPorta> portasDoModelo = new List<ModeloPorta>();
+            foreach (IReadOnlyList<ModeloPorta> listaDePortas in portasDeMascara.Values)
+            {
+                portasDoModelo.AddRange(listaDePortas);
+            }
+
+            IReadOnlyList<PortaNoDesenho> portasDeBloco = PortasDoDesenho.Ler();
+            Plugin.Escrever("VERIF: " + portasDeBloco.Count + " bloco(s) de porta (E) lido(s) do desenho.");
+            problemas.AddRange(VerificadorProjeto.VerificarPortasDiscrepantes(portasDoModelo, portasDeBloco));
+
             // Intervalos de borne por régua — o `bt8intervalos` da tela (`TreeViewBornes`).
             // As reservas de cada régua entram na sequência de números (o
             // `LeDicBornesReserva`); só as réguas **em uso** são lidas, como no original.

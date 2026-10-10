@@ -96,9 +96,10 @@ isolamento por desenho com `scripts/cad-dump-tabelas.py`; catálogo e cadastro c
 `scripts/cad-importa-catalogo.ps1`; app com `scripts/app-consultas.py`; `VERIF` com
 `scripts/cad-verif-baseline.py` (linha de base **249** = 107+119+11+10+2).
 
-**`VERIF`:** regras de tabela + **nove** checagens do desenho (régua do borne, cabo fora
+**`VERIF`:** regras de tabela + **dez** checagens do desenho (régua do borne, cabo fora
 do catálogo, página ausente, régua vazia, borne sem LM, conexão órfã, painel fora do
-cadastro, intervalos de borne e régua da máscara), no desenho real: **249** problemas — 107
+cadastro, intervalos de borne, régua da máscara e portas discrepantes), no desenho real:
+**249** problemas — 107
 `BorneSemFiacao`, 119 `BorneSemLm`, 11 `IntervaloBorneInvalido`, 10 `ReguaVazia`, 2
 `SobreposicaoAusente`.
 
@@ -566,6 +567,7 @@ aberto por **cópia no TEMP**).
 | 49 — as 2 linhas do `BlocoLayout` (`Dispositivos4F`): dado do desenho, provado | 2026-10-09 | (este commit) | o dump do XData no desenho (`scripts/cad-dump-xdata.lsp`, novo utilitário; `accoreconsole`) nos handles `4D642`/`4D672` mostra `indexModelo = 53` e, no **dicionário** `CONTATOS/MODELOS2`, o modelo 53 = `(56.34)` com `BlocoTopografico=FINDER_58-34.DWG`/`BlocoLayout=FINDER_56.34+BASE_LAYOUT.DWG` — **idêntico ao recoder**; o XData do bloco concorda (`array[17]`/`array[18]`); o `RJ-8.dwg` do produto é o `BlocoLayout` do modelo **6** (`(RJ-8)`), então o par gravado pelo produto é um estado anterior do modelo 53 — **todas as diferenças do A/B do `FIA` ficam atribuídas a dado do desenho** (nenhuma é regra); `plugin:test` **209** segue verde |
 | 51 — regra `IntervaloBorneInvalido` (`bt8intervalos`) portada | 2026-10-09 | (este commit) | porta o `nXnc5R08lF` do `frmVerificadorProjetoFiacao`: por régua **em uso**, junta os bornes do desenho + as reservas (`LeDicBornesReserva`, dedup por `Numero`+`Ordem`), ordena por `Ordem` e aponta o que o original aponta — número indefinido (`"0"` → `"?"`), buraco/queda na sequência numérica e número repetido; fidelidade conferida no reverso: o número é o **`Terminal`** (`Numero` + `NumeroComplem` colado, o que tira os bornes com complemento do teste numérico) e as reservas entram **cruas** (sem o mapeamento do `"0"`); **medido no desenho real**: **11** intervalos (9 na régua #37 e 2 na #487, ambas do painel 9) e a linha de base do `VERIF` vai a **249**; a conferência independente (dump dos **199** bornes do ModelSpace pelo `cad-dump-xdata.lsp` + reconstrução em Python) reproduz os **11 pares exatos** e mostra os 7 que **não** entram: réguas 476/477/481/483/486 são dos painéis 149/154/155/1, fora das réguas em uso; +10 testes (`plugin:test` **219**) |
 | 50 — auditoria de cobertura e backlog (o que falta) | 2026-10-09 | (este commit) | varredura do reverso **limpo** (`decompiled-cleaned`) cruzada com o código: entra a §7 com o backlog por frente — `VERIF` com **7** checagens não portadas e **2** parciais (14 botões) + o verificador da interligação (cabo indefinido/árvore), **4** tabelas do schema fora do recorte (`Aranha4`/`Atributos`/`Exportados`/`Plaquetas4`…), **38** telas de relatório (1 entregue), pendências pequenas e as decisões do dono; o parágrafo obsoleto do `RUNBOOK.md` (que listava órfão/painéis como não portados) foi corrigido |
+| 53 — regra `PortaDiscrepante` (`bt14PortasDiscrepantes`) portada | 2026-10-09 | (este commit) | porta o `clsPortas.VerificaPortasDiscrepantes` (alimentado por `CarregaTodasAsPortasPortas`): para cada bloco `E` do desenho (porta != 0) que casa com uma porta do modelo por `(modelo, porta)`, compara atributo a atributo com sufixo numérico — `T<n>` contra `Terminais` (modelo curto = discrepância), `B<n>` contra `Bornes` (com o `*` de "repete" removido) e `R<n>` contra `Régua` (e régua **invisível** de borne repetido, o ramo do `list` do original); comparação sem diferenciar maiúsculas e **sem Trim**; duas defensivas (o original estoura o índice em `B`/`R` fora da lista e no `CInt` de tag sem número); novo leitor `PortasDoDesenho` (blocos `E` + atributos com visibilidade), `IndiceDaPorta` no `DispositivoFiacao` (`array[6]` do XData `E`/`A`) e `Invisible` no stub do CAD; `VERIF` loga quantos blocos `E` leu — **medido no desenho real**: **45** blocos `E` lidos (bate com o dump dos 557 INSERTs) e a regra sai **vazia** (os blocos casam com os modelos e só têm `T*`); reconstrução em Python do dump cru prevê **0** discrepâncias; a linha de base do `VERIF` segue **249** e o ciclo completo no AutoCAD 2020 reproduz tudo; +8 testes (`plugin:test` **233**) e as duas builds 0 avisos |
 | 52 — regra `ReguaMascara` (`bt13ReguaMascara`) portada | 2026-10-09 | (este commit) | porta o `AC1cAJLSDI` do `frmVerificadorProjetoFiacao`: para cada modelo de máscara, divide o campo `Régua` e o campo `Bornes` e aponta a régua **com separador `;` quando a contagem não fecha** — contagens iguais (uma régua por borne) ou 1 régua × N bornes são o caso legítimo; o `list` é por **modelo** (dedup) e a contagem espelha o `Geral.DivideTerminais(bRepete: true)` (descarta **uma** `;` final e conta os trechos), sem reusar o `Terminais.Dividir` (que descarta **todas** as `;` finais); lê só o dicionário `MASCARAS` do desenho (`ModelosMascaraDoDesenho`, o mesmo caminho das `Portas4F`), sem tabela nova nem geometria; **medido no desenho real**: a regra sai **vazia** — o dump cru do dicionário (o `cad-dump-xdata.lsp` ganhou as linhas `MASCARA;<indice>;…`) mostra que os modelos desta cópia guardam o `;` no campo **`Terminais`** (insumo do `bt14`), não no `Régua`; a linha de base do `VERIF` segue **249** e o ciclo completo no AutoCAD 2020 (`cad:projeto:acad`) reproduz tudo sem regressão; +6 testes (`plugin:test` **225**) e as duas builds 0 avisos |
 
 ## 6. Riscos e armadilhas
@@ -592,8 +594,8 @@ nuclear do recorte; **P2** = expansão do escopo; **P3** = decisão do dono/limp
 ### 7.1 `VERIF` — checagens do original não portadas · P1
 
 A tela do produto tem **14** checagens (`bt1Fiacao` … `bt14PortasDiscrepantes`, em
-`frmVerificadorProjetoFiacao`); o recoder tem **14 regras** (`VerificadorProjeto`), das
-quais **7** casam 1:1 com botões e **2** são parciais:
+`frmVerificadorProjetoFiacao`); o recoder tem **15 regras** (`VerificadorProjeto`), das
+quais **8** casam 1:1 com botões e **2** são parciais:
 
 | Botão | O que checa | Recoder |
 |---|---|---|
@@ -609,7 +611,7 @@ quais **7** casam 1:1 com botões e **2** são parciais:
 | `bt9Discrepantes` | discrepantes | ❌ |
 | `bt12AMao` | itens feitos à mão (`AtualizaFeitoAMao`) | ❌ |
 | `bt13ReguaMascara` | régua da máscara (`AC1cAJLSDI`) | ✅ `VerificarReguasMascara` |
-| `bt14PortasDiscrepantes` | portas discrepantes (`AtualizaDGPortasDiscrepantes`) | ❌ |
+| `bt14PortasDiscrepantes` | portas discrepantes (`clsPortas.VerificaPortasDiscrepantes`) | ✅ `VerificarPortasDiscrepantes` |
 
 **Verificador da interligação** (`clsVerificadorProjetoInterligacao`, outra tela): o
 **cabo indefinido** (`IndefineCabosNaoExistentes`) e a árvore de jumpers/interligação
@@ -624,7 +626,11 @@ régua, a `Ordem` e o dicionário de réguas), sem geometria nova. O `bt13ReguaM
 (rodada 52) é o segundo e mais barato ainda — vive só no dicionário de máscaras
 (`MASCARAS`), sem tocar o desenho; neste desenho ele sai **vazio**, porque os modelos
 deste DWG guardam o separador `;` no campo **`Terminais`** (o insumo do `bt14`), não no
-`Régua` (o que o `bt13` olha) — conferido no dump cru do dicionário.
+`Régua` (o que o `bt13` olha) — conferido no dump cru do dicionário. O
+`bt14PortasDiscrepantes` (rodada 53) também entrou: cruza os **blocos `E`** do desenho
+com a definição do modelo (atributo a atributo, T/B/R) e sai **vazio** aqui — os 45
+blocos `E` desta cópia casam com os modelos e não têm atributos `B*`/`R*`, só `T*`
+(tudo conferido no dump cru dos blocos e reconstruído em Python fora do plugin).
 
 ### 7.2 Tabelas do schema sem projeção · P2
 

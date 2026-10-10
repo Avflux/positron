@@ -105,7 +105,7 @@ namespace Positron.Data.Fiacao
 
                 case TipoPorta:
                 case TipoAuxiliar:
-                    // Nome1=2, Nome2=3, Alternativo=11, handle da máscara=4, indexModelo=5.
+                    // Nome1=2, Nome2=3, Alternativo=11, handle da máscara=4, indexModelo=5, indiceDaPorta=6.
                     if (valores.Count < 12)
                     {
                         return false;
@@ -118,6 +118,7 @@ namespace Positron.Data.Fiacao
                         Nome2 = Texto(valores[3].Valor),
                         HandleMascara = Texto(valores[4].Valor),
                         IndexModelo = Inteiro(valores[5].Valor),
+                        IndiceDaPorta = Inteiro(valores[6].Valor),
                         Alternativo = Texto(valores[11].Valor),
                         PainelPendente = true,
                     };

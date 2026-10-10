@@ -91,6 +91,9 @@ namespace Positron.Data
 
         /// <summary>Porta de modelo de máscara com o campo `Régua` separado por `;` fora de par com os bornes (o `bt13ReguaMascara`).</summary>
         ReguaMascara,
+
+        /// <summary>Bloco de porta (`E`) do desenho cujo atributo `T`/`B`/`R` diverge do modelo de máscara (o `bt14PortasDiscrepantes`).</summary>
+        PortaDiscrepante,
     }
 
     /// <summary>Um problema apontado numa linha das tabelas derivadas.</summary>
@@ -956,6 +959,185 @@ namespace Positron.Data
             }
 
             return texto.Split(';').Length;
+        }
+
+        /// <summary>
+        /// Portas discrepantes — o <c>bt14PortasDiscrepantes</c> da tela
+        /// (<c>clsPortas.VerificaPortasDiscrepantes</c>, alimentado por
+        /// <c>CarregaTodasAsPortasPortas</c>): cruza cada **bloco de porta** do desenho
+        /// com a **definição do modelo** e aponta os atributos que divergem.
+        ///
+        /// Para cada bloco <c>E</c> (com porta != 0) que casa com uma porta do modelo
+        /// por <c>(modelo, porta)</c>, o original compara, atributo a atributo (só os
+        /// cuja tag tem sufixo numérico):
+        /// - <c>T&lt;n&gt;</c> contra o n-ésimo item de <c>Terminais</c> do modelo — se o
+        ///   modelo tem menos itens que <c>n</c>, é discrepância (valor do modelo ausente);
+        /// - <c>B&lt;n&gt;</c> contra o n-ésimo item de <c>Bornes</c> (com o <c>*</c>
+        ///   removido — o marcador de "repete");
+        /// - <c>R&lt;n&gt;</c> contra o campo <c>Régua</c> do modelo e, quando o
+        ///   <c>B&lt;n&gt;</c> correspondente é um borne marcado com <c>*</c> **e** o
+        ///   atributo está **invisível**, o original também aponta.
+        ///
+        /// A comparação é **sem diferenciar maiúsculas** (<c>TextCompare</c> do original)
+        /// e **sem <c>Trim</c>** (o texto cru).
+        ///
+        /// **Duas defensivas** em relação ao original, que aqui não pode estourar:
+        /// - <c>B&lt;n&gt;</c> com <c>n</c> fora da lista do modelo: o original **estoura**
+        ///   o índice (<c>array2[num5 - 1]</c>); aqui vira discrepância;
+        /// - tag sem sufixo numérico (ou índice &lt; 1) é ignorada — o
+        ///   <c>Versioned.IsNumeric</c> do original, sem o estouro do <c>CInt</c>.
+        /// </summary>
+        public static List<Problema> VerificarPortasDiscrepantes(
+            IEnumerable<ModeloPorta> portasDoModelo,
+            IEnumerable<PortaNoDesenho> portas)
+        {
+            List<Problema> problemas = new List<Problema>();
+            if (portasDoModelo == null || portas == null)
+            {
+                return problemas;
+            }
+
+            List<ModeloPorta> definicoes = new List<ModeloPorta>();
+            foreach (ModeloPorta porta in portasDoModelo)
+            {
+                if (porta != null)
+                {
+                    definicoes.Add(porta);
+                }
+            }
+
+            foreach (PortaNoDesenho bloco in portas)
+            {
+                if (bloco == null || bloco.IndiceDaPorta == 0)
+                {
+                    continue;
+                }
+
+                foreach (ModeloPorta definicao in definicoes)
+                {
+                    if (definicao.IndiceModelo != bloco.IndiceModelo
+                        || definicao.IndiceDaPorta != bloco.IndiceDaPorta)
+                    {
+                        continue;
+                    }
+
+                    AcrescentarDiscrepanciasDePorta(problemas, bloco, definicao);
+                }
+            }
+
+            return problemas;
+        }
+
+        private static void AcrescentarDiscrepanciasDePorta(
+            List<Problema> problemas, PortaNoDesenho bloco, ModeloPorta definicao)
+        {
+            string[] terminais = Partes(definicao.Terminais);
+            string[] bornes = Partes(definicao.Bornes);
+
+            // O `list` do original: as tags `B` cujo item do modelo tem `*`.
+            HashSet<string> repetidos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (AtributoPorta atributo in bloco.Atributos)
+            {
+                char tipo;
+                int indice;
+                if (!TagsDePorta(atributo.Tag, out tipo, out indice) || tipo != 'B' || indice > bornes.Length)
+                {
+                    continue;
+                }
+
+                if ((bornes[indice - 1] ?? string.Empty).Contains("*"))
+                {
+                    repetidos.Add(atributo.Tag);
+                }
+            }
+
+            string referencia = Modelo(definicao.NomeModelo, definicao.IndiceModelo)
+                + ", porta #" + definicao.IndiceDaPorta;
+
+            foreach (AtributoPorta atributo in bloco.Atributos)
+            {
+                char tipo;
+                int indice;
+                if (!TagsDePorta(atributo.Tag, out tipo, out indice))
+                {
+                    continue;
+                }
+
+                string texto = atributo.Texto ?? string.Empty;
+
+                if (tipo == 'T')
+                {
+                    if (indice > terminais.Length)
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.PortaDiscrepante, "Portas", bloco.Handle,
+                            "terminal " + atributo.Tag + " fora do modelo (bloco \"" + texto + "\"; " + referencia + ")"));
+                    }
+                    else if (!Igual(terminais[indice - 1], texto))
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.PortaDiscrepante, "Portas", bloco.Handle,
+                            "terminal " + atributo.Tag + ": bloco \"" + texto + "\" ≠ modelo \"" + terminais[indice - 1] + "\" (" + referencia + ")"));
+                    }
+                }
+                else if (tipo == 'B')
+                {
+                    if (indice > bornes.Length)
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.PortaDiscrepante, "Portas", bloco.Handle,
+                            "borne " + atributo.Tag + " fora do modelo (bloco \"" + texto + "\"; " + referencia + ")"));
+                    }
+                    else if (!Igual((bornes[indice - 1] ?? string.Empty).Replace("*", string.Empty), texto))
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.PortaDiscrepante, "Portas", bloco.Handle,
+                            "borne " + atributo.Tag + ": bloco \"" + texto + "\" ≠ modelo \"" + bornes[indice - 1] + "\" (" + referencia + ")"));
+                    }
+                }
+                else if (tipo == 'R')
+                {
+                    bool oculta = repetidos.Contains(atributo.Tag.Replace("R", "B")) && !atributo.Visivel;
+                    if (!Igual(definicao.Regua, texto))
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.PortaDiscrepante, "Portas", bloco.Handle,
+                            "régua " + atributo.Tag + ": bloco \"" + texto + "\" ≠ modelo \"" + (definicao.Regua ?? string.Empty) + "\" (" + referencia + ")"));
+                    }
+                    else if (oculta)
+                    {
+                        problemas.Add(Novo(AreaVerificacao.Desenho, TipoProblema.PortaDiscrepante, "Portas", bloco.Handle,
+                            "régua " + atributo.Tag + " invisível no borne repetido (" + referencia + ")"));
+                    }
+                }
+            }
+        }
+
+        /// <summary>Divide um campo do modelo por <c>;</c> — o <c>Split</c> do VB, que devolve ao menos um item.</summary>
+        private static string[] Partes(string texto)
+        {
+            return (texto ?? string.Empty).Split(';');
+        }
+
+        /// <summary>Lê a tag de um atributo de porta (<c>T1</c>/<c>B2</c>/<c>R3</c>): tipo + índice.</summary>
+        private static bool TagsDePorta(string tag, out char tipo, out int indice)
+        {
+            tipo = '\0';
+            indice = 0;
+            if (string.IsNullOrEmpty(tag) || tag.Length < 2)
+            {
+                return false;
+            }
+
+            if (!int.TryParse(tag.Substring(1).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out indice)
+                || indice < 1)
+            {
+                return false;
+            }
+
+            tipo = char.ToUpperInvariant(tag[0]);
+            return true;
+        }
+
+        /// <summary>Igualdade como o <c>TextCompare</c> do original: sem diferenciar maiúsculas e sem <c>Trim</c>.</summary>
+        private static bool Igual(string a, string b)
+        {
+            return string.Equals(a ?? string.Empty, b ?? string.Empty, StringComparison.OrdinalIgnoreCase);
         }
 
         public static List<Problema> VerificarBornesSemRegua(

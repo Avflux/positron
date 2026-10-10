@@ -668,12 +668,12 @@ checagens** (`bt1Fiacao` … `bt14PortasDiscrepantes`, rótulos em
 `DeclaracoesGeral.mMensagem[1, id]`) e o motor fica em
 `ClsVerificadorProjetoFiacao.cs` (2.173 linhas), com uma análise própria do desenho
 (`buscaDadosDeFiacaoDWG`, linha 430) que alimenta `carregaOrfao` (1311), `carregaTree`
-(1159) e companhia. O recoder tem **14 regras** (`VerificadorProjeto`); **7** casam 1:1
+(1159) e companhia. O recoder tem **15 regras** (`VerificadorProjeto`); **8** casam 1:1
 com botões do original (fiação, órfão, réguas, bornes sem LM, painel fora do cadastro,
-intervalos de borne e régua da máscara), e **2** são parciais (terminais e portas). O que
-ainda **não** está portado: principal × auxiliar (`bt3`/`bt4`), discrepantes (`bt9`), itens
-feitos à mão (`bt12`) e portas discrepantes (`bt14`) — todas dependem da análise
-geométrica do desenho, cujo insumo o recoder já monta para o órfão/régua/LM.
+intervalos de borne, régua da máscara e portas discrepantes), e **2** são parciais
+(terminais e portas). O que ainda **não** está portado: principal × auxiliar
+(`bt3`/`bt4`), discrepantes (`bt9`) e itens feitos à mão (`bt12`) — todos dependem da
+análise geométrica do desenho, cujo insumo o recoder já monta para o órfão/régua/LM.
 O mapeamento botão a botão está no `PLANO.md` §7.1. O verificador da **interligação**
 (outra tela) ainda não tem o cabo indefinido (`IndefineCabosNaoExistentes`).
 
@@ -718,6 +718,28 @@ vazio — o separador `;` mora no campo **`Terminais`** (o insumo do `bt14Portas
 que entra numa próxima rodada). Ou seja: a regra está fiel, mas este dado não a dispara;
 por isso a linha de base do `VERIF` segue em **249** e o ciclo completo no AutoCAD 2020
 (`cad:projeto:acad`) reproduz tudo sem regressão.
+
+**Rodada 53 — portas discrepantes (`bt14PortasDiscrepantes`).** O `VerificaPortasDiscrepantes`
+do `clsPortas` (alimentado pelo `CarregaTodasAsPortasPortas`) cruza cada **bloco `E`**
+do desenho com a **definição do modelo** e aponta, atributo a atributo (só os com tag de
+sufixo numérico): `T<n>` contra o n-ésimo item de `Terminais` (modelo com menos itens que
+`n` já é discrepância), `B<n>` contra `Bornes` (com o `*` de "repete" removido) e `R<n>`
+contra `Régua` — mais o ramo do `list`: um borne marcado com `*` cuja régua `R<n>` está
+**invisível** também aponta. A comparação é sem diferenciar maiúsculas e **sem `Trim`**
+(o texto cru).
+
+Duas defensivas separam o recoder do original: o original **estoura** o índice quando
+`B<n>`/`R<n>` cai fora da lista do modelo (`array2[num5 - 1]`) e no `CInt` de uma tag sem
+número; aqui isso vira discrepância (ou é ignorado) — o plugin não pode derrubar o CAD.
+Entraram o leitor `PortasDoDesenho` (blocos `E` + atributos com visibilidade), o campo
+`IndiceDaPorta` no `DispositivoFiacao` (o `array[6]` do XData `E`/`A`) e o `Invisible` no
+stub do CAD.
+
+**Medido no desenho real:** o `VERIF` loga **45** blocos `E` lidos — o mesmo número do
+dump cru dos `557` INSERTs — e a regra sai **vazia**: os 45 blocos casam com os modelos e
+não têm atributos `B*`/`R*` (só `T*`, que bate com o modelo). A reconstrução em Python do
+dump cru, **fora do plugin**, também prevê **0** discrepâncias; a linha de base segue
+**249** e o ciclo completo no AutoCAD 2020 (`cad:projeto:acad`) reproduz tudo.
 
 O conteúdo é puro (`RelatorioCompilacao`: `Texto()`/`Salvar()`, testado) e o `VERIF`
 passou a compartilhar a mesma montagem (`VerificarRevisao`), então os dois não podem

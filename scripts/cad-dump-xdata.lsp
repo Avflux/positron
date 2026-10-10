@@ -25,6 +25,12 @@
 ;;; plugin** e conferir a checagem de intervalos (`bt8intervalos`) contra o dado
 ;;; bruto do desenho. So entram os blocos do ModelSpace — a mesma varredura do
 ;;; `BornesDoDesenho.Ler`.
+;;;
+;;; Com `POSITRON_XDATA_PORTAS=1`, ele lista **todos** os dispositivos do desenho
+;;; (`DEV;<handle>;tipo=<tipo>;modelo=<n>;porta=<n>`) e, para as portas (tipo `E`),
+;;; os atributos uma por linha (`  ATT;<tag>=<texto>`). E o insumo do
+;;; `bt14PortasDiscrepantes` (bloco x modelo de mascara) e tambem o que confirma
+;;; as `MASCARA;<indice>;<xrecord>` dumadas sempre.
 
 (setq *positron-dump-handles*
   (if (boundp '*positron-dump-handles*) *positron-dump-handles* '("4D642" "4D672")))
@@ -118,6 +124,41 @@
                 nil
                 (pz-dump:escreve f linha)))))))))
 
+;; As PORTAS inseridas no desenho (blocos `E`), uma linha por porta e uma por
+;; atributo — o insumo do `bt14PortasDiscrepantes`, que cruza o modelo (MASCARAS)
+;; com o bloco. O XData `Dispositivo` da porta tem o tipo em array[1], o indice do
+;; modelo em array[5] e o indice da porta em array[6]; os atributos sao T*/B*/R*
+;; (terminal, borne e regua).
+(defun pz-dump:portas (f / sel i e d x app vals att ad)
+  (setq sel (ssget "_X" '((0 . "INSERT"))))
+  (pz-dump:escreve f (strcat "\nPORTAS (INSERT tipo E): "
+                             (itoa (if (null sel) 0 (sslength sel))) " bloco(s)\n"))
+  (if (null sel)
+    nil
+    (progn
+      (setq i (sslength sel))
+      (while (> i 0)
+        (setq i (1- i))
+        (setq e (ssname sel i))
+        (setq d (entget e '("Dispositivo" "DISPOSITIVO")))
+        (setq x (cdr (assoc -3 d)))
+        (foreach app x
+          (if (or (= (car app) "Dispositivo") (= (car app) "DISPOSITIVO"))
+            (progn
+              (setq vals (mapcar 'cdr (cdr app)))
+              (pz-dump:escreve f (strcat "DEV;" (cdr (assoc 5 d))
+                                         ";tipo=" (vl-princ-to-string (nth 0 vals))
+                                         ";modelo=" (vl-princ-to-string (nth 4 vals))
+                                         ";porta=" (vl-princ-to-string (nth 5 vals)) "\n"))
+              (if (= (strcase (vl-princ-to-string (nth 0 vals))) "E")
+                (progn
+                  (setq att (entnext e))
+                  (while (and att (= (cdr (assoc 0 (entget att))) "ATTRIB"))
+                    (setq ad (entget att))
+                    (pz-dump:escreve f (strcat "  ATT;" (cdr (assoc 2 ad)) "="
+                                               (vl-princ-to-string (cdr (assoc 1 ad))) "\n"))
+                    (setq att (entnext att))))))))))))
+
 (defun pz-dump:tudo (caminho / f)
   (setq f (open caminho "w"))
   (if (null f)
@@ -132,6 +173,9 @@
       (pz-dump:dicionario "REGUAS" "MODELOS2" f)
       (if (= (getenv "POSITRON_XDATA_BORNES") "1")
         (pz-dump:bornes f)
+        nil)
+      (if (= (getenv "POSITRON_XDATA_PORTAS") "1")
+        (pz-dump:portas f)
         nil)
       (close f)
       (princ (strcat "cad-dump-xdata: escrito em " caminho)))))
