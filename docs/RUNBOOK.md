@@ -666,10 +666,14 @@ checagens** (`bt1Fiacao` … `bt14PortasDiscrepantes`, rótulos em
 `DeclaracoesGeral.mMensagem[1, id]`) e o motor fica em
 `ClsVerificadorProjetoFiacao.cs` (2.173 linhas), com uma análise própria do desenho
 (`buscaDadosDeFiacaoDWG`, linha 430) que alimenta `carregaOrfao` (1311), `carregaTree`
-(1159) e companhia. Já portadas cinco checagens do desenho (régua do borne, cabo fora do catálogo,
-página ausente, régua vazia e borne sem LM). O que ainda **não** está portado é o que
-depende dessa análise — o órfão por `HandleSup`, intervalos de borne, painéis, itens
-feitos à mão, régua da máscara e discrepantes principal/auxiliar.
+(1159) e companhia. O recoder tem **12 regras** (`VerificadorProjeto`); **5** casam 1:1
+com botões do original (fiação, órfão, réguas, bornes sem LM, painel fora do cadastro),
+e **2** são parciais (terminais e portas). O que ainda **não** está portado: principal ×
+auxiliar (`bt3`/`bt4`), intervalos de borne (`bt8`), discrepantes (`bt9`), itens feitos à
+mão (`bt12`), régua da máscara (`bt13`) e portas discrepantes (`bt14`) — todas dependem
+da análise geométrica do desenho, cujo insumo o recoder já monta para o órfão/régua/LM.
+O mapeamento botão a botão está no `PLANO.md` §7.1. O verificador da **interligação**
+(outra tela) ainda não tem o cabo indefinido (`IndefineCabosNaoExistentes`).
 
 O conteúdo é puro (`RelatorioCompilacao`: `Texto()`/`Salvar()`, testado) e o `VERIF`
 passou a compartilhar a mesma montagem (`VerificarRevisao`), então os dois não podem

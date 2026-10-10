@@ -563,6 +563,7 @@ aberto por **cópia no TEMP**).
 | 47 — harness **AutoCAD 2020** (host desta máquina, sem ZWCAD) | 2026-10-09 | (este commit) | a máquina não tem ZWCAD, mas tem o **AutoCAD 2020** (`accoreconsole.exe`); `scripts/cad-autocad-smoke.ps1` é o harness headless espelhando o do ZWCAD (`FILEDIA`/`SECURELOAD`/`NETLOAD`/comandos/`QUIT`, `.db` pelo `schema.sql`, desenho por `/i` numa cópia) e o `csproj` passou a auto-detectar AutoCAD **2020..2023** (antes só 2024..2026, então `plugin:build:autocad` caía no stub); o `cad-projeto-e2e.ps1` ganhou `-Cad AutoCAD` (e invoca o harness direto, contornando o shim `npm.ps1` do npm 11, que mastiga os args depois do `--`); os scripts novos `cad:smoke:acad`/`cad:e2e:acad`/`cad:projeto:acad`; **medido**: `plugin:test` **209**, as duas builds 0 avisos, o smoke carrega a DLL no `accoreconsole`, o E2E sintético dá 2 fios/1 trecho (idempotente) e o ciclo completo no projeto real reproduz o ZWCAD — `FIA` 494 (265/168/70/83/11/15), `INT` 20 (265/216/697/2388), `VERIF` **238** (107+119+10+2), `IDEMPOTENTE` com hash igual |
 | 48 — A/B das tabelas do `FIA` **no AutoCAD 2020** | 2026-10-09 | (este commit) | o A/B de conteúdo (rodada 44) re-rodado com o lado do recoder saindo do **AutoCAD 2020** (`cad:smoke:acad`, `FIA` no `Funcional.dwg`: 494/265/168/70/83/11/15) contra o produto (Access, DWG 63, revisão 3) reproduz o veredito **linha a linha**: **4 idênticas** (`Portas4F` 265, `Contatos4F` 70, `Circuitos4F` 11, `Aplicacao4F` 15) e as 3 divergentes com toda coluna explicada por dado do desenho — `Fiacao` (`TipoBorne` 79, `Ordem` 29, `Potencial`/`Terminal` 19, `Tag` 6, 2 chaves de cada lado), `Bornes4F` (`Tipo` 79, `Ordem` 53, `Borne` 10, `Regua` 6, 33/20 chaves — cópia local, página 1000) e `Dispositivos4F` (`BlocoLayout` 2: `FINDER_56.34+BASE_LAYOUT.DWG` × `RJ-8.dwg`) |
 | 49 — as 2 linhas do `BlocoLayout` (`Dispositivos4F`): dado do desenho, provado | 2026-10-09 | (este commit) | o dump do XData no desenho (`scripts/cad-dump-xdata.lsp`, novo utilitário; `accoreconsole`) nos handles `4D642`/`4D672` mostra `indexModelo = 53` e, no **dicionário** `CONTATOS/MODELOS2`, o modelo 53 = `(56.34)` com `BlocoTopografico=FINDER_58-34.DWG`/`BlocoLayout=FINDER_56.34+BASE_LAYOUT.DWG` — **idêntico ao recoder**; o XData do bloco concorda (`array[17]`/`array[18]`); o `RJ-8.dwg` do produto é o `BlocoLayout` do modelo **6** (`(RJ-8)`), então o par gravado pelo produto é um estado anterior do modelo 53 — **todas as diferenças do A/B do `FIA` ficam atribuídas a dado do desenho** (nenhuma é regra); `plugin:test` **209** segue verde |
+| 50 — auditoria de cobertura e backlog (o que falta) | 2026-10-09 | (este commit) | varredura do reverso **limpo** (`decompiled-cleaned`) cruzada com o código: entra a §7 com o backlog por frente — `VERIF` com **7** checagens não portadas e **2** parciais (14 botões) + o verificador da interligação (cabo indefinido/árvore), **4** tabelas do schema fora do recorte (`Aranha4`/`Atributos`/`Exportados`/`Plaquetas4`…), **38** telas de relatório (1 entregue), pendências pequenas e as decisões do dono; o parágrafo obsoleto do `RUNBOOK.md` (que listava órfão/painéis como não portados) foi corrigido |
 
 ## 6. Riscos e armadilhas
 
@@ -575,5 +576,75 @@ aberto por **cópia no TEMP**).
   `projeto_abrir`) ou o harness da Etapa 3.
 - **`WAL` não é opcional** — leitor longo sem WAL trava o plugin no meio do
   comando.
-- **AutoCAD 2020 é evidência histórica.** Não "consertar" o stub para fazer o
-  build AutoCAD passar por acidente: o stub é gate de compilação, não host.
+- **O stub é gate de compilação, não host.** Não "consertar" o stub para fazer o
+  build passar por acidente. O **AutoCAD 2020 é o host CAD verificado** desta máquina
+  (`cad:smoke:acad`); o **ZWCAD segue o alvo do produto** e aqui compila contra o stub.
+
+## 7. Backlog verificado (o que ainda não está coberto)
+
+Auditoria de 2026-10-09 sobre `..\..\Elet\Eletron4_ZWcad\decompiled-cleaned` (o
+reverso limpo) cruzada com o código do recorte. Prioridade: **P1** = fecha o valor
+nuclear do recorte; **P2** = expansão do escopo; **P3** = decisão do dono/limpeza.
+
+### 7.1 `VERIF` — checagens do original não portadas · P1
+
+A tela do produto tem **14** checagens (`bt1Fiacao` … `bt14PortasDiscrepantes`, em
+`frmVerificadorProjetoFiacao`); o recoder tem **12 regras** (`VerificadorProjeto`), das
+quais **5** casam 1:1 com botões e **2** são parciais:
+
+| Botão | O que checa | Recoder |
+|---|---|---|
+| `bt1Fiacao` | fiação (tabela) | ✅ `VerificarFiacao` (+ `FiacaoDuplicada`) |
+| `bt2Orfao` | conexão órfã (`carregaOrfao`) | ✅ `VerificarOrfaos` |
+| `bt7Reguas` | réguas | ✅ `VerificarReguasVazias` + `VerificarBornesSemRegua` |
+| `bt10BornesLM` | bornes sem LM (`GijcRTCGe3`) | ✅ `VerificarBornesSemLm` |
+| `bt11Paineis` | painel fora do cadastro (`lPnAoagado`) | ✅ `VerificarPaineisSemCadastro` |
+| `bt5Terminais` | terminais (`AtualizaTerminais`) | ⚠️ parcial (`VerificarModelos`) |
+| `bt6Portas` | portas | ⚠️ parcial (`VerificarModelos`) |
+| `bt3Principal` / `bt4Auxiliar` | principal × auxiliar | ❌ |
+| `bt8intervalos` | intervalos de borne | ❌ |
+| `bt9Discrepantes` | discrepantes | ❌ |
+| `bt12AMao` | itens feitos à mão (`AtualizaFeitoAMao`) | ❌ |
+| `bt13ReguaMascara` | régua da máscara (`AtualizadgReguaMascara`) | ❌ |
+| `bt14PortasDiscrepantes` | portas discrepantes (`AtualizaDGPortasDiscrepantes`) | ❌ |
+
+**Verificador da interligação** (`clsVerificadorProjetoInterligacao`, outra tela): o
+**cabo indefinido** (`IndefineCabosNaoExistentes`) e a árvore de jumpers/interligação
+(`carregaTree`) **não** foram portados — a interligação hoje só tem `CaboSemCatalogo`.
+
+Todas as que faltam dependem da **mesma análise geométrica** (`buscaDadosDeFiacaoDWG`/
+`buscaDadosDoDWG`) que o recoder já monta para o órfão, a régua e o LM — o insumo
+(`ConexaoFiacao`, `PontoBorne`, `TrechoFiacao`) existe, então o custo é menor que o
+número de telas sugere.
+
+### 7.2 Tabelas do schema sem projeção · P2
+
+O plugin escreve **13** tabelas; o schema tem **31**. As demais:
+
+| Tabela(s) | Fluxo no original | Situação |
+|---|---|---|
+| `Aranha4` | relatório de cabos (ArqNet/DI, 5 telas) | fora do recorte (é paginação de relatório — §9b) |
+| `Atributos`, `Exportados` | exportar/importar projeto cross-DWG | fora do recorte |
+| `Plaquetas4`, `ListaMateriais`, `Sinais`, `Correcao` | fluxos próprios (referenciados no reverso) | fora do recorte |
+| `Cabos`, `Veias`, `Materiais`, `ModelosCabos`, `Paineis` | catálogo/cadastro importados do Access | ✅ o importador cobre |
+| `DWG`, `DWGH`, `PaineisH`, `Preferencias`, `Configuracoes`, `Comandos` | metadados do projeto/app | domínio do sidecar/app |
+
+### 7.3 Relatórios · P2 (decisão 9b)
+
+**38** telas `frmRelatorio_*` no original; o recoder entrega **1** (a verificação, em
+texto, `ELETREL`). O começo recomendado são os **4 tabulares** (Fiação, Interligação,
+Materiais, Veias) no app Python — a consulta já existe e o custo é o layout.
+
+### 7.4 Pendências pequenas · P3
+
+- **Fixture sintética sem blocos** — as fases 7–9 dentro do CAD hoje são provadas pelo
+  **desenho real** (que é o que acha defeito), mas o `cad-fixture.lsp` continua sem
+  bornes/máscaras/contatos; uma fixture com blocos fecharia o ciclo sintético.
+- **`ModelosCabos`** vazia no Access do projeto (nada a importar).
+- **`TipoBorne`/`Tipo`** (79 bornes com `tipo = 0`) e o **`BlocoLayout`** (2 linhas):
+  diferenças de **dado** do desenho local, já provadas.
+
+### 7.5 Decisões do dono (Etapa 9) · P3
+
+Licença (escolher o provedor), relatórios (formato/entrega) e banco (SQL Server) — os
+três encaixes já existem e nenhum bloqueia o recorte atual.
