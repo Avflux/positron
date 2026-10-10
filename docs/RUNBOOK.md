@@ -821,10 +821,45 @@ vêm do **dicionário do modelo**; com `indexModelo == 0`, do **XData do própri
 esses índices; passou a expor, e o gerador usa o XData quando não há modelo. Resultado:
 de **42** linhas divergentes para **2**.
 
-As 2 restantes são de conteúdo do **Layout** (`FINDER_56.34+BASE_LAYOUT.DWG` no recoder
-contra `RJ-8.dwg` no produto), em blocos cujo `Topografico` bate — mesma classe das
-outras diferenças de dado (a cópia local do desenho não é a compilada), mas fica
-registrado como pendência até haver a evidência.
+**Fechado na rodada 49: as 2 restantes também são dado do desenho.** O dump do XData
+no próprio desenho (`scripts/cad-dump-xdata.lsp`, rodado pelo `accoreconsole`) fecha a
+questão nos handles `4D642`/`4D672` (os dois polos do `52-X1`/`52-X2`):
+
+- o tipo é `P` e **`indexModelo = 53`** (o `array[12]`; no dump aparece como `idx=11`
+  porque o dump lista os valores **depois** do app name, que é o `array[0]` do leitor);
+- com `indexModelo != 0` o original usa o **dicionário** `CONTATOS → "MODELOS2"`; o
+  registro do modelo **53** é `(56.34) … (1 . FINDER_58-34.DWG)`
+  `(1 . FINDER_56.34+BASE_LAYOUT.DWG) … (1 . A1;A2)`, ou seja `BlocoTopografico` =
+  `FINDER_58-34.DWG` e `BlocoLayout` = `FINDER_56.34+BASE_LAYOUT.DWG` — **exatamente o
+  que o recoder gravou**;
+- o **XData do próprio bloco concorda**: `Layout = array[17] = FINDER_56.34+BASE_LAYOUT.DWG`
+  e `Topografico = array[18] = FINDER_58-34.DWG`.
+
+Ou seja, **as duas fontes possíveis** (dicionário e XData) dizem a mesma coisa na cópia
+local. O `RJ-8.dwg` que o produto gravou **não existe em fonte nenhuma** para esses
+blocos: ele é o `BlocoLayout` do modelo **6** (`(RJ-8)` → `ARTECHE__RJ8_NOVO.DWG` /
+`RJ-8.dwg`), e o `BlocoTopografico` do produto (`FINDER_58-34.DWG`) é do modelo **53**.
+O par gravado pelo produto (`FINDER_58-34.DWG`, `RJ-8.dwg`) é um **estado anterior** do
+modelo 53 (o `Layout` trocado depois da compilação) — mesma classe das demais
+diferenças: dado do desenho, não regra de projeção. Com isso, **todas as diferenças do
+A/B do `FIA` estão atribuídas**.
+
+### Dumpar o XData do desenho (`scripts/cad-dump-xdata.lsp`)
+
+Separar "bug da projeção" de "dado da cópia do desenho" exige ler o XData **do
+próprio DWG**. O utilitário dumpa os handles pedidos (app `DISPOSITIVO`/`Dispositivo`/
+`MASCARA`) e os dicionários `CONTATOS → "MODELOS2"` e `MASCARAS → "MODELOS2"`:
+
+```bash
+# roda dentro do AutoCAD 2020, carregando o utilitario antes do NETLOAD
+powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 `
+  -Desenho "..\Elet\RCD\Funcional.dwg" -Fixture scripts/cad-dump-xdata.lsp -Comandos ELET
+```
+
+A saída vai para `%POSITRON_XDATA%` ou, sem ela, `%TEMP%\positron-xdata.txt`. Os
+handles são `*positron-dump-handles*` (padrão `4D642`/`4D672`); ajuste a lista antes do
+`load` para dumpar outros. **Armadilha medida:** AutoLISP **não tem `let`** — o load
+falha em silêncio e nada sai no arquivo; use `setq`.
 
 ### Comparação de **conteúdo** (não só de contagem) — `Portas4I`/`Bornes4I`
 
