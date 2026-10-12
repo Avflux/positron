@@ -24,6 +24,9 @@ Se uma instalação automática falhar, o log informa a ferramenta, o motivo
 conhecido e como instalá-la manualmente; corrija a pendência e repita
 `npm run dev`. O App Installer da Microsoft Store fornece o WinGet; se faltar,
 instale-o em https://aka.ms/getwinget e reabra o terminal.
+O bootstrap detecta as ferramentas C++ com `vswhere`, sem exigir uma edição
+específica do Visual Studio; instalações posteriores a 2022 também são aceitas
+quando incluem o compilador C++.
 
 Em macOS e Linux, `npm run dev` ainda instala Rust, mas a instalação de `uv` e
 das bibliotecas nativas do Tauri é manual. Consulte

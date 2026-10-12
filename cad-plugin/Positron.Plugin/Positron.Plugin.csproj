@@ -18,6 +18,7 @@
     Caso contrário, compila com o stub Positron.CadStub como gate de compilação.
   -->
   <PropertyGroup Condition="'$(CadPlatform)' == 'AutoCAD'">
+    <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\AutoCAD\2020\accoremgd.dll')">$(MSBuildThisFileDirectory)..\lib\AutoCAD\2020</AutoCadDir>
     <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2026')">$(ProgramFiles)\Autodesk\AutoCAD 2026</AutoCadDir>
     <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2025')">$(ProgramFiles)\Autodesk\AutoCAD 2025</AutoCadDir>
     <AutoCadDir Condition="'$(AutoCadDir)' == '' And Exists('$(ProgramFiles)\Autodesk\AutoCAD 2024')">$(ProgramFiles)\Autodesk\AutoCAD 2024</AutoCadDir>

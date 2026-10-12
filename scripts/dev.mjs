@@ -132,7 +132,7 @@ function hasVisualCppTools() {
     "-products", "*",
     "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
     "-property", "installationPath",
-  ]);
+  ], { shell: false });
   return result.status === 0 && Boolean(result.stdout?.trim());
 }
 
@@ -160,7 +160,7 @@ function installWingetPackage(id, label, override) {
   const result = spawnSync("winget", args, {
     stdio: "inherit",
     env,
-    shell: true,
+    shell: false,
     cwd: repoRoot,
   });
   refreshWindowsPath();
