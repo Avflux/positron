@@ -366,7 +366,9 @@ exercitar as fases 7–9 num CAD.
 > paridade — e ele reproduz o alvo do ZWCAD **linha a linha** (medido na rodada 136).
 
 **A API do AutoCAD é vendorizada** (`cad-plugin/lib/AutoCAD/2020/`, commit `de3837e4`):
-`acmgd.dll`, `acdbmgd.dll` e `accoremgd.dll` do AutoCAD 2020 — o mesmo padrão do
+`acmgd.dll`, `acdbmgd.dll` e `accoremgd.dll` do AutoCAD 2020 — mais a `AdWindows.dll` desde a
+**rodada 138**, que traz a API de interface (`Autodesk.Windows`: o `RibbonControl` e os itens, a
+irmã da `ZdWindows` do ZWCAD) — o mesmo padrão do
 `cad-plugin/lib/ZWCAD/2026`. O `csproj` **prefere a cópia do repo** e só cai no
 `Program Files\Autodesk\AutoCAD 2026…2020` (e, sem nenhuma das duas, no stub
 `Positron.CadStub`), então `plugin:build:autocad` compila contra a **API real** mesmo numa
@@ -406,6 +408,33 @@ powershell -ExecutionPolicy Bypass -File scripts/cad-projeto-e2e.ps1 -Cad AutoCA
 O default `-Cad ZWCAD` (o alvo do produto) **falha antes de chamar o harness** numa máquina
 sem ZWCAD, com a mensagem que aponta o host instalado (`Nesta maquina o host verificado e o
 AutoCAD 2020: rode com '-Cad AutoCAD'`) — em vez do `ZWCAD nao encontrado em '...'` do smoke.
+
+**A interface no AutoCAD (rodada 138).** O `accoreconsole` **não** exercita a interface — e duas
+coisas medidas nesta máquina importam para quem for testar:
+
+- o **autoload não roda nele**: o `accoreconsole` sobe sem o `AcAutoLoader.arx` (o `(arx)` dele lista
+  só `acdim.crx`, `acvmtools.crx` e `vl.crx`) e um bundle válido em
+  `%APPDATA%\Autodesk\ApplicationPlugins` não muda nada — no headless a DLL entra por `NETLOAD`,
+  como o `cad-autocad-smoke.ps1` faz;
+- **criar `PaletteSet` nele derruba o processo** (e *referenciar* o tipo também: ver a rodada 138 no
+  detalhe rodada a rodada). Por isso a interface mora em `PaletaAncoravel`, tocado só quando há
+  janela.
+
+O jeito de medir a **barra** e a **paleta** é abrir a **interface cheia** por script — sem `NETLOAD`
+(é o autoload que está sob teste) e com o `POSITRON_LOG` apontado:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/instala-bundle.ps1 -Cad AutoCAD   # põe o pacote em %APPDATA%
+$env:POSITRON_LOG = "$env:TEMP\positron-gui.txt"; $env:POSITRON_DB_PATH = "$env:TEMP\positron-projeto.db"
+$env:POSITRON_DWG = "63"; $env:POSITRON_REVISAO = "R0"
+# o CAD fica vivo ~25 s: a barra entra na PRIMEIRA OCIOSIDADE (o ribbon não existe no load)
+$scr = "$env:TEMP\pz.scr"; Set-Content $scr -Encoding ASCII -Value @('(setvar "FILEDIA" 0)','FOLHAS','VERIF')
+Start-Process 'C:\Program Files\Autodesk\AutoCAD 2020\acad.exe' -ArgumentList @('/nologo','/i',"$env:TEMP\copia.dwg",'/b',$scr)
+# 25 s depois leia $env:POSITRON_LOG: 'Positron carregado', a paleta e a linha 'Barra: aba "Positron" ...'
+```
+
+A **validação visual** (a aba na fita e a paleta ancorada) é do dono do produto; o que é automático —
+a aba existir com os 10 painéis/121 botões e a paleta reportar as 16 páginas — sai no log.
 
 Diferenças em relação ao ZWCAD, todas medidas aqui:
 
@@ -809,6 +838,64 @@ regra) é a **§0 do `AUDITORIA.md`**, que se reproduz com `scripts/cobertura-do
 do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o detalhe rodada a rodada
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
+
+**Rodada 138 — a interface do ZWCAD no build AutoCAD: a AdWindows na lib, a barra e a paleta.**
+O build AutoCAD respondia `Barra: disponivel apenas no build ZWCAD (o ZdWindows e a API de
+interface)` e a **paleta nao existia**: o `PaletaDeFolhas` do AutoCAD montava o `FolhasControle`
+**sem pai** (nada aparecia em lugar nenhum) e a linha `Positron — paleta de folhas com 16 pagina(s)
+(ancorada no CAD)` era **mensagem fixa** do comando, nao uma medida — ela ja aparecia na rodada 137 e
+foi lida como "a paleta funciona". A rodada fechou os dois:
+
+**1. A AdWindows na lib.** A API de interface do AutoCAD e a `AdWindows.dll`
+(`Autodesk.Windows`: o `RibbonControl`, o `ComponentManager` e os itens) — a **mesma** API que o
+`ZwSoft.Windows` do ZWCAD clona. Ela entrou na copia do repo
+(`cad-plugin/lib/AutoCAD/2020/AdWindows.dll`), na lista do `scripts/prepare-autocad-api.ps1` e no
+`csproj` (referencia `AdWindows`, `Private=false`, como as outras tres).
+
+**2. Uma construcao para os dois.** Com o `using` condicional o `BarraDeFerramentas` virou **um**
+codigo: o corpo que monta a aba, os paineis e os botoes nao mudou de forma, e o ZWCAD segue com
+`ZwSoft.Windows`. Duas divergencias ficaram em `#if` (medidas no compilador): o `Name` do item, que
+no AutoCAD e `Id`, e o "desativado", que e `IsActive` no ZWCAD e `IsEnabled` no AutoCAD. Na paleta,
+o `PaletteSet` passou a ser o mesmo dos dois (`Autodesk.AutoCAD.Windows.PaletteSet`, que **ja vinha
+no `acmgd.dll`** — nao foi preciso vendorizar a `AcWindows.dll`).
+
+**Medido (AutoCAD 2020, interface cheia, por autoload, sem `NETLOAD`):**
+
+```text
+Positron carregado. Digite ELET para comecar — ELET abre a paleta de folhas (FOLHAS tambem).
+Barra: o ribbon ainda não existe nesta fase do arranque — a aba entra na primeira ociosidade do CAD ...
+Positron — paleta de folhas com 16 página(s) (ancorada no CAD).
+Barra: aba "Positron" com 10 painel(is) — 121 botão(ões) do original (83 ligado(s), 38 desativado(s); 76 abrem uma janela) e 8 do recoder.
+```
+
+A ultima linha e a **prova** de que a barra do AutoCAD existe com os **mesmos numeros** medidos no
+ZWCAD (rodada 129): os 9 paineis do original + o nosso, 121 botoes, 83 ligados, 38 desativados, 76
+abrindo uma tela e 8 do recoder. A **validacao visual** (a aba na fita, a paleta ancorada) e do dono
+do produto; o que e automatico sai no log.
+
+**Dois achados de host — os dois mudaram o desenho do codigo:**
+
+- **o ribbon nao existe no `Initialize()`.** No ZWCAD o `ComponentManager.Ribbon` ja esta montado
+  quando o plugin carrega; **no AutoCAD nao** — medido: no load por autoload a barra saiu como "o
+  ribbon ainda nao existe nesta fase do arranque". A aba passou a ser criada na **primeira
+  ociosidade** (`Application.Idle`, ate 10 tentativas) e a linha da barra sai no log logo depois; no
+  `accoreconsole` o evento nao chega a disparar (nada fica pendurado);
+- **no `accoreconsole`, so REFERENCIAR o `PaletteSet` derruba o processo.** Com o `ELET` chamando um
+  metodo que mencionava `Autodesk.AutoCAD.Windows.PaletteSet`, o processo **morria no JIT** — sem
+  excecao e sem log: uma sonda na **primeira linha do corpo** do metodo nunca era escrita, o
+  `try/catch` do comando nao via nada e o script **nao chegava ao `FIA`/`INT`** (o
+  `cad:projeto:acad` quebraria mais adiante, depois de o smoke dizer OK). A interface ficou isolada
+  no tipo `PaletaAncoravel`, tocado **so quando ha janela**; o `PaletaDeFolhas` — esse sim chamado
+  nos dois hosts — nao menciona tipo de interface nenhum, e no headless o `ELET` volta a devolver
+  so a contagem de paginas com o ciclo inteiro rodando. **Licao de instrumento:** referencia a tipo
+  de interface num metodo compartilhado mata o host headless **antes de qualquer log**; quando o
+  sintoma e "o comando morre e nao escreve nada", a causa pode ser o JIT resolvendo um tipo que o
+  host nao tem.
+
+**Gate desta rodada:** as duas builds **0 avisos / 0 erros**, `plugin:test` **604** (inalterado — a
+rodada e de interface), o `cad:projeto:acad -Idempotencia` verde (`FIA` 494, `INT` 20, `VERIF` 249
+na linha de base, app **4.988**, `IDEMPOTENTE` com o hash `7c1635f0…` de sempre), o
+`cad:smoke:acad` com `ELET` headless sem derrubar o processo e a medicao de interface acima.
 
 **Rodada 137 — o autoload nas duas versoes e os testes reais na compilacao do AutoCAD.**
 O `install/Positron.bundle/PackageContents.xml` tinha **um** componente (`Platform="ZWCAD*"`,

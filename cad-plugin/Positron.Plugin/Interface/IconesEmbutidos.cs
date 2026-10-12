@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
-#if !AUTOCAD
 using System.Windows.Media.Imaging;
-#endif
 
 namespace Positron.Plugin.Interface
 {
@@ -47,7 +45,6 @@ namespace Positron.Plugin.Interface
             }
         }
 
-#if !AUTOCAD
         private static readonly Dictionary<string, BitmapImage> CacheRibbon =
             new Dictionary<string, BitmapImage>();
 
@@ -81,6 +78,5 @@ namespace Positron.Plugin.Interface
                 return imagem;
             }
         }
-#endif
     }
 }

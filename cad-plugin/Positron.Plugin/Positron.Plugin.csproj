@@ -61,6 +61,12 @@
       <HintPath>$(AutoCadDir)\acdbmgd.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- A interface do AutoCAD: o Autodesk.Windows (RibbonControl e itens) vive na AdWindows.dll,
+         a irma da ZdWindows do ZWCAD. Entra no build AutoCAD desde a rodada 138 (a barra). -->
+    <Reference Include="AdWindows">
+      <HintPath>$(AutoCadDir)\AdWindows.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(CadPlatform)' == 'AutoCAD' And '$(AutoCadDir)' == ''">

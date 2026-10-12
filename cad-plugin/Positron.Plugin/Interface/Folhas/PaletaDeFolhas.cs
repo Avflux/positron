@@ -1,51 +1,58 @@
 using System;
-#if !AUTOCAD
-using ZwSoft.ZwCAD.Windows;
+#if AUTOCAD
+using Autodesk.AutoCAD.ApplicationServices;
 #endif
 
 namespace Positron.Plugin.Interface.Folhas
 {
     /// <summary>
-    /// A **paleta de folhas** — o <c>_pspag</c> do reverso: um <c>PaletteSet</c> do CAD (não uma
-    /// janela de sistema operacional), ancorável, hospedando o <see cref="FolhasControle"/>.
+    /// A **paleta de folhas** — o <c>_pspag</c> do reverso: a **porta** da paleta (o
+    /// <see cref="FolhasControle"/> com as páginas do caderno) e a decisão de **onde** ela é
+    /// ancorada: <see cref="PaletaAncoravel"/>, o <c>PaletteSet</c> do CAD.
     ///
-    /// O original usa dois Guids (PT/EN) e o título da mensagem; aqui o Guid é o do Positron e o
-    /// título é fixo. Fica **uma** instância viva durante a sessão (cria na primeira abertura).
+    /// **Por que a criação do <c>PaletteSet</c> mora em outro tipo** (rodada 138): no
+    /// <c>accoreconsole</c> o simples **fato de este método referenciar**
+    /// <c>Autodesk.AutoCAD.Windows.PaletteSet</c> já derruba o processo no JIT — medido: com a
+    /// referência aqui dentro, o <c>ELET</c> morria sem log nenhum (a sonda, a primeira linha do
+    /// corpo, nunca chegava a ser escrita) e o script não alcançava o <c>FIA</c>/<c>INT</c>; com o
+    /// tipo de interface isolado num método que **só é chamado quando há janela**, o harness
+    /// headless segue o ciclo inteiro. O <c>using</c> de <c>Autodesk.AutoCAD.Windows</c> fica no
+    /// arquivo do <see cref="PaletaAncoravel"/>, nunca neste.
     /// </summary>
     internal static class PaletaDeFolhas
     {
-        private static readonly Guid IdDaPaleta = new Guid("D17CCE76-F129-49A2-BFE6-6B9FCD7EC955");
-
         private static FolhasControle _controle;
-
-#if !AUTOCAD
-        private static PaletteSet _paleta;
-#endif
 
         /// <summary>Abre (criando na primeira vez) a paleta e devolve quantas páginas mostrou.</summary>
         internal static int Mostrar()
         {
-#if AUTOCAD
             _controle = _controle ?? new FolhasControle();
-            return _controle.Carregar();
-#else
-            if (_paleta == null)
+
+            if (SemJanela())
             {
-                _controle = new FolhasControle();
-                // Os mesmos valores do reverso (`DockEnabled = (DockSides)20480`,
-                // `Dock = (DockSides)4096`): a paleta pode ancorar e nasce à direita.
-                // O título é o do original: `mMensagem[1, 8]` = "Páginas".
-                _paleta = new PaletteSet(Positron.Data.Interface.MensagensDoReverso.Paginas, "", IdDaPaleta);
-                _paleta.DockEnabled = (DockSides)20480;
-                _paleta.Dock = (DockSides)4096;
-                _paleta.MinimumSize = new System.Drawing.Size(240, 320);
-                _paleta.Add("folhas", _controle);
+                return _controle.Carregar();
             }
 
-            int paginas = _controle.Carregar();
-            _paleta.Visible = true;
-            _paleta.KeepFocus = true;
-            return paginas;
+            return PaletaAncoravel.Mostrar(_controle);
+        }
+
+        /// <summary>
+        /// Há janela nesta sessão? O <c>accoreconsole</c> **não** aceita interface — a checagem é o
+        /// nome do processo (o sinal direto do host headless) e, como segunda testemunha, a ausência
+        /// de janela principal (que só é lida quando o processo não é o core console).
+        /// </summary>
+        private static bool SemJanela()
+        {
+#if AUTOCAD
+            if (string.Equals(System.Diagnostics.Process.GetCurrentProcess().ProcessName,
+                              "accoreconsole", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return Application.MainWindow == null;
+#else
+            return false;
 #endif
         }
     }

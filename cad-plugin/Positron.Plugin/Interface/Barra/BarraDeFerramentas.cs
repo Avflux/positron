@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
-using Positron.Data.Interface.Mapas;
-
-#if !AUTOCAD
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using Positron.Data.Interface.Mapas;
+#if AUTOCAD
+using Autodesk.Windows;
+using Autodesk.AutoCAD.ApplicationServices;
+using Document = Autodesk.AutoCAD.ApplicationServices.Document;
+#else
 using ZwSoft.Windows;
 using ZwSoft.ZwCAD.ApplicationServices;
+using Document = ZwSoft.ZwCAD.ApplicationServices.Document;
 #endif
 
 namespace Positron.Plugin.Interface.Barra
@@ -31,8 +35,17 @@ namespace Positron.Plugin.Interface.Barra
     /// na dica, aqui mostram o texto curto (a nossa barra tem menos botões por painel e o rótulo
     /// ajuda a chamar a janela certa).
     ///
-    /// Só existe no ZWCAD (o <c>ZdWindows</c> é a API de interface); no build AutoCAD o método
-    /// devolve a linha informando isso — o build de AutoCAD é o gate de compilação do stub.
+    /// **A mesma construção serve aos dois CADs** (rodada 138): o <c>ZwSoft.Windows</c> do ZWCAD e o
+    /// <c>Autodesk.Windows</c> da <c>AdWindows.dll</c> são a mesma API de ribbon, então só o
+    /// <c>using</c> muda (os dois <c>RibbonControl</c>/<c>RibbonTab</c>/<c>RibbonButton</c> saem do
+    /// <c>using</c> condicional). Duas divergências ficam em <c>#if</c>, medidas no compilador: o
+    /// <c>Name</c> do item, que no ZWCAD se chama <c>Id</c> no AutoCAD, e o "desativado", que é
+    /// <c>IsActive</c> no ZWCAD e <c>IsEnabled</c> no AutoCAD.
+    ///
+    /// **Onde ela não existe:** no <c>accoreconsole</c> (o harness headless) não há ribbon nenhum —
+    /// o <c>ComponentManager.Ribbon</c> é nulo e o método devolve a linha dizendo isso, sem lançar.
+    /// Medido na rodada 138: no AutoCAD de interface cheia a aba é criada no load (a mensagem sai
+    /// com os painéis e os botões).
     /// </summary>
     internal static class BarraDeFerramentas
     {
@@ -52,11 +65,31 @@ namespace Positron.Plugin.Interface.Barra
         };
 
         /// <summary>Cria (ou recria) a aba e devolve a linha de resumo. Nunca lança.</summary>
+        /// <remarks>
+        /// No ZWCAD o ribbon já existe quando o plugin carrega; **no AutoCAD, não** — medido na
+        /// rodada 138: no load por autoload o `ComponentManager.Ribbon` é **nulo** (o AutoCAD monta o
+        /// ribbon depois do carregamento do plugin). Por isso, quando ele ainda não existe, a aba é
+        /// agendada para a primeira ociosidade do CAD (<see cref="NaOciosidade"/>), e não se perde.
+        /// </remarks>
         internal static string Criar()
         {
+            if (ComponentManager.Ribbon == null)
+            {
 #if AUTOCAD
-            return "Barra: disponível apenas no build ZWCAD (o ZdWindows é a API de interface).";
+                AgendarRetentativa();
+                return "Barra: o ribbon ainda não existe nesta fase do arranque — a aba entra na "
+                    + "primeira ociosidade do CAD (no accoreconsole, que não tem interface, não há ribbon).";
 #else
+                return "Barra: o CAD não tem ribbon nesta sessão.";
+#endif
+            }
+
+            return ConstruirAba();
+        }
+
+        /// <summary>A montagem da aba (o corpo comum aos dois CADs). Nunca lança.</summary>
+        private static string ConstruirAba()
+        {
             try
             {
                 RibbonControl ribbon = ComponentManager.Ribbon;
@@ -118,10 +151,41 @@ namespace Positron.Plugin.Interface.Barra
             {
                 return "Barra: falhou — " + erro.Message + ".";
             }
-#endif
         }
 
-#if !AUTOCAD
+#if AUTOCAD
+        /// <summary>A tentativa em curso (0 = nenhuma agendada).</summary>
+        private static int _tentativas;
+
+        /// <summary>
+        /// O AutoCAD cria o ribbon **depois** de carregar o plugin, então a aba espera a primeira
+        /// ociosidade (10 tentativas bastam: o `Idle` dispara muitas vezes no arranque). No
+        /// accoreconsole o evento não chega a disparar e nada fica pendurado.
+        /// </summary>
+        private static void AgendarRetentativa()
+        {
+            if (_tentativas > 0)
+            {
+                return;
+            }
+
+            _tentativas = 1;
+            Application.Idle += NaOciosidade;
+        }
+
+        private static void NaOciosidade(object remetente, EventArgs argumentos)
+        {
+            if (ComponentManager.Ribbon == null && _tentativas < 10)
+            {
+                _tentativas++;
+                return;
+            }
+
+            Application.Idle -= NaOciosidade;
+            Plugin.Escrever(ConstruirAba());
+        }
+#endif
+
         /// <summary>
         /// Um botão do original. Com o comando que o recoder responde ele manda o
         /// <c>CommandParameter</c> para a linha de comando (como o <c>AdskCommandHandler</c> do
@@ -134,8 +198,12 @@ namespace Positron.Plugin.Interface.Barra
 
             RibbonButton item = new RibbonButton
             {
-                Text = botao.Rotulo,
+#if AUTOCAD
+                Id = "POSITRON_" + botao.Comando,
+#else
                 Name = "POSITRON_" + botao.Comando,
+#endif
+                Text = botao.Rotulo,
                 ShowText = true,
                 ShowImage = imagem != null,
                 Image = imagem,
@@ -152,7 +220,11 @@ namespace Positron.Plugin.Interface.Barra
             }
 
             // Como o original faz com o banner da versão: o item fica na barra, inativo.
+#if AUTOCAD
+            item.IsEnabled = false;
+#else
             item.IsActive = false;
+#endif
             item.ToolTip = dica + " — ainda não portado no Positron (o comando " + botao.Comando + " não existe aqui).";
             desativados++;
             return item;
@@ -164,8 +236,12 @@ namespace Positron.Plugin.Interface.Barra
             BitmapImage imagem = IconesEmbutidos.Imagem(comando[2]);
             return new RibbonButton
             {
-                Text = comando[1],
+#if AUTOCAD
+                Id = "POSITRON_" + comando[0],
+#else
                 Name = "POSITRON_" + comando[0],
+#endif
+                Text = comando[1],
                 ShowText = true,
                 ShowImage = imagem != null,
                 Image = imagem,
@@ -211,6 +287,5 @@ namespace Positron.Plugin.Interface.Barra
                 documento.SendStringToExecute(comando, true, false, false);
             }
         }
-#endif
     }
 }
