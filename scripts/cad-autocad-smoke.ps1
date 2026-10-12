@@ -32,7 +32,7 @@
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 `
-      -Desenho "..\Elet\RCD\Funcional.dwg" -Dwg 63 -Comandos ELET,FIA,INT,SYNCD,VERIF
+      -Desenho "cad-plugin\reverso\Teste_projeto_real\Funcional.dwg" -Dwg 63 -Comandos ELET,FIA,INT,SYNCD,VERIF
 #>
 [CmdletBinding()]
 param(

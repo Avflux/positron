@@ -34,8 +34,10 @@ param(
     # `accoreconsole` do AutoCAD 2020 (harness `cad-autocad-smoke.ps1`).
     [ValidateSet('ZWCAD', 'AutoCAD')]
     [string] $Cad = 'ZWCAD',
-    [string] $Desenho = "..\Elet\Teste_projeto_real\Funcional.dwg",
-    [string] $Mdb = "..\Elet\Teste_projeto_real\RCD.mdb",
+    # Vazio = o projeto real que mora DENTRO do repo (`cad-plugin/reverso/Teste_projeto_real`,
+    # desde a rodada 134). Resolvido contra a raiz do repo, e nao contra o diretorio de chamada.
+    [string] $Desenho,
+    [string] $Mdb,
     [string] $Banco = "$env:TEMP\positron-projeto.db",
     [int]    $Dwg = 63,
     [string] $Revisao = "R0",
@@ -55,11 +57,32 @@ $raiz = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $raiz 'services\sidecar\.venv\Scripts\python.exe'
 $relatorio = Join-Path $env:TEMP 'positron-relatorio.txt'
 
+# O projeto real (desenho + banco de referencia do produto) mora DENTRO do repo desde a rodada 134
+# (cad-plugin/reverso/Teste_projeto_real); os defaults saem da RAIZ DO REPO, e nao do diretorio de
+# chamada — era '..\Elet\...', de quando o material estava fora do repo.
+if ([string]::IsNullOrWhiteSpace($Desenho)) {
+    $Desenho = Join-Path $raiz 'cad-plugin\reverso\Teste_projeto_real\Funcional.dwg'
+}
+if ([string]::IsNullOrWhiteSpace($Mdb)) {
+    $Mdb = Join-Path $raiz 'cad-plugin\reverso\Teste_projeto_real\RCD.mdb'
+}
+
 if (-not (Test-Path $Desenho)) { throw "nao encontrei o desenho em '$Desenho'" }
 if (-not (Test-Path $Mdb)) { throw "nao encontrei o .mdb em '$Mdb'" }
 if (-not (Test-Path $python)) { throw "nao encontrei o python do sidecar em '$python'" }
-if ($Cad -eq 'ZWCAD' -and (Get-Process ZWCAD -ErrorAction SilentlyContinue)) {
-    throw "ZWCAD esta aberto; feche-o (instancia unica e nao herda POSITRON_*)"
+
+if ($Cad -eq 'ZWCAD') {
+    # O host do produto e o ZWCAD, mas nem toda maquina tem os dois: sem o ZWCAD instalado o default
+    # falharia dentro do harness com 'ZWCAD nao encontrado'; aqui a mensagem ja diz o host que existe.
+    $zwcadDir = @('C:\Program Files\ZWSOFT\ZWCAD 2026', 'C:\Program Files\ZWSOFT\ZWCAD 2025') |
+        Where-Object { Test-Path $_ } | Select-Object -First 1
+    if (-not $zwcadDir) {
+        throw ("ZWCAD nao esta instalado (procurei em 'C:\Program Files\ZWSOFT\ZWCAD 2026' e 2025). " +
+               "Nesta maquina o host verificado e o AutoCAD 2020: rode com '-Cad AutoCAD'.")
+    }
+    if (Get-Process ZWCAD -ErrorAction SilentlyContinue) {
+        throw "ZWCAD esta aberto; feche-o (instancia unica e nao herda POSITRON_*)"
+    }
 }
 
 Write-Host "=== 1/6 banco novo ===" -ForegroundColor Cyan

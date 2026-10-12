@@ -357,23 +357,55 @@ caminho): `fiacao_por_painel(1)` traz os dois fios (`Pagina` = layer `12`,
 não tem blocos: bornes, máscaras e contatos saem vazios — é o que falta para
 exercitar as fases 7–9 num CAD.
 
-### AutoCAD 2020 (evidência histórica — **não** instalado nesta máquina)
+### AutoCAD 2020 (o host verificado **nesta máquina**, rodada 136)
 
-> **Histórico.** Esta seção foi escrita numa máquina que tinha o **AutoCAD 2020**
-> (`C:\Program Files\Autodesk\AutoCAD 2020`) e **não** tinha ZWCAD; os números
-> ficam registrados como estão. Nesta máquina o `C:\Program Files\Autodesk` não
-> existe e o host CAD verificado é o **ZWCAD 2026** (seção acima).
+> **Esta máquina não tem ZWCAD** (o `C:\Program Files\ZWSOFT` não existe) e tem o
+> **AutoCAD 2020** (`C:\Program Files\Autodesk\AutoCAD 2020`, com `acad.exe` e
+> `accoreconsole.exe`). O **alvo do produto continua sendo o ZWCAD 2026** e os números
+> medidos nele seguem valendo (seção acima); aqui o ciclo é medido no AutoCAD 2020 por
+> paridade — e ele reproduz o alvo do ZWCAD **linha a linha** (medido na rodada 136).
+
+**A API do AutoCAD é vendorizada** (`cad-plugin/lib/AutoCAD/2020/`, commit `de3837e4`):
+`acmgd.dll`, `acdbmgd.dll` e `accoremgd.dll` do AutoCAD 2020 — o mesmo padrão do
+`cad-plugin/lib/ZWCAD/2026`. O `csproj` **prefere a cópia do repo** e só cai no
+`Program Files\Autodesk\AutoCAD 2026…2020` (e, sem nenhuma das duas, no stub
+`Positron.CadStub`), então `plugin:build:autocad` compila contra a **API real** mesmo numa
+máquina sem AutoCAD instalado. Para refazer a cópia a partir de uma instalação:
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/prepare-autocad-api.ps1
+# com o AutoCAD em outro lugar:
+powershell -ExecutionPolicy Bypass -File scripts/prepare-autocad-api.ps1 -AutoCadDir "D:\Autodesk\AutoCAD 2020"
+```
+
+Vale o mesmo para o ZWCAD: sem o `C:\Program Files\ZWSOFT`, o `plugin:build` (ZWCAD)
+compila contra o `cad-plugin/lib/ZWCAD/2026` do repo — o **build** é reproduzível sem o CAD
+instalado, mas **rodar** dentro dele não (nesta máquina não há ZWCAD para rodar).
 
 O `accoreconsole.exe` roda o plugin **headless** e o harness
 `scripts/cad-autocad-smoke.ps1` faz o ciclo inteiro (confere o AutoCAD, cria o `.db`
 pelo `schema.sql`, escreve o `.scr`, roda e imprime o `POSITRON_LOG`):
 
 ```bash
-npm run plugin:build:autocad                 # DLL contra a API real (auto-detecta 2020..2026)
+npm run plugin:build:autocad                 # DLL contra a API real (a copia do repo primeiro; senao 2020..2026)
 npm run cad:smoke:acad                        # carrega a DLL num desenho vazio (ELET)
 npm run cad:e2e:acad                          # fixture sintética (scripts/cad-fixture.lsp)
 npm run cad:projeto:acad -- -Idempotencia     # projeto real + catálogo + app + baseline
 ```
+
+Como o `npm run` mastiga os argumentos depois do `--` (ver a armadilha acima), o
+`-Desenho`/`-Mdb`/`-Banco` vão na chamada **direta** do `.ps1`. O `cad-projeto-e2e.ps1`
+resolve os caminhos do **projeto real** a partir da raiz do repo
+(`cad-plugin\reverso\Teste_projeto_real`, dentro do repo desde a rodada 134), então nesta
+máquina o ciclo inteiro é uma linha:
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/cad-projeto-e2e.ps1 -Cad AutoCAD -Idempotencia
+```
+
+O default `-Cad ZWCAD` (o alvo do produto) **falha antes de chamar o harness** numa máquina
+sem ZWCAD, com a mensagem que aponta o host instalado (`Nesta maquina o host verificado e o
+AutoCAD 2020: rode com '-Cad AutoCAD'`) — em vez do `ZWCAD nao encontrado em '...'` do smoke.
 
 Diferenças em relação ao ZWCAD, todas medidas aqui:
 
@@ -388,7 +420,10 @@ Diferenças em relação ao ZWCAD, todas medidas aqui:
   máquina) mastiga os argumentos depois do `--` (`-Revisao`/`-Comandos` viram cli
   config e o harness recebe os parâmetros errados). Chame o `.ps1` direto — é o que
   o `cad-projeto-e2e.ps1` faz — ou use o `npm run` pelo **bash**, onde o `--` é
-  repassado certo.
+  repassado certo;
+- **a barra de ferramentas é do ZWCAD**: o build AutoCAD loga `Barra: disponível apenas no
+  build ZWCAD (o ZdWindows é a API de interface)` — a **paleta de folhas** funciona ancorada
+  no CAD e a fita não é montada (gap de host registrado na rodada 136, não é regressão).
 
 **O `-Cad AutoCAD` do `cad-projeto-e2e.ps1` troca o harness e roda tudo sem ZWCAD.**
 Medido nesta máquina, o ciclo completo reproduz o alvo ZWCAD linha a linha:
@@ -410,9 +445,9 @@ passa, é o **stub** que está errado. A receita manual abaixo é a mesma que o
 harness executa. Vale para AutoCAD 2018–2024; 2025+ e o TrueView 2027 são .NET
 8/10 e **não** carregam um plugin net472.
 
-1. **Compile contra a API real.** Sem `AutoCadDir` o `csproj` procura
-   AutoCAD 2026…2020; numa máquina com outra versão (ou fora do `Program Files`),
-   passe o caminho:
+1. **Compile contra a API real.** Sem `AutoCadDir` o `csproj` usa a **cópia do repo**
+   (`cad-plugin/lib/AutoCAD/2020`) e, sem ela, procura AutoCAD 2026…2020; numa máquina com
+   outra versão (ou fora do `Program Files`), passe o caminho:
 
    ```bash
    npm run plugin:build:autocad -- -p:AutoCadDir="C:\\Program Files\\Autodesk\\AutoCAD 2020"
@@ -774,6 +809,56 @@ regra) é a **§0 do `AUDITORIA.md`**, que se reproduz com `scripts/cobertura-do
 do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o detalhe rodada a rodada
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
+
+**Rodada 136 — o host verificado passa a ser o AutoCAD 2020 e o E2E le o projeto real do repo.**
+A maquina trocou de host: o **ZWCAD 2026 nao esta mais instalado** (`C:\Program Files\ZWSOFT`
+nao existe) e o **AutoCAD 2020** esta (`acad.exe` + `accoreconsole.exe` em
+`C:\Program Files\Autodesk\AutoCAD 2020`). O **alvo do produto continua sendo o ZWCAD** e os
+numeros medidos la seguem valendo; o que mudou e **onde o ciclo e medido aqui** — e duas coisas
+dependiam disso:
+
+**1. O `cad-projeto-e2e.ps1` apontava para fora do repo.** Os defaults eram
+`..\Elet\Teste_projeto_real\{Funcional.dwg,RCD.mdb}`, de quando o material estava fora do repo;
+o projeto real mora **dentro** desde a rodada 134 (`cad-plugin/reverso/Teste_projeto_real`,
+adicionado no `7a542b59`) e o caminho antigo nao existe nesta maquina — o `-Desenho` morria em
+`nao encontrei o desenho`. Os defaults passaram a ser resolvidos pela **raiz do repo** (e nao pelo
+diretorio de chamada), entao o ciclo roda sem argumento nenhum.
+
+**2. Sem ZWCAD, o default `-Cad ZWCAD` falhava dentro do harness.** Agora o E2E confere o
+`C:\Program Files\ZWSOFT\ZWCAD 2026|2025` antes e falha com a mensagem que diz o host que existe
+(`Nesta maquina o host verificado e o AutoCAD 2020: rode com '-Cad AutoCAD'`) — antes o erro era o
+generico `ZWCAD nao encontrado em '...'` do smoke, depois de ja ter criado o banco.
+
+**Medido (a prova da paridade).** `cad:projeto:acad -Idempotencia` com os defaults novos:
+
+```text
+FIA: 494 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 0 reordenada(s), 83 posicao(oes),
+     450 ponto(s) de bloco); 265 porta(s) em Portas4F; 168 borne(s) em Bornes4F; 70 contato(s) em
+     Contatos4F; 83 dispositivo(s) em Dispositivos4F; 11 circuito(s) em Circuitos4F; 15 tipo(s) em Aplicacao4F
+INT: 20 linha(s) gravada(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I; 216 borne(s) em
+     Bornes4I; 697 cabo(s) em Cabos4; 2388 veia(s) em Veias4
+COMPLM: 104 linha(s) em ListaMateriais (8 painel(is); 199 borne(s) do desenho; 83 posicao(oes) de layout)
+VERIF: 249 problema(s) — fiacao: 0; interligacao: 0; modelos: 0; desenho: 249
+       por tipo — BorneSemLm: 119; BorneSemFiacao: 107; IntervaloBorneInvalido: 11; ReguaVazia: 10; SobreposicaoAusente: 2
+app: total 4988 linha(s) nas consultas (480 paineis, 697 cabos, 2388 veias, 265 portas, 168 bornes, 70 contatos)
+IDEMPOTENTE: mesmo conteudo (ignorando Data) — hash A = hash B = 7c1635f0…b69698babd
+```
+
+O `cad:smoke:acad` tambem passa (`Positron carregado no AutoCAD 2020`) e o proprio log entrega a
+**limitacao do host**: `Barra: disponivel apenas no build ZWCAD (o ZdWindows e a API de interface)`
+— a barra do §7.8 e do ZWCAD; no AutoCAD a **paleta de folhas** funciona (ancorada) e a fita nao
+existe. Fica registrado como gap de host, nao como regressao (nenhuma linha de codigo do plugin
+mudou nesta rodada).
+
+**A API do AutoCAD fica vendorizada** (`cad-plugin/lib/AutoCAD/2020/{acmgd,acdbmgd,accoremgd}.dll`,
+commit `de3837e4`, com o `scripts/prepare-autocad-api.ps1` que a refaz a partir de uma instalacao):
+o mesmo padrao do `cad-plugin/lib/ZWCAD/2026` — o `csproj` prefere a copia do repo e so cai no
+`Program Files` (ou no stub) sem ela, entao `plugin:build:autocad` compila contra a **API real**
+mesmo sem o AutoCAD instalado. A receita e o estado do host ficam na secao **AutoCAD 2020** deste
+RUNBOOK.
+
+**Gate desta rodada:** `plugin:test` **604** (inalterado — rodada de ambiente, nao de regra), as
+duas builds **0 avisos / 0 erros** e o ciclo completo `-Idempotencia` medido acima.
 
 **Rodada 135 — a familia dos atributos: a troca de blocos (5 comandos, 277 linhas do reverso).**
 O **primeiro item da fila** do `AUDITORIA.md` §0 saiu dela. No `clsTrocaEditaBlocos.cs` o fluxo e
