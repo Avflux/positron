@@ -703,6 +703,46 @@ namespace Positron.Plugin
         }
 
         /// <summary>
+        /// <c>CorrigeInterligacao</c> — a correção do original (<c>clsUtilitarios.cs:611</c>): para
+        /// **cada trecho indefinido** (<c>NumVeia == -1000</c>, o estado que o <c>INDCABO</c> deixa)
+        /// ele redescobre o painel de cada ponta pelo **dispositivo que está sobre ela** e regrava
+        /// <c>Painel1</c>/<c>Painel2</c> — os mesmos campos que a projeção do <c>INT</c> lê.
+        ///
+        /// É a correção do laço do <c>VERIF</c> na interligação por **página inteira**: o
+        /// <c>INDCABO</c> conserta os trechos escolhidos (tira o cabo fora do catálogo), esta
+        /// recompõe os painéis pelo desenho. A regra é pura
+        /// (<see cref="Positron.Data.Interligacao.CorrecaoInterligacao"/>) e o resumo traz o que foi
+        /// regravado e quantos trechos ficaram **sem dispositivo** nas pontas — que o original
+        /// gravaria como painel 0 (a divergência deliberada está no XML doc da regra).
+        /// </summary>
+        [CommandMethod("CorrigeInterligacao")]
+        public void CorrigirInterligacao()
+        {
+            Plugin.Escrever(ExecutarCorrecaoDaInterligacao());
+        }
+
+        /// <summary>A correção da interligação e a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarCorrecaoDaInterligacao()
+        {
+            try
+            {
+                CorrecaoDaInterligacaoDoDesenho.Resultado resultado =
+                    CorrecaoDaInterligacaoDoDesenho.Executar();
+
+                return "CorrigeInterligacao: " + resultado.Corrigidos + " de "
+                    + resultado.TrechosIndefinidos + " trecho(s) indefinido(s) regravado(s); "
+                    + resultado.SemDispositivo + " sem dispositivo na(s) ponta(s) ("
+                    + resultado.TrechosLidos + " trecho(s) lido(s); "
+                    + resultado.BlocosNaCaixa + " bloco(s) na(s) caixa(s) das pontas).";
+            }
+            catch (System.Exception erro)
+            {
+                return "CorrigeInterligacao: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+
+        /// <summary>
         /// <c>EPLQ</c> — exporta as **plaquetas** do desenho para <c>Plaquetas4</c>
         /// (o <c>clsDispositivoTacito.exportaPlaquetas()</c>, o <c>EPLQ</c> do
         /// reverso). Lê o dicionário de plaquetas do **próprio desenho**

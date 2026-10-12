@@ -839,6 +839,52 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 139 — a correcao da interligacao (CorrigeInterligacao): o candidato grande da fila.**
+O item 1 do `AUDITORIA.md` §0 saiu dela. O comando do original (`clsUtilitarios.cs:611`, 216 linhas)
+varre as polylines de interligacao e, para cada trecho **indefinido** (`NumVeia == -1000` — o estado
+que o `INDCABO` deixa ao tirar o cabo que o catalogo recusa), redescobre o painel de **cada ponta**
+pelo dispositivo que esta sobre ela (`verificaDispInterlig`) e regrava `Painel1`/`Painel2`, que sao
+os mesmos campos que a projecao do `INT` le e grava.
+
+**O que e puro e o que e desenho.** A decisao ficou no `Positron.Data`
+(`Interligacao/CorrecaoInterligacao.cs`, `Planejar`) e o desenho no adapter
+(`Interligacao/CorrecaoDaInterligacaoDoDesenho.cs`), como nas outras `Corrige*`. Tres detalhes do
+original ficaram fixados em teste, porque cada um muda o resultado: (a) o par do `Tipo 1` vale em
+**qualquer ordem** — o `if` aninhado que o decompilador devolveu e redundante (as duas condicoes
+internas sao a negacao da mesma comparacao); (b) no `Tipo 2`/`3` quem escolhe o campo e
+`Painel1 == 0` (zerado, o achado vai para o `Painel2`; senao para o `Painel1`) e **so um** dos dois e
+tocado; (c) a ponta 2 so e usada quando a 1 nao tem dispositivo (o `if (!flag)` do original).
+
+**Os cinco ramos do `verificaDispInterlig`** (o adapter reproduz os cinco): o original pagina a
+entidade ativa (`Pagina.AtivaPagina`) antes de procurar, entao o filtro e o **layer do proprio
+trecho**; o **primeiro** `BlockReference` da caixa de 0,2 decide — inclusive quando **nao** e um
+dispositivo (o `break` do original); `E` exige um atributo `B<numero>`; `B` resolve o painel no
+dicionario `REGUAS` (o `array[8]` e o indice da regua); `I` (importado) so vale com o **tipo
+importado** `E` (exigindo o atributo) ou `B`, com o painel no `array[9]`; `E`/`A` resolvem pelo bloco
+apontado no `array[4]` (o `BuscaPainelDispositivo` que a projecao ja usava).
+
+**Duas divergencias registradas** (e medidas): a **caixa** e o teste da **posicao** do bloco dentro
+de +-0,2 da ponta — o original usa `Editor.SelectCrossingWindow`, que tambem pega geometria cruzando
+a janela, e a ordem dos candidatos aqui e a do ModelSpace (nao a do selection set); e um dispositivo
+cujo painel resolve em **0** conta como **nao achado** — o original devolveria `true` com painel 0 e
+**gravaria o zero**, inclusive por cima de um `Painel2` valido no ramo do `Tipo 2`/`3`. A regra pula
+esses trechos e os conta em `SemDispositivo` (mesma decisao do off-by-one do `RENPAGA`, rodada 134).
+
+**Medido.** A fixture nova `scripts/cad-fixture-corrige-interligacao.lsp` monta **oito** trechos, um
+por ramo (o par errado, o par revertido, o `Tipo 2`, o `Tipo 3` sem dispositivo na ponta 1, o cabo
+definido, o sem dispositivo, o de outra camada e o que tem um `P` que quebra a busca), e o
+instrumento independente `scripts/cad-conta-interligacao.lsp` duma o XData **cru** antes/depois. No
+**AutoCAD 2020**: `3 de 7` regravados na primeira passada e `0 de 7` na **segunda** (convergencia),
+com o dump confirmando `(1,2) -> (503,9)`, `(0,77) -> (0,9)` nos dois de uma ponta e os quatro
+intactos. No **`Funcional.dwg`**: **20 trechos lidos, nenhum indefinido** (`0 de 0`) — o zero e o
+**dado**, com o mesmo dump mostrando os 20 com `Num_Veia` definido. A receita e o log medido estao na
+secao da frente 2 (junto do `INDCABO`).
+
+**Gate desta rodada:** `plugin:test` **618** (+14, `CorrecaoInterligacaoTests`), as duas builds **0
+avisos / 0 erros** e o `cad:projeto:acad -Idempotencia` verde com os numeros de sempre (`FIA` 494,
+`INT` 20, `VERIF` 249 na linha de base, app 4.988, hash `7c1635f0…`) — a tabela `Interligacao4` e a
+projecao nao foram tocadas.
+
 **Rodada 138 — a interface do ZWCAD no build AutoCAD: a AdWindows na lib, a barra e a paleta.**
 O build AutoCAD respondia `Barra: disponivel apenas no build ZWCAD (o ZdWindows e a API de
 interface)` e a **paleta nao existia**: o `PaletaDeFolhas` do AutoCAD montava o `FolhasControle`
@@ -4197,6 +4243,70 @@ VERIF: por tipo — PontoSemTag: 2; InterligacaoIndefinida: 1.
 O `VERIF` passa a apontar `InterligacaoIndefinida: 1` (a regra do `carregaTree`), que é o
 mesmo trecho que a ação limpou. Na fixture padrão (`npm run cad:e2e`) nada muda — os
 números documentados (4 problemas) seguem iguais.
+
+**Rodada 139 — a correcao da interligacao (`CorrigeInterligacao`, o `verificaDispInterlig`).** O
+comando da frente 2 que fecha o laco do `VERIF` na interligacao por **pagina inteira**: para cada
+trecho **indefinido** (`NumVeia == -1000`, o estado que o `INDCABO` deixa) ele redescobre o painel de
+cada ponta pelo dispositivo que esta sobre ela e regrava `Painel1`/`Painel2` — os mesmos campos que a
+projecao do `INT` le. A regra e pura (`Positron.Data.Interligacao.CorrecaoInterligacao`) e o adapter
+(`Positron.Plugin.Interligacao.CorrecaoDaInterligacaoDoDesenho`) reproduz os **cinco ramos** do
+`verificaDispInterlig`, com **duas divergencias registradas**: a caixa e o teste da **posicao** do
+bloco (o original usa `SelectCrossingWindow`) e um painel que resolve em **0** conta como **nao
+achado** — o original gravaria o zero por cima de um painel valido; a regra pula e conta esses
+trechos em `SemDispositivo`.
+
+A fixture monta **oito** trechos, um por ramo, e o instrumento
+`scripts/cad-conta-interligacao.lsp` (leitura crua do XData, sem regra nenhuma) da o dump
+independente:
+
+| trecho | y | o que e | o que o comando faz |
+|---|---|---|---|
+| A | 10 | par errado `(1, 2)` | grava `(503, 9)` |
+| B | 20 | o par certo na **ordem trocada** `(9, 503)` | nao regrava |
+| C | 30 | `Tipo 2` com `Painel1 = 0` | grava o achado no `Painel2` (`0, 9`) |
+| D | 40 | `Tipo 3` sem dispositivo na ponta 1 | usa a **ponta 2** (`0, 9`) |
+| E | 50 | cabo **definido** | fora do comando |
+| F | 60 | **sem dispositivo** nas pontas | pula (o original gravaria 0) |
+| G | 70 | dispositivos em **outra camada** | o filtro de pagina do original os recusa |
+| H | 80 | um dispositivo **`P`** na ponta 1 | **quebra** a busca daquela ponta (o ramo do original) |
+
+```bash
+$env:POSITRON_CONTA = "<repo>/scripts/cad-conta-interligacao.lsp"   # o fixture faz (load)
+$env:POSITRON_DUMP  = "$env:TEMP/positron-ilig-dump.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 \
+  -Fixture scripts/cad-fixture-corrige-interligacao.lsp \
+  -Comandos CorrigeInterligacao,CorrigeInterligacao,pz-conta-ilig -Dwg 63 -Banco "$env:TEMP/positron-ilig.db"
+```
+
+Log medido no AutoCAD 2020 (a **segunda passada e a convergencia**):
+
+```text
+CorrigeInterligacao: 3 de 7 trecho(s) indefinido(s) regravado(s); 3 sem dispositivo na(s) ponta(s) (8 trecho(s) lido(s); 8 bloco(s) na(s) caixa(s) das pontas).
+CorrigeInterligacao: 0 de 7 trecho(s) indefinido(s) regravado(s); 3 sem dispositivo na(s) ponta(s) (8 trecho(s) lido(s); 8 bloco(s) na(s) caixa(s) das pontas).
+```
+
+Dump independente (o `y` identifica o trecho):
+
+```text
+ILIG;2A4;80;1;-1000;5;7      <- H: o P quebrou a busca, pulado
+ILIG;2A1;70;1;-1000;5;7      <- G: camada errada, pulado
+ILIG;2A0;60;1;-1000;5;7      <- F: sem dispositivo, pulado
+ILIG;29D;50;1;1;1;2          <- E: cabo definido, intacto
+ILIG;29B;40;3;-1000;0;9      <- D: corrigido pela ponta 2
+ILIG;299;30;2;-1000;0;9      <- C: corrigido no Painel2
+ILIG;296;20;1;-1000;9;503    <- B: par revertido, intacto
+ILIG;28F;10;1;-1000;503;9    <- A: corrigido
+```
+
+No **desenho real** (`Funcional.dwg`) o comando le **20 trechos e nenhum indefinido** — `0 de 0`,
+com o mesmo dump mostrando os 20 com `Num_Veia` definido (`2`, `1`, ...) e os pares de painel da
+copia: o zero e o **dado**, nao um no-op silencioso.
+
+**Licao de instrumento (a fixture mentiu primeiro):** o `_.LAYER _M "99"` deixa a camada 99
+**corrente**, e as polylines nasciam nela — o comando filtra os candidatos pelo **layer do proprio
+trecho**, entao a primeira medicao saiu `1 de 7` e com o trecho **G** corrigido (os unicos blocos
+naquela camada eram os dele). O conserto e o `_.LAYER _S "12"` antes de desenhar (esta no fixture,
+com comentario); a medicao errada e o que provou que o filtro de pagina e real.
 
 **Rodada 51 — intervalos de borne (`bt8intervalos`, o `nXnc5R08lF`).** É a checagem que
 monta a árvore `TreeViewBornes`: por régua, junta os bornes do desenho **e as reservas**

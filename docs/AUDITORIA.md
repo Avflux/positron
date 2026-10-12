@@ -6,7 +6,7 @@
 
 **Não.** O que está coberto é o **recorte** — as correções e a limpeza do CAD (frente 2), a base/contexto (frente 1) e os três pipelines —, e o que está **mapeado** são os **216 comandos** do reverso (todos classificados). O que **não** está coberto é a **lógica por trás dos formulários** (49% do código do reverso) nem a pilha de exportação/importação, as rotinas destrutivas e a integração de ambiente/licença.
 
-## 0. Estado medido agora — o que falta, em ordem (rodadas 132–135)
+## 0. Estado medido agora — o que falta, em ordem (rodadas 132–139)
 
 Esta seção responde à pergunta recorrente *"o que já cobrimos e o que falta"* **com número medido no
 próprio repo**, e não com memória: o `scripts/cobertura-do-reverso.ps1` cruza o mapa dos 216 comandos
@@ -26,8 +26,8 @@ powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acopl
 | comandos do reverso | **216** |
 | deles, abrem alguma janela / são regra de desenho pura | **121** / **95** |
 | telas `frm*` | **127** |
-| comandos que o plugin responde | **158** = **59 escritos à mão** (46 do reverso + 13 nossos) + **99 gerados** (só abrem a tela) |
-| comandos do reverso **sem nada no plugin** | **71** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **54** de regra pura |
+| comandos que o plugin responde | **159** = **60 escritos à mão** (47 do reverso + 13 nossos) + **99 gerados** (só abrem a tela) |
+| comandos do reverso **sem nada no plugin** | **70** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **53** de regra pura |
 | telas alcançadas por algum comando | **103** (5 com regra escrita à mão, 98 só casca) |
 | telas que **nenhum** comando abre (sub-janela: relatórios DWG/Excel, editores) | **19** |
 | telas sem comando e sem casca pelo nome (variante/splash) | **5** |
@@ -39,14 +39,13 @@ leu** — `-Decomp` aponta para outra cópia (a de fora do repo, por exemplo). O
 regeração da rodada 134 saiu **byte a byte igual** ao que já estava no repo: só a linha de
 proveniência mudou.
 
-**Os "54 sem tela e sem nada no plugin" não são 54 regras faltando:** a triagem do §7.6 já dividiu
+**Os "53 sem tela e sem nada no plugin" não são 53 regras faltando:** a triagem do §7.6 já dividiu
 cada um (só UI, interativo, destrutivo, ambiente ou substância coberta sob outro nome). O que sobra de
-**regra em lote de verdade** está na **frente 2**, e é pouca coisa: dos **38** comandos dela, **35**
-estão entregues (contra os 30 do estado anterior, entraram os **cinco da troca de blocos** na **rodada
-135**; e o `RENPAGA` deixou de ser "falta só registrar o nome do comando" na **rodada 134**, quando o
-comando entrou medido no `Funcional.dwg`) e dos **3** que sobram **2 são regra de desenho**
-(`CorrigeInterligacao` e `EncontraHandle`) — o outro, `CorrigeJanelas`, é **ambiente** (mexe nas janelas
-do CAD, não no desenho):
+**regra em lote de verdade** está na **frente 2**, e é pouca coisa: dos **38** comandos dela, **36**
+estão entregues (contra os 35 do estado anterior, entrou o **`CorrigeInterligacao`** na **rodada
+139**; antes, os **cinco da troca de blocos** na **135**, e o `RENPAGA` na **134**) e dos **2** que
+sobram **1 é regra de desenho** (`EncontraHandle`) — o outro, `CorrigeJanelas`, é **ambiente** (mexe
+nas janelas do CAD, não no desenho):
 
 | comando | no reverso | corpo | veredito (medido na rodada 132) |
 |---|---|---|---|
@@ -55,14 +54,14 @@ do CAD, não no desenho):
 | `PesquisaBlocos` | `Correcao.cs:2050` | 8 linhas | **entregue**: é só UI, e o gerado da rodada 128 abre o `frmNavegador` pelo nome |
 | `CorrigeJanelas` | `Correcao.cs:1083` | 5 linhas | **ambiente**: `Geral.moveFormOrigem()` mexe nas janelas do CAD, não no desenho |
 | `EncontraHandle` | `clsUtilitarios.cs:950` | 74 linhas | **candidato**: pede um handle no `Editor` e navega até o objeto |
-| `CorrigeInterligacao` | `clsUtilitarios.cs:611` | 216 linhas | **candidato grande**: varre as polylines de interligação, descobre o painel de **cada ponta** (`verificaDispInterlig`) e regrava `Painel1`/`Painel2` no XData — a leitura/gravação desse XData e a barra de progresso da paleta **já existem** (rodadas 60 e 121) |
+| `CorrigeInterligacao` | `clsUtilitarios.cs:611` | 216 linhas | **entregue** (rodada 139): a regra pura `CorrecaoInterligacao` (os três detalhes do original fixados em teste) + o adapter `CorrecaoDaInterligacaoDoDesenho` (os **cinco ramos** do `verificaDispInterlig`, com o filtro de layer do próprio trecho); **medido** na fixture `cad-fixture-corrige-interligacao.lsp` (8 trechos, um por ramo: `3 de 7` regravados e **segunda passada `0 de 7`**, com o dump independente `cad-conta-interligacao.lsp` confirmando os pares) e no **`Funcional.dwg`** (`0 de 0` — os **20** trechos da cópia têm cabo, provado pelo mesmo dump) |
 | `LeAtributos` · `LeTodosAtributos` · `CorrigeAtributos` · `CorrigeAtributosSemMsg` · `PreencheNovosAtributos` | `clsTrocaEditaBlocos.cs:18/171/141/267/278` | 122+95+29+10+21 = **277 linhas** | **entregue** (rodada 135): o buffer dos atributos **invisíveis** e os 5 comandos, medidos no `Funcional.dwg` (1978 atributos em 557 blocos, **0 invisíveis** nesta cópia — o zero é o dado) e provados por fixture (o valor volta ao bloco e a invisibilidade é restaurada); **achado:** o `Entity.Visible` do original **sempre devolve verdadeiro** no ZWCAD, então o recoder lê `AttributeReference.Invisible` |
 
 **Os próximos passos, em ordem de valor por custo:**
 
-1. **`CorrigeInterligacao` (216 linhas)** — fecha o laço do `VERIF` na interligação por **página
-   inteira** (o `INDCABO` conserta os trechos escolhidos): o `Painel1`/`Painel2` que o comando conserta
-   é o mesmo campo que a projeção do `INT` já lê e grava.
+1. ✅ **`CorrigeInterligacao` (216 linhas)** — **entregue na rodada 139**: fecha o laço do `VERIF` na
+   interligação por **página inteira** (o `INDCABO` conserta os trechos escolhidos) regravando o
+   `Painel1`/`Painel2` que a projeção do `INT` lê, pelo dispositivo achado sobre cada ponta.
 2. **Ligar as três telas de compilação** — `frmCompilarFiacao`, `frmCompilarInterligacao` e
    `frmCompilarJumperExt` **já têm a regra** (os pipelines `FIA`/`INT`/`JMP`, medidos): a tela traz
    `btAnalisar` (rodar), `dgERROS` (os erros que o `VERIF` já calcula) e `dgRevisao`; o `btApagar`
