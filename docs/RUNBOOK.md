@@ -810,6 +810,68 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 137 — o autoload nas duas versoes e os testes reais na compilacao do AutoCAD.**
+O `install/Positron.bundle/PackageContents.xml` tinha **um** componente (`Platform="ZWCAD*"`,
+`Positron.Plugin.ZWCAD.dll`) e o **AutoCAD nao carregava nada** — medido, nao deduzido: com esse
+manifesto em `%APPDATA%\Autodesk\ApplicationPlugins\Positron.bundle`, a interface cheia do AutoCAD
+2020 abre e o `POSITRON_LOG` **nao** e escrito (nenhuma linha do plugin). O mesmo pacote passou a ter
+**um `<Components>` por plataforma**:
+
+| componente | plataforma | DLL |
+|---|---|---|
+| ZWCAD (igual ao da rodada 120, `AppName` incluido) | `Platform="ZWCAD*"` SeriesMin/Max `2026` | `Positron.Plugin.ZWCAD.dll` |
+| AutoCAD (novo) | `Platform="AutoCAD*"` SeriesMin/Max `R23.1` | `Positron.Plugin.AutoCAD.dll` |
+
+O `RuntimeRequirements` **de pacote** saiu: ele valia para o pacote inteiro e gateava tudo para o
+ZWCAD; quem decide passou a ser o de **componente**, que ja existia. O `scripts/instala-bundle.ps1`
+(novo) faz a copia — manifesto + DLL da plataforma + dependencias (`Positron.Data`,
+`Positron.Contract`, `System.Data.SQLite` e o `x64\SQLite.Interop.dll`) — para a pasta que cada CAD
+varre (`%APPDATA%\ZWSOFT\ZWCAD\<ano>\<idioma>\Support` no ZWCAD;
+`%APPDATA%\Autodesk\ApplicationPlugins` no AutoCAD), tem `-Remover` e falha com a mensagem do host
+quando o CAD nao esta instalado.
+
+**Medido (AutoCAD 2020, interface cheia, `acad.exe /nologo /i <copia> /b <script>`, sem `NETLOAD`):**
+
+```text
+Positron: autoload do AutoCAD instalado em 'C:\Users\RNO\AppData\Roaming\Autodesk\ApplicationPlugins\Positron.bundle'.
+Positron carregado. Digite ELET para comecar — ELET abre a paleta de folhas (FOLHAS tambem).
+Barra: disponivel apenas no build ZWCAD (o ZdWindows e a API de interface).
+Positron — paleta de folhas com 16 pagina(s) (ancorada no CAD).
+VERIF: 494 fio(s), 20 trecho(s), 265 porta(s), 168 borne(s), 70 contato(s) na revisao.
+VERIF: 249 problema(s) — fiacao: 0; interligacao: 0; modelos: 0; desenho: 249.
+VERIF: por tipo — BorneSemLm: 119; BorneSemFiacao: 107; IntervaloBorneInvalido: 11; ReguaVazia: 10; SobreposicaoAusente: 2.
+```
+
+O **A/B** e o que fecha a rodada: o mesmo pacote com o manifesto **antigo** (so ZWCAD) nao escreve log
+nenhum; com o manifesto novo o plugin se apresenta, a paleta abre com as **16 paginas**, o `VERIF`
+le o banco — as dependencias foram junto, o SQLite interop entra pelo `x64\` — e devolve a **mesma
+linha de base** do ZWCAD (249 = 107+119+11+10+2).
+
+**Achado de instrumento (muda como se testa o autoload):** o **`accoreconsole` nao carrega
+`.bundle` nenhum**. Medido dentro dele: `(arx)` lista so `acdim.crx`, `acvmtools.crx` e
+`vl.crx` — **sem o `AcAutoLoader.arx`** —, e um bundle valido em
+`%APPDATA%\Autodesk\ApplicationPlugins` (ou em `%PROGRAMDATA%\Autodesk\ApplicationPlugins`) nao
+muda nada: `FOLHAS` responde `Unknown command`. Ou seja: no harness headless a DLL entra por
+**`NETLOAD`** (como o `cad-autocad-smoke.ps1` sempre fez) e o autoload so se mede na **interface
+cheia**. Nao e defeito do plugin nem do manifesto.
+
+**Receita (as duas versoes):**
+
+```powershell
+npm run plugin:build:all                                   # as duas DLLs
+powershell -ExecutionPolicy Bypass -File scripts/instala-bundle.ps1 -Cad AutoCAD
+powershell -ExecutionPolicy Bypass -File scripts/instala-bundle.ps1 -Cad ZWCAD     # sem ZWCAD aqui: falha com a mensagem do host
+powershell -ExecutionPolicy Bypass -File scripts/instala-bundle.ps1 -Cad AutoCAD -Remover
+# a prova do autoload e abrir a INTERFACE do CAD (sem NETLOAD) e ler o POSITRON_LOG
+```
+
+**Gate desta rodada:** `plugin:test` **604** (inalterado — a rodada e de instalacao/ambiente), as
+duas builds **0 avisos / 0 erros**, o `cad:projeto:acad -Idempotencia` verde (os numeros da rodada
+136, repetidos) e a casca no AutoCAD (`ELET` → paleta de 16 paginas; `pzTelas`/`JANELAS` →
+**127 de 127** telas montadas, **2** ligacoes; `APAGARXDATA`; `pzDiag`). O **gap do host** segue o
+mesmo da rodada 136: a **barra** do §7.8 e do `ZdWindows` (no AutoCAD a linha diz isso) — a paleta
+funciona.
+
 **Rodada 136 — o host verificado passa a ser o AutoCAD 2020 e o E2E le o projeto real do repo.**
 A maquina trocou de host: o **ZWCAD 2026 nao esta mais instalado** (`C:\Program Files\ZWSOFT`
 nao existe) e o **AutoCAD 2020** esta (`acad.exe` + `accoreconsole.exe` em

@@ -1,19 +1,38 @@
-Positron — autoload e carregador
-================================
+Positron - autoload e carregador (ZWCAD e AutoCAD)
+==================================================
 
-Duas formas de carregar o plugin, sem precisar procurar a DLL a mao:
+Duas formas de carregar o plugin, sem precisar procurar a DLL a mao. O MESMO pacote
+serve aos dois CADs: o PackageContents.xml tem um componente por plataforma e cada
+CAD carrega a DLL da sua (ZWCAD -> Positron.Plugin.ZWCAD.dll; AutoCAD ->
+Positron.Plugin.AutoCAD.dll).
 
-1) AUTOLOAD (recomendado — nada para digitar)
-   Copie esta pasta (Positron.bundle) com a DLL compilada para:
-     %APPDATA%\ZWSOFT\ZWCAD\2026\pt-PT\Support\
-   O PackageContents.xml faz o ZWCAD carregar a DLL na abertura e chamar o
-   IExtensionApplication (a barra Positron aparece sozinha).
+1) AUTOLOAD (recomendado - nada para digitar)
+   O scripts/instala-bundle.ps1 copia este pacote e a DLL compilada para a pasta que
+   o CAD varre na abertura:
+
+     ZWCAD    %APPDATA%\ZWSOFT\ZWCAD\2026\pt-PT\Support\Positron.bundle\
+     AutoCAD  %APPDATA%\Autodesk\ApplicationPlugins\Positron.bundle\
+
+   Comandos:
+     powershell -ExecutionPolicy Bypass -File scripts\instala-bundle.ps1 -Cad AutoCAD
+     powershell -ExecutionPolicy Bypass -File scripts\instala-bundle.ps1 -Cad ZWCAD
+     powershell -ExecutionPolicy Bypass -File scripts\instala-bundle.ps1 -Cad AutoCAD -Remover
+
+   O PackageContents.xml faz o CAD carregar a DLL na abertura e chamar o
+   IExtensionApplication (o plugin se apresenta e a paleta de folhas abre).
+
+   ATENCAO (medido na rodada 137): quem faz o autoload e a INTERFACE do CAD. O
+   accoreconsole.exe NAO carrega .bundle nenhum (ele sobe sem o AcAutoLoader.arx) -
+   no harness headless a DLL entra por NETLOAD, como o scripts/cad-autocad-smoke.ps1 faz.
 
 2) CARREGADOR POR COMANDO (ELET)
    Ponha Positron.lsp e a DLL na pasta de suporte (ou APPLOAD no .lsp).
    Digitar ELET carrega a DLL pelo nome e abre a paleta de folhas.
 
 Arquivos:
-  Positron.Plugin.ZWCAD.dll  — o plugin compilado (cad-plugin\Positron.Plugin\bin\Debug\ZWCAD\net472)
-  PackageContents.xml        — o manifesto do autoload
-  Positron.lsp               — o carregador opcional (ELET)
+  Positron.Plugin.ZWCAD.dll    - o plugin do ZWCAD (cad-plugin\Positron.Plugin\bin\Debug\ZWCAD\net472)
+  Positron.Plugin.AutoCAD.dll  - o plugin do AutoCAD (cad-plugin\Positron.Plugin\bin\Debug\AutoCAD\net472)
+  PackageContents.xml          - o manifesto do autoload (os dois componentes)
+  Positron.lsp                 - o carregador opcional (ELET)
+  Positron.Data.dll, Positron.Contract.dll, System.Data.SQLite.dll (+ x64\SQLite.Interop.dll)
+                               - as dependencias; tem de ir ao lado da DLL do plugin

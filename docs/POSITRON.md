@@ -522,7 +522,10 @@ o subconjunto de colunas das tabelas I.
   recoder viver no `Plugin.Initialize`. O **carregador** equivalente no recoder já existe:
   `install/Positron.bundle/Positron.lsp` (o `c:ELET` acha a DLL pelo nome com `findfile`, dá o
   `NETLOAD` e abre a paleta) + o autoload do `PackageContents.xml` — o mesmo efeito, pelo nome em vez
-  do caminho memorizado.
+  do caminho memorizado. Desde a rodada 137 o **mesmo pacote serve aos dois CADs** (um
+  `<Components>` por plataforma: `Positron.Plugin.ZWCAD.dll` / `Positron.Plugin.AutoCAD.dll`) e o
+  `scripts/instala-bundle.ps1` instala (ou remove) o pacote na pasta que cada CAD varre — medido no
+  AutoCAD 2020 de interface cheia (o `accoreconsole` não carrega `.bundle`).
 - **Relatórios:** PDF via iTextSharp no original. O `Relatorios*` no app Python
   pode cobrir, mas a decisão não foi tomada.
 - **Multi-usuário:** SQLite hoje; SQL Server quando/se necessário (o caminho já
@@ -535,12 +538,13 @@ reler o repositório inteiro.
 
 **Onde as coisas estão**
 
-- Repo: `C:\Users\rno\Desktop\APPs\positron`.
+- Repo: `C:\Users\RNO\Desktop\APP\positron`.
 - Reverso (referência): `cad-plugin/reverso/Eletron4_ZWcad` — o código descompilado em
   `decompiled-cleaned/` (**435** `.cs`, dos quais **358** em `Eletron4/`), o limpo em `cleaned/`,
   os binários em `DLL/` e o `COMANDOS.txt` (216 comandos).
-- Projeto real do dono (desenhos + banco do produto): `..\Elet\Teste_prjeto_real\`
-  (`Funcional.dwg`, `Interligação.dwg`, `Fiação.dwg`, `RCD.mdb`).
+- Projeto real (desenhos + banco do produto): `cad-plugin/reverso/Teste_projeto_real\`
+  (`Funcional.dwg`, `Interligação.dwg`, `Fiação.dwg`, `RCD.mdb`) — dentro do repo desde a rodada
+  134; o `scripts/cad-projeto-e2e.ps1` resolve os defaults pela raiz do repo.
 - Dono do contrato de dados: `services/sidecar/src/sidecar/db/schema.sql`
   (gera `packages/protocol/...`). Plugin: `cad-plugin/`.
 - Frontend CAD em `cad-plugin/Positron.Data/` (núcleo puro, testável sem

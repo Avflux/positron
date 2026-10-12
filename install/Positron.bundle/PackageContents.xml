@@ -3,9 +3,18 @@
   O autoload do plugin Positron — o mesmo mecanismo que o instalador do original usa: o CAD varre
   a pasta de aplicacoes e carrega a DLL sozinho, sem NETLOAD.
 
-  Onde colocar (Windows):
-    %APPDATA%\ZWSOFT\ZWCAD\2026\pt-PT\Support\Positron.bundle\   (ou a pasta de aplicacoes do produto)
-  e, dentro dela, a DLL compilada (Positron.Plugin.ZWCAD.dll) com este PackageContents.xml ao lado.
+  O MESMO pacote serve aos DOIS hospedes: cada CAD le o <Components> cujo RuntimeRequirements casa
+  com a plataforma dele e carrega a DLL daquela plataforma (rodada 137):
+    ZWCAD 2026   -> Positron.Plugin.ZWCAD.dll    (o alvo do produto)
+    AutoCAD 2020 -> Positron.Plugin.AutoCAD.dll  (o host de paridade; serie R23.1)
+
+  Onde colocar (Windows), com a DLL compilada da plataforma ao lado deste arquivo — o
+  scripts/instala-bundle.ps1 faz exatamente esta copia:
+    ZWCAD    %APPDATA%\ZWSOFT\ZWCAD\2026\pt-PT\Support\Positron.bundle\
+    AutoCAD  %APPDATA%\Autodesk\ApplicationPlugins\Positron.bundle\
+
+  O que foi medido na rodada 137 esta no RUNBOOK: o AutoCAD 2020 (a interface cheia, e nao o
+  accoreconsole) carrega este manifesto; com o manifesto antigo, so-ZWCAD, ele nao carregava.
 
   A frente 11 do docs/PLANO.md (7.8) descreve as fatias do shell; esta e a fatia 5.
 -->
@@ -16,11 +25,26 @@
                     Version="0.1.0"
                     Author="positron">
   <CompanyDetails Name="positron" />
-  <RuntimeRequirements OS="Win64" Platform="ZWCAD*" SeriesMin="2026" SeriesMax="2026" />
-  <Components Description="Plugin principal">
+
+  <!-- ZWCAD: o alvo do produto. O componente e o mesmo desde a rodada 120 (AppName incluido); o
+       que mudou na rodada 137 foi o RuntimeRequirements de pacote, que saiu para o pacote poder
+       valer nos dois CADs — o de componente ja existia e continua sendo o que decide. -->
+  <Components Description="Plugin para ZWCAD">
     <RuntimeRequirements OS="Win64" Platform="ZWCAD*" SeriesMin="2026" SeriesMax="2026" />
     <ComponentEntry AppName="Positron.Plugin"
                     ModuleName="./Positron.Plugin.ZWCAD.dll"
+                    AppDescription="Comandos do Positron (ELET, FIA, INT, VERIF, FOLHAS, ...)"
+                    LoadOnAutoCADStartup="True"
+                    LoadOnCommandInvocation="False" />
+  </Components>
+
+  <!-- AutoCAD: o host de paridade (rodada 136). A serie e R23.1 (= AutoCAD 2020), a mesma da API
+       vendorizada em cad-plugin/lib/AutoCAD/2020 que o plugin:build:autocad usa; outro AutoCAD
+       exige a DLL compilada contra a API daquela versao (o csproj ja auto-detecta 2020..2026). -->
+  <Components Description="Plugin para AutoCAD">
+    <RuntimeRequirements OS="Win64" Platform="AutoCAD*" SeriesMin="R23.1" SeriesMax="R23.1" />
+    <ComponentEntry AppName="Positron.Plugin.AutoCAD"
+                    ModuleName="./Positron.Plugin.AutoCAD.dll"
                     AppDescription="Comandos do Positron (ELET, FIA, INT, VERIF, FOLHAS, ...)"
                     LoadOnAutoCADStartup="True"
                     LoadOnCommandInvocation="False" />

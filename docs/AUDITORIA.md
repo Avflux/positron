@@ -125,7 +125,8 @@ carrega o plugin do **DiagLog** (outra DLL) e `ETPG`/`ANET`/`EARQ` são os **sub
 **arranque** vive no `Plugin.Initialize`. O **carregador** equivalente do recoder é o
 `install/Positron.bundle/Positron.lsp` (o `c:ELET` acha a DLL pelo nome com `findfile`, dá o
 `NETLOAD` e abre a paleta) + o autoload do `.bundle` — o mesmo efeito pelo **nome**, em vez do
-caminho memorizado. O mapa desses cinco está no
+caminho memorizado; desde a rodada 137 o **mesmo pacote serve aos dois CADs** (um `<Components>`
+por plataforma, com o `scripts/instala-bundle.ps1` instalando/removendo). O mapa desses cinco está no
 `ARQUITETURA.md` §4/§11 do reverso e no §7.6 (frente 11) do `PLANO.md`.
 
 ## 1. O inventário de comandos: completo
