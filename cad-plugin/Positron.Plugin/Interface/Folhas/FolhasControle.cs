@@ -116,8 +116,13 @@ namespace Positron.Plugin.Interface.Folhas
             inserir.Click += (origem, evento) => InserirPagina();
             menu.Items.Add(inserir);
 
-            // 6 - Excluir Páginas (ícone Apagar).
-            menu.Items.Add(Desabilitado("Excluir Páginas", "regra na fatia 4 da frente 10 (é destrutiva)", "Apagar"));
+            // 6 - Excluir Páginas (ícone Apagar): apaga os elementos e o layer das páginas
+            // selecionadas (o `ApagarElementosPagina` do original e o ok do dono, rodada 143).
+            ToolStripMenuItem excluir = new ToolStripMenuItem("Excluir Páginas");
+            Icone(excluir, "Apagar");
+            excluir.ToolTipText = "apaga os elementos e o layer das páginas selecionadas (destrutivo)";
+            excluir.Click += (origem, evento) => ExcluirPaginas();
+            menu.Items.Add(excluir);
 
             // 7 - o `RENPAGA`: a mMensagem 22 diz "Renumerar", e é isso que a regra faz.
             ToolStripMenuItem renumerar = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas);
@@ -259,6 +264,24 @@ namespace Positron.Plugin.Interface.Folhas
                         : " (o desenho não tem bloco de formato)")
                     : (resultado.JaExistia ? "o layer já existia" : "não criada")) + ".";
             return UltimaMensagem;
+        }
+
+        /// <summary>A exclusão das páginas selecionadas na grade (o item "Excluir Páginas").</summary>
+        private void ExcluirPaginas()
+        {
+            List<string> escolhidas = new List<string>();
+            foreach (DataGridViewRow linha in _grade.SelectedRows)
+            {
+                if (linha.Cells.Count > 0 && linha.Cells[0].Value != null)
+                {
+                    escolhidas.Add(linha.Cells[0].Value.ToString());
+                }
+            }
+
+            UltimaMensagem = escolhidas.Count == 0
+                ? "Excluir Páginas: selecione a(s) página(s) na grade."
+                : Positron.Plugin.Comandos.ExecutarApagarPaginas(escolhidas);
+            Carregar();
         }
 
         /// <summary>A criação da página do menu "Nova Página" (depois da última) e o recarregar da grade.</summary>

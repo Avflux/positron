@@ -839,6 +839,47 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 143 — o Excluir Paginas (o destrutivo, com o ok do dono).** O item do menu das folhas
+estava desabilitado desde a rodada 130 ("regra na fatia 4 da frente 10 (e destrutiva)"); o dono
+liberou e ele entrou: o clique apaga as paginas **selecionadas na grade** (a grade e full-row-select
+e multi-select, como no original) e o comando **APAGAPAGINA** faz o mesmo por script, **exigindo**
+POSITRON_PAGINA — destrutivo nao adivinha alvo.
+
+**O que apaga:** o `Pagina.ApagarElementosPagina` do original apaga **toda** entidade do ModelSpace
+com o layer da pagina (com o `clsApagar.ApagarDerivados` antes de cada uma) e deixa o **layer**; o
+recoder apaga o layer tambem — sem o layer a pagina sai da lista do caderno, e deixar um layer vazio
+seria uma pagina fantasma (diferenca registrada). O `ApagarDerivados` (os textos derivados do
+borne/dispositivo) nao entrou: o recoder nao mantem esse estado, entao nao ha derivado a limpar.
+
+**A guarda e pura** (`Positron.Data/Paginas/ExclusaoDePagina.cs`): nome vazio, layer que nao passa
+no `LayerValido` (o mesmo crivo que le o caderno) e pagina fora da lista sao **recusados** — e o que
+impede um POSITRON_PAGINA torto de apagar os elementos de outra camada.
+
+```bash
+$env:POSITRON_DUMP = "$env:TEMP/positron-paginas.txt"; $env:POSITRON_PAGINA = "3"
+powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 `
+  -Fixture scripts/cad-fixture-novapagina.lsp -Comandos NOVAPAGINA,APAGAPAGINA,pz-conta-paginas -Dwg 63 -Banco "<db>"
+```
+
+Medido no AutoCAD 2020:
+
+```text
+NOVAPAGINA: página "4" criada depois de "3" — layer + 5 campo(s) do formato copiado(s) + 3 título(s) herdado(s) de "3".
+APAGAPAGINA: 1 página(s) apagada(s) (3) — 4 entidade(s) do ModelSpace e 1 layer(s).
+
+--- dump independente ---
+LAYER;0  LAYER;1  LAYER;2  LAYER;-1  LAYER;4        <- o layer 3 saiu
+textos na pagina 3: 0                              <- os 4 titulos dela foram apagados
+textos na pagina 4: 5                              <- a pagina 4 (a nova) ficou intacta
+```
+
+**Licao de instrumento:** a fixture roda num desenho **vazio** (sem -Desenho), entao as paginas sao
+só as que ela cria (1..3): foi isso que fez a medicao dizer "depois de 3" enquanto o desenho real
+tem a pagina 1000. Nao e defeito — e o ambiente da fixture, e agora esta registrado.
+
+**Gate desta rodada:** `plugin:test` **658** (+5, `ExclusaoDePaginaTests`), as duas builds **0
+avisos / 0 erros** e o `cad:projeto:acad -Idempotencia` verde com os numeros de sempre.
+
 **Rodada 142 — os titulos da pagina (o fim da fatia 6): ler e gravar, e a heranca no Nova Pagina.**
 O `capturaTitulosDeUmaPagina` (ler) e o `AtualizaTitulosDeUmaPagina` (regravar) do original entraram:
 o que e **puro** e o modelo `TitulosDaPagina` (os quatro titulos, o **indice 1..4** como chave e o

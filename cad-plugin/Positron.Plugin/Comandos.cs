@@ -813,6 +813,78 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>APAGAPAGINA</c> — apaga uma **página**: os elementos do ModelSpace no layer dela (o
+        /// <c>Pagina.ApagarElementosPagina</c> do reverso) e o layer. A página vem de
+        /// <c>POSITRON_PAGINA</c> — **sem ela o comando não faz nada** (é destrutivo e não adivinha
+        /// alvo). O comando é **nosso**: no original o caminho é o item "Excluir Páginas" do menu, que
+        /// apaga as páginas selecionadas na grade (é o que o menu do recoder faz agora).
+        /// </summary>
+        [CommandMethod("APAGAPAGINA")]
+        public void ApagarPagina()
+        {
+            Plugin.Escrever(ExecutarApagarPagina());
+        }
+
+        /// <summary>A exclusão de uma página (a de `POSITRON_PAGINA`) e a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarApagarPagina()
+        {
+            string pagina = System.Environment.GetEnvironmentVariable("POSITRON_PAGINA");
+            if (string.IsNullOrEmpty(pagina))
+            {
+                return "APAGAPAGINA: defina POSITRON_PAGINA com a página a apagar (o comando é destrutivo e não adivinha o alvo).";
+            }
+
+            return ExecutarApagarPaginas(new List<string> { pagina });
+        }
+
+        /// <summary>Apaga as páginas pedidas (o menu passa as selecionadas na grade) e resume. Nunca lança.</summary>
+        internal static string ExecutarApagarPaginas(IReadOnlyList<string> paginasPedidas)
+        {
+            try
+            {
+                List<string> doDesenho = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
+                int entidades = 0;
+                int layers = 0;
+                List<string> apagadas = new List<string>();
+                List<string> recusadas = new List<string>();
+
+                foreach (string pedida in paginasPedidas)
+                {
+                    string recusa = ExclusaoDePagina.Recusa(pedida, doDesenho);
+                    if (recusa != null)
+                    {
+                        recusadas.Add(recusa);
+                        continue;
+                    }
+
+                    Positron.Plugin.Paginas.ExclusaoDePaginaDoDesenho.Resultado resultado =
+                        Positron.Plugin.Paginas.ExclusaoDePaginaDoDesenho.Executar(pedida.Trim());
+                    entidades += resultado.Entidades;
+                    if (resultado.LayerApagado)
+                    {
+                        layers++;
+                    }
+
+                    apagadas.Add(pedida.Trim());
+                }
+
+                if (apagadas.Count == 0)
+                {
+                    return "APAGAPAGINA: nada apagado — " + string.Join("; ", recusadas.ToArray()) + ".";
+                }
+
+                return "APAGAPAGINA: " + apagadas.Count + " página(s) apagada(s) ("
+                    + string.Join(", ", apagadas.ToArray()) + ") — " + entidades + " entidade(s) do ModelSpace e "
+                    + layers + " layer(s)."
+                    + (recusadas.Count > 0 ? " Recusadas: " + string.Join("; ", recusadas.ToArray()) + "." : string.Empty);
+            }
+            catch (System.Exception erro)
+            {
+                return "APAGAPAGINA: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
         /// <summary>A criação da página e a linha de resumo. Nunca lança.</summary>
         internal static string ExecutarNovaPagina()
         {
