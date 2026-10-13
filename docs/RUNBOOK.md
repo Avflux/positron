@@ -839,6 +839,44 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 146 — o `EncontraHandle` (frente 2, 37 de 38) e a correção do `AtivaPagina` da rodada 145.** Duas coisas, nesta ordem: a fila do `PLANO.md` mudou e o comando do original expôs um defeito na regra que ele reaproveita.
+
+**A fila.** O item 1 ("fechar a frente 10 com o caderno: `GERDWG`/`DUPCAD`") partia de uma **premissa errada**: lidas no reverso, `frmGerenciadorDWG` e `frmDuplicarCaderno` **não** mexem nas páginas do desenho. Elas mantêm o **cadastro de DWGs do banco** (tabelas `DWG`/`DWGH`: adicionar, atualizar, apagar, restaurar, atribuir índice), e o `DUPCAD` ainda faz o `SaveAs` do arquivo e copia sete tabelas compiladas (`Fiacao`, `Contatos4F`, `Circuitos4F`, `Portas4F`, `Dispositivos4F`, `Bornes4F`, `Jumpers`) mais os avulsos da lista de materiais. No recoder ninguém grava `DWG`/`DWGH` (o índice vem do `POSITRON_DWG`) e o `POSITRON.md` registra essas tabelas como do **app**. Decisão do dono: o cadastro de DWGs vira item próprio, aguardando a decisão de quem é dono dele, e a fatia 6 da frente 10 fecha com a paleta das folhas.
+
+**O comando.** O `EncontraHandle` do original (`clsUtilitarios.cs:950`) pede um handle (`Digite Um Handle`), acha a entidade (`Geral.HandleToObject`), chama `Pagina.AtivaPagina(entidade.Layer)`, sincroniza a paleta (`_uscPagina.ativaPaginaAtalho`) e dá zoom com margem 20 (`Caderno.ZEntity` → `ZoomWin`). O que é puro entrou em `Positron.Data/Paginas/LocalizacaoPorHandle.cs`: o `LerHandle` (o `Convert.ToInt64(s, 16)`, que aceita `0x`; vazio ou inválido devolve nulo — **desvio:** o texto é aparado antes) e a `Janela` do zoom (a caixa com a margem nos quatro lados; centro, largura e altura). O adapter `Positron.Plugin/Paginas/LocalizacaoPorHandleDoDesenho.cs` pergunta pelo prompt do original, acha a entidade (`TryGetObjectId`, que recusa o apagado) e aplica a vista com um `ViewTableRecord` novo, como o `ZoomWin`. O comando entra com o **nome do original** (`EncontraHandle`); o handle vem de `POSITRON_HANDLE` ou do prompt — o script passa o valor ao prompt pelo `vl-cmdf`. A paleta ganhou `PaletaDeFolhas.Recarregar()` (só relê quando já foi aberta), chamada também pelo `ATIVAPAGINA`.
+
+**O defeito da rodada 145.** O `AtivaPagina` do original mantém ligados a página, o `0` e o `right = checaCapa(pagina) ? pagina : "-1"` (`Pagina.cs:1279`) — ou seja, o **`-1`** (o formato do corpo; o `Pagina.cs:1051` o trata junto com a capa) quando a página não é a capa, e **desliga a capa**. A rodada 145 tinha portado o contrário (capa sempre ligada, `-1` desligado) e a medição dela registrou esse comportamento errado (`1 LIGADO`, `-1 DESLIGADO` ao ativar a `3`). O `PapelDoLayerNaAtivacao` passou a ser `Pagina`/`Mantido`/`Fora` e o `Papel(layer, pagina)` reproduz o `right` do original; o `PaginaAtivaTests` ganhou os dois casos (página do corpo e capa). A fixture `cad-fixture-pagina-ativa.lsp` dizia que o `-1` era "a camada de trabalho do produto" — corrigido para o formato do corpo.
+
+**Host desta máquina.** O **AutoCAD 2020 não está mais instalado** (há só o 2010/2011/2013) e o **ZWCAD 2026 voltou**: esta medição é no **alvo do produto**, pelo `scripts/cad-zwcad-smoke.ps1`. Para os argumentos com espaço, chame o script **na mesma sessão** (`& .\scripts\cad-zwcad-smoke.ps1 -Comandos $cmds`): repassados a um `powershell -File` filho, eles se quebram.
+
+```powershell
+$env:POSITRON_DUMP = "<pasta>\ativa"; $env:POSITRON_PAGINA = "3"
+$cmds = @('(pz-conta-camadas "1")','(vl-cmdf "_EncontraHandle" (pz-handle-do-texto "folha 2"))','(pz-conta-camadas "2")',
+  '(vl-cmdf "_EncontraHandle" (pz-handle-do-texto "capa"))','(pz-conta-camadas "3")','(vl-cmdf "_EncontraHandle" "ZZZ")',
+  '(vl-cmdf "_EncontraHandle" "FFFFFF")','(vl-cmdf "_ATIVAPAGINA")','(pz-conta-camadas "4")')
+& .\scripts\cad-zwcad-smoke.ps1 -Fixture scripts/cad-fixture-pagina-ativa.lsp -Comandos $cmds -Banco "<pasta>\r146.db"
+```
+
+Medido no **ZWCAD 2026**:
+
+```text
+EncontraHandle: 264 = DBText no layer "2" — página ativada (2 layer(s) desligado(s), 3 ligado(s), 2 alterado(s)); zoom em (15.243; 11.251) 50.486 x 42.584.
+EncontraHandle: 263 = DBText no layer "1" — página ativada (3 layer(s) desligado(s), 2 ligado(s), 3 alterado(s)); zoom em (13.787; 10.579) 47.573 x 42.546.
+EncontraHandle: "ZZZ" não é um handle (hexadecimal).
+EncontraHandle: handle FFFFFF não achado no desenho (ou não é entidade).
+ATIVAPAGINA: pagina "3" — 2 layer(s) desligado(s), 3 ligado(s), 3 alterado(s); capa "1".
+
+--- dump independente (pz-conta-camadas: CLAYER, VIEWCTR/VIEWSIZE e o 62 de cada layer) ---
+ativa1  CORRENTE;3 · VISTA;493.605;398.976;481.652 · 0 LIGADO · 1 LIGADO · 2 LIGADO · 3 LIGADO · -1 LIGADO
+ativa2  CORRENTE;2 · VISTA;15.243;11.251;42.696   · 0 LIGADO · 1 DESLIGADO · 2 LIGADO · 3 DESLIGADO · -1 LIGADO
+ativa3  CORRENTE;1 · VISTA;13.787;10.579;42.658   · 0 LIGADO · 1 LIGADO · 2 DESLIGADO · 3 DESLIGADO · -1 DESLIGADO
+ativa4  CORRENTE;3 · VISTA;13.787;10.579;42.658   · 0 LIGADO · 1 DESLIGADO · 2 DESLIGADO · 3 LIGADO · -1 LIGADO
+```
+
+Na página `2` ficam o `0` e o `-1` e a capa desliga; na capa só o `0` e a capa ficam ligados e o `-1` desliga; o `ATIVAPAGINA` na `3` agora segue a mesma regra (a medição da rodada 145 mostrava `1 LIGADO`/`-1 DESLIGADO`). O centro da vista medido é o que o comando calculou; o `VIEWSIZE` sai um pouco acima da altura pedida (42,70 contra 42,58) porque o CAD ajusta a vista à proporção da janela. Os dois handles inválidos (`ZZZ` e um inexistente) não mexem no desenho: o `ativa4` só difere do `ativa3` pelo `ATIVAPAGINA`.
+
+**Gate desta rodada:** `plugin:test` **685** (+13: `LocalizacaoPorHandleTests` com 12 casos e +1 no `PaginaAtivaTests`) e as duas builds (ZWCAD e AutoCAD) **0 avisos**. O painel `scripts/cobertura-do-reverso.ps1` mede **67 escritos à mão** (48 do reverso + 19 nossos) e **69** do reverso sem nada no plugin (52 de regra pura).
+
 **Rodada 145 — a página ativa e o passo da página (fatia 5, parte 2): a regra, os comandos e os formulários.** O `Pagina.cs` do original ainda guardava quatro rotinas: o `AtivaPagina` (linha 1243), o `LocalizaPaginaAtiva` (1347), o `checaCapa` (2595) e o `redefinePasso` (2657) — com os comandos `PAS` (`Comandos.cs:1435`) e `PAG` (`:1447`). O que é **puro** entrou em `cad-plugin/Positron.Data/Paginas/PaginaAtiva.cs`: o `PapelDoLayerNaAtivacao` (`Pagina`, `Capa`, `Fora`), o `PaginaAtiva.Capas` com a **lista literal** do `checaCapa` (`"1"`, `"001"`, `"0001"`, `"00001"`, `"000001"`, `"0000001"`), o `ChecaCapa` (sem caixa), o `Localiza(layerCorrente)` (a camada corrente quando ela passa no `LayerValido`; senão vazio, o que no original cai no `retornaNumeroCapa`), o `Papel(layer, pagina, capas)` e o `Plano(pagina, layers)`. **Limite do original registrado:** a lista de capas tem **seis** nomes e para no de **sete** posições (`'0000001'`); o `'00000001'` (oito posições) **não** é capa — é o `checaCapa` que é assim, e a lista está fixada em teste.
 
 **Onde a ação entra (`cad-plugin/Positron.Plugin/`).** O adapter `Paginas/PaginaAtivaDoDesenho.cs` faz o `Ler()` (a página ativa é a `Clayer`), o `LerCapa()` (o `retornaNumeroCapa`) e o `Ativar(pagina)`, que devolve o `Resultado` (`PaginaEncontrada`, `LayersAlterados`, `LayersDesligados`, `LayersLigados`, `Capa`): ele reproduz o `IsOff` do original — a página fica **ligada** e vira a **camada corrente**, o layer `0` e a **capa** ficam ligados e **todo o resto desliga** —, e o `LayersAlterados` conta só o que **mudou** de estado. Em `Comandos.cs` entraram dois comandos **nossos** (no original o caminho é item de menu/interação, como no `UNIDADE`/`TITULOS`): **`ATIVAPAGINA`** usa o alvo de `POSITRON_PAGINA`; sem a variável, usa a **página ativa** do desenho e, sem ela, a última do caderno — o alvo **explícito** passa pela guarda `ExclusaoDePagina.Recusa` (nome vazio, layer que o `LayerValido` recusa e página fora do caderno); e **`PASSO`** é o `redefinePasso`: o valor vem do argumento ou de `POSITRON_PASSO_PAGINA` (sem nenhum dos dois o comando **só lê**), recusa o que não é **inteiro > 0** (a guarda `AllowNegative=false`/`AllowZero=false` do original) e persiste com `ConfiguracaoPositron.Salvar()` — o original pergunta pelo `Editor` e grava o **XData de configuração do desenho**, uma divergência de instrumento registrada.

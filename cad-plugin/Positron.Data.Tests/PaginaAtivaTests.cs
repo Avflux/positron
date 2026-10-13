@@ -46,14 +46,24 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
-        public void Papel_marca_a_pagina_a_capa_e_o_resto()
+        public void Papel_reproduz_o_right_do_original_numa_pagina_do_corpo()
         {
-            Assert.Equal(PapelDoLayerNaAtivacao.Pagina, PaginaAtiva.Papel("3", "3", PaginaAtiva.Capas));
-            Assert.Equal(PapelDoLayerNaAtivacao.Pagina, PaginaAtiva.Papel("0003", "0003", new List<string> { "0003" }));
-            Assert.Equal(PapelDoLayerNaAtivacao.Capa, PaginaAtiva.Papel("0", "3", PaginaAtiva.Capas));
-            Assert.Equal(PapelDoLayerNaAtivacao.Capa, PaginaAtiva.Papel("0001", "3", PaginaAtiva.Capas));
-            Assert.Equal(PapelDoLayerNaAtivacao.Fora, PaginaAtiva.Papel("2", "3", PaginaAtiva.Capas));
-            Assert.Equal(PapelDoLayerNaAtivacao.Fora, PaginaAtiva.Papel("-1", "3", PaginaAtiva.Capas));
+            // `right = checaCapa(pagina) ? pagina : "-1"`: numa pagina do corpo ficam ligados a
+            // pagina, o `0` e o `-1` (o formato do corpo) — e a **capa desliga**.
+            Assert.Equal(PapelDoLayerNaAtivacao.Pagina, PaginaAtiva.Papel("3", "3"));
+            Assert.Equal(PapelDoLayerNaAtivacao.Mantido, PaginaAtiva.Papel("0", "3"));
+            Assert.Equal(PapelDoLayerNaAtivacao.Mantido, PaginaAtiva.Papel("-1", "3"));
+            Assert.Equal(PapelDoLayerNaAtivacao.Fora, PaginaAtiva.Papel("0001", "3"));
+            Assert.Equal(PapelDoLayerNaAtivacao.Fora, PaginaAtiva.Papel("2", "3"));
+        }
+
+        [Fact]
+        public void Papel_na_capa_desliga_o_formato_do_corpo()
+        {
+            // A capa tem o formato dela: ativando a capa o `-1` desliga.
+            Assert.Equal(PapelDoLayerNaAtivacao.Pagina, PaginaAtiva.Papel("001", "001"));
+            Assert.Equal(PapelDoLayerNaAtivacao.Mantido, PaginaAtiva.Papel("0", "001"));
+            Assert.Equal(PapelDoLayerNaAtivacao.Fora, PaginaAtiva.Papel("-1", "001"));
         }
 
         [Fact]
@@ -63,9 +73,9 @@ namespace Positron.Data.Tests
             IReadOnlyList<PapelDoLayerNaAtivacao> papeis = PaginaAtiva.Plano("2", layers);
 
             Assert.Equal(6, papeis.Count);
-            Assert.Equal(PapelDoLayerNaAtivacao.Capa, papeis[0]);
-            Assert.Equal(PapelDoLayerNaAtivacao.Fora, papeis[1]);
-            Assert.Equal(PapelDoLayerNaAtivacao.Capa, papeis[2]);
+            Assert.Equal(PapelDoLayerNaAtivacao.Mantido, papeis[0]);
+            Assert.Equal(PapelDoLayerNaAtivacao.Mantido, papeis[1]);
+            Assert.Equal(PapelDoLayerNaAtivacao.Fora, papeis[2]);
             Assert.Equal(PapelDoLayerNaAtivacao.Pagina, papeis[3]);
             Assert.Equal(PapelDoLayerNaAtivacao.Fora, papeis[4]);
             Assert.Equal(PapelDoLayerNaAtivacao.Fora, papeis[5]);

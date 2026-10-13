@@ -1,5 +1,6 @@
-; Fixture do ATIVAPAGINA/PASSO (fatia 5, a pagina ativa): monta as paginas 1..3, a capa "1"
-; com um texto proprio, o layer -1 (a camada de trabalho do produto) e texto em cada pagina,
+; Fixture do ATIVAPAGINA/PASSO/EncontraHandle (fatia 5, a pagina ativa): monta as paginas 1..3,
+; a capa "1" com um texto proprio, o layer -1 (o formato do corpo: o AtivaPagina do original o
+; mantem ligado fora da capa) e texto em cada pagina,
 ; para a ativacao ter o que desligar. O pz-conta-camadas e o instrumento independente: le
 ; estado de cada layer (nome, LIGADO/desligado pela cor 62 negativa, corrente) e os textos
 ; por camada, de um arquivo por passo (o c:pz-conta-camadas <sufixo>).
@@ -26,6 +27,8 @@
     (progn
       (setq corrente (getvar "CLAYER"))
       (write-line (strcat "CORRENTE;" corrente) f)
+      (write-line (strcat "VISTA;" (rtos (car (getvar "VIEWCTR")) 2 3) ";"
+                          (rtos (cadr (getvar "VIEWCTR")) 2 3) ";" (rtos (getvar "VIEWSIZE") 2 3)) f)
       (setq camada (tblnext "LAYER" T))
       (while camada
         (setq n (cdr (assoc 2 camada)))
@@ -44,5 +47,10 @@
       (close f)
       (princ (strcat "\npz-conta-camadas: saida em " arquivo))))
   (princ))
+;; O handle do texto pedido (para o prompt do EncontraHandle); "" quando nao ha.
+(defun pz-handle-do-texto (txt / conjunto achado)
+  (setq conjunto (ssget "_X" (list (cons 0 "TEXT") (cons 1 txt))) achado "")
+  (if conjunto (setq achado (cdr (assoc 5 (entget (ssname conjunto 0))))))
+  achado)
 (princ "\nfixture PAGINA-ATIVA montada (paginas 1..3 + capa 1 + trabalho em -1)")
 (princ)

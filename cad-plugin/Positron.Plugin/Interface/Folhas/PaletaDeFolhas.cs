@@ -37,6 +37,16 @@ namespace Positron.Plugin.Interface.Folhas
         }
 
         /// <summary>
+        /// Relê as páginas na paleta **se ela já foi aberta** (o <c>_uscPagina.ativaPaginaAtalho</c>
+        /// do original, que acompanha a página ativada por um comando); devolve quantas mostrou, ou
+        /// <c>-1</c> quando ainda não há paleta.
+        /// </summary>
+        internal static int Recarregar()
+        {
+            return _controle == null ? -1 : _controle.Carregar();
+        }
+
+        /// <summary>
         /// Há janela nesta sessão? O <c>accoreconsole</c> **não** aceita interface — a checagem é o
         /// nome do processo (o sinal direto do host headless) e, como segunda testemunha, a ausência
         /// de janela principal (que só é lida quando o processo não é o core console).

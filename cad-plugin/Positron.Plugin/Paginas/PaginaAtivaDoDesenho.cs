@@ -12,7 +12,7 @@ namespace Positron.Plugin.Paginas
 {
     /// <summary>
     /// A **pagina ativa** no desenho: o <c>LocalizaPaginaAtiva</c> (qual pagina a camada corrente
-    /// mostra), o <c>checaCapa</c> (a capa que nunca desliga) e o <c>AtivaPagina</c> do
+    /// mostra), o <c>checaCapa</c> (a capa e o seu formato) e o <c>AtivaPagina</c> do
     /// <c>Pagina.cs</c> do original — o que liga a pagina pedida e **desliga todo o resto**, com a
     /// camada corrente passando para ela.
     ///
@@ -29,10 +29,10 @@ namespace Positron.Plugin.Paginas
             /// <summary>Quantos layers estavam com o <c>IsOff</c> diferente do que a regra pede.</summary>
             internal int LayersAlterados { get; set; }
 
-            /// <summary>Quantos ficaram desligados (os que nao sao a pagina, o 0 nem a capa).</summary>
+            /// <summary>Quantos ficaram desligados (os que nao sao a pagina, o 0 nem o formato do corpo).</summary>
             internal int LayersDesligados { get; set; }
 
-            /// <summary>Quantos ficaram ligados (a pagina, o 0 e a capa).</summary>
+            /// <summary>Quantos ficaram ligados (a pagina, o 0 e o formato do corpo).</summary>
             internal int LayersLigados { get; set; }
 
             /// <summary>A capa achada na tabela (o <c>retornaNumeroCapa</c>), quando o layer existe.</summary>
@@ -94,7 +94,8 @@ namespace Positron.Plugin.Paginas
 
         /// <summary>
         /// Ativa a pagina: liga a pagina pedida (que passa a ser a camada corrente), mantem o
-        /// layer <c>0</c> e a capa ligados e **desliga os demais**.
+        /// layer <c>0</c> e o formato do corpo (<c>-1</c>, fora da capa) ligados e **desliga os
+        /// demais** — a capa inclusive.
         /// </summary>
         internal static Resultado Ativar(string pagina)
         {
@@ -117,13 +118,13 @@ namespace Positron.Plugin.Paginas
                         continue;
                     }
 
-                    PapelDoLayerNaAtivacao papel = PaginaAtiva.Papel(layer.Name, alvo, PaginaAtiva.Capas);
+                    PapelDoLayerNaAtivacao papel = PaginaAtiva.Papel(layer.Name, alvo);
                     if (papel == PapelDoLayerNaAtivacao.Pagina)
                     {
                         resultado.PaginaEncontrada = true;
                     }
 
-                    if (papel == PapelDoLayerNaAtivacao.Capa && PaginaAtiva.ChecaCapa(layer.Name))
+                    if (resultado.Capa == null && PaginaAtiva.ChecaCapa(layer.Name))
                     {
                         resultado.Capa = layer.Name;
                     }

@@ -855,6 +855,7 @@ namespace Positron.Plugin
                 pagina = pagina.Trim();
                 Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Resultado resultado =
                     Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ativar(pagina);
+                Interface.Folhas.PaletaDeFolhas.Recarregar();
 
                 string capa = resultado.Capa ?? string.Empty;
                 return "ATIVAPAGINA: pagina \"" + pagina + "\" — " + resultado.LayersDesligados
@@ -865,6 +866,65 @@ namespace Positron.Plugin
             catch (System.Exception erro)
             {
                 return "ATIVAPAGINA: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+        /// <summary>
+        /// <c>EncontraHandle</c> — o comando do original (<c>clsUtilitarios.cs:950</c>, o último item
+        /// de regra da frente 2): acha a entidade pelo **handle**, **ativa a página** dela (o
+        /// <c>AtivaPagina(entidade.Layer)</c>, sem guarda de nome, como lá) e dá **zoom** nela com a
+        /// margem de 20 (o <c>ZEntity</c>). O handle vem de <c>POSITRON_HANDLE</c> (o script) ou do
+        /// prompt do original, <c>Digite Um Handle</c>.
+        /// </summary>
+        [CommandMethod("EncontraHandle")]
+        public void EncontrarHandle()
+        {
+            string texto = System.Environment.GetEnvironmentVariable("POSITRON_HANDLE");
+            if (string.IsNullOrEmpty(texto))
+            {
+                texto = Positron.Plugin.Paginas.LocalizacaoPorHandleDoDesenho.PerguntarHandle();
+            }
+
+            Plugin.Escrever(ExecutarEncontraHandle(texto));
+        }
+
+        /// <summary>A localização pelo handle e a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarEncontraHandle(string texto)
+        {
+            try
+            {
+                long? handle = LocalizacaoPorHandle.LerHandle(texto);
+                if (!handle.HasValue)
+                {
+                    return "EncontraHandle: \"" + (texto ?? string.Empty) + "\" não é um handle (hexadecimal).";
+                }
+
+                Positron.Plugin.Paginas.LocalizacaoPorHandleDoDesenho.Entidade entidade =
+                    Positron.Plugin.Paginas.LocalizacaoPorHandleDoDesenho.Achar(handle.Value);
+                if (entidade == null)
+                {
+                    return "EncontraHandle: handle " + handle.Value.ToString("X") + " não achado no desenho (ou não é entidade).";
+                }
+
+                Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Resultado ativacao =
+                    Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ativar(entidade.Layer);
+                Interface.Folhas.PaletaDeFolhas.Recarregar();
+
+                JanelaDeZoom? janela = Positron.Plugin.Paginas.LocalizacaoPorHandleDoDesenho.DarZoom(entidade.Id);
+                string zoom = janela.HasValue
+                    ? string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                        "zoom em ({0:0.###}; {1:0.###}) {2:0.###} x {3:0.###}",
+                        janela.Value.CentroX, janela.Value.CentroY, janela.Value.Largura, janela.Value.Altura)
+                    : "sem zoom (a entidade não tem caixa)";
+
+                return "EncontraHandle: " + handle.Value.ToString("X") + " = " + entidade.Tipo
+                    + " no layer \"" + entidade.Layer + "\" — página ativada ("
+                    + ativacao.LayersDesligados + " layer(s) desligado(s), " + ativacao.LayersLigados
+                    + " ligado(s), " + ativacao.LayersAlterados + " alterado(s)); " + zoom + ".";
+            }
+            catch (System.Exception erro)
+            {
+                return "EncontraHandle: falhou — " + DescreverErro(erro) + ".";
             }
         }
 
