@@ -31,6 +31,9 @@ namespace Positron.Plugin.Interface.Telas
         {
             new LigacaoDoFrmPesquisaXdatas(),
             new LigacaoDoFrmEstatisticaDeBornes(),
+            new LigacaoDoFrmCompilarFiacao(),
+            new LigacaoDoFrmCompilarInterligacao(),
+            new LigacaoDoFrmCompilarJumperExt(),
         };
 
         /// <summary>As telas ligadas hoje (para o diagnóstico e os testes não lerem a lista).</summary>

@@ -99,6 +99,18 @@ foreach ($tela in ($porTela.Keys | Sort-Object)) {
 }
 $telaSemComando = @($telas.Keys | Where-Object { -not $porTela.ContainsKey($_) })
 
+# ---------------------------------------------------------------- as telas ja LIGADAS
+# "A regra existe" e "a regra esta ligada na tela" sao coisas diferentes: a segunda mora no
+# LigacoesDasTelas e o nome da tela e o NomeDaTela de cada arquivo Ligacao*.cs (um por tela).
+# Sem esta leitura o painel continuaria listando como "falta so a ligacao" telas que ja a tem.
+$telasLigadas = @{}
+foreach ($arquivo in (Get-ChildItem (Join-Path $Plugin 'Interface\Telas') -Filter 'Ligacao*.cs' -File -ErrorAction SilentlyContinue)) {
+  $texto = [System.IO.File]::ReadAllText($arquivo.FullName)
+  $m = [regex]::Match($texto, 'NomeDaTela\s*\{[^}]*?return\s+"([^"]+)"')
+  if ($m.Success) { $telasLigadas[$m.Groups[1].Value] = $arquivo.Name }
+}
+$telaComRegraSemLigacao = @($telaComRegra | Where-Object { -not $telasLigadas.ContainsKey($_.Tela) })
+
 # ---------------------------------------------------------------- o painel
 Write-Output ('=' * 78)
 Write-Output 'COMANDOS DO REVERSO'
@@ -119,9 +131,10 @@ Write-Output ("  reverso lido de                : {0}" -f $Decomp)
 Write-Output ("  telas frm* no decompilado      : {0}" -f $telas.Count)
 Write-Output ("  alcancadas por algum comando   : {0}  (COM regra ja escrita: {1}; so casca: {2})" -f ($telaComRegra.Count + $telaSoCasca.Count), $telaComRegra.Count, $telaSoCasca.Count)
 Write-Output ("  nenhum comando abre (sub-janela): {0}" -f $telaSemComando.Count)
+Write-Output ("  com a ligacao na tela          : {0}  ({1})" -f $telasLigadas.Count, (($telasLigadas.Keys | Sort-Object) -join ', '))
 Write-Output ('=' * 78)
-Write-Output 'PROXIMAS DA FILA: telas cuja REGRA ja existe no plugin (falta so a ligacao)'
-foreach ($t in ($telaComRegra | Sort-Object Linhas)) {
+Write-Output 'PROXIMAS DA FILA: telas cuja REGRA ja existe e AINDA NAO tem ligacao'
+foreach ($t in ($telaComRegraSemLigacao | Sort-Object Linhas)) {
   Write-Output ("  {0,-30} {1,6} linhas no reverso   comando(s): {2}" -f $t.Tela, $t.Linhas, $t.Comandos)
 }
 

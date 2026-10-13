@@ -492,11 +492,22 @@ namespace Positron.Plugin
         }
 
         /// <summary>
+        /// A revisão que o comando usa: a que a **tela** passou (o <c>tbRevisao</c> das
+        /// <c>frmCompilar*</c>) ou a da configuração (<c>POSITRON_REVISAO</c>). Vazia/nula cai na
+        /// configuração — é o caminho de todos os outros chamadores (os pipelines).
+        /// </summary>
+        private static string RevisaoEfetiva(ConfiguracaoPositron config, string revisao)
+        {
+            return string.IsNullOrEmpty(revisao) ? config.Revisao : revisao.Trim();
+        }
+
+        /// <summary>
         /// Projeta a fiação do desenho e devolve a linha de resumo — usada tanto
-        /// pelo <c>FIA</c> quanto pelo <c>SYNCD</c>. Nunca lança: um comando que
+        /// pelo <c>FIA</c> quanto pelo <c>SYNCD</c> (e pela tela <c>frmCompilarFiacao</c>, que passa
+        /// a revisão do <c>tbRevisao</c>). Nunca lança: um comando que
         /// estoura derruba a linha de comando do ZWCAD.
         /// </summary>
-        internal static string ExecutarFiacao()
+        internal static string ExecutarFiacao(string revisao = null)
         {
             ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
             string caminho = config.Banco;
@@ -516,7 +527,7 @@ namespace Positron.Plugin
                 ContextoProjecao contexto = new ContextoProjecao
                 {
                     Dwg = config.Dwg,
-                    Revisao = config.Revisao,
+                    Revisao = RevisaoEfetiva(config, revisao),
                     Criador = Environment.UserName,
                     Data = DateTime.Now,
                 };
@@ -607,7 +618,7 @@ namespace Positron.Plugin
         /// em <c>Jumper4</c> — a mesma máquina do <c>FIA</c>, com a tabela de
         /// destino trocada. Nunca lança.
         /// </summary>
-        internal static string ExecutarJumper()
+        internal static string ExecutarJumper(string revisao = null)
         {
             ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
             string caminho = config.Banco;
@@ -627,7 +638,7 @@ namespace Positron.Plugin
                 ContextoProjecao contexto = new ContextoProjecao
                 {
                     Dwg = config.Dwg,
-                    Revisao = config.Revisao,
+                    Revisao = RevisaoEfetiva(config, revisao),
                     Criador = Environment.UserName,
                     Data = DateTime.Now,
                 };
@@ -2023,7 +2034,7 @@ namespace Positron.Plugin
         /// Projeta a interligação do desenho e devolve a linha de resumo — usada
         /// tanto pelo <c>INT</c> quanto pelo <c>SYNCD</c>. Nunca lança.
         /// </summary>
-        internal static string ExecutarInterligacao()
+        internal static string ExecutarInterligacao(string revisao = null)
         {
             ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
             string caminho = config.Banco;
@@ -2044,7 +2055,7 @@ namespace Positron.Plugin
                 {
                     Dwg = config.Dwg,
                     Documento = config.Local,
-                    Revisao = config.Revisao,
+                    Revisao = RevisaoEfetiva(config, revisao),
                     Criador = Environment.UserName,
                     Data = DateTime.Now,
                 };
@@ -2331,7 +2342,7 @@ namespace Positron.Plugin
         /// ausente). Devolve também as contagens que o resumo imprime. Compartilhado por
         /// <c>VERIF</c> (imprime) e <c>ELETREL</c> (grava em arquivo).
         /// </summary>
-        private static List<Problema> VerificarRevisao(
+        internal static List<Problema> VerificarRevisao(
             string caminho, int dwg, string revisao,
             out int fios, out int trechos, out int portas, out int bornes, out int contatos)
         {

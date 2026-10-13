@@ -839,6 +839,84 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 140 — as tres telas de compilacao ligadas aos pipelines (frmCompilarFiacao/Interligacao/JumperExt).**
+O item 2 da fila do `AUDITORIA.md` §0 — e o **ultimo** da lista "a regra existe, falta a ligacao" —
+saiu dela. As tres telas do original (`frmCompilarFiacao`, `frmCompilarInterligacao`,
+`frmCompilarJumperExt`) tem a mesma casca e a regra de cada uma **ja existia** (os pipelines `FIA`,
+`INT` e `JMP`), entao a ligacao ficou numa **base** (`Interface/Telas/LigacaoDeCompilacao.cs`) com um
+arquivo fino por tela — o metodo do §7.9: **um arquivo + uma linha** no `LigacoesDasTelas` (2 -> 5).
+
+**O que cada tela liga:**
+
+- `btAnalisar` roda o pipeline da tela com a **revisao do campo `tbRevisao`** (o campo abre com a da
+  configuracao; o executor ganhou o parametro opcional: `ExecutarFiacao(revisao)`,
+  `ExecutarInterligacao(revisao)`, `ExecutarJumper(revisao)` — sem argumento, o caminho de sempre, a
+  revisao da configuracao);
+- `dgERROS` abre com os **problemas da revisao**, um por linha — a mesma lista de
+  `Comandos.VerificarRevisao` que o `VERIF` e o `ELETREL` usam (o metodo passou de `private` a
+  `internal` para a tela poder chama-lo). **Diferenca registrada:** o original so preenche a grade
+  depois do Analisar e com as **paginas** onde ele desenhou um bloco `ErroFiacao`; o recoder nao
+  desenha erro no desenho, entao mostra o problema;
+- `dgRevisao` abre com as revisoes que **ja tem compilacao no banco** para o DWG ativo
+  (`ProjectStore.LerRevisoes`, novo: as tres tabelas dos pipelines unidas, uma linha por revisao com
+  o carimbo mais recente). As colunas do mapa sao (Revisao, Data, Criador) e o original **adiciona**
+  `(revisao, criador, data)` — aqui cada valor vai para a coluna do seu nome.
+
+**O que entra desabilitado, com o motivo na dica** (o padrao do menu das folhas — `Enabled = false` e
+a razao no `ToolTip`): `btSalvar` (o recoder grava na **mesma passada** do Analisar; o original
+separa analisar de salvar), `btApagar` (destrutivo: apaga a compilacao da revisao em
+`Interligacao4`/`Portas4I`/`Bornes4I`/`Cabos4`/`Veias4`) e `btApagarComp` (o original **desenha**
+blocos `ErroFiacao` no desenho e este botao os apaga).
+
+**Receita (as duas medidas):**
+
+```bash
+# 1) as ligacoes montam com as 127 telas (o pzTelas chama o LigacoesDasTelas.Preencher de cada uma)
+powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 -Comandos pzTelas \
+  -Desenho cad-plugin/reverso/Teste_projeto_real/Funcional.dwg -Dwg 63 -Revisao R0 -Banco "<db do projeto>"
+
+# 2) o Analisar de uma tela: o script nao clica, entao o gancho roda a MESMA analise ao montar a tela
+$env:POSITRON_JANELA = "frmCompilarInterligacao"; $env:POSITRON_ANALISAR = "1"
+powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 -Comandos JANELA \
+  -Desenho cad-plugin/reverso/Teste_projeto_real/Funcional.dwg -Dwg 63 -Revisao R0 -Banco "<db do projeto>"
+```
+
+Medido no AutoCAD 2020 (a grade de erros com o **mesmo 249** do `VERIF`, e o Analisar rodando o
+pipeline do comando):
+
+```text
+COMPILAR: frmCompilarInterligacao — Analisar ligado no INT (revisão "R0"); 1 revisão(ões) na grade; 249 problema(s) na grade de erros; desabilitados: Salvar, Apagar e ApagarComp.
+COMPILAR: frmCompilarJumperExt — Analisar ligado no JMP (revisão "R0"); 1 revisão(ões) na grade; 249 problema(s) na grade de erros; ...
+COMPILAR: frmCompilarFiacao — Analisar ligado no FIA (revisão "R0"); 1 revisão(ões) na grade; 249 problema(s) na grade de erros; ...
+JANELAS: 127 de 127 tela(s) do reverso montada(s), nenhuma falha. Ligacoes: 5 de 127 tela(s) com regra (frmPesquisaXdatas, frmEstatisticaDeBornes, frmCompilarFiacao, frmCompilarInterligacao, frmCompilarJumperExt).
+
+--- e, com POSITRON_ANALISAR=1 (o clique do btAnalisar) ---
+COMPILAR: frmCompilarInterligacao — ...
+INT: 20 linha(s) gravada(s) em Interligacao4 (199 borne(s)); 265 porta(s) em Portas4I; 216 borne(s) em Bornes4I; 697 cabo(s) em Cabos4; 2388 veia(s) em Veias4.
+COMPILAR: frmCompilarFiacao — ...
+FIA: 494 linha(s) em Fiacao (199 borne(s), 191 dispositivo(s), 0 reordenada(s), 83 posicao(oes), 450 ponto(s) de bloco); ...
+COMPILAR: frmCompilarJumperExt — ...
+JMP: nenhuma conexão de jumper no desenho.
+```
+
+**Achado de instrumento: no `accoreconsole` o `JANELA` nao retorna.** A linha do proprio comando
+(`JANELA: "..." aberta no CAD`) **nao sai** e o comando seguinte ao `JANELA` **nao roda**: a janela
+modeless prende o script. Medido tambem numa tela **sem** ligacao (`frmConfiguracaoGeral`), entao
+**nao** e regressao desta rodada — e por isso a receita poe o `JANELA` **por ultimo** (a ligacao,
+que acontece no `Montar`, roda antes) e a varredura das ligacoes e pelo `pzTelas`, que monta sem
+mostrar.
+
+**O painel ganhou a linha da ligacao.** O `scripts/cobertura-do-reverso.ps1` lia "a regra existe" e
+nao sabia da ligacao — listava como "falta so a ligacao" telas que ja a tinham. Agora ele le o
+`NomeDaTela` de cada `Interface/Telas/Ligacao*.cs` e imprime `com a ligacao na tela: 5 (...)`,
+filtrando a lista final ("PROXIMAS DA FILA: telas cuja REGRA ja existe e AINDA NAO tem ligacao" —
+que ficou **vazia**).
+
+**Gate desta rodada:** `plugin:test` **622** (+4, `RevisoesDoDwgTests` — as revisoes reunidas das
+tres tabelas, o DWG filtrado, o banco vazio e a revisao nula), as duas builds **0 avisos / 0 erros** e
+o `cad:projeto:acad -Idempotencia` verde com os numeros de sempre (`FIA` 494, `INT` 20, `VERIF` 249
+na linha de base, hash `7c1635f0…`).
+
 **Rodada 139 — a correcao da interligacao (CorrigeInterligacao): o candidato grande da fila.**
 O item 1 do `AUDITORIA.md` §0 saiu dela. O comando do original (`clsUtilitarios.cs:611`, 216 linhas)
 varre as polylines de interligacao e, para cada trecho **indefinido** (`NumVeia == -1000` — o estado

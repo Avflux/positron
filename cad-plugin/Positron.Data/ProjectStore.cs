@@ -987,6 +987,52 @@ namespace Positron.Data
             return nomes;
         }
 
+        /// <summary>
+        /// As **revisões do DWG** que já têm compilação gravada — as tabelas dos três pipelines
+        /// (<c>Fiacao</c>, <c>Interligacao4</c>, <c>Jumper4</c>), unidas e ordenadas.
+        ///
+        /// É o que alimenta a grade <c>dgRevisao</c> das telas <c>frmCompilar*</c> no recoder: o
+        /// original lê a lista do Access (<c>CarregaRevisoesDwgIligCorrente</c>, com <c>criador</c> e
+        /// <c>data</c>) — colunas que o schema do SQLite **não tem** por revisão (só por painel/DWG),
+        /// então aqui saem só os nomes das revisões (a segunda e a terceira colunas da grade ficam
+        /// vazias, e isso está registrado no RUNBOOK).
+        /// </summary>
+        public IReadOnlyList<RevisaoDoDwg> LerRevisoes(int dwg)
+        {
+            List<RevisaoDoDwg> revisoes = new List<RevisaoDoDwg>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                // Uma linha por revisão, com o carimbo da linha mais recente: no SQLite a coluna
+                // "solta" de um GROUP BY vem da linha que casa com o MAX (comportamento documentado).
+                comando.CommandText =
+                    "SELECT Revisao, Criador, MAX(Data) AS Data FROM (" +
+                    " SELECT IFNULL(Revisao, '') AS Revisao, Criador, Data FROM Fiacao WHERE DWG = @dwg" +
+                    " UNION ALL SELECT IFNULL(Revisao, ''), Criador, Data FROM Interligacao4 WHERE DWG = @dwg" +
+                    " UNION ALL SELECT IFNULL(Revisao, ''), Criador, Data FROM Jumper4 WHERE DWG = @dwg" +
+                    ") GROUP BY Revisao ORDER BY Revisao";
+                comando.Parameters.AddWithValue("@dwg", dwg);
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        revisoes.Add(new RevisaoDoDwg
+                        {
+                            Revisao = Texto(leitor, "Revisao"),
+                            Criador = Texto(leitor, "Criador"),
+                            // O Data e lido pelo valor cru: dependendo de como o carimbo entrou
+                            // (texto ISO ou numero - a coluna e DATETIME com afinidade numerica), o
+                            // GetString do Texto estouraria.
+                            Data = Valor(leitor, "Data"),
+                        });
+                    }
+                }
+            }
+
+            return revisoes;
+        }
+
         /// <summary>Lê o catálogo de cabos (<c>Cabos</c>) — fonte do snapshot <c>Cabos4</c>.</summary>
         public IReadOnlyList<CabosRow> LerCabos()
         {
@@ -2219,6 +2265,20 @@ namespace Positron.Data
         {
             int indice = leitor.GetOrdinal(coluna);
             return leitor.IsDBNull(indice) ? null : leitor.GetString(indice);
+        }
+
+        /// <summary>O valor cru da coluna como texto - para as colunas de tipo misto (o Data).</summary>
+        private static string Valor(SQLiteDataReader leitor, string coluna)
+        {
+            int indice = leitor.GetOrdinal(coluna);
+            if (leitor.IsDBNull(indice))
+            {
+                return null;
+            }
+
+            object valor = leitor.GetValue(indice);
+            string texto = valor as string;
+            return texto ?? Convert.ToString(valor);
         }
 
         private static long? Inteiro(SQLiteDataReader leitor, string coluna)

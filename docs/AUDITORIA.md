@@ -62,11 +62,14 @@ nas janelas do CAD, não no desenho):
 1. ✅ **`CorrigeInterligacao` (216 linhas)** — **entregue na rodada 139**: fecha o laço do `VERIF` na
    interligação por **página inteira** (o `INDCABO` conserta os trechos escolhidos) regravando o
    `Painel1`/`Painel2` que a projeção do `INT` lê, pelo dispositivo achado sobre cada ponta.
-2. **Ligar as três telas de compilação** — `frmCompilarFiacao`, `frmCompilarInterligacao` e
-   `frmCompilarJumperExt` **já têm a regra** (os pipelines `FIA`/`INT`/`JMP`, medidos): a tela traz
-   `btAnalisar` (rodar), `dgERROS` (os erros que o `VERIF` já calcula) e `dgRevisao`; o `btApagar`
-   (apagar a compilação da revisão) é **destrutivo** e entra desabilitado com o motivo, como o menu das
-   folhas.
+2. ✅ **Ligar as três telas de compilação** — `frmCompilarFiacao`, `frmCompilarInterligacao` e
+   `frmCompilarJumperExt` — **entregue na rodada 140**: a base `LigacaoDeCompilacao` (um arquivo fino
+   por tela) liga o `btAnalisar` ao pipeline da tela (`FIA`/`INT`/`JMP`, com a revisão do
+   `tbRevisao`), a `dgERROS` aos problemas que o `VERIF` calcula e a `dgRevisao` às revisões do DWG
+   no banco; `btSalvar`, `btApagar` (destrutivo) e `btApagarComp` entram **desabilitados com o
+   motivo na dica**, como o menu das folhas. Com isso a lista "a regra existe, falta a ligação" do
+   painel (`scripts/cobertura-do-reverso.ps1`, linha `com a ligacao na tela`) ficou **vazia**: as
+   **5** telas cuja regra existe estão ligadas.
 
 > **O item 1 desta lista saiu dela na rodada 135:** a **família dos atributos** (5 comandos, 277
 > linhas) entrou com a regra pura no `Positron.Data` e o fluxo medido no CAD — e o achado dela é que
