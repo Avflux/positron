@@ -1,357 +1,62 @@
 # Plano de execução — recoder do Eletron4Z sobre o positron
 
 > Documento vivo. Cada etapa concluída vira uma linha na
-> [tabela de registro](#registro-de-execução), com o commit e a evidência.
+> [tabela de registro](#5-registro-de-execução), com o commit e a evidência.
 > Contexto de arquitetura: `POSITRON.md`. Como rodar/verificar: `RUNBOOK.md`.
 
-> ## ⏸ Onde paramos (2026-10-12, rodada 145)
+> ## ⏸ Onde paramos (2026-10-13, depois da rodada 145)
 >
-> **Estado:** **66 comandos**, **672 testes** (`npm run plugin:test`), as duas builds com 0 avisos,
-> árvore limpa. **O host CAD desta máquina é o AutoCAD 2020** — o ZWCAD 2026 **não está mais
-> instalado** aqui (o alvo do produto segue sendo o ZWCAD e os números medidos nele continuam
-> valendo; a paridade é medida no AutoCAD). O **autoload serve aos dois** desde a rodada 137: um
-> `PackageContents.xml` com **um componente por plataforma**, medido no AutoCAD 2020 de interface
-> cheia (sem `NETLOAD`); e a **casca também é a mesma nos dois** desde a rodada 138 — a **paleta**
-> de folhas e a **barra** (aba Positron) são criadas no AutoCAD, com os **mesmos números** medidos no
-> ZWCAD (a barra entra na primeira ociosidade: no AutoCAD o ribbon só nasce depois do load). Das 127
-> telas do reverso, **5 estão ligadas** à regra (as duas de sempre + as **três de compilação**, desde
-> a rodada 140) — e a fila "a regra existe, falta a ligação" está **vazia**.
+> **Este quadro é só o estado e a fila.** A narrativa de cada rodada mora em **dois lugares e só
+> neles**: a linha da rodada no [§5](#5-registro-de-execução) e a seção dela no `RUNBOOK.md` (mais
+> nova primeiro). Ao fechar uma rodada: (1) linha no §5, (2) seção no `RUNBOOK.md`, (3) aqui **só**
+> os números do *Estado* e o ✅ na fila — nada de parágrafo novo neste quadro.
 >
-> **A rodada 145** fechou a **fatia 5** do §7.7 pelo lado que faltava: a **página ativa** e o
-> **passo da página** do `Pagina.cs` do original (o `AtivaPagina`/1243, o `LocalizaPaginaAtiva`/1347, o
-> `checaCapa`/2595 e o `redefinePasso`/2657, com os comandos `PAS`/`PAG`) viraram a regra pura
-> `Positron.Data/Paginas/PaginaAtiva.cs`: o `PapelDoLayerNaAtivacao` (`Pagina`/`Capa`/`Fora`), a
-> **lista literal das capas** do `checaCapa` (`1`, `001`, `0001`, `00001`, `000001`, `0000001`; o
-> `00000001`, de oito posições, **não** é capa — é um limite do original, e está registrado), o
-> `ChecaCapa` (sem caixa), o `Localiza` (a camada corrente quando passa no `LayerValido`; senão
-> vazio, o `retornaNumeroCapa` do original), o `Papel` e o `Plano(pagina, layers)`. O adapter
-> `PaginaAtivaDoDesenho` (`Ler()` = a `Clayer`, `LerCapa()` e o `Ativar(pagina)` com o
-> `Resultado`) reproduz o `IsOff` do original — página ligada e virada camada corrente, o `0` e a
-> **capa** ligados, **todo o resto desligado**, com o `LayersAlterados` só do que mudou —, e entraram os
-> comandos **`ATIVAPAGINA`** (alvo em `POSITRON_PAGINA`; sem ela, a página ativa; sem ela, a última
-> do caderno — o alvo explícito passa pela `ExclusaoDePagina.Recusa`) e **`PASSO`** (o
-> `redefinePasso`: argumento ou `POSITRON_PASSO_PAGINA`, sem nenhum dos dois só lê; recusa o que não
-> é inteiro > 0 e persiste com `ConfiguracaoPositron.Salvar()`). **Na tela**, o `FolhasControle`
-> ganhou a linha 'Página ativa' no rodapé, a coluna `PgAtiva` (a linha da ativa em negrito) e os
-> formulários de **Editar Unidade/Alternativo/Títulos** (que estavam desabilitados desde a rodada 130);
-> o `Editar Revisões` segue desabilitado, agora com o motivo 'regra não portada (as revisões do
-> projeto vivem no banco, não no desenho)'. **Medido (AutoCAD 2020)** na fixture
-> `scripts/cad-fixture-pagina-ativa.lsp` com o instrumento `pz-conta-camadas`: `ATIVAPAGINA: pagina "3"
-> — 2 layer(s) desligado(s), 3 ligado(s), 2 alterado(s); capa "1".` e, no dump independente, o `2` e o
-> `-1` **DESLIGADOS** contra o `0`, a capa `1` e a página `3` **LIGADOS** (a corrente já era `3`); o
-> `PASSO` gravou e leu de volta (`passo do caderno = 5 — regravado para 5.`) e, com
-> `POSITRON_PAGINA=TRABALHO`, a guarda recusou **sem tocar no desenho**. `plugin:test` **672** (+12,
-> `PaginaAtivaTests`) e as duas builds **0 avisos**.
+> **Estado:** **66 comandos** escritos à mão + **99** gerados, **672 testes** (`npm run plugin:test`),
+> as duas builds com 0 avisos, `cad:projeto:acad -Idempotencia` verde (hash `7c1635f0…`, `VERIF`
+> **249**). **Host desta máquina: AutoCAD 2020** (o ZWCAD 2026 saiu daqui; o alvo do produto segue
+> sendo o ZWCAD e os números medidos nele valem). Desde as rodadas 137–138 o **autoload**, a
+> **paleta** e a **barra** funcionam nos dois CADs com os mesmos números. Telas do reverso: **5 de
+> 127** ligadas à regra; a fila "a regra existe, falta a ligação" está **vazia**.
 >
-> **A rodada 144** abriu a **fatia 5** pela metade que não depende de tela: a **unidade e o
-> alternativo** de uma página (o XData `Eletron` do layer — o `LeXDataUnidadeAlternativo`/
-> `GravarXDataUnidadeAlternativo` do original). Entrou a regra pura (`UnidadeDaPaginaXData`, com o
-> leitor), o adapter (`UnidadeDaPaginaDoDesenho`: ler e gravar no `LayerTableRecord`), o comando
-> **`UNIDADE`** (nosso, como o `TITULOS`: página de `POSITRON_PAGINA`, gravação com
-> `POSITRON_UNIDADE`/`POSITRON_ALTERNATIVO`) e a **grade das folhas** passou a mostrar as duas
-> colunas (que abriam vazias). **Medido (AutoCAD 2020)**: `UNIDADE: pagina "3" — unidade="",
-> alternativo="" — regravado para unidade="U1", alternativo="A1".` e, na segunda passada, a leitura
-> de volta (`unidade="U1", alternativo="A1"`), com o dump independente do fixture
-> (`UNIDADE;3;U1;A1`) confirmando o XData do layer. O que sobra da fatia 5 é a **tela** de edição (o
-> form do original). `plugin:test` **660** (+2, `UnidadeDaPaginaTests`) e as duas builds **0 avisos**.
+> | frente | onde | situação |
+> |---|---|---|
+> | 1 — base e pipelines (`FIA`/`INT`/`JMP`/`VERIF`/`SYNCD`) | §7.6 | ✅ |
+> | 2 — correções e limpeza do CAD | §7.6, `AUDITORIA.md` §0 | **36 de 38** — falta `EncontraHandle` (regra de desenho); `CorrigeJanelas` é ambiente |
+> | 10 — páginas e caderno (regra → casca) | §7.7 | fatias **1–5** ✅; fatia **6** parcial: a paleta das folhas está completa, faltam `frmGerenciadorDWG`/`frmDuplicarCaderno` |
+> | 11 — shell (arranque, paleta, barra, autoload) | §7.8 | fatias **1–5** ✅; fatia 6 (splash/recursos) parcial |
+> | 12 — as 127 telas do reverso | §7.9 | todas abrem fiéis; **5** com regra |
+> | 3–9 — edição (réguas, dispositivos, fiação, cabos, materiais, exportação) | §7.6 | triadas; portam comando a comando |
+> | relatórios · banco multiusuário | §7.3, Etapa 9 | ⏳ decisão do dono |
 >
-> **A rodada 143** entregou o **Excluir Páginas** (o ok do dono para o destrutivo): o item do
-> menu das folhas, que estava desabilitado, agora apaga as páginas **selecionadas na grade** — o
-> `Pagina.ApagarElementosPagina` (toda entidade do ModelSpace no layer da página) **mais o layer**,
-> que o original deixa para trás (uma página é o layer; sem ele a lista do caderno não a vê — a
-> diferença está registrada no RUNBOOK). O que é puro é a **guarda** (`ExclusaoDePagina.Recusa`:
-> nome vazio, layer que não é página e página fora da lista são recusados) e o comando
-> **`APAGAPAGINA`** é nosso, como o `NOVAPAGINA`/`TITULOS`: ele **exige** `POSITRON_PAGINA` (é
-> destrutivo e não adivinha alvo) e o menu passa as selecionadas. **Medido (AutoCAD 2020)** na
-> fixture: `APAGAPAGINA: 1 página(s) apagada(s) (3) — 4 entidade(s) do ModelSpace e 1 layer(s).` com
-> o dump independente mostrando o layer `3` **fora** da lista, **zero** texto nele e os **5** campos
-> da página `4` intactos (a exclusão não passou dos limites da página). `plugin:test` **658** (+5,
-> `ExclusaoDePaginaTests`), as duas builds **0 avisos** e o `-Idempotencia` verde.
+> **Por onde continuar, na ordem** — uma rodada por item, um commit por rodada:
+> 1. **Fechar a frente 10 (fatia 6): o caderno.** `frmGerenciadorDWG` (`GERDWG`) e
+>    `frmDuplicarCaderno` (`DUPCAD`) sobre o que já existe (`PaginasDoDesenho`, `CriacaoDePagina`,
+>    `ExclusaoDePagina`, `PaginaAtiva`). Primeiro levantar tela × regra (passo 2 do método do §7.7);
+>    o que for regra nova entra pura no `Positron.Data`, a tela entra pelo registro do §7.9.
+> 2. **`EncontraHandle`** (74 linhas, `clsUtilitarios.cs:950`) — o último item de regra da frente 2
+>    (leva a **37 de 38**).
+> 3. **Telas do §7.9 cuja regra o recoder já tem** — `frmGerenciadorMateriais` (`GERLM`) e
+>    `frmGerenciadorMatIndep` (`ATINDEP`) contra a `ListaMateriais`; depois `GERMASC`/`GERCONT`.
+>    Antes de cada uma, confirmar no painel (`scripts/cobertura-do-reverso.ps1 -Listas`) que a regra
+>    cobre a tela inteira; o que faltar volta para esta fila como item de regra.
+> 4. **`Editar Revisões`** do menu das folhas — hoje desabilitado: as revisões do projeto vivem no
+>    banco; precisa da leitura das revisões (`ProjectStore.LerRevisoes` já existe, rodada 140).
+> 5. **§7.8 fatia 6** — o splash e os recursos (`MascaraM.dwg`).
 >
-> **A rodada 142** fechou a **fatia 6** com os **títulos da página**: o `capturaTitulosDeUmaPagina`
-> (ler) e o `AtualizaTitulosDeUmaPagina` (regravar) do original. O que é puro é o modelo
-> (`TitulosDaPagina`: os quatro títulos, o índice 1..4 como chave e o contador que para nos quatro) e
-> o **leitor do XData** (`TituloDaPaginaXData.Ler`); o adapter (`TitulosDaPaginaDoDesenho`) varre o
-> ModelSpace pelo **layer da página** — o mesmo critério do original, que não olha a tag do atributo,
-> só o **índice** do XData (por isso o `TITULO4PAG` e o `PAINEL`, os dois com índice 4, recebem o
-> `Titulo4`). O **`NOVAPAGINA`** passou a **herdar os títulos** da página de referência (o
-> `pagCorrente.Titulo1..4 = pag.Titulo1..4` + `AtualizaTitulosDeUmaPagina` do `criarUmaNovaPagina`)
-> e entrou o comando **`TITULOS`** — nosso, como o `NOVAPAGINA`: ele **lê** os títulos da página de
-> `POSITRON_PAGINA` (padrão: a última) e **regrava** quando `POSITRON_TITULO1..4` vier definida (a
-> convenção do recoder para os diálogos do original). **Medido (AutoCAD 2020)** na fixture (que agora
-> também planta os quatro títulos na página 3): `NOVAPAGINA: página "4" criada depois de "3" — layer +
-> 5 campo(s) do formato copiado(s) + 3 título(s) herdado(s) de "3".` e `TITULOS: página "4" —
-> T1="T1", T2="T2", T3="", T4="T4"; 3 campo(s) regravado(s).` (com `POSITRON_TITULO1=Z1`), com o dump
-> independente mostrando o `T1` virando **Z1** e os índices **1, 2 e 4** herdados (o índice **3** não
-> tem campo na página nova: o formato não o trouxe). `plugin:test` **653** (+5,
-> `TitulosDaPaginaTests`), as duas builds **0 avisos** e o `-Idempotencia` verde.
+> **Contínuo, não é item:** os **42 rótulos/ícones da barra** (`docs/reverso-barra-do-original.txt`)
+> entram na rodada que portar o comando de cada um. **Depende do dono:** relatórios (9b) e SQL Server
+> (9c) — §7.5.
 >
-> **A rodada 141** fez o **"Nova Página" criar a página de verdade** — a fatia 6 da frente 10, o
-> item 3 da fila: o `Inserir` do menu das folhas (e o item **Nova Página**, que estava desabilitado)
-> agora **criam o layer** e **copiam os campos do formato**, em vez de só calcular o número. O que é
-> **puro** entrou no `Positron.Data`: o `CriacaoDePagina.Normalizar` (o `montaNumeroPagina` do
-> original — zeros à esquerda fora e a **largura fixa** nova na configuração, `larguraFixaPaginas` /
-> `POSITRON_LARGURA_FIXA_PAGINAS`) e o `CriacaoDePagina.CampoDoFormato` (o mapa do
-> `criaCamposFormato`: dos atributos protegidos do bloco de formato, **oito** viram campo —
-> `TITULO1PAG`..`4PAG`, `PAINEL`, `REV`, `ALTERNATIVO`, `CONT` e `FL`, com o texto `" "` ou
-> `"?"` e o índice do título — e os outros, como o `SECAO`, entram no laço do original e **não
-> geram campo**), mais o layout do XData do título (`TituloDaPaginaXData`, o `gravarXDataTitulo`). O
-> adapter (`Paginas/CriacaoDePaginaDoDesenho.cs`) cria o layer (com o XData `Eletron` de
-> unidade/alternativo) e copia os campos do **bloco de formato** — o `BlockReference` com o XData
-> `DiagLog`/`Formato` (o `PossuiXDataFormato`), que é de onde o original lê; **não** o recurso
-> `MascaraM.dwg` do DLL (esse é o bloco da **máscara** — a premissa do item 3 da fila estava errada e
-> ficou corrigida aqui). O comando **`NOVAPAGINA`** é nosso (no original o caminho é o item de menu)
-> e cria a página **depois da última**, com o `Conf.PassoPagina`. **Medido (AutoCAD 2020)** com a
-> fixture `scripts/cad-fixture-novapagina.lsp` (páginas 1..3 + bloco de formato com `TITULO1PAG`,
-> `PAINEL`, `FL`, `CONT` e `SECAO` na camada `-1`): `NOVAPAGINA: página "4" criada depois de "3" —
-> layer + 4 campo(s) do formato copiado(s).` e o dump independente (`c:pz-conta-paginas`, leitura
-> crua) mostrando o layer `4` e os **quatro** textos com o XData do título — índices **1**, **4**,
-> **5** e **6**, com o **SECAO fora**; no **desenho real** o comando achou o bloco de formato da
-> cópia e criou a página **1001** (depois de 1000) com **5 campos**. `plugin:test` **648** (+26,
-> `CriacaoDePaginaTests`), as duas builds **0 avisos** e o ciclo `-Idempotencia` verde.
+> **Fora do foco** (não abrir sem pedido do dono): as 15 variantes de tela (`new frmRelatorio_DICemig(3)`
+> etc.), a frente 11 do §7.6 (ambiente/licença), o `Construtor4Z.dll` não descompilado.
 >
-> **A rodada 140** ligou as **três telas de compilação** do original — o item 2 da fila do
-> `AUDITORIA.md` §0, e o último da lista "a regra existe, falta a ligação": `frmCompilarFiacao`,
-> `frmCompilarInterligacao` e `frmCompilarJumperExt` agora **dirigem os pipelines** `FIA`, `INT` e
-> `JMP`. As três têm a mesma casca, então a ligação ficou numa **base** (`LigacaoDeCompilacao`) com
-> um arquivo fino por tela (o método do §7.9: um arquivo + uma linha no `LigacoesDasTelas`), e o que
-> cada uma liga é: **`btAnalisar`** roda o pipeline da tela com a **revisão do `tbRevisao`** (o campo
-> abre com a da configuração; o executor ganhou o parâmetro opcional de revisão), **`dgERROS`** abre
-> com os **problemas da revisão** (a mesma lista do `VERIF`/`ELETREL`, um por linha) e **`dgRevisao`**
-> com as revisões que já têm compilação no banco para o DWG ativo (novo `ProjectStore.LerRevisoes`,
-> com o carimbo mais recente por revisão). O que **não** entra fica desabilitado **com o motivo na
-> dica** (o padrão do menu das folhas): `btSalvar` (o recoder grava na mesma passada do Analisar — o
-> original separa analisar de salvar), `btApagar` (destrutivo: apaga a compilação da revisão nas
-> tabelas) e `btApagarComp` (o original desenha blocos `ErroFiacao` no desenho e este botão os
-> apaga; o recoder não desenha). **Medido (AutoCAD 2020):** o `pzTelas` monta as 127 e as três
-> ligações correm — `Ligacoes: 5 de 127 tela(s) com regra` e, por tela, `1 revisão(ões) na grade; 249
-> problema(s) na grade de erros` (o mesmo 249 do `VERIF`); e o **Analisar** de cada uma roda o
-> pipeline do comando — `INT: 20 linha(s) … 265/216/697/2388`, `FIA: 494 …` e `JMP: nenhuma conexão
-> de jumper no desenho` (o dado da cópia). **Achado de instrumento:** no `accoreconsole` o `JANELA`
-> **não retorna** (a janela modeless prende o script — medido também numa tela **sem** ligação, então
-> não é regressão do recoder); por isso a receita põe o `JANELA` por último e o
-> `POSITRON_ANALISAR=1` roda a **mesma** análise do clique ao montar a tela. O painel de cobertura
-> ganhou a linha `com a ligacao na tela` (lê o `NomeDaTela` dos `Ligacao*.cs`) e a lista "falta só a
-> ligação" ficou **vazia**. `plugin:test` **622** (+4, `RevisoesDoDwgTests`), as duas builds **0
-> avisos** e o ciclo completo `-Idempotencia` verde (hash `7c1635f0…`, `VERIF` 249).
->
-> **A rodada 139** tirou da fila do `AUDITORIA.md` §0 o **`CorrigeInterligacao`** (216 linhas do
-> `clsUtilitarios.cs`) — o comando que fecha o laço do `VERIF` na interligação por **página inteira**
-> (o `INDCABO` só mexe nos trechos que o catálogo recusa): para cada trecho **indefinido**
-> (`NumVeia == -1000`) ele redescobre o painel de **cada ponta** pelo dispositivo que está sobre ela
-> (o `verificaDispInterlig`) e regrava `Painel1`/`Painel2` — os mesmos campos que a projeção do
-> `INT` lê. A regra ficou **pura** (`CorrecaoInterligacao`, com três detalhes do original fixados em
-> teste: o par do `Tipo 1` vale em **qualquer ordem**, no `Tipo 2`/`3` quem escolhe o campo é
-> `Painel1 == 0` e a ponta 2 só é usada quando a 1 não tem dispositivo) e o adapter
-> (`CorrecaoDaInterligacaoDoDesenho`) reproduz os **cinco ramos** do `verificaDispInterlig`: o
-> primeiro bloco da caixa de 0,2 **no layer do próprio trecho** decide (inclusive quando não é
-> dispositivo), `E` exige atributo `B<número>`, `B` resolve o painel no dicionário `REGUAS`, `I`
-> só vale com o tipo importado `E`/`B` e `E`/`A` resolvem pelo handle do `array[4]`. Duas
-> **divergências registradas**: a caixa é o teste da **posição** do bloco (o original usa
-> `SelectCrossingWindow`) e um painel que resolve em **0** conta como não achado — o original gravaria
-> o zero, zerando painel válido (mesma decisão do `RENPAGA`; a regra pura pula e conta esses trechos
-> em `SemDispositivo`). **Medido** com a fixture nova
-> `scripts/cad-fixture-corrige-interligacao.lsp` (8 trechos, um por ramo) no **AutoCAD 2020**:
-> `CorrigeInterligacao: 3 de 7 trecho(s) indefinido(s) regravado(s); 3 sem dispositivo na(s) ponta(s)
-> (8 trecho(s) lido(s); 8 bloco(s) na(s) caixa(s) das pontas).` e, na **segunda passada, `0 de 7`**
-> (converge); o **instrumento independente** novo (`scripts/cad-conta-interligacao.lsp`, que só lê o
-> XData cru) mostra os oito trechos com o par esperado — `(503, 9)` no que tinha `(1, 2)`, `(0, 9)`
-> nos dois de uma ponta, o par revertido intacto, o cabo definido intacto e os **três pulados** (sem
-> dispositivo, com os blocos em **outra camada** e com um `P` que **quebra** a busca daquela ponta).
-> No **desenho real** o comando lê **20 trechos e nenhum indefinido** (`0 de 0`) — o zero é o dado,
-> provado pelo mesmo instrumento: os 20 têm `Num_Veia` definido (a cópia está limpa). `plugin:test`
-> **618** (+14, `CorrecaoInterligacaoTests`), as duas builds **0 avisos** e o ciclo completo
-> `-Idempotencia` verde (hash `7c1635f0…`, `VERIF` 249 na linha de base).
->
-> **A rodada 138** levou a **interface do ZWCAD para o build AutoCAD**: a `AdWindows.dll` entrou na
-> API vendorizada (`cad-plugin/lib/AutoCAD/2020`, junto do `scripts/prepare-autocad-api.ps1`) e com
-> ela a **barra** — o `Autodesk.Windows` é a mesma API de ribbon do `ZwSoft.Windows`, então o
-> `BarraDeFerramentas` passou a ter **uma construção só** (muda o `using`; duas divergências ficam
-> em `#if`: o `Name`/`Id` do item e o `IsActive`/`IsEnabled` do desativado). Na **paleta**, o
-> build AutoCAD **não criava `PaletteSet` nenhum**: montava o `FolhasControle` **sem pai** (não
-> aparecia em lugar algum) e a linha "paleta de folhas ... (ancorada no CAD)" era mensagem fixa, não
-> medida — agora o **mesmo `PaletteSet`** (`Autodesk.AutoCAD.Windows`, que já vinha no
-> `acmgd.dll`) serve aos dois CADs. **Medido (AutoCAD 2020, interface cheia, por autoload, sem
-> `NETLOAD`):** `Barra: aba "Positron" com 10 painel(is) — 121 botão(ões) do original (83
-> ligado(s), 38 desativado(s); 76 abrem uma janela) e 8 do recoder.` — os **mesmos números** do
-> ZWCAD — e a paleta com **16 páginas** (o `PaletteSet` criado de verdade). Dois achados de host,
-> os dois medidos: (1) **no `Initialize()` do AutoCAD o ribbon ainda não existe** (o
-> `ComponentManager.Ribbon` é nulo no load por autoload), então a aba entra na **primeira
-> ociosidade** (`Application.Idle`, até 10 tentativas) e a linha da barra sai no log logo depois —
-> no `accoreconsole` o evento não dispara; (2) **no `accoreconsole`, só `referenciar` o
-> `PaletteSet` derruba o processo**: com o `ELET` ainda apontando para o tipo de interface, o
-> processo morria **sem exceção e sem log** (a sonda na primeira linha do corpo nunca era escrita) e
-> o script não alcançava o `FIA`/`INT` — a interface ficou isolada em `PaletaAncoravel`, tocado
-> **só quando há janela** (`Application.MainWindow`), e o headless segue o ciclo inteiro. Os testes
-> reais na compilação do AutoCAD seguem verdes: as duas builds **0 avisos**, `plugin:test` **604** e
-> o `cad:projeto:acad -Idempotencia` com os números de sempre (hash `7c1635f0…`, igual).
->
-> **A rodada 137** fez o **autoload valer nas duas versões** e rodou os **testes reais na compilação
-> do AutoCAD**: o `install/Positron.bundle/PackageContents.xml` tinha **um** componente
-> (`Platform="ZWCAD*"`, `Positron.Plugin.ZWCAD.dll`) e por isso o AutoCAD **não carregava nada** —
-> medido na interface cheia do AutoCAD 2020, com o manifesto antigo o `POSITRON_LOG` **não** era
-> escrito. Agora o mesmo pacote tem **um `<Components>` por plataforma** (ZWCAD 2026 →
-> `Positron.Plugin.ZWCAD.dll`; AutoCAD R23.1 → `Positron.Plugin.AutoCAD.dll`, a API vendorizada) e
-> quem decide é o `<RuntimeRequirements>` de cada componente; o de **pacote** saiu (ele gateava o
-> pacote inteiro para o ZWCAD) e o componente do **ZWCAD ficou igual ao da rodada 120** (mesmo
-> `AppName`, mesma DLL). O `scripts/instala-bundle.ps1` (novo) faz a cópia — manifesto + DLL da
-> plataforma + dependências (`Positron.Data`, `Positron.Contract`, `System.Data.SQLite` e o
-> `x64\SQLite.Interop.dll`) — na pasta que cada CAD varre, e tem `-Remover`. **Medido (AutoCAD
-> 2020, interface cheia, sem `NETLOAD`):** `Positron carregado`, a paleta com **16 páginas**, o
-> `VERIF` lendo o banco (**249** = 107+119+11+10+2, a mesma linha de base do ZWCAD) e a barra
-> dizendo que ela é do build ZWCAD; no **A/B** com o manifesto antigo o log **não existia**.
-> **Achado de instrumento:** o **`accoreconsole` não carrega `.bundle` nenhum** — o `(arx)` dele
-> lista só `acdim.crx`, `acvmtools.crx` e `vl.crx`, **sem o `AcAutoLoader.arx`** —, então no harness
-> headless a DLL entra por `NETLOAD` (o que o `cad-autocad-smoke.ps1` já faz) e o autoload só se
-> mede na interface cheia; a receita está no `RUNBOOK`. Os **testes reais na compilação do
-> AutoCAD** ficaram verdes: as duas builds **0 avisos**, `plugin:test` **604**, o ciclo completo
-> `cad:projeto:acad -Idempotencia` (`FIA` 494 com 199/191/83 + 265/168/70/83/11/15, `INT` 20 com
-> 265/216/697/2388, `VERIF` **249** conferido contra a linha de base, app **4.988** linhas e
-> `IDEMPOTENTE` com hash igual) e a **casca no AutoCAD** (`ELET` → paleta de 16 páginas,
-> `pzTelas`/`JANELAS` → **127 de 127** telas montadas com **2** ligações, `APAGARXDATA`, `pzDiag`).
-> **Gap do host** segue o mesmo: a **barra** do §7.8 é do `ZdWindows` e no AutoCAD a linha diz
-> isso — a paleta funciona.
->
-> **A rodada 136** foi de **ambiente/host**, não de regra: o `scripts/cad-projeto-e2e.ps1` passou a
-> resolver o **projeto real pela raiz do repo** (`cad-plugin/reverso/Teste_projeto_real`, dentro do
-> repo desde a 134) em vez do antigo `..\Elet\...`, que não existe nesta máquina, e o default
-> `-Cad ZWCAD` agora falha com a mensagem que aponta o host instalado (`rode com '-Cad AutoCAD'`)
-> em vez do erro genérico do smoke. **Medido:** `cad:projeto:acad -Idempotencia` verde no **AutoCAD
-> 2020**, reproduzindo o alvo do ZWCAD linha a linha — `FIA` 494 (199/191/83 + 265/168/70/83/11/15),
-> `INT` 20 (265/216/697/2388), `VERIF` **249** (107+119+11+10+2, linha de base confere), app
-> **4.988** linhas e `IDEMPOTENTE` (hash A = hash B). A **API do AutoCAD é vendorizada**
-> (`cad-plugin/lib/AutoCAD/2020` + `scripts/prepare-autocad-api.ps1`), como o `lib/ZWCAD/2026`: as
-> duas builds são reproduzíveis sem o CAD instalado. **Gap do host:** no AutoCAD a **barra** do §7.8
-> não existe (o log diz `Barra: disponível apenas no build ZWCAD`) — a paleta de folhas funciona.
->
-> **Frentes:** 1 e 2 entregues (a frente 2 em **36 de 38** — a **rodada 139** entregou o
-> `CorrigeInterligacao`, o **candidato grande** da fila do `AUDITORIA.md` §0; dos 2 que sobram,
-> `EncontraHandle` é **regra de desenho** e o `CorrigeJanelas` é **ambiente**); as frentes 3–9 estão mapeadas no §7.6; o **§7.7** (interface, uma funcionalidade por vez)
-> tem as fatias **1–4 prontas**; o **§7.8** (o shell: arranque, paleta e barra) tem as fatias
-> **1, 2, 3, 4 e 5 prontas** — e a barra da fatia 4 é a **do original** desde a rodada 129; o **§7.9**
-> (frente 12 — as **telas do reverso**) entregou o mapa das **127** `frm*` e o renderizador que as
-> abre **dentro do CAD**.
->
-> **A rodada 135** entrou na **família dos atributos** (a troca de blocos, 277 linhas no reverso): a
-> regra pura do **buffer dos atributos invisíveis** (o `AtributosDosBlocos`), o adapter
-> `AtributosDoDesenho` (a varredura do ModelSpace com o buffer **estático**, como o original) e os **5
-> comandos** — `LeTodosAtributos`, `LeAtributos` (a lista de nomes vem do `POSITRON_BLOCOS`),
-> `CorrigeAtributos` (o texto do `MsgBox` do original vai para a linha de comando, com as **mesmas**
-> `mMensagem`), `CorrigeAtributosSemMsg` e `PreencheNovosAtributos` (as marcas `_A_`/`_B_`/`_E_` do
-> nome do bloco escolhem as correções do pós-troca, inclusive o `_E_` que fica registrado por
-> precisar da matriz de handles da troca). O **achado da rodada:** o `Entity.Visible` que o original
-> usa para achar o invisível **sempre devolve verdadeiro no ZWCAD** — medido nas duas propriedades, no
-> mesmo atributo, com o `70` do DXF em `1` —, e o recoder passou a ler
-> `AttributeReference.Invisible` (senão o buffer sairia vazio em todo desenho).
->
-> **A rodada 134** trouxe o **reverso para dentro do repo** (o dono do produto o adicionou em
-> `cad-plugin/reverso/Eletron4_ZWcad`) e amarrou os instrumentos a ele: o painel e os cinco extratores
-> passaram a ler a cópia do repo (o painel **imprime de onde leu**) e a regeração dos mapas, dos ícones
-> e das imagens saiu **byte a byte igual** — só a linha de proveniência mudou. Entraram também a
-> **semântica dos 5 comandos de núcleo** (informação do dono do produto: o `ELET` é o `NETLOAD` com o
-> **caminho da DLL memorizado**, o `DLOG` carrega o plugin do **DiagLog** e `ETPG`/`ANET`/`EARQ` são os
-> **subprodutos** — não é regra de desenho, e é por isso que o corpo deles é vazio no `Eletron4Z.dll`),
-> o comando **`RENPAGA`** medido no `Funcional.dwg` — cujo corpo revelou **dois defeitos latentes** na
-> regra já portada (a guarda que recusa o lote com página alfabética, agora reproduzida, e o off-by-one
-> que deixava a **primeira** página sem o sufixo, esse **não** reproduzido) — e a **convenção de
-> arquivos** pedida por ele (§7.9: vários métodos por arquivo, nada de arquivo de 10 linhas).
->
-> **A rodada 133** respondeu por que a regra **não** vem pronta do decompilado, com número: o
-> `-Acoplamento` do painel lê o corpo de cada comando do reverso e mostra o que ele carrega do
-> ambiente do original (runtime VB **22.195** ocorrências em 31 comandos, `DeclaracoesGeral.` **12.089**
-> em 48, Access `cDados*` **2.215** em 11, `Interaction.MsgBox` **655** em 13, hardlock **274**,
-> `Editor.GetPoint` **131**) — e **164 dos 216** comandos têm corpo de 8 linhas ou menos, ou seja, no
-> original o comando é, na prática, só montar a tela; do reverso vem a **declaração** (telas, barra, textos, ícones) e a
-> regra é reescrita.
->
-> **A rodada 132** respondeu de vez a pergunta "o que já cobrimos e o que falta" com um
-> **instrumento**, não com memória: `scripts/cobertura-do-reverso.ps1` cruza os 216 comandos × os
-> `[CommandMethod]` do plugin × as 127 telas e imprime o painel (53 escritos à mão + 99 gerados = 152
-> respondidos; **77** do reverso sem nada, dos quais só **8** são regra em lote de verdade); a leitura
-> está no **`AUDITORIA.md` §0**, com a fila recomendada — **família dos atributos** (277 linhas, era o
-> "sem a tela não há o que aplicar" e a tela existe desde a 127), **`CorrigeInterligacao`** (216) e
-> **ligar as 3 telas de compilação** (`FIA`/`INT`/`JMP`, regra pronta) —, e a frente 2 do §7.6 foi
-> corrigida de 27 para **30 de 38** entregues.
->
-> **A rodada 131** casou **pasta e namespace** — `Positron.Data.Interface.Mapas` e
-> `Positron.Plugin.Interface.{Barra,Folhas,Telas}` — e levou os **emissores** junto: os três extratores
-> geram os arquivos já no namespace novo (sem isso a próxima regeração quebraria a `partial class`) e o
-> `ComandosDoOriginal.Gerado.cs` chama `Interface.Telas.JanelasDoOriginal`; os builds, os **591 testes** e
-> o E2E no `Funcional.dwg` deram os **mesmos** números de antes.
->
-> **A rodada 130** organizou a interface para a integração **método a método**: a regra de
-> nomes ficou escrita no §7.9 — `DoReverso`/`DoOriginal` só no **dado transcrito** do original, código
-> nosso com o nome do que ele é (`JanelaDoReverso` → `RenderizadorDeTelas`, `IconsDoReverso` →
-> `IconesEmbutidos`) —, as pastas separam **mapa** de **casca** (`Positron.Data/Interface/Mapas/` e
-> `Positron.Plugin/Interface/{Barra,Folhas,Telas}/`, com os namespaces intactos) e o `switch` central
-> das ligações virou **um arquivo por tela + um registro** (`LigacoesDasTelas`): integrar o método de
-> uma tela é criar o arquivo e acrescentar **uma linha**, e o `pzTelas` passou a reportar a conta
-> (`Ligacoes: 2 de 127 tela(s) com regra`). As duas telas já ligadas ganharam arquivo próprio e
-> continuam medidas **iguais** no `Funcional.dwg`.
->
-> **A rodada 129** fechou a pergunta do dono do produto sobre a **fidelidade da barra e do
-> controle de folhas**: o extrator do `Ribbon.cs` foi reescrito para ler a **estrutura** e a barra
-> agora é **montada do mapa** — os **9 painéis** e os **121 botões** do original (contra os **42
-> pares achatados**, sem painel, da versão anterior do script), com **83 ligados**, **38 desativados**
-> com o comando que falta na dica e **76 abrindo uma tela** (nenhum código de tela novo: o comando já
-> existe desde a rodada 128); o
-> menu das folhas passou a ser o `cmStrip1` do designer, item a item — e caiu um erro de fidelidade
-> de três rodadas: o item é **"Renumerar Páginas"** (`mMensagem[1, 22]`; o campo do designer é que se
-> chama `RenomearPáginasToolStripMenuItem`).
->
-> **A rodada 128** decodificou **como o original chega nas telas** — os 216
-> `[CommandMethod]` do reverso: **121** abrem janela, **119** não fazem outra regra além de abri-la
-> e **99** viram comando do plugin com o nome de lá (as **15 variantes**, como `new
-> frmRelatorio_DICemig(3)`, ficam de fora com a construção no mapa — abrir a tela padrão no lugar
-> delas seria mentir); entra também a checagem com o `de4dot` do que ainda estava cifrado: o
-> original é **.NET Reactor**, a cópia de trabalho já está **decifrada** e os 3 recursos sem
-> extensão são payload do ofuscador que **nada lê** — fica **em aberto** o `Construtor4Z.dll`, cuja
-> `frmConstrutor` nunca foi descompilada.
->
-> **A rodada 127** decodificou a **formatação dos 127 formulários** do original
-> (`docs/reverso-formularios.txt`, 3431 campos), reconstruiu cada um no CAD pelo `JanelaDoReverso`
-> (modeless, como o original) e ligou as duas telas cuja regra já estava portada
-> (`APAGARXDATA` e a estatística de bornes). *(O renderizador passou a se chamar
-> `RenderizadorDeTelas` na rodada 130.)*
->
-> **A rodada 135** tirou da fila o **primeiro item** dela — a **família dos atributos** (a troca de
-> blocos: 5 comandos, 277 linhas): o buffer dos atributos **invisíveis** (é por eles que o valor
-> atravessa a substituição do bloco) virou regra pura no `Positron.Data`, os cinco comandos entram
-> com a leitura/gravação instrumentadas e o pós-troca escolhe as correções pelas marcas do nome do
-> bloco (`_A_`/`_B_`/`_E_`); o **achado** da rodada é que o `Entity.Visible` que o **original** usa
-> para ler o invisível **sempre devolve verdadeiro no ZWCAD** (medido nas duas propriedades, no mesmo
-> atributo, com o `70` do DXF em `1`) — o recoder lê `AttributeReference.Invisible`, senão o buffer
-> sairia vazio em todo desenho.
->
-> **Por onde continuar, na ordem** (o estado medido e o custo de cada um: **`docs/AUDITORIA.md` §0**,
-> que se reproduz com `scripts/cobertura-do-reverso.ps1`):
-> 1. ✅ **`CorrigeInterligacao`** (216 linhas) — **entregue na rodada 139** (a regra pura + o
->    adapter dos cinco ramos do `verificaDispInterlig`).
-> 2. ✅ **Ligar as telas do §7.9 às regras que já existem** — **entregue nas rodadas 130 e 140** (as
->    duas primeiras telas e as três de compilação; a fila "a regra existe, falta a ligação" está vazia
->    no painel).
-> 3. ✅ **§7.7 fatia 6 — formatos/títulos** (o "Nova Página" de verdade) — **entregue na rodada 141**:
->    o layer e os campos do formato são criados (o formato vem do **bloco de formato** do desenho, o
->    `DiagLog`/`Formato`; o `MascaraM.dwg` do DLL é o bloco da **máscara**, não o formato — a
->    premissa desta linha estava errada) e a **leitura/gravação dos títulos**
->    (`capturaTitulos*`/`AtualizaTitulosDeUmaPagina`) fechou na **rodada 142** — a fatia 6 está
->    entregue; o que sobra é a **tela** de edição dos títulos (o form do original) — e ela **também entrou na rodada 145**: o item **Editar Títulos** do menu das folhas abre o `FormularioDeTitulosDaPagina` e regrava pelo `TitulosDaPaginaDoDesenho`.
-> 4. ✅ **§7.7 fatia 5** — **entregue**: a **unidade/alternativo** entrou na rodada 144 (regra, comando
->    e colunas da grade) e a **página ativa**, o **passo da página** e a **tela de edição** na rodada
->    145 (`PaginaAtiva`, os comandos `ATIVAPAGINA`/`PASSO` e os formulários `Editar
->    Unidade`/`Alternativo`/`Títulos` que o menu das folhas abre).
-> 5. ✅ **Excluir Páginas** — **entregue na rodada 143** (com o ok do dono): o menu apaga as páginas selecionadas e o comando `APAGAPAGINA` exige `POSITRON_PAGINA`.
-> 6. **Os 42 rótulos/ícones da barra** entram conforme cada comando for portado
->    (`docs/reverso-barra-do-original.txt`).
->
-> **Host desta máquina (rodada 136):** sem o ZWCAD 2026 instalado, os comandos de CAD desta lista
-> rodam no **AutoCAD 2020** — `powershell -ExecutionPolicy Bypass -File scripts/cad-projeto-e2e.ps1
-> -Cad AutoCAD` (ou `npm run cad:smoke:acad`) —, com a API dele vendorizada em
-> `cad-plugin/lib/AutoCAD/2020`. A **barra** do item 6 é do ZWCAD (`ZdWindows`): no AutoCAD a
-> paleta funciona e a fita não existe.
+> **Como rodar no host atual:** `npm run cad:smoke:acad` ou `powershell -ExecutionPolicy Bypass -File
+> scripts/cad-projeto-e2e.ps1 -Cad AutoCAD -Idempotencia` (API vendorizada em
+> `cad-plugin/lib/AutoCAD/2020`). No `accoreconsole` não há autoload nem ribbon: a DLL entra por
+> `NETLOAD` e a barra só se mede na interface cheia (`RUNBOOK.md`, rodadas 137–138).
 >
 > **Leituras rápidas:** `RELATORIO.md` (o que existe e o que foi medido), `AUDITORIA.md` (o que
-> falta e por quê), `RUNBOOK.md` (rodada a rodada, mais novo primeiro).
+> falta e por quê, com o painel reproduzível), `RUNBOOK.md` (rodada a rodada).
 > **Receitas do reverso:** `scripts/extrair-icones-do-reverso.ps1` e
 > `scripts/extrair-barra-do-reverso.ps1` (com o de4dot); os textos em
 > `cad-plugin/Positron.Data/Interface/Mapas/mensagens-pt.txt`.
@@ -1428,11 +1133,10 @@ interligação e cabos se organizam por ela. As fatias:
 |---|---|---|
 | 1 | calculaPaginaDecimal, calculaEspacoNumerico, calculaEspacoAlfaNumerico — a numeração e o espaço entre páginas | ✅ rodada 118 |
 | 2 | montaNumeroPagina, LayerValido, BuscaProximaPaginaValida, BuscaAlternativo | ✅ rodada 119 (classe PaginasDoCaderno; o pzDiag ganhou a seção PAGINA com as páginas do desenho na ordem da regra) |
-| 3 | calculaNovaPagina, definePaginasNumericas, definePaginasAlfaNumericas | ⏳ |
 | 4 | renumerarPagina, renumerarPaginasLote — o RENPAGA (interativo pelo InputBox; a regra é pura) | ✅ rodada 125 (`SufixoValido` + `Renomear` + o adapter que renomeia os layers e o botão/item **Renomear Páginas**) |
 | 3 | calculaNovaPagina, definePaginasNumericas, definePaginasAlfaNumericas | ✅ rodada 126 (`NovaPaginaEntre` + o `Conf.PassoPagina` na configuração; o item **Inserir** calcula e informa) |
-| 5 | redefinePasso, LocalizaPaginaAtiva, AtivaPagina — o passo e a página ativa | ⏳ |
-| 6 | a **tela**: _uscPagina/frmPagina e o caderno (frmGerenciadorDWG, frmDuplicarCaderno) | ⏳ (depende de 1–5) |
+| 5 | redefinePasso, LocalizaPaginaAtiva, AtivaPagina — o passo e a página ativa; LeXDataUnidadeAlternativo/GravarXDataUnidadeAlternativo | ✅ rodadas 144 (`UnidadeDaPaginaXData`, comando `UNIDADE`) e 145 (`PaginaAtiva`, comandos `ATIVAPAGINA`/`PASSO`) |
+| 6 | a **tela**: _uscPagina/frmPagina e o caderno (frmGerenciadorDWG, frmDuplicarCaderno) | ◐ a paleta das folhas está completa — criar (141), títulos (142), excluir (143), unidade/alternativo (144), página ativa e formulários de edição (145); ⏳ **falta o caderno**: `frmGerenciadorDWG` e `frmDuplicarCaderno` (item 1 da fila) |
 
 > **Regra de ouro:** nenhum código de tela entra no recoder enquanto a regra que ele usa não
 > estiver portada e testada — assim a interface futura é uma casca fina sobre o Positron.Data.
