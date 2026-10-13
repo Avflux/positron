@@ -839,6 +839,82 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 141 — a fatia 6: o "Nova Página" cria a pagina de verdade (o layer e os campos do formato).**
+O item 3 da fila do `AUDITORIA.md` §0 saiu dela. No original quem cria a pagina e o
+`Pagina.criarUmaNovaPagina`: calcula a pagina (`calculaNovaPagina`, portado desde a rodada 126 como
+`NovaPaginaEntre`), cria o **layer** (`CriarLayer` + o XData `Eletron` de unidade/alternativo) e
+**copia os campos do formato** (`criaCamposFormato`). O recoder so calculava; agora cria.
+
+**O que e puro (`Positron.Data/Paginas/`):**
+
+- `CriacaoDePagina.Normalizar` e o `montaNumeroPagina` do original: os zeros a esquerda **sempre**
+  saem e, com a **largura fixa** ligada, o nome e completado com zeros — incluindo o detalhe do
+  original que soma **um** zero a mais quando o nome nao e numerico (o `num++` do ramo
+  `Not IsNumeric`). A largura fixa entrou na configuracao (`larguraFixaPaginas` /
+  `POSITRON_LARGURA_FIXA_PAGINAS`, padrao 0 = desligada);
+- `CriacaoDePagina.CampoDoFormato.De` e o mapa do `criaCamposFormato`: dos atributos **protegidos**
+  do bloco de formato, **oito** viram campo da pagina nova — `TITULO1PAG`/`2PAG`/`3PAG`/`4PAG`
+  (indices 1..4), `PAINEL` (4), `REV` (8), `ALTERNATIVO` (9), `CONT` (5) e `FL` (6) —, com o
+  texto `" "` ou `"?` (so o CONT e o FL nascem com `"?"`). As outras tags protegidas (`SECAO`,
+  `REV0..7`, `DESC*`, `DATA*`, `ELAB*`, `VERIF*`, `APROV*`, `TOT`) entram no laco do original e
+  **nao geram campo nenhum** — o if/else dele so trata as oito;
+- `TituloDaPaginaXData` e o `gravarXDataTitulo`: app `DiagLog`, marca `TituloPagina`, o indice do
+  titulo e o valor (10 valores, usuario/data recarimbados).
+
+**O que grava (`Positron.Plugin/Paginas/CriacaoDePaginaDoDesenho.cs`):** o **bloco de formato** e um
+`BlockReference` do ModelSpace com o XData `DiagLog`/`Formato` (o `PossuiXDataFormato`) — os
+atributos dele na camada `-1` sao o modelo. A pagina nova ganha o layer (com o XData de
+unidade/alternativo) e, para cada atributo mapeado, um `DBText` clonado (o `dtepniSZGL6`: mesma
+posicao, altura, estilo, rotacao...) com o XData do titulo. **Correcao de premissa:** a fila dizia
+"extrair o `MascaraM.dwg` do DLL e criar a folha com o formato" — o `MascaraM.dwg` e o bloco da
+**mascara** (o `clsMascara` o insere com o jig), **nao** o formato; o formato e o bloco do desenho.
+Sem bloco de formato a pagina nasce **so com o layer**, e o resumo diz isso.
+
+**Onde a acao entra:** o comando **`NOVAPAGINA`** (nosso — no original o caminho e o item de menu)
+cria a pagina **depois da ultima**; o `Inserir` do menu das folhas agora **cria** entre a
+selecionada e a proxima (antes so mostrava a conta) e o item **Nova Página**, que estava desabilitado
+com o motivo da fatia 6, esta **ligado**.
+
+**Receita e medicao.** A fixture `scripts/cad-fixture-novapagina.lsp` monta as paginas 1..3 e um
+bloco `FORMATO` com cinco ATTDEFs na camada `-1` (`TITULO1PAG`, `PAINEL`, `FL`, `CONT` e `SECAO`
+— o ultimo para provar que **nao** entra) e o instrumento independente `c:pz-conta-paginas` (leitura
+crua dos layers e dos textos com o XData):
+
+```bash
+$env:POSITRON_DUMP = "$env:TEMP/positron-paginas.txt"
+powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 \
+  -Fixture scripts/cad-fixture-novapagina.lsp -Comandos NOVAPAGINA,pz-conta-paginas -Dwg 63 -Banco "<db>"
+```
+
+Medido no AutoCAD 2020:
+
+```text
+NOVAPAGINA: página "4" criada depois de "3" — layer + 4 campo(s) do formato copiado(s).
+
+--- dump independente ---
+LAYER;1  LAYER;2  LAYER;3  LAYER;-1  LAYER;4
+TEXTO;4;?;TituloPagina;5      <- CONT
+TEXTO;4;?;TituloPagina;6      <- FL
+TEXTO;4; ;TituloPagina;4      <- PAINEL
+TEXTO;4; ;TituloPagina;1      <- TITULO1PAG
+```
+
+Os quatro campos e os **indices** (1, 4, 5, 6) sao a prova de que o mapa do `criaCamposFormato` esta
+certo; o `SECAO` nao aparece. No **desenho real** (`Funcional.dwg`, cuja copia **tem** bloco de
+formato) o comando criou a pagina **1001** (depois de 1000, a ultima pela ordem decimal) com **5
+campos** — a leitura do bloco de formato funciona no desenho do produto.
+
+**Licao de instrumento (a fixture mentiu primeiro):** o `entmake` de um `INSERT` **nao** cria as
+`AttributeReference` dos ATTDEFs do bloco — sem o `66 .= 1` e os `ATTRIB` seguidos do `SEQEND` o
+INSERT nasce sem atributo nenhum (foi o que deu "0 campo(s)" na primeira medicao) e o `entmod` do
+XData depois do `SEQEND` nao pegava o `-3`; o XData entrou no proprio `entmake`. Esta no fixture,
+comentado.
+
+**Gate desta rodada:** `plugin:test` **648** (+26, `CriacaoDePaginaTests` — o normalizar com e sem
+largura fixa, o mapa das oito tags e a recusa das outras, e o layout do XData do titulo), as duas
+builds **0 avisos / 0 erros** e o `cad:projeto:acad -Idempotencia` verde com os numeros de sempre
+(`FIA` 494, `INT` 20, `VERIF` 249 na linha de base, hash `7c1635f0…`).
+
 **Rodada 140 — as tres telas de compilacao ligadas aos pipelines (frmCompilarFiacao/Interligacao/JumperExt).**
 O item 2 da fila do `AUDITORIA.md` §0 — e o **ultimo** da lista "a regra existe, falta a ligacao" —
 saiu dela. As tres telas do original (`frmCompilarFiacao`, `frmCompilarInterligacao`,

@@ -45,6 +45,9 @@ namespace Positron.Data.Configuracao
     /// <summary>Chave do passo da página (o `Conf.PassoPagina`, padrão 1).</summary>
     public const string ChavePassoPagina = "passoPagina";
 
+    /// <summary>Chave da largura fixa das páginas (o `Conf.LarguraFixaPaginas`, padrão 0 = sem zeros à esquerda).</summary>
+    public const string ChaveLarguraFixaPaginas = "larguraFixaPaginas";
+
     /// <summary>Chave do sufixo do cruzamento interno (o `Conf.SufixoCruzInterno`, padrão `)`).</summary>
     public const string ChaveSufixoCruzInterno = "sufixoCruzInterno";
         public const string ChaveInterligacaoLayout = "interligacaoLayout";
@@ -73,6 +76,9 @@ namespace Positron.Data.Configuracao
 
     /// <summary>Variável de ambiente do passo da página.</summary>
     public const string VariavelPassoPagina = "POSITRON_PASSO_PAGINA";
+
+    /// <summary>Variável de ambiente da largura fixa das páginas.</summary>
+    public const string VariavelLarguraFixaPaginas = "POSITRON_LARGURA_FIXA_PAGINAS";
 
     /// <summary>Variável de ambiente do sufixo do cruzamento interno.</summary>
     public const string VariavelSufixoCruzInterno = "POSITRON_SUFIXO_CRUZ_INTERNO";
@@ -125,6 +131,12 @@ namespace Positron.Data.Configuracao
         /// <summary>Passo da página (o `Conf.PassoPagina` do original, padrão 1).</summary>
         public int PassoPagina { get; set; }
 
+        /// <summary>
+        /// Largura fixa do nome da página (o `Conf.LarguraFixaPaginas` do original, padrão 0 =
+        /// desligado): com ela, o nome criado ganha zeros à esquerda até essa largura.
+        /// </summary>
+        public int LarguraFixaPaginas { get; set; }
+
         /// <summary>Sufixo do cruzamento interno (o `Conf.SufixoCruzInterno`, padrão `)`).</summary>
         public string SufixoCruzInterno { get; set; }
 
@@ -174,6 +186,7 @@ namespace Positron.Data.Configuracao
             SeparadorPainelRegua = "/",
             PrefixoCruzInterno = "(",
             PassoPagina = 1,
+            LarguraFixaPaginas = 0,
             SufixoCruzInterno = ")",
                 InterligacaoLayout = 0,
                 CorInterligacao = 7,
@@ -261,6 +274,7 @@ namespace Positron.Data.Configuracao
             texto.AppendLine(ChaveSeparadorPainelRegua + "=" + (SeparadorPainelRegua ?? string.Empty));
             texto.AppendLine(ChavePrefixoCruzInterno + "=" + (PrefixoCruzInterno ?? string.Empty));
             texto.AppendLine(ChavePassoPagina + "=" + PassoPagina.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            texto.AppendLine(ChaveLarguraFixaPaginas + "=" + LarguraFixaPaginas.ToString(System.Globalization.CultureInfo.InvariantCulture));
             texto.AppendLine(ChaveSufixoCruzInterno + "=" + (SufixoCruzInterno ?? string.Empty));
             texto.AppendLine(ChaveInterligacaoLayout + "=" + InterligacaoLayout.ToString(CultureInfo.InvariantCulture));
             texto.AppendLine(ChaveCorInterligacao + "=" + CorInterligacao.ToString(CultureInfo.InvariantCulture));
@@ -321,6 +335,7 @@ namespace Positron.Data.Configuracao
             if (Mesma(chave, ChaveSeparadorPainelRegua, VariavelSeparadorPainelRegua)) { configuracao.SeparadorPainelRegua = Vazio(valor); return; }
             if (Mesma(chave, ChavePrefixoCruzInterno, VariavelPrefixoCruzInterno)) { configuracao.PrefixoCruzInterno = Vazio(valor); return; }
             if (Mesma(chave, ChavePassoPagina, VariavelPassoPagina)) { configuracao.PassoPagina = Inteiro(valor, 1); return; }
+            if (Mesma(chave, ChaveLarguraFixaPaginas, VariavelLarguraFixaPaginas)) { configuracao.LarguraFixaPaginas = Inteiro(valor, 0); return; }
             if (Mesma(chave, ChaveSufixoCruzInterno, VariavelSufixoCruzInterno)) { configuracao.SufixoCruzInterno = Vazio(valor); return; }
             if (Mesma(chave, ChaveInterligacaoLayout, VariavelInterligacaoLayout)) { configuracao.InterligacaoLayout = Inteiro(valor, configuracao.InterligacaoLayout); return; }
             if (Mesma(chave, ChaveCorInterligacao, VariavelCorInterligacao)) { configuracao.CorInterligacao = Inteiro(valor, configuracao.CorInterligacao); return; }
@@ -349,7 +364,7 @@ namespace Positron.Data.Configuracao
         private static IDictionary<string, string> Ambiente()
         {
             Dictionary<string, string> ambiente = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio, VariavelOrdemListaBanco, VariavelCorTextoInterligacao, VariavelFonteCabos, VariavelSeparadorCaboVeia, VariavelSeparadorPainelRegua, VariavelPrefixoCruzInterno, VariavelSufixoCruzInterno, VariavelPassoPagina, VariavelInterligacaoLayout, VariavelCorInterligacao, VariavelEstiloLinha, VariavelEstiloLinhaEscala })
+            foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio, VariavelOrdemListaBanco, VariavelCorTextoInterligacao, VariavelFonteCabos, VariavelSeparadorCaboVeia, VariavelSeparadorPainelRegua, VariavelPrefixoCruzInterno, VariavelSufixoCruzInterno, VariavelPassoPagina, VariavelLarguraFixaPaginas, VariavelInterligacaoLayout, VariavelCorInterligacao, VariavelEstiloLinha, VariavelEstiloLinhaEscala })
             {
                 string valor = Environment.GetEnvironmentVariable(nome);
                 if (!string.IsNullOrEmpty(valor))

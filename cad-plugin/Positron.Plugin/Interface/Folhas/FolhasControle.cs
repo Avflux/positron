@@ -100,8 +100,13 @@ namespace Positron.Plugin.Interface.Folhas
 
             menu.Items.Add(new ToolStripSeparator());
 
-            // 4 - Nova Página (o `CriarPaginaToolStripMenuItem`, ícone Pagina).
-            menu.Items.Add(Desabilitado("Nova Página", "regra na fatia 6 da frente 10 (formato/títulos)", "Pagina"));
+            // 4 - Nova Página (o `CriarPaginaToolStripMenuItem`, ícone Pagina): a fatia 6 — cria a
+            // página depois da última, com o layer e os campos do formato (o `criarUmaNovaPagina`).
+            ToolStripMenuItem nova = new ToolStripMenuItem("Nova Página");
+            Icone(nova, "Pagina");
+            nova.ToolTipText = "cria a página depois da última, com o layer e os campos do formato";
+            nova.Click += (origem, evento) => CriarPagina();
+            menu.Items.Add(nova);
 
             // 5 - Inserir: no original são CINCO sub-itens preenchidos em execução; aqui a conta
             // da página entre as duas entra pela regra do `NovaPaginaEntre`.
@@ -241,9 +246,39 @@ namespace Positron.Plugin.Interface.Folhas
             string posterior = linha + 1 < _grade.Rows.Count ? _grade.Rows[linha + 1].Cells[0].Value as string : string.Empty;
 
             PaginaCalculada nova = NovaPaginaEntre.Calcular(anterior, posterior, PassoPagina());
+
+            // A fatia 6: a página não é só calculada — o layer e os campos do formato são criados.
+            CriacaoDePaginaDoDesenho.Resultado resultado = CriacaoDePaginaDoDesenho.Executar(
+                nova.Pagina, LarguraFixa(), string.Empty, string.Empty);
+            Carregar();
+
             UltimaMensagem = "Inserir: entre \"" + anterior + "\" e \"" + (posterior ?? "") + "\" a nova página é \""
-                + nova.Pagina + "\" (o layer e o formato entram na fatia 6).";
+                + nova.Pagina + "\" — " + (resultado.Criado
+                    ? "layer criado" + (resultado.TemFormato
+                        ? " + " + resultado.CamposCopiados + " campo(s) do formato copiado(s)"
+                        : " (o desenho não tem bloco de formato)")
+                    : (resultado.JaExistia ? "o layer já existia" : "não criada")) + ".";
             return UltimaMensagem;
+        }
+
+        /// <summary>A criação da página do menu "Nova Página" (depois da última) e o recarregar da grade.</summary>
+        private void CriarPagina()
+        {
+            UltimaMensagem = Positron.Plugin.Comandos.ExecutarNovaPagina();
+            Carregar();
+        }
+
+        /// <summary>A largura fixa do nome da página (o <c>Conf.LarguraFixaPaginas</c>; 0 quando não há configuração).</summary>
+        private static int LarguraFixa()
+        {
+            try
+            {
+                return Positron.Data.Configuracao.ConfiguracaoPositron.Carregar().LarguraFixaPaginas;
+            }
+            catch (System.Exception)
+            {
+                return 0;
+            }
         }
 
         /// <summary>O passo do caderno (o <c>Conf.PassoPagina</c>; 1 quando não há configuração).</summary>

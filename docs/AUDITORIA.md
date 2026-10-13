@@ -71,6 +71,13 @@ nas janelas do CAD, não no desenho):
    painel (`scripts/cobertura-do-reverso.ps1`, linha `com a ligacao na tela`) ficou **vazia**: as
    **5** telas cuja regra existe estão ligadas.
 
+> **A fila desta seção está vazia desde a rodada 140:** o item 1 (`CorrigeInterligacao`) saiu na
+> **139** e o item 2 (as três telas de compilação) na **140**. Os próximos passos passaram a ser os do
+> **`PLANO.md` ("Por onde continuar")** — a **fatia 6** da frente 10 (criar página: o layer e os
+> campos do formato, **entregue na 141**), a leitura/gravação dos **títulos** das páginas, a **fatia 5**
+> (página ativa e `Editar Unidade/Alternativo`), o **Excluir Páginas** (destrutivo, depende do dono) e
+> os **42 rótulos da barra**.
+>
 > **O item 1 desta lista saiu dela na rodada 135:** a **família dos atributos** (5 comandos, 277
 > linhas) entrou com a regra pura no `Positron.Data` e o fluxo medido no CAD — e o achado dela é que
 > o `Entity.Visible` do **original** mente no ZWCAD (sempre verdadeiro), o que deixou o buffer vazio

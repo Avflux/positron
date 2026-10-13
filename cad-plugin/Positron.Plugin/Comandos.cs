@@ -732,6 +732,64 @@ namespace Positron.Plugin
             Plugin.Escrever(ExecutarCorrecaoDaInterligacao());
         }
 
+        /// <summary>
+        /// <c>NOVAPAGINA</c> — cria a **página nova** do caderno: o "Nova Página" do menu das folhas
+        /// (o <c>Pagina.criarUmaNovaPagina</c> do original). Calcula a página **depois da última**
+        /// (<see cref="NovaPaginaEntre"/> com o sentinela do fim e o <c>Conf.PassoPagina</c>), cria o
+        /// **layer** com o XData de unidade/alternativo e copia os **campos do formato** do bloco de
+        /// formato, quando o desenho tem um.
+        ///
+        /// O comando é **nosso** (no original o caminho é o item de menu, sem <c>[CommandMethod]</c>) e
+        /// existe para o script medir o mesmo que a tela faz — o <c>Inserir</c> do menu usa a mesma
+        /// regra, com a página selecionada em vez da última.
+        /// </summary>
+        [CommandMethod("NOVAPAGINA")]
+        public void NovaPagina()
+        {
+            Plugin.Escrever(ExecutarNovaPagina());
+        }
+
+        /// <summary>A criação da página e a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarNovaPagina()
+        {
+            try
+            {
+                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+
+                List<string> paginas = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
+                if (paginas.Count == 0)
+                {
+                    return "NOVAPAGINA: nenhuma página do caderno no desenho (os layers que o LayerValido aceita).";
+                }
+
+                string ultima = paginas[paginas.Count - 1];
+                PaginaCalculada nova = NovaPaginaEntre.Calcular(ultima, NovaPaginaEntre.Fim, config.PassoPagina);
+
+                // Unidade/alternativo vazios, como o `criarUmaNovaPagina` do original (ele zera os
+                // dois antes do `CriarLayer`; quem os edita é a fatia 5).
+                Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Resultado resultado =
+                    Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Executar(
+                        nova.Pagina, config.LarguraFixaPaginas, string.Empty, string.Empty);
+
+                if (resultado.JaExistia)
+                {
+                    return "NOVAPAGINA: o layer \"" + resultado.Nome + "\" já existe — página não criada (depois de \""
+                        + ultima + "\" a nova seria \"" + nova.Pagina + "\", passo " + config.PassoPagina + ").";
+                }
+
+                return "NOVAPAGINA: página \"" + resultado.Nome + "\" criada depois de \"" + ultima + "\" — layer"
+                    + (resultado.TemFormato
+                        ? " + " + resultado.CamposCopiados + " campo(s) do formato copiado(s)."
+                        : " (o desenho não tem bloco de formato: nenhum campo copiado).");
+            }
+            catch (System.Exception erro)
+            {
+                return "NOVAPAGINA: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+
+
         /// <summary>A correção da interligação e a linha de resumo. Nunca lança.</summary>
         internal static string ExecutarCorrecaoDaInterligacao()
         {

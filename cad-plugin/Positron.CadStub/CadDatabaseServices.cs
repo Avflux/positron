@@ -505,6 +505,12 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         /// <summary>Rotação em radianos (o `criarTextoNomeCabo` a calcula pelo segmento).</summary>
         public double Rotation { get; set; }
 
+        /// <summary>Fator de largura do texto (o `DBText.WidthFactor` da API real, copiado pelo `criaCamposFormato`).</summary>
+        public double WidthFactor { get; set; }
+
+        /// <summary>Inclinação do texto (o `DBText.Oblique` da API real).</summary>
+        public double Oblique { get; set; }
+
         /// <summary>Ponto de inserção do texto (o `DBText.Position` da API real).</summary>
         public Point3d Position { get; set; }
 
