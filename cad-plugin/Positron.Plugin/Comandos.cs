@@ -743,6 +743,66 @@ namespace Positron.Plugin
         /// existe para o script medir o mesmo que a tela faz — o <c>Inserir</c> do menu usa a mesma
         /// regra, com a página selecionada em vez da última.
         /// </summary>
+        /// <summary>
+        /// <c>UNIDADE</c> — a **unidade e o alternativo** de uma pagina (o XData <c>Eletron</c> do
+        /// layer; o <c>LeXDataUnidadeAlternativo</c>/<c>GravarXDataUnidadeAlternativo</c> do original). A
+        /// pagina vem de <c>POSITRON_PAGINA</c> (padrao: a ultima) e a gravacao das variaveis
+        /// <c>POSITRON_UNIDADE</c>/<c>POSITRON_ALTERNATIVO</c> — sem elas o comando so **le**. E nosso,
+        /// como o <c>TITULOS</c>: no original quem edita sao os itens "Editar Unidade"/"Alternativo" do
+        /// menu (o form da fatia 5).
+        /// </summary>
+        [CommandMethod("UNIDADE")]
+        public void Unidade()
+        {
+            Plugin.Escrever(ExecutarUnidade());
+        }
+
+        /// <summary>A unidade/alternativo da pagina e a linha de resumo. Nunca lanca.</summary>
+        internal static string ExecutarUnidade()
+        {
+            try
+            {
+                List<string> paginas = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
+                string pagina = System.Environment.GetEnvironmentVariable("POSITRON_PAGINA");
+                if (string.IsNullOrEmpty(pagina))
+                {
+                    if (paginas.Count == 0)
+                    {
+                        return "UNIDADE: nenhuma pagina do caderno no desenho.";
+                    }
+
+                    pagina = paginas[paginas.Count - 1];
+                }
+
+                string unidade;
+                string alternativo;
+                Positron.Plugin.Paginas.UnidadeDaPaginaDoDesenho.Ler(pagina, out unidade, out alternativo);
+                string linha = "UNIDADE: pagina \"" + pagina + "\" — unidade=\"" + unidade
+                    + "\", alternativo=\"" + alternativo + "\"";
+
+                string novaUnidade = System.Environment.GetEnvironmentVariable("POSITRON_UNIDADE");
+                string novoAlternativo = System.Environment.GetEnvironmentVariable("POSITRON_ALTERNATIVO");
+                if (novaUnidade == null && novoAlternativo == null)
+                {
+                    return linha + " (defina POSITRON_UNIDADE/POSITRON_ALTERNATIVO para gravar).";
+                }
+
+                string gravarUnidade = novaUnidade ?? unidade;
+                string gravarAlternativo = novoAlternativo ?? alternativo;
+                if (!Positron.Plugin.Paginas.UnidadeDaPaginaDoDesenho.Gravar(pagina, gravarUnidade, gravarAlternativo))
+                {
+                    return "UNIDADE: o layer da pagina \"" + pagina + "\" nao existe.";
+                }
+
+                return linha + " — regravado para unidade=\"" + gravarUnidade + "\", alternativo=\""
+                    + gravarAlternativo + "\".";
+            }
+            catch (System.Exception erro)
+            {
+                return "UNIDADE: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
         [CommandMethod("NOVAPAGINA")]
         public void NovaPagina()
         {

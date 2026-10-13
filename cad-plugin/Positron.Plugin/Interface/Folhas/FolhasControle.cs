@@ -325,11 +325,14 @@ namespace Positron.Plugin.Interface.Folhas
             _grade.Rows.Clear();
             for (int i = 0; i < paginas.Count; i++)
             {
+                string unidade;
+                string alternativo;
+                UnidadeDaPaginaDoDesenho.Ler(paginas[i], out unidade, out alternativo);
                 double valor = PaginaNumerada.Decimal(paginas[i]);
                 _grade.Rows.Add(
                     paginas[i],
-                    "",
-                    "",
+                    alternativo,
+                    unidade,
                     paginas[i],
                     valor.ToString("0.00"));
             }

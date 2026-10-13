@@ -839,6 +839,28 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 144 — a unidade e o alternativo da pagina (fatia 5, parte 1).** O XData `Eletron` do
+`LayerTableRecord` (o `LeXDataUnidadeAlternativo`/`GravarXDataUnidadeAlternativo`) virou regra pura
+(`UnidadeDaPaginaXData`) + adapter (`UnidadeDaPaginaDoDesenho`), o comando **UNIDADE** (nosso, como o
+TITULOS: pagina de POSITRON_PAGINA, padrao a ultima; grava com POSITRON_UNIDADE/POSITRON_ALTERNATIVO)
+e a grade das folhas passou a mostrar as colunas alternativo/unidade.
+
+```bash
+$env:POSITRON_PAGINA = "3"; $env:POSITRON_UNIDADE = "U1"; $env:POSITRON_ALTERNATIVO = "A1"
+powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 -Fixture scripts/cad-fixture-novapagina.lsp `
+  -Comandos UNIDADE,UNIDADE,pz-conta-paginas -Dwg 63 -Banco "<db>"
+```
+
+Medido no AutoCAD 2020 (a segunda passada le de volta o que a primeira gravou):
+
+```text
+UNIDADE: pagina "3" — unidade="", alternativo="" — regravado para unidade="U1", alternativo="A1".
+UNIDADE: pagina "3" — unidade="U1", alternativo="A1" — regravado para unidade="U1", alternativo="A1".
+UNIDADE;3;U1;A1        <- o dump independente do fixture (le o XData do layer)
+```
+
+**Gate:** `plugin:test` **660** (+2, `UnidadeDaPaginaTests`), as duas builds 0 avisos e o E2E verde.
+
 **Rodada 143 — o Excluir Paginas (o destrutivo, com o ok do dono).** O item do menu das folhas
 estava desabilitado desde a rodada 130 ("regra na fatia 4 da frente 10 (e destrutiva)"); o dono
 liberou e ele entrou: o clique apaga as paginas **selecionadas na grade** (a grade e full-row-select

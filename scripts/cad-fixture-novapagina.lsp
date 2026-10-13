@@ -84,7 +84,7 @@
   (setq app (car (cdr (assoc -3 dados))))
   (if app (strcat (cdr (nth 1 app)) ";" (itoa (cdr (nth 2 app)))) "sem-xdata"))
 
-(defun c:pz-conta-paginas ( / arquivo f camada conjunto i e dados)
+(defun c:pz-conta-paginas ( / arquivo f camada conjunto i e dados dono xd)
   (setq arquivo (getenv "POSITRON_DUMP"))
   (if (or (null arquivo) (= arquivo ""))
     (setq arquivo (strcat (getenv "TEMP") "/positron-paginas.txt")))
@@ -94,6 +94,11 @@
     (progn
       (setq camada (tblnext "LAYER" T))
       (while camada
+        (setq dono (tblobjname "LAYER" (cdr (assoc 2 camada))))
+        (setq xd (car (cdr (assoc -3 (entget dono (list "Eletron"))))))
+        (if xd
+          (write-line (strcat "UNIDADE;" (cdr (assoc 2 camada)) ";"
+            (cdr (nth 2 xd)) ";" (cdr (nth 3 xd))) f))
         (write-line (strcat "LAYER;" (cdr (assoc 2 camada))) f)
         (setq camada (tblnext "LAYER")))
       (setq conjunto (ssget "_X" (list (cons 0 "TEXT") (cons 410 "Model"))))
