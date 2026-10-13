@@ -25,8 +25,19 @@ namespace Positron.Plugin.Interface.Folhas
 
         private readonly TextBox _sufixo;
 
+        /// <summary>A linha da **página ativa** (o `LocalizaPaginaAtiva`), lida do desenho.</summary>
+        private readonly Label _ativa;
+
+        /// <summary>O estilo da linha da página ativa (ela sai em negrito na grade).</summary>
+        private readonly Font _negritoAtiva = new Font("Segoe UI", 9F, FontStyle.Bold);
+
+        private readonly Font _normal = new Font("Segoe UI", 9F, FontStyle.Regular);
+
         /// <summary>O resultado da última operação, para o chamador registrar.</summary>
         internal string UltimaMensagem { get; private set; } = string.Empty;
+
+        /// <summary>A página ativa do desenho (vazia quando a camada corrente não é página).</summary>
+        internal string PaginaAtiva { get; private set; } = string.Empty;
 
         internal FolhasControle()
         {
@@ -49,14 +60,17 @@ namespace Positron.Plugin.Interface.Folhas
             _grade.Columns.Add("unidade", Positron.Data.Interface.MensagensDoReverso.Unidade);
             _grade.Columns.Add("Pg", "Pg");
             _grade.Columns.Add("PgDecimal", "PgDecimal");
+            _grade.Columns.Add("ativa", "PgAtiva");
             _grade.Columns[3].Visible = false;
             _grade.Columns[4].Visible = false;
+            _grade.Columns[5].Visible = false;
 
             _grade.ContextMenuStrip = MenuDoReverso();
 
             // A barra de baixo: o sufixo do RENPAGA, o renomear (a regra pura) e o recarregar.
-            Panel rodape = new Panel { Dock = DockStyle.Bottom, Height = 30 };
+            Panel rodape = new Panel { Dock = DockStyle.Bottom, Height = 54 };
             _sufixo = new TextBox { Left = 4, Top = 4, Width = 28, MaxLength = 1, Text = "A" };
+            _ativa = new Label { Left = 4, Top = 32, Width = 336, Text = "Página ativa: (nenhuma)" };
             Button renomear = new Button { Left = 36, Top = 3, Width = 150, Text = Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas };
             renomear.Click += (origem, evento) => RenomearPaginas();
             Button recarregar = new Button { Left = 190, Top = 3, Width = 150, Text = "Recarregar do desenho" };
@@ -64,9 +78,14 @@ namespace Positron.Plugin.Interface.Folhas
             rodape.Controls.Add(_sufixo);
             rodape.Controls.Add(renomear);
             rodape.Controls.Add(recarregar);
+            rodape.Controls.Add(_ativa);
 
             Controls.Add(_grade);
             Controls.Add(rodape);
+
+            // O original le a pagina ativa quando a janela abre (o `LocalizaPaginaAtiva` do `PAG`);
+            // o smoke do accoreconsole nao carrega o controle, entao a leitura so acontece com janela.
+            Load += (origem, evento) => Carregar();
         }
 
         /// <summary>
@@ -133,20 +152,38 @@ namespace Positron.Plugin.Interface.Folhas
 
             menu.Items.Add(new ToolStripSeparator());
 
-            // 9 a 12 - os quatro `Editar*` (todos com o ícone Editar_16 no original).
-            menu.Items.Add(Desabilitado(Positron.Data.Interface.MensagensDoReverso.EditarUnidade, "regra na fatia 5 da frente 10", "Editar_16"));
+            // 9 a 12 - os quatro `Editar*` (todos com o ícone Editar_16 no original). O
+            // `Editar Unidade`/`Editar Alternativo` e o `Editar Títulos` passaram a **ligar** na
+            // regra que já existe (o XData `Eletron` da rodada 144 e os títulos da 142): abrem o
+            // campo do form do original e regravam pelo adapter. A página vem da linha
+            // selecionada na grade e, sem seleção, da página ativa do desenho.
+            ToolStripMenuItem editarUnidade = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.EditarUnidade)
+            {
+                ToolTipText = "regrava a unidade da página pelo XData Eletron do layer (POSITRON_UNIDADE)",
+            };
+            Icone(editarUnidade, "Editar_16");
+            editarUnidade.Click += (origem, evento) => EditarUnidade();
+            menu.Items.Add(editarUnidade);
 
-            ToolStripMenuItem editarAlternativo = Desabilitado(
-                Positron.Data.Interface.MensagensDoReverso.EditarAlternativo,
-                "regra na fatia 5 da frente 10",
-                "Editar_16");
+            ToolStripMenuItem editarAlternativo = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.EditarAlternativo)
+            {
+                ToolTipText = "regrava o alternativo da página pelo XData Eletron do layer (POSITRON_ALTERNATIVO)",
+            };
+            Icone(editarAlternativo, "Editar_16");
+            editarAlternativo.Click += (origem, evento) => EditarAlternativo();
             menu.Items.Add(editarAlternativo);
 
-            menu.Items.Add(Desabilitado(Positron.Data.Interface.MensagensDoReverso.EditarTitulos, "regra na fatia 6 da frente 10 (títulos e formatos)", "Editar_16"));
+            ToolStripMenuItem editarTitulos = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.EditarTitulos)
+            {
+                ToolTipText = "regrava os quatro títulos da página (o XData TituloPagina dos textos do layer)",
+            };
+            Icone(editarTitulos, "Editar_16");
+            editarTitulos.Click += (origem, evento) => EditarTitulos();
+            menu.Items.Add(editarTitulos);
 
             ToolStripMenuItem revisoes = Desabilitado(
                 Positron.Data.Interface.MensagensDoReverso.EditarRevisoes,
-                "regra na fatia 5 da frente 10",
+                "regra não portada (as revisões do projeto vivem no banco, não no desenho)",
                 "Editar_16");
             revisoes.DropDownItems.Add(Desabilitado(Positron.Data.Interface.MensagensDoReverso.RevisaoSimplificada, "regra não portada"));
             revisoes.DropDownItems.Add(Desabilitado(Positron.Data.Interface.MensagensDoReverso.RevisaoCompleta, "regra não portada"));
@@ -321,6 +358,8 @@ namespace Positron.Plugin.Interface.Folhas
         internal int Carregar()
         {
             List<string> paginas = PaginasDoDesenho.Ler();
+            PaginaAtiva = PaginaAtivaDoDesenho.Ler();
+            _ativa.Text = "Página ativa: " + (PaginaAtiva.Length > 0 ? PaginaAtiva : "(nenhuma)");
 
             _grade.Rows.Clear();
             for (int i = 0; i < paginas.Count; i++)
@@ -329,15 +368,140 @@ namespace Positron.Plugin.Interface.Folhas
                 string alternativo;
                 UnidadeDaPaginaDoDesenho.Ler(paginas[i], out unidade, out alternativo);
                 double valor = PaginaNumerada.Decimal(paginas[i]);
+                bool ativa = PaginaAtiva.Length > 0 &&
+                    string.Equals(PaginaAtiva, paginas[i], System.StringComparison.OrdinalIgnoreCase);
                 _grade.Rows.Add(
                     paginas[i],
                     alternativo,
                     unidade,
                     paginas[i],
-                    valor.ToString("0.00"));
+                    valor.ToString("0.00"),
+                    ativa ? "ativa" : string.Empty);
+                _grade.Rows[i].DefaultCellStyle.Font = ativa ? _negritoAtiva : _normal;
             }
 
             return paginas.Count;
+        }
+
+        /// <summary>A página selecionada na grade (todas as colunas têm o mesmo nome).</summary>
+        private string PaginaSelecionada()
+        {
+            if (_grade.SelectedRows.Count == 0 || _grade.SelectedRows[0].Cells.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            object valor = _grade.SelectedRows[0].Cells[0].Value;
+            return valor == null ? string.Empty : valor.ToString();
+        }
+
+        /// <summary>
+        /// A página que o item `Editar*` do menu edita: a linha selecionada na grade e, sem seleção,
+        /// a **página ativa** (o que o item do original edita quando nada está marcado).
+        /// </summary>
+        private string PaginaParaEditar()
+        {
+            string escolhida = PaginaSelecionada();
+            if (escolhida.Length > 0)
+            {
+                return escolhida;
+            }
+
+            if (PaginaAtiva.Length > 0)
+            {
+                return PaginaAtiva;
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>O `Editar Unidade` do menu: o campo do form e a regravação pelo XData do layer.</summary>
+        internal string EditarUnidade()
+        {
+            string pagina = PaginaParaEditar();
+            if (pagina.Length == 0)
+            {
+                UltimaMensagem = "Editar Unidade: selecione a página na grade (ou ative uma página).";
+                return UltimaMensagem;
+            }
+
+            string unidade;
+            string alternativo;
+            UnidadeDaPaginaDoDesenho.Ler(pagina, out unidade, out alternativo);
+
+            string escolhida;
+            if (!FormularioDeCampoDaPagina.Perguntar(
+                Positron.Data.Interface.MensagensDoReverso.EditarUnidade,
+                Positron.Data.Interface.MensagensDoReverso.Unidade,
+                pagina,
+                unidade,
+                out escolhida))
+            {
+                UltimaMensagem = "Editar Unidade: cancelado.";
+                return UltimaMensagem;
+            }
+
+            bool gravou = UnidadeDaPaginaDoDesenho.Gravar(pagina, escolhida ?? string.Empty, alternativo);
+            Carregar();
+            UltimaMensagem = "Editar Unidade: página \"" + pagina + "\" — unidade=\"" + (escolhida ?? string.Empty)
+                + "\"" + (gravou ? " regravada pelo XData Eletron do layer." : " — o layer da página não existe.");
+            return UltimaMensagem;
+        }
+
+        /// <summary>O `Editar Alternativo` do menu.</summary>
+        internal string EditarAlternativo()
+        {
+            string pagina = PaginaParaEditar();
+            if (pagina.Length == 0)
+            {
+                UltimaMensagem = "Editar Alternativo: selecione a página na grade (ou ative uma página).";
+                return UltimaMensagem;
+            }
+
+            string unidade;
+            string alternativo;
+            UnidadeDaPaginaDoDesenho.Ler(pagina, out unidade, out alternativo);
+
+            string escolhido;
+            if (!FormularioDeCampoDaPagina.Perguntar(
+                Positron.Data.Interface.MensagensDoReverso.EditarAlternativo,
+                Positron.Data.Interface.MensagensDoReverso.Alternativo,
+                pagina,
+                alternativo,
+                out escolhido))
+            {
+                UltimaMensagem = "Editar Alternativo: cancelado.";
+                return UltimaMensagem;
+            }
+
+            bool gravou = UnidadeDaPaginaDoDesenho.Gravar(pagina, unidade, escolhido ?? string.Empty);
+            Carregar();
+            UltimaMensagem = "Editar Alternativo: página \"" + pagina + "\" — alternativo=\"" + (escolhido ?? string.Empty)
+                + "\"" + (gravou ? " regravado pelo XData Eletron do layer." : " — o layer da página não existe.");
+            return UltimaMensagem;
+        }
+
+        /// <summary>O `Editar Títulos` do menu: os quatro campos e a regravação do XData dos textos.</summary>
+        internal string EditarTitulos()
+        {
+            string pagina = PaginaParaEditar();
+            if (pagina.Length == 0)
+            {
+                UltimaMensagem = "Editar Títulos: selecione a página na grade (ou ative uma página).";
+                return UltimaMensagem;
+            }
+
+            TitulosDaPagina atuais = TitulosDaPaginaDoDesenho.Ler(pagina);
+            TitulosDaPagina escolhidos;
+            if (!FormularioDeTitulosDaPagina.Perguntar(pagina, atuais, out escolhidos))
+            {
+                UltimaMensagem = "Editar Títulos: cancelado.";
+                return UltimaMensagem;
+            }
+
+            int gravados = TitulosDaPaginaDoDesenho.Gravar(pagina, escolhidos);
+            UltimaMensagem = "Editar Títulos: página \"" + pagina + "\" — " + gravados + " campo(s) regravado(s).";
+            return UltimaMensagem;
         }
     }
 }

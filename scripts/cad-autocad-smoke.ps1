@@ -50,7 +50,13 @@ param(
     [string]   $Fixture,
     # Desenho de verdade para abrir no CAD (E2E com dados reais). O script copia
     # para o TEMP e abre a COPIA: o original nunca e tocado.
-    [string]   $Desenho
+    [string]   $Desenho,
+    # Pasta LOCAL (fora da arvore do repo) para onde a DLL e as dependencias sao
+    # copiadas antes do NETLOAD. Necessario quando a arvore do repo esta numa
+    # origem que o .NET Framework marca como remota (`loadFromRemoteSources`):
+    # sem isso o NETLOAD morre com `FileLoadException` e o plugin nunca carrega.
+    # Medido nesta maquina: o caminho de `C:\` carrega; o do repo nao.
+    [string]   $PastaLocal = "C:\positron-smoke\cad"
 )
 
 $ErrorActionPreference = "Stop"
@@ -65,6 +71,7 @@ $Comandos = @($Comandos -split ',' | ForEach-Object { $_.Trim() } | Where-Object
 $raiz   = Split-Path -Parent $PSScriptRoot
 $exe    = Join-Path $AutoCadDir "accoreconsole.exe"
 $dll    = Join-Path $raiz "cad-plugin\Positron.Plugin\bin\Debug\AutoCAD\net472\Positron.Plugin.AutoCAD.dll"
+$dllSaida = Join-Path $raiz "cad-plugin\Positron.Plugin\bin\Debug\AutoCAD\net472"
 $schema = Join-Path $raiz "services\sidecar\src\sidecar\db\schema.sql"
 $python = Join-Path $raiz "services\sidecar\.venv\Scripts\python.exe"
 
@@ -92,8 +99,16 @@ $log = Join-Path $env:TEMP ("positron-log-" + $carimbo + ".txt")
 $scr = Join-Path $env:TEMP ("positron-passo-" + $carimbo + ".scr")
 
 # O caminho da DLL vai com barras normais: o LISP aceita as duas, e assim a
-# string do script nao depende de escape de barra invertida.
-$dllFwd = $dll -replace '\\', '/'
+# string do script nao depende de escape de barra invertida. A DLL sai da pasta
+# local (a copia da saida do build), nunca da arvore do repo — ver `-PastaLocal`.
+if (-not [string]::IsNullOrWhiteSpace($PastaLocal)) {
+    New-Item -ItemType Directory -Force -Path $PastaLocal | Out-Null
+    Copy-Item (Join-Path $dllSaida '*') $PastaLocal -Recurse -Force
+    $dllFwd = (Join-Path $PastaLocal 'Positron.Plugin.AutoCAD.dll') -replace '\\', '/'
+    Write-Host "DLL local (copia): $dllFwd"
+} else {
+    $dllFwd = $dll -replace '\\', '/'
+}
 $linhas = @(
     '(setvar "FILEDIA" 0)',
     '(setvar "SECURELOAD" 0)'

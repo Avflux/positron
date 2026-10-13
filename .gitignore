@@ -29,6 +29,9 @@ Drawing1.bak
 .env
 .env.local
 
+# Saidas locais dos smokes do CAD (POSITRON_DUMP, banco de teste, scripts de medida)
+.tmp-smoke/
+
 # Editor / OS
 .idea/
 .DS_Store

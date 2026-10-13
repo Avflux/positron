@@ -803,6 +803,122 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>ATIVAPAGINA</c> — a **pagina ativa** (o <c>AtivaPagina</c>/<c>LocalizaPaginaAtiva</c>
+        /// do <c>Pagina.cs</c>): liga a pagina pedida, passa a camada corrente para ela e **desliga
+        /// os outros layers** — o isolamento do original. A pagina vem de <c>POSITRON_PAGINA</c>
+        /// (padrao: a **pagina ativa** do desenho e, sem ela, a ultima do caderno). O comando e
+        /// **nosso**, como o <c>UNIDADE</c>: no original o caminho e o item do menu das folhas.
+        /// </summary>
+        [CommandMethod("ATIVAPAGINA")]
+        public void AtivarPagina()
+        {
+            Plugin.Escrever(ExecutarAtivarPagina());
+        }
+
+        /// <summary>A ativacao da pagina e a linha de resumo. Nunca lanca.</summary>
+        internal static string ExecutarAtivarPagina()
+        {
+            try
+            {
+                List<string> paginas = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
+                string pagina = System.Environment.GetEnvironmentVariable("POSITRON_PAGINA");
+                bool doAmbiente = !string.IsNullOrEmpty(pagina);
+                if (!doAmbiente)
+                {
+                    // Sem a variavel o alvo e a pagina que o desenho ja mostra; sem ela, a ultima.
+                    pagina = Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ler();
+                }
+
+                if (string.IsNullOrEmpty(pagina))
+                {
+                    if (paginas.Count == 0)
+                    {
+                        return "ATIVAPAGINA: nenhuma pagina do caderno no desenho.";
+                    }
+
+                    pagina = paginas[paginas.Count - 1];
+                }
+
+                // A pagina pedida tem de ser do caderno (a mesma guarda do APAGAPAGINA, que impede
+                // um POSITRON_PAGINA torto de mexer em layer alheio); a que veio da camada corrente
+                // ja passou no LayerValido.
+                if (doAmbiente)
+                {
+                    string recusa = ExclusaoDePagina.Recusa(pagina, paginas);
+                    if (recusa != null)
+                    {
+                        return "ATIVAPAGINA: " + recusa + ".";
+                    }
+                }
+
+                pagina = pagina.Trim();
+                Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Resultado resultado =
+                    Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ativar(pagina);
+
+                string capa = resultado.Capa ?? string.Empty;
+                return "ATIVAPAGINA: pagina \"" + pagina + "\" — " + resultado.LayersDesligados
+                    + " layer(s) desligado(s), " + resultado.LayersLigados + " ligado(s), "
+                    + resultado.LayersAlterados + " alterado(s)"
+                    + (capa.Length > 0 ? "; capa \"" + capa + "\"" : "; sem capa na tabela") + ".";
+            }
+            catch (System.Exception erro)
+            {
+                return "ATIVAPAGINA: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+        /// <summary>
+        /// <c>PASSO</c> — o **passo do caderno** (o <c>redefinePasso</c> do original, o comando
+        /// <c>PAS</c>): a distancia entre as paginas que o <c>NovaPaginaEntre</c> usa. O valor vem do
+        /// argumento ou de <c>POSITRON_PASSO_PAGINA</c>; sem nenhum dos dois o comando so **le**. O
+        /// original pergunta pelo <c>Editor</c> (que trava um script) e grava o XData de configuracao
+        /// do desenho; o recoder le o argumento e grava o arquivo de configuracao do plugin
+        /// (a convencao do <c>ELETCFG</c>).
+        /// </summary>
+        [CommandMethod("PASSO")]
+        public void Passo()
+        {
+            Plugin.Escrever(ExecutarPasso());
+        }
+
+        /// <summary>O passo do caderno: le ou grava. Nunca lanca.</summary>
+        internal static string ExecutarPasso()
+        {
+            return ExecutarPasso(null);
+        }
+
+        /// <summary>O passo do caderno com o valor pedido (o argumento do comando). Nunca lanca.</summary>
+        internal static string ExecutarPasso(string pedido)
+        {
+            try
+            {
+                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+                string linha = "PASSO: passo do caderno = " + config.PassoPagina;
+
+                string novo = pedido ?? System.Environment.GetEnvironmentVariable("POSITRON_PASSO_PAGINA");
+                if (string.IsNullOrEmpty(novo))
+                {
+                    return linha + " (defina POSITRON_PASSO_PAGINA para gravar).";
+                }
+
+                int passo;
+                if (!int.TryParse(novo.Trim(), out passo) || passo <= 0)
+                {
+                    // A guarda do original: `AllowNegative = false` e `AllowZero = false`.
+                    return linha + " — recusado \"" + novo + "\" (o passo tem de ser inteiro maior que zero).";
+                }
+
+                config.PassoPagina = passo;
+                config.Salvar();
+                return linha + " — regravado para " + passo + ".";
+            }
+            catch (System.Exception erro)
+            {
+                return "PASSO: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
         [CommandMethod("NOVAPAGINA")]
         public void NovaPagina()
         {

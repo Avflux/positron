@@ -6,7 +6,7 @@
 
 **Não.** O que está coberto é o **recorte** — as correções e a limpeza do CAD (frente 2), a base/contexto (frente 1) e os três pipelines —, e o que está **mapeado** são os **216 comandos** do reverso (todos classificados). O que **não** está coberto é a **lógica por trás dos formulários** (49% do código do reverso) nem a pilha de exportação/importação, as rotinas destrutivas e a integração de ambiente/licença.
 
-## 0. Estado medido agora — o que falta, em ordem (rodadas 132–139)
+## 0. Estado medido agora — o que falta, em ordem (rodadas 132–145)
 
 Esta seção responde à pergunta recorrente *"o que já cobrimos e o que falta"* **com número medido no
 próprio repo**, e não com memória: o `scripts/cobertura-do-reverso.ps1` cruza o mapa dos 216 comandos
@@ -26,7 +26,7 @@ powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acopl
 | comandos do reverso | **216** |
 | deles, abrem alguma janela / são regra de desenho pura | **121** / **95** |
 | telas `frm*` | **127** |
-| comandos que o plugin responde | **159** = **60 escritos à mão** (47 do reverso + 13 nossos) + **99 gerados** (só abrem a tela) |
+| comandos que o plugin responde | **165** = **66 escritos à mão** (47 do reverso + 19 nossos) + **99 gerados** (só abrem a tela) |
 | comandos do reverso **sem nada no plugin** | **70** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **53** de regra pura |
 | telas alcançadas por algum comando | **103** (5 com regra escrita à mão, 98 só casca) |
 | telas que **nenhum** comando abre (sub-janela: relatórios DWG/Excel, editores) | **19** |

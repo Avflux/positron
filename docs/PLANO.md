@@ -4,9 +4,9 @@
 > [tabela de registro](#registro-de-execução), com o commit e a evidência.
 > Contexto de arquitetura: `POSITRON.md`. Como rodar/verificar: `RUNBOOK.md`.
 
-> ## ⏸ Onde paramos (2026-10-12, rodada 144)
+> ## ⏸ Onde paramos (2026-10-12, rodada 145)
 >
-> **Estado:** **64 comandos**, **660 testes** (`npm run plugin:test`), as duas builds com 0 avisos,
+> **Estado:** **66 comandos**, **672 testes** (`npm run plugin:test`), as duas builds com 0 avisos,
 > árvore limpa. **O host CAD desta máquina é o AutoCAD 2020** — o ZWCAD 2026 **não está mais
 > instalado** aqui (o alvo do produto segue sendo o ZWCAD e os números medidos nele continuam
 > valendo; a paridade é medida no AutoCAD). O **autoload serve aos dois** desde a rodada 137: um
@@ -16,6 +16,32 @@
 > ZWCAD (a barra entra na primeira ociosidade: no AutoCAD o ribbon só nasce depois do load). Das 127
 > telas do reverso, **5 estão ligadas** à regra (as duas de sempre + as **três de compilação**, desde
 > a rodada 140) — e a fila "a regra existe, falta a ligação" está **vazia**.
+>
+> **A rodada 145** fechou a **fatia 5** do §7.7 pelo lado que faltava: a **página ativa** e o
+> **passo da página** do `Pagina.cs` do original (o `AtivaPagina`/1243, o `LocalizaPaginaAtiva`/1347, o
+> `checaCapa`/2595 e o `redefinePasso`/2657, com os comandos `PAS`/`PAG`) viraram a regra pura
+> `Positron.Data/Paginas/PaginaAtiva.cs`: o `PapelDoLayerNaAtivacao` (`Pagina`/`Capa`/`Fora`), a
+> **lista literal das capas** do `checaCapa` (`1`, `001`, `0001`, `00001`, `000001`, `0000001`; o
+> `00000001`, de oito posições, **não** é capa — é um limite do original, e está registrado), o
+> `ChecaCapa` (sem caixa), o `Localiza` (a camada corrente quando passa no `LayerValido`; senão
+> vazio, o `retornaNumeroCapa` do original), o `Papel` e o `Plano(pagina, layers)`. O adapter
+> `PaginaAtivaDoDesenho` (`Ler()` = a `Clayer`, `LerCapa()` e o `Ativar(pagina)` com o
+> `Resultado`) reproduz o `IsOff` do original — página ligada e virada camada corrente, o `0` e a
+> **capa** ligados, **todo o resto desligado**, com o `LayersAlterados` só do que mudou —, e entraram os
+> comandos **`ATIVAPAGINA`** (alvo em `POSITRON_PAGINA`; sem ela, a página ativa; sem ela, a última
+> do caderno — o alvo explícito passa pela `ExclusaoDePagina.Recusa`) e **`PASSO`** (o
+> `redefinePasso`: argumento ou `POSITRON_PASSO_PAGINA`, sem nenhum dos dois só lê; recusa o que não
+> é inteiro > 0 e persiste com `ConfiguracaoPositron.Salvar()`). **Na tela**, o `FolhasControle`
+> ganhou a linha 'Página ativa' no rodapé, a coluna `PgAtiva` (a linha da ativa em negrito) e os
+> formulários de **Editar Unidade/Alternativo/Títulos** (que estavam desabilitados desde a rodada 130);
+> o `Editar Revisões` segue desabilitado, agora com o motivo 'regra não portada (as revisões do
+> projeto vivem no banco, não no desenho)'. **Medido (AutoCAD 2020)** na fixture
+> `scripts/cad-fixture-pagina-ativa.lsp` com o instrumento `pz-conta-camadas`: `ATIVAPAGINA: pagina "3"
+> — 2 layer(s) desligado(s), 3 ligado(s), 2 alterado(s); capa "1".` e, no dump independente, o `2` e o
+> `-1` **DESLIGADOS** contra o `0`, a capa `1` e a página `3` **LIGADOS** (a corrente já era `3`); o
+> `PASSO` gravou e leu de volta (`passo do caderno = 5 — regravado para 5.`) e, com
+> `POSITRON_PAGINA=TRABALHO`, a guarda recusou **sem tocar no desenho**. `plugin:test` **672** (+12,
+> `PaginaAtivaTests`) e as duas builds **0 avisos**.
 >
 > **A rodada 144** abriu a **fatia 5** pela metade que não depende de tela: a **unidade e o
 > alternativo** de uma página (o XData `Eletron` do layer — o `LeXDataUnidadeAlternativo`/
@@ -309,8 +335,11 @@
 >    `DiagLog`/`Formato`; o `MascaraM.dwg` do DLL é o bloco da **máscara**, não o formato — a
 >    premissa desta linha estava errada) e a **leitura/gravação dos títulos**
 >    (`capturaTitulos*`/`AtualizaTitulosDeUmaPagina`) fechou na **rodada 142** — a fatia 6 está
->    entregue; o que sobra é a **tela** de edição dos títulos (o form do original).
-> 4. ✅ **§7.7 fatia 5** — a **unidade/alternativo** entrou na rodada 144 (regra, comando e colunas da grade); o que sobra é a **tela** de edição do original e a "página ativa".
+>    entregue; o que sobra é a **tela** de edição dos títulos (o form do original) — e ela **também entrou na rodada 145**: o item **Editar Títulos** do menu das folhas abre o `FormularioDeTitulosDaPagina` e regrava pelo `TitulosDaPaginaDoDesenho`.
+> 4. ✅ **§7.7 fatia 5** — **entregue**: a **unidade/alternativo** entrou na rodada 144 (regra, comando
+>    e colunas da grade) e a **página ativa**, o **passo da página** e a **tela de edição** na rodada
+>    145 (`PaginaAtiva`, os comandos `ATIVAPAGINA`/`PASSO` e os formulários `Editar
+>    Unidade`/`Alternativo`/`Títulos` que o menu das folhas abre).
 > 5. ✅ **Excluir Páginas** — **entregue na rodada 143** (com o ok do dono): o menu apaga as páginas selecionadas e o comando `APAGAPAGINA` exige `POSITRON_PAGINA`.
 > 6. **Os 42 rótulos/ícones da barra** entram conforme cada comando for portado
 >    (`docs/reverso-barra-do-original.txt`).
@@ -1023,6 +1052,7 @@ aberto por **cópia no TEMP**).
 | 124 — os **icones do produto original** extraidos e na barra | 2026-09-23 | (este commit) | o `ResourceManager` no assembly limpo devolveu os `Bitmap`: **348 icones** (1,95 MB) salvos em `cad-plugin/lib/Icons/` pelo novo `scripts/extrair-icones-do-reverso.ps1` (lê os nomes dos acessores do próprio produto, resolve as dependências do assembly limpo e salva cada um em PNG), e o mapa da barra passou a extrair **(comando, rótulo, ícone)** — o `Ribbon.cs` atribui `image = Resources.X` antes de cada botão —, com os 42 pares em `docs/reverso-barra-do-original.txt` (ex.: `CAD = CADERNO \| Caderno_32`, `CBD = CBD \| Comprimir_32`, `RESTPROJ = RESTPROJ \| Sincroniza_32`); no plugin os PNGs entram como **recursos embutidos** (`Positron.Icons.<nome>.png`) e o `IconsDoReverso` os converte como o `Ribbon.getBitmap` do reverso (Bitmap → PNG em memória → `BitmapImage`, com cache), com os botões usando o **ícone do original** onde o comando existe na barra dele (`CBD`, `RESTPROJ`) e o **genérico `Item`** nos demais — exatamente o que o próprio reverso faz; a ideia dos ícones internos do CAD fica como **reserva** para os comandos ainda não portados (e o `IconsDoReverso` já cai no genérico quando o nome não existe); **medido no ZWCAD 2026** (a DLL foi de 1,7 MB para **2,13 MB** com os ícones): `Barra: aba "Positron" com 12 botão(ões).` e `Positron — paleta de folhas com 16 página(s) (ancorada no CAD).`; as duas builds 0 erros |
 | 125 — frente 10, fatia 4: o **Renomear Páginas** ligado na regra do RENPAGA | 2026-09-23 | (este commit) | o menu de contexto das folhas tinha sete itens do reverso e agora **um funciona** com a regra do original: a regra pura `PaginasDoCaderno.SufixoValido` + `Renomear` (o sufixo é **um** caractere — número ou letra **maiúscula**, o `Asc` 65..90 do `RENPAGA`, que recusa a minúscula e mais de um caractere — e cada página vira `página + sufixo`, o `renumerarPaginasLote`), o adapter `PaginasDoDesenho.Renomear` (renomeia os **layers** das páginas e devolve quantos renomeou) e, na paleta, um campo para o sufixo (padrão `A`), o botão **Renomear Páginas** no rodapé e o item do menu ligados na mesma operação, com a grade recarregando depois; os outros três itens seguem desabilitados **com o motivo registrado** (Nova Página depende do `capturaTitulos`/blocos de formato, Inserir precisa do `calculaNovaPagina` e do `Conf.PassoPagina`, Excluir é destrutivo — `ApagarElementosPagina` — e entra com confirmação); **medido no ZWCAD 2026** (a paleta continua abrindo com as 16 folhas, agora com o rodapé novo) e **+3 testes** que fixam a recusa da minúscula e do sufixo vazio (`plugin:test` **527**); as duas builds 0 erros |
 | 126 — frente 10, fatia 3: a **página entre duas** (o "Inserir") | 2026-09-23 | (este commit) | o `Pagina.calculaNovaPagina` do reverso (170 linhas) foi portado **ramo a ramo** para `NovaPaginaEntre`, com o **`Conf.PassoPagina`** (novo na configuração, padrão 1): cada lado é partido em número/letra (o `Asc` da última letra e o prefixo; no ramo **numérico** vale o **número inteiro**, no alfanumérico o `Mid(1, len-1)`), as **quatro** combinações seguem a mesma casca ("cabe no passo? então a letra; senão o próximo número; não cabe? então `num4 + Passo`"), o posterior **vazio** vale o sentinela `1000000` (o fim) e a saída é PgNum + PgAlfa (vazia no código 64) + Pagina + PgDec; o item **Inserir** ficou **ligado** — pega a página selecionada e a **próxima**, calcula e **informa** (a criação do layer/formato entra na fatia 6); **+5 testes** (plugin:test **532**) e as duas builds 0 erros, com a paleta abrindo as 16 folhas no ZWCAD |
+| 145 — fatia 5 (parte 2): a **página ativa** e o **passo da página** (regra, comandos e formulários) | 2026-10-12 | (este commit) | a `Pagina.cs` do original (o `AtivaPagina`/1243, o `LocalizaPaginaAtiva`/1347, o `checaCapa`/2595 e o `redefinePasso`/2657, com os comandos `PAS`/`PAG`) virou a regra pura `PaginaAtiva` (o `PapelDoLayerNaAtivacao`, a **lista literal das capas** — o `00000001` de oito posições **não** é capa, limite do original registrado —, o `Localiza` e o `Plano`) + o adapter `PaginaAtivaDoDesenho` (`Ler()` = a `Clayer`, `Ativar(pagina)` com o `IsOff`: página ligada e corrente, o `0` e a capa ligados, o resto desligado) e os comandos **`ATIVAPAGINA`** (alvo em `POSITRON_PAGINA`, senão a página ativa, senão a última; o alvo explícito passa pela `ExclusaoDePagina.Recusa`) e **`PASSO`** (o `redefinePasso` via argumento/`POSITRON_PASSO_PAGINA`, inteiro > 0, persistido com `ConfiguracaoPositron.Salvar()`); na tela, a linha 'Página ativa' no rodapé, a coluna `PgAtiva` e os formulários de **Editar Unidade/Alternativo/Títulos** ligados; **medido (AutoCAD 2020)** na fixture `scripts/cad-fixture-pagina-ativa.lsp` com o `pz-conta-camadas`: `ATIVAPAGINA: pagina "3" — 2 layer(s) desligado(s), 3 ligado(s), 2 alterado(s); capa "1".` e o dump independente com o `2` e o `-1` desligados, `0`/`1`/`3` ligados e a corrente `3`; o `PASSO` leu/gravou 5 e a guarda recusou `TRABALHO` sem tocar no desenho; `plugin:test` **672** (+12, `PaginaAtivaTests`) e as duas builds **0 avisos** |
 | 144 — fatia 5 (parte 1): a **unidade e o alternativo** da página | 2026-10-12 | (este commit) | o XData `Eletron` do layer (o `LeXDataUnidadeAlternativo`/`GravarXDataUnidadeAlternativo`) virou a regra pura `UnidadeDaPaginaXData` + o adapter `UnidadeDaPaginaDoDesenho`, o comando **`UNIDADE`** (nosso: página de `POSITRON_PAGINA`, gravação com `POSITRON_UNIDADE`/`POSITRON_ALTERNATIVO`) e a **grade das folhas** passou a mostrar as duas colunas; **medido (AutoCAD 2020)**: leitura `""`/`""` → gravação `U1`/`A1` → leitura de volta `U1`/`A1`, com o dump independente `UNIDADE;3;U1;A1`; `plugin:test` **660** (+2) e as duas builds **0 avisos** |
 | 143 — o **Excluir Páginas** (o destrutivo, com o ok do dono) | 2026-10-12 | (este commit) | o item do menu das folhas, que estava desabilitado, apaga as páginas **selecionadas na grade**: o `Pagina.ApagarElementosPagina` (toda entidade do ModelSpace no layer da página) **mais o layer** (que o original deixa para trás); a guarda é pura (`ExclusaoDePagina.Recusa`: nome vazio, layer que não é página e página fora da lista recusados) e o comando **`APAGAPAGINA`** (nosso) **exige** `POSITRON_PAGINA` — destrutivo não adivinha alvo; **medido (AutoCAD 2020)** na fixture: `APAGAPAGINA: 1 página(s) apagada(s) (3) — 4 entidade(s) do ModelSpace e 1 layer(s).`, com o dump independente mostrando o layer 3 fora, zero texto nele e os 5 campos da página 4 intactos; `plugin:test` **658** (+5, `ExclusaoDePaginaTests`) e as duas builds **0 avisos** |
 | 142 — frente 10, fatia 6 (fim): os **títulos da página** (ler e gravar) e a herança no `NOVAPAGINA` | 2026-10-12 | (este commit) | o `capturaTitulosDeUmaPagina` + o `AtualizaTitulosDeUmaPagina` do original viraram o modelo puro `TitulosDaPagina` (os quatro títulos com o **índice 1..4** como chave e o contador que para nos quatro) + o leitor `TituloDaPaginaXData.Ler`, e o adapter `TitulosDaPaginaDoDesenho` varre o ModelSpace pelo **layer da página** — como o original, que não olha a tag do atributo, só o índice do XData (o `TITULO4PAG` e o `PAINEL`, ambos índice 4, recebem o mesmo `Titulo4`); o **`NOVAPAGINA`** passou a herdar os títulos da página de referência e entrou o comando **`TITULOS`** (nosso: lê a página de `POSITRON_PAGINA`, padrão a última, e regrava quando `POSITRON_TITULO1..4` vem definida); **medido (AutoCAD 2020)** na fixture que agora planta os quatro títulos na página 3: `NOVAPAGINA: ... + 3 título(s) herdado(s) de "3".` e `TITULOS: página "4" — T1="T1", T2="T2", T3="", T4="T4"; 3 campo(s) regravado(s).` (com `POSITRON_TITULO1=Z1`), com o dump independente mostrando o `T1` virando **Z1** e os índices **1, 2 e 4** (o 3 não tem campo); `plugin:test` **653** (+5, `TitulosDaPaginaTests`) e as duas builds **0 avisos** |

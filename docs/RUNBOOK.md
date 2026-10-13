@@ -839,6 +839,53 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 145 — a página ativa e o passo da página (fatia 5, parte 2): a regra, os comandos e os formulários.** O `Pagina.cs` do original ainda guardava quatro rotinas: o `AtivaPagina` (linha 1243), o `LocalizaPaginaAtiva` (1347), o `checaCapa` (2595) e o `redefinePasso` (2657) — com os comandos `PAS` (`Comandos.cs:1435`) e `PAG` (`:1447`). O que é **puro** entrou em `cad-plugin/Positron.Data/Paginas/PaginaAtiva.cs`: o `PapelDoLayerNaAtivacao` (`Pagina`, `Capa`, `Fora`), o `PaginaAtiva.Capas` com a **lista literal** do `checaCapa` (`"1"`, `"001"`, `"0001"`, `"00001"`, `"000001"`, `"0000001"`), o `ChecaCapa` (sem caixa), o `Localiza(layerCorrente)` (a camada corrente quando ela passa no `LayerValido`; senão vazio, o que no original cai no `retornaNumeroCapa`), o `Papel(layer, pagina, capas)` e o `Plano(pagina, layers)`. **Limite do original registrado:** a lista de capas tem **seis** nomes e para no de **sete** posições (`'0000001'`); o `'00000001'` (oito posições) **não** é capa — é o `checaCapa` que é assim, e a lista está fixada em teste.
+
+**Onde a ação entra (`cad-plugin/Positron.Plugin/`).** O adapter `Paginas/PaginaAtivaDoDesenho.cs` faz o `Ler()` (a página ativa é a `Clayer`), o `LerCapa()` (o `retornaNumeroCapa`) e o `Ativar(pagina)`, que devolve o `Resultado` (`PaginaEncontrada`, `LayersAlterados`, `LayersDesligados`, `LayersLigados`, `Capa`): ele reproduz o `IsOff` do original — a página fica **ligada** e vira a **camada corrente**, o layer `0` e a **capa** ficam ligados e **todo o resto desliga** —, e o `LayersAlterados` conta só o que **mudou** de estado. Em `Comandos.cs` entraram dois comandos **nossos** (no original o caminho é item de menu/interação, como no `UNIDADE`/`TITULOS`): **`ATIVAPAGINA`** usa o alvo de `POSITRON_PAGINA`; sem a variável, usa a **página ativa** do desenho e, sem ela, a última do caderno — o alvo **explícito** passa pela guarda `ExclusaoDePagina.Recusa` (nome vazio, layer que o `LayerValido` recusa e página fora do caderno); e **`PASSO`** é o `redefinePasso`: o valor vem do argumento ou de `POSITRON_PASSO_PAGINA` (sem nenhum dos dois o comando **só lê**), recusa o que não é **inteiro > 0** (a guarda `AllowNegative=false`/`AllowZero=false` do original) e persiste com `ConfiguracaoPositron.Salvar()` — o original pergunta pelo `Editor` e grava o **XData de configuração do desenho**, uma divergência de instrumento registrada.
+
+**A tela (`cad-plugin/Positron.Plugin/Interface/Folhas/`).** O `FolhasControle` ganhou o campo/linha **'Página ativa: X'** no rodapé, a coluna técnica **`PgAtiva`** na grade (a linha da página ativa sai em **negrito**) e o `Load` do controle passou a ler a página ativa; os itens **Editar Unidade / Editar Alternativo / Editar Títulos** do menu do `cmStrip1`, que estavam desabilitados, agora abrem formulários e regravam pela regra já portada (rodadas 142/144) — o arquivo novo é `Interface/Folhas/FormularioDaPagina.cs` (`FormularioDeCampoDaPagina`, um campo, e `FormularioDeTitulosDaPagina`, os quatro títulos). O item **Editar Revisões** continua desabilitado, agora com o motivo **'regra não portada (as revisões do projeto vivem no banco, não no desenho)'**.
+
+**Receita e medição.** A fixture `scripts/cad-fixture-pagina-ativa.lsp` monta as páginas `1..3`, a capa `1` com um texto 'capa', um texto em cada página e um texto no layer de trabalho `-1`; o instrumento independente `pz-conta-camadas <sufixo>` grava `CORRENTE;<layer>`, `LAYER;<nome>;LIGADO|DESLIGADO` (o sinal do código 62) e `TEXTO;<layer>;<texto>` num arquivo por passo (`POSITRON_DUMP` + sufixo):
+
+```bash
+$env:POSITRON_DUMP = "<pasta>\ativa"; $env:POSITRON_PAGINA = "3"; $env:POSITRON_PASSO_PAGINA = "5"
+powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 -Fixture scripts/cad-fixture-pagina-ativa.lsp \
+  -Comandos '(pz-conta-camadas "1")','(vl-cmdf "_ATIVAPAGINA")','(pz-conta-camadas "2")','(vl-cmdf "_PASSO")','(pz-conta-camadas "3")','(vl-cmdf "_PASSO")','(pz-conta-camadas "4")' -Dwg 63 -Banco "<db>"
+```
+
+Medido no AutoCAD 2020 (accoreconsole, headless):
+
+```text
+ATIVAPAGINA: pagina "3" — 2 layer(s) desligado(s), 3 ligado(s), 2 alterado(s); capa "1".
+PASSO: passo do caderno = 5 — regravado para 5.
+PASSO: passo do caderno = 5 — regravado para 5.
+
+--- dump independente, ANTES (ativa1) ---
+CORRENTE;3 · 0 LIGADO · 1 LIGADO · 2 LIGADO · 3 LIGADO · -1 LIGADO
+--- dump independente, DEPOIS (ativa2) ---
+CORRENTE;3 · 0 LIGADO · 1 LIGADO · 2 DESLIGADO · 3 LIGADO · -1 DESLIGADO
+```
+
+O `2` e o `-1` **desligaram**; a **capa** `1`, o `0` e a página `3` ficaram **ligados**, e a corrente já era `3` e continuou `3`. Os textos das **quatro** camadas continuam no desenho — a ativação **desliga o layer, não apaga nada**.
+
+A **segunda** medição usa a **página ativa** do desenho como alvo (sem `POSITRON_PAGINA`), e o `PASSO` lê e grava:
+
+```text
+PASSO: passo do caderno = 3 — regravado para 3.
+ATIVAPAGINA: pagina "3" — 2 layer(s) desligado(s), 3 ligado(s), 2 alterado(s); capa "1".
+PASSO: passo do caderno = 3 — regravado para 3.
+```
+
+A **terceira** mede a **guarda** do alvo explícito torto (`POSITRON_PAGINA=TRABALHO`), com o dump antes/depois **idêntico** (todos os layers `LIGADO` — o desenho não foi tocado):
+
+```text
+ATIVAPAGINA: "TRABALHO" não é um layer de página (o LayerValido recusa).
+```
+
+**Achado de instrumento (não é regressão do recoder).** Nesta máquina o `NETLOAD` morria com `FileLoadException`/`NotSupportedException` (**'assembly from a network location'** — a árvore do repo cai no `loadFromRemoteSources`) e a suíte via `npm run plugin:test`/`dotnet test` roda **0 testes** no SDK .NET 10 preview instalado (o adaptador xunit não carrega). O contorno: (a) o `scripts/cad-autocad-smoke.ps1` ganhou o parâmetro `-PastaLocal` (padrão `C:\positron-smoke\cad`), que **copia** a DLL e as dependências para fora da árvore antes do `NETLOAD`; (b) os testes foram rodados por um **runner xunit local fora do repo**, com os mesmos **660** testes da linha de base verdes antes da rodada.
+
+**Gate desta rodada:** `plugin:test` **672** (+12, `PaginaAtivaTests`, 6 métodos, um deles um Theory de 6 casos) e as duas builds (ZWCAD e AutoCAD) **0 avisos**. O painel `scripts/cobertura-do-reverso.ps1` mediu **66 escritos à mão** (47 do reverso + **19 nossos**; eram **64** no estado da rodada 144 — os dois comandos novos), com os **99 gerados** e os **70** do reverso sem nada no plugin **inalterados**; nas **telas** nada mudou (as **5** com regra seguem as mesmas e a fila "a regra existe, falta a ligação" continua **vazia**).
+
 **Rodada 144 — a unidade e o alternativo da pagina (fatia 5, parte 1).** O XData `Eletron` do
 `LayerTableRecord` (o `LeXDataUnidadeAlternativo`/`GravarXDataUnidadeAlternativo`) virou regra pura
 (`UnidadeDaPaginaXData`) + adapter (`UnidadeDaPaginaDoDesenho`), o comando **UNIDADE** (nosso, como o
