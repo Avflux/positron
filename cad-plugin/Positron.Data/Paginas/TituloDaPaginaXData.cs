@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Positron.Data.Fiacao;
 
@@ -31,6 +32,37 @@ namespace Positron.Data.Paginas
         public const string Marca = "TituloPagina";
 
         public const int QuantidadeValores = 10;
+
+        /// <summary>
+        /// Lê o índice e o valor do XData do título (o <c>LeXDataTitulo</c> do original).
+        /// Devolve <c>false</c> quando não é um <c>TituloPagina</c> — o original devolve 0 nesse caso.
+        /// </summary>
+        public static bool Ler(IReadOnlyList<TypedXData> valores, out int indice, out string valor)
+        {
+            indice = 0;
+            valor = null;
+
+            if (valores == null || valores.Count < 4)
+            {
+                return false;
+            }
+
+            if (valores[0].Codigo != 1001
+                || !string.Equals(valores[0].Valor as string, AppName, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!string.Equals(Convert.ToString(valores[1].Valor), Marca, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            indice = XDataNumero.Inteiro(valores[2].Valor);
+            object texto = valores[3].Valor;
+            valor = texto == null || texto is DBNull ? string.Empty : Convert.ToString(texto);
+            return true;
+        }
 
         /// <summary>Os valores do XData de um título de página.</summary>
         public static IReadOnlyList<TypedXData> ParaValores(int indice, string valor, string usuario, string data)

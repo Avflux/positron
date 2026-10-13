@@ -839,6 +839,60 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 142 — os titulos da pagina (o fim da fatia 6): ler e gravar, e a heranca no Nova Pagina.**
+O `capturaTitulosDeUmaPagina` (ler) e o `AtualizaTitulosDeUmaPagina` (regravar) do original entraram:
+o que e **puro** e o modelo `TitulosDaPagina` (os quatro titulos, o **indice 1..4** como chave e o
+contador que para nos quatro) e o **leitor do XData** (`TituloDaPaginaXData.Ler` — app `DiagLog`,
+marca `TituloPagina`); o adapter `TitulosDaPaginaDoDesenho` varre o ModelSpace pelo **layer da
+pagina**, como o original. **Dois detalhes do original reproduzidos:** quem identifica um titulo e o
+**indice do XData**, nao a tag do atributo (o `TITULO4PAG` e o `PAINEL` do formato tem o **mesmo
+indice 4**, entao os dois recebem o `Titulo4`); e a gravacao conta **por texto tocado** (para nos
+quatro), como o `num++` do `switch` dele.
+
+**Onde entrou:** o `NOVAPAGINA` passou a **herdar os titulos** da pagina de referencia — o
+`pagCorrente.Titulo1..4 = pag.Titulo1..4` + `AtualizaTitulosDeUmaPagina(pagCorrente)` do
+`criarUmaNovaPagina` — e entrou o comando **`TITULOS`** (nosso, como o `NOVAPAGINA`): ele **le** os
+titulos da pagina de `POSITRON_PAGINA` (padrao: a ultima do caderno) e **regrava** quando alguma
+`POSITRON_TITULO1..4` vem definida — a convencao do recoder para os dialogos do original (o form de
+edicao dos titulos, no original, fica para a rodada que montar a tela).
+
+**Receita (a fixture planta os quatro titulos na pagina 3):**
+
+```bash
+$env:POSITRON_DUMP = "$env:TEMP/positron-paginas.txt"
+$env:POSITRON_PAGINA = "4"; $env:POSITRON_TITULO1 = "Z1"
+powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 \
+  -Fixture scripts/cad-fixture-novapagina.lsp -Comandos NOVAPAGINA,TITULOS,pz-conta-paginas -Dwg 63 -Banco "<db>"
+```
+
+Medido no AutoCAD 2020:
+
+```text
+NOVAPAGINA: página "4" criada depois de "3" — layer + 5 campo(s) do formato copiado(s) + 3 título(s) herdado(s) de "3".
+TITULOS: página "4" — T1="T1", T2="T2", T3="", T4="T4"; 3 campo(s) regravado(s).
+
+--- dump independente (pagina 4) ---
+TEXTO;4;?;TituloPagina;5      <- CONT (indefinido)
+TEXTO;4;?;TituloPagina;6      <- FL (indefinido)
+TEXTO;4;T4;TituloPagina;4     <- PAINEL/TITULO4PAG: herdou o Titulo4
+TEXTO;4;T2;TituloPagina;2     <- TITULO2PAG: herdou o Titulo2
+TEXTO;4;Z1;TituloPagina;1     <- TITULO1PAG: o POSITRON_TITULO1=Z1 regravou
+```
+
+O indice **3** nao aparece porque o formato da fixture nao trouxe o `TITULO3PAG` — a pagina nova so
+recebe os campos que o bloco de formato define, e a heranca escreve nos que existem. O `T3` da
+pagina 3 fica la (a leitura devolve `T3=""` na pagina 4, como o comando imprime).
+
+**Licao de instrumento:** a primeira medicao deu "4 campo(s)" e nenhum campo de indice 2 porque a
+fixture criava um bloco chamado `FORMATO` — e o **desenho real ja tem** um bloco com esse nome, entao
+o `(if (not (tblsearch ...)))` pulava a definicao e o INSERT usava o bloco do desenho. O bloco da
+fixture passou a se chamar **`PZ-FORMATO`** (o `EncontrarFormato` procura o **XData**, nao o nome).
+Um `-replace` global de "FORMATO" por "PZ-FORMATO" chegou a renomear a **marca do XData** ("Formato")
+e quebrou o `PossuiXDataFormato` — a licao: o nome do bloco e o valor do XData sao coisas diferentes.
+
+**Gate desta rodada:** `plugin:test` **653** (+5, `TitulosDaPaginaTests`), as duas builds **0 avisos /
+0 erros** e o `cad:projeto:acad -Idempotencia` verde com os numeros de sempre.
+
 **Rodada 141 — a fatia 6: o "Nova Página" cria a pagina de verdade (o layer e os campos do formato).**
 O item 3 da fila do `AUDITORIA.md` §0 saiu dela. No original quem cria a pagina e o
 `Pagina.criarUmaNovaPagina`: calcula a pagina (`calculaNovaPagina`, portado desde a rodada 126 como

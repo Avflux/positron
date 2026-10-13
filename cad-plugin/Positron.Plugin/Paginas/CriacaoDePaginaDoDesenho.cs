@@ -61,9 +61,13 @@ namespace Positron.Plugin.Paginas
 
             /// <summary>Campos do formato copiados para a página nova.</summary>
             internal int CamposCopiados { get; set; }
+
+            /// <summary>Títulos herdados da página de referência (o `AtualizaTitulosDeUmaPagina`).</summary>
+            internal int TitulosCopiados { get; set; }
         }
 
-        internal static Resultado Executar(string pagina, int larguraFixa, string unidade, string alternativo)
+        internal static Resultado Executar(
+            string pagina, int larguraFixa, string unidade, string alternativo, string referencia)
         {
             Resultado resultado = new Resultado();
 
@@ -120,6 +124,16 @@ namespace Positron.Plugin.Paginas
                 }
 
                 transacao.Commit();
+
+                // Os títulos da página de referência passam para a nova — o
+                // `pagCorrente.Titulo1..4 = pag.Titulo1..4` + `AtualizaTitulosDeUmaPagina` do
+                // `criarUmaNovaPagina` (transação própria, como o original).
+            }
+
+            if (!string.IsNullOrEmpty(referencia))
+            {
+                resultado.TitulosCopiados = TitulosDaPaginaDoDesenho.Gravar(
+                    resultado.Nome, TitulosDaPaginaDoDesenho.Ler(referencia));
             }
 
             return resultado;

@@ -249,7 +249,7 @@ namespace Positron.Plugin.Interface.Folhas
 
             // A fatia 6: a página não é só calculada — o layer e os campos do formato são criados.
             CriacaoDePaginaDoDesenho.Resultado resultado = CriacaoDePaginaDoDesenho.Executar(
-                nova.Pagina, LarguraFixa(), string.Empty, string.Empty);
+                nova.Pagina, LarguraFixa(), string.Empty, string.Empty, anterior);
             Carregar();
 
             UltimaMensagem = "Inserir: entre \"" + anterior + "\" e \"" + (posterior ?? "") + "\" a nova página é \""

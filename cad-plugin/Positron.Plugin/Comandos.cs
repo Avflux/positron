@@ -749,6 +749,70 @@ namespace Positron.Plugin
             Plugin.Escrever(ExecutarNovaPagina());
         }
 
+        /// <summary>
+        /// <c>TITULOS</c> — os **quatro títulos** de uma página: o <c>capturaTitulosDeUmaPagina</c>
+        /// (ler) e o <c>AtualizaTitulosDeUmaPagina</c> (regravar) do original. A página vem de
+        /// <c>POSITRON_PAGINA</c> (padrão: a **última** do caderno) e os valores a gravar de
+        /// <c>POSITRON_TITULO1</c>..<c>POSITRON_TITULO4</c> — o comando é **nosso** (no original os
+        /// títulos são um item de menu com campos de texto) e existe para o script medir a leitura e a
+        /// gravação; sem nenhuma variável de título ele só **lê**.
+        /// </summary>
+        [CommandMethod("TITULOS")]
+        public void Titulos()
+        {
+            Plugin.Escrever(ExecutarTitulos());
+        }
+
+        /// <summary>Os títulos da página e a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarTitulos()
+        {
+            try
+            {
+                List<string> paginas = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
+                string pagina = System.Environment.GetEnvironmentVariable("POSITRON_PAGINA");
+                if (string.IsNullOrEmpty(pagina))
+                {
+                    if (paginas.Count == 0)
+                    {
+                        return "TITULOS: nenhuma página do caderno no desenho.";
+                    }
+
+                    pagina = paginas[paginas.Count - 1];
+                }
+
+                TitulosDaPagina lidos = Positron.Plugin.Paginas.TitulosDaPaginaDoDesenho.Ler(pagina);
+                string linha = "TITULOS: página \"" + pagina + "\" — T1=\"" + (lidos.Titulo1 ?? string.Empty)
+                    + "\", T2=\"" + (lidos.Titulo2 ?? string.Empty) + "\", T3=\"" + (lidos.Titulo3 ?? string.Empty)
+                    + "\", T4=\"" + (lidos.Titulo4 ?? string.Empty) + "\"";
+
+                // Só grava quando alguma POSITRON_TITULO* veio definida (as outras ficam como estão).
+                TitulosDaPagina novos = new TitulosDaPagina();
+                bool escrever = false;
+                for (int i = 1; i <= TitulosDaPagina.UltimoIndice; i++)
+                {
+                    string doAmbiente = System.Environment.GetEnvironmentVariable("POSITRON_TITULO" + i);
+                    if (doAmbiente != null)
+                    {
+                        escrever = true;
+                    }
+
+                    novos.Definir(i, doAmbiente ?? lidos.De(i));
+                }
+
+                if (!escrever)
+                {
+                    return linha + " (defina POSITRON_TITULO1..4 para regravar).";
+                }
+
+                int gravados = Positron.Plugin.Paginas.TitulosDaPaginaDoDesenho.Gravar(pagina, novos);
+                return linha + "; " + gravados + " campo(s) regravado(s).";
+            }
+            catch (System.Exception erro)
+            {
+                return "TITULOS: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
         /// <summary>A criação da página e a linha de resumo. Nunca lança.</summary>
         internal static string ExecutarNovaPagina()
         {
@@ -769,7 +833,7 @@ namespace Positron.Plugin
                 // dois antes do `CriarLayer`; quem os edita é a fatia 5).
                 Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Resultado resultado =
                     Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Executar(
-                        nova.Pagina, config.LarguraFixaPaginas, string.Empty, string.Empty);
+                        nova.Pagina, config.LarguraFixaPaginas, string.Empty, string.Empty, ultima);
 
                 if (resultado.JaExistia)
                 {
@@ -779,8 +843,11 @@ namespace Positron.Plugin
 
                 return "NOVAPAGINA: página \"" + resultado.Nome + "\" criada depois de \"" + ultima + "\" — layer"
                     + (resultado.TemFormato
-                        ? " + " + resultado.CamposCopiados + " campo(s) do formato copiado(s)."
-                        : " (o desenho não tem bloco de formato: nenhum campo copiado).");
+                        ? " + " + resultado.CamposCopiados + " campo(s) do formato copiado(s)"
+                        : " (o desenho não tem bloco de formato: nenhum campo copiado)")
+                    + (resultado.TitulosCopiados > 0
+                        ? " + " + resultado.TitulosCopiados + " título(s) herdado(s) de \"" + ultima + "\"."
+                        : ".");
             }
             catch (System.Exception erro)
             {
