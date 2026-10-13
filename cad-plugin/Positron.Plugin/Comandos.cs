@@ -79,6 +79,17 @@ namespace Positron.Plugin
             Plugin.Escrever(ExecutarJanelaDeFolhas());
         }
 
+        /// <summary>
+        /// <c>PAG</c> — o comando do original que abre a paleta das páginas (o
+        /// <c>GerenciadorPagina</c>, <c>Comandos.cs:1447</c> do reverso): no recoder, o mesmo que o
+        /// <c>FOLHAS</c>.
+        /// </summary>
+        [CommandMethod("PAG")]
+        public void Pag()
+        {
+            Plugin.Escrever(ExecutarJanelaDeFolhas());
+        }
+
         /// <summary>Abre a janela de folhas e devolve a linha de resumo. Nunca lança.</summary>
         internal static string ExecutarJanelaDeFolhas()
         {
@@ -430,6 +441,16 @@ namespace Positron.Plugin
         public void ConferirTelas()
         {
             Plugin.Escrever(Interface.Telas.RenderizadorDeTelas.ConferirTodas());
+        }
+
+        /// <summary>
+        /// <c>pzBarra</c> — a prova da barra (o par do `pzTelas`): lê a aba do Positron **no ribbon
+        /// vivo do CAD** e conta os itens pela classe real de cada um, sem passar pelo montador.
+        /// </summary>
+        [CommandMethod("pzBarra")]
+        public void ConferirBarra()
+        {
+            Plugin.Escrever(Interface.Barra.BarraDeFerramentas.Inspecionar());
         }
 
         /// <summary>

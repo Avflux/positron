@@ -1,301 +1,386 @@
 # A barra de ferramentas do reverso (o `Ribbon.cs`)
 
 Gerado por `scripts/extrair-barra-do-reverso.ps1` a partir do descompilado
-(`cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned\Eletron4\Ribbon.cs`).
+(`cad-plugin\reverso\Eletron4_ZWcad\decompiled-cleaned\Eletron4\Ribbon.cs`), lendo o corpo de
+cada painel **instrucao por instrucao** (cria, configura, adiciona ao conteiner).
 
 A aba do original e `CENG.ID_Elet` (**Elétron**); os paineis saem na ordem em que o
-`CreateRibbon()` (dois) e o `CreateRibbon2()` (sete) os criam, e os botoes na ordem do corpo de
-cada painel. O titulo do painel e o **indice** da `mMensagem` que o corpo usa, resolvido aqui.
+`CreateRibbon()` (dois) e o `CreateRibbon2()` (sete) os criam. `coberto` = o recoder responde a
+esse comando hoje (qualquer `[CommandMethod]` do plugin, inclusive os gerados).
 
-`coberto` = o recoder responde a esse comando hoje (qualquer `[CommandMethod]` do plugin,
-inclusive os gerados da rodada 128) - e o que a barra usa para saber o que ja funciona.
+Graus: **Grande** (icone grande, texto embaixo), **IconeGrande** (icone grande, sem texto),
+**IconeTexto** (icone 16 com texto), **Icone** (so o icone 16), **Menu** (o botao do menu suspenso),
+**ItemDeMenu**, **Dialogo** (o botao do canto do painel).
 
-## A aba
+## Conferencia: o que o arquivo cria x o que o mapa leu
 
-| id | titulo | paineis | botoes | cobertos |
-|---|---|---|---|---|
-| `CENG.ID_Elet` | Elétron | 9 | 121 | 83 |
+| tipo | `new` no Ribbon.cs | no mapa |
+|---|---|---|
+| Botao | 121 | 121 |
+| Menu | 5 | 5 |
+| ItemDeMenu | 39 | 39 |
+| Linha | 34 | 34 |
+| QuebraDeLinha | 86 | 86 |
+| Recolhe | 7 | 7 |
+| ListaDeSecao | 1 | 1 |
+| CampoDeCor | 1 | 1 |
+| Alternar | 1 | 1 |
+| Separador | 6 | 6 |
+
+Os separadores do mapa contam as **declaracoes** (o original reusa a mesma variavel: o `val6` do
+painel Fiacao entra oito vezes); na arvore, cada uso aparece. Criados e **nunca colocados** num
+conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val7` do painel 5 (linha 1005, comando ``).
 
 ## Os paineis
 
-| # | painel | mMensagem | botoes | cobertos | metodo | linha |
-|---|---|---|---|---|---|---|
-| 1 | Configuração | 111 | 2 | 1 | `TSfp1Hv8Fcw` | 116 |
-| 2 | Caderno | 109 | 13 | 7 | `sqNp1kxf3Uh` | 158 |
-| 3 | Dispositivos | 110 | 24 | 18 | `Xcxp1ds9OPI` | 319 |
-| 4 | Bornes | 540 | 9 | 7 | `fJdp1fB9M7a` | 654 |
-| 5 | Fiação | 559 | 16 | 10 | `RuZp1DKCh0P` | 812 |
-| 6 | Construtivo | 1549 | 8 | 6 | `qGpp1vUUxZV` | 1185 |
-| 7 | Cabos e Veias | 560 | 30 | 18 | `HEpp169Agfo` | 1321 |
-| 8 | Utilitários | 112 | 18 | 16 | `E74p1tC6alM` | 1872 |
-| 9 | Help | -1 | 1 | 0 | `vwCp1jIpDXj` | 2119 |
-
-## Os botoes, na ordem da barra
-
-### 1. Configuração (`mMensagem[1, 111]`, linha 116)
-
-| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
+| # | painel | mMensagem | botoes | itens de menu | cobertos | metodo | linha |
 |---|---|---|---|---|---|---|---|
-|  | `` | `Setup_32` | Grande | nao | nao |  | 147 |
-| CFG | `CFG` | `` | Dialogo | sim | sim | Configurar o painel Configuração | 155 |
+| 1 | Configuração | 111 | 2 | 0 | 1 | `TSfp1Hv8Fcw` | 116 |
+| 2 | Caderno | 109 | 13 | 0 | 7 | `sqNp1kxf3Uh` | 158 |
+| 3 | Dispositivos | 110 | 24 | 0 | 18 | `Xcxp1ds9OPI` | 319 |
+| 4 | Bornes | 540 | 9 | 0 | 7 | `fJdp1fB9M7a` | 654 |
+| 5 | Fiação | 559 | 16 | 11 | 21 | `RuZp1DKCh0P` | 812 |
+| 6 | Construtivo | 1549 | 8 | 2 | 8 | `qGpp1vUUxZV` | 1185 |
+| 7 | Cabos e Veias | 560 | 30 | 26 | 30 | `HEpp169Agfo` | 1321 |
+| 8 | Utilitários | 112 | 18 | 0 | 16 | `E74p1tC6alM` | 1872 |
+| 9 | Help | -1 | 1 | 0 | 0 | `vwCp1jIpDXj` | 2119 |
 
-### 2. Caderno (`mMensagem[1, 109]`, linha 158)
+## A arvore de cada painel, na ordem do original
 
-| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
-|---|---|---|---|---|---|---|---|
-| CADERNO | `CAD` | `Caderno_32` | Pequeno | nao | nao | Cria ou troca o formato | 238 |
-| GER DWG | `GERDWG` | `Database_Preto_32` | Pequeno | sim | sim | Gerenciador de DWGs | 248 |
-| REGUAH | `REGH` | `ReguaH_32` | Pequeno | nao | nao | Cria ou troca a Régua Horizontal | 258 |
-| REGUAV | `REGV` | `ReguaV_32` | Pequeno | nao | nao | Cria ou troca a Régua Vertical | 268 |
-| Cadastro de Painéis | `PN` | `Item` | IconeTexto | sim | sim | Cadastro de Painéis | 282 |
-| Trocar Painel | `TROCAPN` | `Item` | IconeTexto | nao | sim | Trocar Painel | 286 |
-| Duplicar Caderno | `DUPCAD` | `Item` | IconeTexto | sim | sim | Duplicar Caderno | 290 |
-| Importar Projeto | `IMPBD` | `Item` | IconeTexto | nao | sim | Importar Projeto | 294 |
-| Índice de Páginas | `INDPG` | `Item` | IconeTexto | sim | sim | Índice de Páginas | 298 |
-| Relatório de Revisões | `RELREV` | `Item` | IconeTexto | sim | sim | Relatório de Revisões | 302 |
-| Relatório de Revisões Furnas | `RELREVF` | `Item` | IconeTexto | sim | sim | Relatório de Revisões Furnas | 306 |
-| Relatório de Revisões Matricial | `RELMATRI` | `Item` | IconeTexto | sim | sim | Relatório de Revisões Matricial | 310 |
-| Altura Base | `HBASE` | `Item` | IconeTexto | nao | nao | Altura Base | 314 |
+### 1. Configuração (`TSfp1Hv8Fcw`, linha 116)
 
-### 3. Dispositivos (`mMensagem[1, 110]`, linha 319)
+- canto do painel: Botao/Dialogo `CFG` coberto, abre janela (linha 150)
+- Botao/Grande icone Setup_32/Setup_32_Dark DESATIVADO (linha 137)
 
-| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
-|---|---|---|---|---|---|---|---|
-| GERCONT | `GERCONT` | `GerContatos_32` | Pequeno | sim | sim | Gerenciador de Contatos | 449 |
-| GERMASC | `GERMASC` | `GerMascaras_32` | Pequeno | sim | sim | Gerenciador de Máscaras | 459 |
-| DISP | `DISP` | `Dispositivos_32` | Pequeno | sim | sim | Dispositivos | 469 |
-| PORTA | `PORT` | `Portas_32` | Pequeno | sim | sim | Portas | 479 |
-| CONTATO | `CONT` | `Contatos_32` | Pequeno | sim | sim | Contatos Auxiliares | 489 |
-| DEFINIÇÃO | `DEF` | `Definicao_32` | Pequeno | sim | sim | Definição | 499 |
-| LXLS | `LXLS` | `Excel_32` | Pequeno | nao | nao | Abrir Lista de Pontos | 509 |
-|  | `MASC` | `Mascara_16` | Icone | sim | sim | Máscara | 519 |
-|  | `LDAT` | `LigaDesligaAtributos_16` | Icone | nao | nao | Liga/Desliga Atributos | 529 |
-|  | `PINC` | `Pincel2_16` | Icone | nao | nao | Pincel | 539 |
-|  | `MOVPN` | `MoverPainel_16` | Icone | sim | sim | Mover Dispositivo Para Outro Painel | 549 |
-|  | `DEPARA` | `DePara_16` | Icone | nao | nao | De->Para | 559 |
-|  | `SYNCD` | `Sincronizar_16` | Icone | sim | nao | Sincronizar Dispositivos | 569 |
-| Configuração da Lista de Pontos | `CONFLP` | `Item` | IconeTexto | sim | sim | Configuração da Lista de Pontos | 607 |
-| Chave Automática | `CHVAUT` | `Item` | IconeTexto | nao | nao | Chave Automática | 611 |
-| Inserir Descrição Lista de Pontos | `ADDDESC` | `Item` | IconeTexto | sim | sim | Inserir Descrição Lista de Pontos | 615 |
-| Sincroniza Desenho + LP | `SYNCLP` | `Item` | IconeTexto | nao | nao | Sincroniza Desenho + LP | 619 |
-| Migrar Portas | `MIGPOR` | `Item` | IconeTexto | sim | sim | Migrar Portas | 623 |
-| Importar Modelos de Contatos | `MCONT` | `Item` | IconeTexto | sim | sim | Importar Modelos de Contatos | 627 |
-| Importar Modelos de Máscara | `MMASC` | `Item` | IconeTexto | sim | sim | Importar Modelos de Máscara | 631 |
-| Editor de Funções | `EDTFUNC` | `Item` | IconeTexto | sim | sim | Editor de Funções | 635 |
-| Editor Dispositivos e Máscaras | `EDTDISPS` | `Item` | IconeTexto | sim | sim | Editor Dispositivos e Máscaras | 639 |
-| Editor Terminais Disp. Avulsos | `EDTDISPSA` | `Item` | IconeTexto | sim | sim | Editor Terminais Disp. Avulsos | 643 |
-| Relatório Entradas/Saídas | `RELEKTRO` | `Item` | IconeTexto | sim | sim | Relatório Entradas/Saídas | 647 |
+### 2. Caderno (`sqNp1kxf3Uh`, linha 158)
 
-### 4. Bornes (`mMensagem[1, 540]`, linha 654)
+- linha
+  - Botao/IconeGrande "CADERNO" `CAD` icone Caderno_32 nao coberto - Cria ou troca o formato (linha 229)
+  - (quebra de linha)
+  - Botao/IconeGrande "GER DWG" `GERDWG` icone Database_Preto_32/Database_Branco_32 coberto, abre janela - Gerenciador de DWGs (linha 239)
+- linha
+  - Botao/IconeGrande "REGUAH" `REGH` icone ReguaH_32/ReguaH_32_Dark nao coberto - Cria ou troca a Régua Horizontal (linha 249)
+  - (quebra de linha)
+  - Botao/IconeGrande "REGUAV" `REGV` icone ReguaV_32/ReguaV_32_Dark nao coberto - Cria ou troca a Régua Vertical (linha 259)
+- --- daqui para baixo, a area recolhivel (RibbonPanelBreak) ---
+- linha
+  - Botao/IconeTexto "Cadastro de Painéis" `PN` icone Item coberto, abre janela (linha 281)
+  - (quebra de linha)
+  - Botao/IconeTexto "Trocar Painel" `TROCAPN` icone Item nao coberto, abre janela (linha 285)
+  - (quebra de linha)
+  - Botao/IconeTexto "Duplicar Caderno" `DUPCAD` icone Item coberto, abre janela (linha 289)
+  - (quebra de linha)
+  - Botao/IconeTexto "Importar Projeto" `IMPBD` icone Item nao coberto, abre janela (linha 293)
+  - (quebra de linha)
+  - Botao/IconeTexto "Índice de Páginas" `INDPG` icone Item coberto, abre janela (linha 297)
+  - (quebra de linha)
+  - Botao/IconeTexto "Relatório de Revisões" `RELREV` icone Item coberto, abre janela (linha 301)
+  - (quebra de linha)
+  - Botao/IconeTexto "Relatório de Revisões Furnas" `RELREVF` icone Item coberto, abre janela (linha 305)
+  - (quebra de linha)
+  - Botao/IconeTexto "Relatório de Revisões Matricial" `RELMATRI` icone Item coberto, abre janela (linha 309)
+  - (quebra de linha)
+  - Botao/IconeTexto "Altura Base" `HBASE` icone Item nao coberto (linha 313)
 
-| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
-|---|---|---|---|---|---|---|---|
-| GERRB | `GERRB` | `ReguaBorne_32` | Pequeno | sim | sim | Gerenciador de Réguas de Bornes | 720 |
-| BORNE | `BORN` | `Bornes_32` | Pequeno | sim | sim | Inserir Bornes | 730 |
-| EDBORN | `EDBORN` | `Editar_Preto_32` | Pequeno | sim | sim | Editar Bornes | 740 |
-| SELBORN | `SELBORN` | `EditaBornesSelecao_32` | Pequeno | sim | sim | Editar Bornes por Seleção | 750 |
-|  | `LDNR` | `LigaDesligaAtributos_16` | Icone | nao | nao | Liga/Desliga Nome Régua | 760 |
-|  | `OCPN` | `OcultaPainelBorne_16` | Icone | nao | nao | Ocultar Nome Painel | 770 |
-|  | `STATBORN` | `Estatistica_16` | Icone | sim | sim | Estatística de Bornes | 780 |
-| Migrar Bornes e Conexões | `MBOR` | `Item` | IconeTexto | sim | sim | Migrar Bornes | 801 |
-| Clonar Estrutura Régua | `CLOBORN` | `Item` | IconeTexto | sim | sim | Clonar Estrutura Régua | 805 |
+### 3. Dispositivos (`Xcxp1ds9OPI`, linha 319)
 
-### 5. Fiação (`mMensagem[1, 559]`, linha 812)
+- linha
+  - Botao/IconeGrande "GERCONT" `GERCONT` icone GerContatos_32/GerContatos_32_Dark coberto, abre janela - Gerenciador de Contatos (linha 440)
+  - (quebra de linha)
+  - Botao/IconeGrande "GERMASC" `GERMASC` icone GerMascaras_32/GerMascaras_32_Dark coberto, abre janela - Gerenciador de Máscaras (linha 450)
+- linha
+  - Botao/IconeGrande "DISP" `DISP` icone Dispositivos_32/Dispositivos_32_Dark coberto, abre janela - Dispositivos (linha 460)
+  - (quebra de linha)
+  - Botao/IconeGrande "PORTA" `PORT` icone Portas_32/Portas_32_Dark coberto, abre janela - Portas (linha 470)
+- linha
+  - Botao/IconeGrande "CONTATO" `CONT` icone Contatos_32/Contatos_32_Dark coberto, abre janela - Contatos Auxiliares (linha 480)
+  - (quebra de linha)
+  - Botao/IconeGrande "DEFINIÇÃO" `DEF` icone Definicao_32/Definicao_32_Dark coberto, abre janela (linha 490)
+- linha
+  - Botao/IconeGrande "LXLS" `LXLS` icone Excel_32/Excel_32_Dark nao coberto - Abrir Lista de Pontos (linha 500)
+  - (quebra de linha)
+- (separador)
+- linha
+  - Botao/Icone `MASC` icone Mascara_16/Mascara_16_Dark coberto, abre janela - Máscara (linha 510)
+  - (quebra de linha)
+  - Botao/Icone `LDAT` icone LigaDesligaAtributos_16/LigaDesligaAtributos_16_Dark nao coberto - Liga/Desliga Atributos (linha 520)
+  - (quebra de linha)
+  - Botao/Icone `PINC` icone Pincel2_16/Pincel2_16_Dark nao coberto - Pincel (linha 530)
+- linha
+  - Botao/Icone `MOVPN` icone MoverPainel_16/MoverPainel_16_Dark coberto, abre janela - Mover Dispositivo Para Outro Painel (linha 540)
+  - (quebra de linha)
+  - Botao/Icone `DEPARA` icone DePara_16/DePara_16_Dark nao coberto - De->Para (linha 550)
+  - (quebra de linha)
+  - Botao/Icone `SYNCD` icone Sincronizar_16/Sincronizar_16_Dark coberto - Sincronizar Dispositivos (linha 560)
+- --- daqui para baixo, a area recolhivel (RibbonPanelBreak) ---
+- linha
+  - Botao/IconeTexto "Configuração da Lista de Pontos" `CONFLP` icone Item coberto, abre janela (linha 606)
+  - (quebra de linha)
+  - Botao/IconeTexto "Chave Automática" `CHVAUT` icone Item nao coberto (linha 610)
+  - (quebra de linha)
+  - Botao/IconeTexto "Inserir Descrição Lista de Pontos" `ADDDESC` icone Item coberto, abre janela (linha 614)
+  - (quebra de linha)
+  - Botao/IconeTexto "Sincroniza Desenho + LP" `SYNCLP` icone Item nao coberto (linha 618)
+  - (quebra de linha)
+  - Botao/IconeTexto "Migrar Portas" `MIGPOR` icone Item coberto, abre janela (linha 622)
+  - (quebra de linha)
+  - Botao/IconeTexto "Importar Modelos de Contatos" `MCONT` icone Item coberto, abre janela (linha 626)
+  - (quebra de linha)
+  - Botao/IconeTexto "Importar Modelos de Máscara" `MMASC` icone Item coberto, abre janela (linha 630)
+  - (quebra de linha)
+  - Botao/IconeTexto "Editor de Funções" `EDTFUNC` icone Item coberto, abre janela (linha 634)
+  - (quebra de linha)
+  - Botao/IconeTexto "Editor Dispositivos e Máscaras" `EDTDISPS` icone Item coberto, abre janela (linha 638)
+  - (quebra de linha)
+  - Botao/IconeTexto "Editor Terminais Disp. Avulsos" `EDTDISPSA` icone Item coberto, abre janela (linha 642)
+  - (quebra de linha)
+  - Botao/IconeTexto "Relatório Entradas/Saídas" `RELEKTRO` icone Item coberto, abre janela (linha 646)
+  - (quebra de linha)
 
-| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
-|---|---|---|---|---|---|---|---|
-| CIRCUITO | `CIRC` | `Circuito_32` | Pequeno | sim | sim | Circuito | 940 |
-| CONEXAO | `CON` | `ConexaoTT_32` | Pequeno | nao | nao | Conexão ou Derivação | 950 |
-| CONEXAOAUTO | `CONAUT` | `ConexaoAuto_32` | Pequeno | nao | nao | Conexão Automática | 960 |
-| DERIVACAOAUTO | `DERAUT` | `DerivacaoAuto_32` | Pequeno | nao | nao | Derivação Automática | 970 |
-|  | `INSM` | `InsereCor_16` | Icone | sim | sim | Inserir Marcador da Conexão | 1020 |
-|  | `EDCON` | `EditaSelecao_16` | Icone | nao | nao | Editar Conexões por Seleção | 1030 |
-|  | `EDCONP` | `Editor_16` | Icone | sim | sim | Editar Conexões das Páginas Selecionadas | 1040 |
-|  | `SYNCC` | `Sincronizar_16` | Icone | nao | nao | Sincronizar Circuitos e Jumpers | 1050 |
-|  | `APL` | `Aplicacao2_16` | Icone | sim | sim | Aplicação da Fiação | 1060 |
-|  | `EDTNCIRC` | `EditarBornes_16` | Icone | sim | sim | Editar Nome de Circuitos | 1070 |
-| Verificar Fiação | `VFIA` | `Item` | IconeTexto | sim | sim | Verificar Fiação | 1158 |
-| Layout Rápido | `LR` | `Item` | IconeTexto | sim | sim | Layout Rápido | 1162 |
-| Compilar Fiação | `FIA` | `Item` | IconeTexto | sim | sim | Compilar Fiação | 1166 |
-| Sequenciador | `SEQ` | `Item` | IconeTexto | sim | sim | Sequenciador | 1170 |
-| Jumper Interno | `LNK` | `Item` | IconeTexto | sim | sim | Jumper Interno | 1174 |
-| Apagar Revisões Fiação | `DELFIPROJ` | `Item` | IconeTexto | nao | nao | Apagar Revisões Fiação | 1178 |
+### 4. Bornes (`fJdp1fB9M7a`, linha 654)
 
-### 6. Construtivo (`mMensagem[1, 1549]`, linha 1185)
+- linha
+  - Botao/IconeGrande "GERRB" `GERRB` icone ReguaBorne_32/ReguaBorne_32_Dark coberto, abre janela - Gerenciador de Réguas de Bornes (linha 711)
+  - (quebra de linha)
+  - Botao/IconeGrande "BORNE" `BORN` icone Bornes_32/Bornes_32_Dark coberto, abre janela - Inserir Bornes (linha 721)
+- linha
+  - Botao/IconeGrande "EDBORN" `EDBORN` icone Editar_Preto_32/Editar_Branco_32 coberto, abre janela - Editar Bornes (linha 731)
+  - (quebra de linha)
+  - Botao/IconeGrande "SELBORN" `SELBORN` icone EditaBornesSelecao_32/EditaBornesSelecao_32_Dark coberto, abre janela - Editar Bornes por Seleção (linha 741)
+- linha
+  - Botao/Icone `LDNR` icone LigaDesligaAtributos_16/LigaDesligaAtributos_16_Dark nao coberto - Liga/Desliga Nome Régua (linha 751)
+  - (quebra de linha)
+  - Botao/Icone `OCPN` icone OcultaPainelBorne_16/OcultaPainelBorne_16_Dark nao coberto - Ocultar Nome Painel (linha 761)
+  - (quebra de linha)
+  - Botao/Icone `STATBORN` icone Estatistica_16/Estatistica_16_Dark coberto, abre janela - Estatística de Bornes (linha 771)
+- --- daqui para baixo, a area recolhivel (RibbonPanelBreak) ---
+- linha
+  - Botao/IconeTexto "Migrar Bornes e Conexões" `MBOR` icone Item coberto, abre janela - Migrar Bornes (linha 800)
+  - (quebra de linha)
+  - Botao/IconeTexto "Clonar Estrutura Régua" `CLOBORN` icone Item coberto, abre janela (linha 804)
+  - (quebra de linha)
 
-| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
-|---|---|---|---|---|---|---|---|
-| GERLM | `GERLM` | `LM_32` | Pequeno | sim | sim | Gerenciador de Materiais | 1251 |
-| LAYMEC | `LAYMEC` | `Layout_32` | Pequeno | sim | sim | Layout Mecânico | 1261 |
-| PLAQ | `PLAQ` | `GerPlaquetas_32` | Pequeno | sim | sim | Gerenciador de Plaquetas | 1271 |
-| Dispositivos Independentes e Avulsos | `ATINDEP` | `Item` | IconeTexto | sim | sim | Dispositivos Independentes e Avulsos | 1298 |
-| Exportar Plaquetas BD Projeto | `EPLQ` | `Item` | IconeTexto | sim | nao | Exportar Plaquetas BD Projeto | 1302 |
-| Exportar LM BD Projeto | `COMPLM` | `Item` | IconeTexto | sim | nao | Exportar LM BD Projeto | 1306 |
-| Apagar LM BD Projeto | `DELLM` | `Item` | IconeTexto | nao | nao | Apagar LM BD Projeto | 1310 |
-| Apagar Plaquetas BD Projetos | `DELPLA` | `Item` | IconeTexto | nao | nao | Apagar Plaquetas BD Projetos | 1314 |
+### 5. Fiação (`RuZp1DKCh0P`, linha 812)
 
-### 7. Cabos e Veias (`mMensagem[1, 560]`, linha 1321)
+- linha
+  - Botao/IconeGrande "CIRCUITO" `CIRC` icone Circuito_32/Circuito_32_Dark coberto, abre janela (linha 931)
+  - (quebra de linha)
+  - Botao/IconeGrande "CONEXAO" `CON` icone ConexaoTT_32/ConexaoTT_32_Dark nao coberto - Conexão ou Derivação (linha 941)
+- linha
+  - Botao/IconeGrande "CONEXAOAUTO" `CONAUT` icone ConexaoAuto_32/ConexaoAuto_32_Dark nao coberto - Conexão Automática (linha 951)
+  - (quebra de linha)
+  - Botao/IconeGrande "DERIVACAOAUTO" `DERAUT` icone DerivacaoAuto_32/DerivacaoAuto_32_Dark nao coberto - Derivação Automática (linha 961)
+- (separador)
+- linha
+  - lista de secao (RibbonCombo, largura 65; a BitolaCollection, grava a Secao ativa)
+  - campo da cor (RibbonTextBox, largura 54; grava a Cor ativa)
+  - (quebra de linha)
+  - Botao/Icone `INSM` icone InsereCor_16/InsereCor_16_Dark coberto, abre janela - Inserir Marcador da Conexão (linha 1011)
+  - (separador, largura 3)
+  - Botao/Icone `EDCON` icone EditaSelecao_16/EditaSelecao_16_Dark nao coberto - Editar Conexões por Seleção (linha 1021)
+  - (separador, largura 3)
+  - Botao/Icone `APL` icone Aplicacao2_16/Aplicacao2_16_Dark coberto, abre janela - Aplicação da Fiação (linha 1051)
+  - (separador, largura 3)
+  - Menu/Menu icone Fiacao_16/Fiacao_16_Dark - Relatórios de Fiação (linha 1071)
+    - ItemDeMenu/ItemDeMenu "Relatórios de Fiação" `RFIA` icone Item coberto, abre janela (linha 1081)
+    - ItemDeMenu/ItemDeMenu "Estrutura de Régua de Bornes" `RBORELS` icone Item coberto, abre janela (linha 1083)
+    - ItemDeMenu/ItemDeMenu "Relatório de Potenciais" `RPOT` icone Item coberto, abre janela (linha 1085)
+    - ItemDeMenu/ItemDeMenu "Relatório Siemens" `RPOTS` icone Item coberto, abre janela (linha 1087)
+    - ItemDeMenu/ItemDeMenu "Relatório Diferencial" `RDIF` icone Item coberto, abre janela (linha 1089)
+    - ItemDeMenu/ItemDeMenu "Distribuição de Potenciais" `DPOT` icone Item coberto, abre janela (linha 1091)
+    - ItemDeMenu/ItemDeMenu "Relatório de Anilhas" `RANI` icone Item coberto, abre janela (linha 1093)
+    - ItemDeMenu/ItemDeMenu "Relatório TAF" `RTAF` icone Item coberto, abre janela (linha 1095)
+    - ItemDeMenu/ItemDeMenu "Estimativa de Fiação" `ESTF` icone Item coberto, abre janela (linha 1097)
+  - (quebra de linha)
+  - Botao/Icone `EDCONP` icone Editor_16 coberto, abre janela - Editar Conexões das Páginas Selecionadas (linha 1031)
+  - (separador, largura 3)
+  - Botao/Icone `SYNCC` icone Sincronizar_16/Sincronizar_16_Dark nao coberto - Sincronizar Circuitos e Jumpers (linha 1041)
+  - (separador, largura 3)
+  - Botao/Icone `EDTNCIRC` icone EditarBornes_16/EditarBornes_16_Dark coberto, abre janela - Editar Nome de Circuitos (linha 1061)
+  - (separador, largura 3)
+  - Menu/Menu icone Topografico_16/Topografico_16_Dark - Topográfico (linha 1108)
+    - ItemDeMenu/ItemDeMenu "Topográfico" `TPG` icone Item coberto, abre janela (linha 1118)
+    - ItemDeMenu/ItemDeMenu "Anilhas Topográfico" `ATPG` icone Item coberto, abre janela (linha 1120)
+- --- daqui para baixo, a area recolhivel (RibbonPanelBreak) ---
+- linha
+  - Botao/IconeTexto "Verificar Fiação" `VFIA` icone Item coberto, abre janela (linha 1157)
+  - (quebra de linha)
+  - Botao/IconeTexto "Layout Rápido" `LR` icone Item coberto, abre janela (linha 1161)
+  - (quebra de linha)
+  - Botao/IconeTexto "Compilar Fiação" `FIA` icone Item coberto, abre janela (linha 1165)
+  - (quebra de linha)
+  - Botao/IconeTexto "Sequenciador" `SEQ` icone Item coberto, abre janela (linha 1169)
+  - (quebra de linha)
+  - Botao/IconeTexto "Jumper Interno" `LNK` icone Item coberto, abre janela (linha 1173)
+  - (quebra de linha)
+  - Botao/IconeTexto "Apagar Revisões Fiação" `DELFIPROJ` icone Item nao coberto (linha 1177)
+  - (quebra de linha)
 
-| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
-|---|---|---|---|---|---|---|---|
-| VEIA1 | `VEIA1` | `Interlig1_32` | Pequeno | nao | nao | Inserir Veia Parte 1 | 1523 |
-| VEIA | `VEIA` | `Interlig_32` | Pequeno | nao | nao | Inserir Veia | 1533 |
-| VEIA2 | `VEIA2` | `Interlig2_32` | Pequeno | nao | nao | Inserir Veia Parte 2 | 1543 |
-| VEAUT | `VEAUT` | `VeiaAuto_32` | Pequeno | nao | nao | Veia Automática | 1553 |
-| BLI | `BLI` | `Blindagem_32` | Pequeno | nao | nao | Blindagem | 1563 |
-| JUMPEXT | `JPEXT` | `JumperExt_32` | Pequeno | sim | sim | Jumper Externo | 1573 |
-| IVEIEX | `IVEIEX` | `Excel_32` | Pequeno | sim | sim | Importar Excel | 1583 |
-| CONEXAO | `CON` | `Derivacao_32` | Pequeno | nao | nao | Derivação de Jumper | 1593 |
-| EDCABO | `EDCABO` | `Editar_Preto_32` | Pequeno | sim | sim | Editor de Cabos | 1603 |
-| ATCABO | `ATCABO` | `Veias_32` | Pequeno | sim | sim | Atribuir Veias | 1613 |
-|  | `OCCAB` | `OcultarCabos_16` | Icone | nao | nao | Ocultar Nome | 1623 |
-|  | `LNOME` | `LigaDesligaAtributos_16` | Icone | nao | nao | Ligar Nome Cabo | 1633 |
-|  | `DNOME` | `Desliga_16` | Icone | nao | nao | Desligar Nome Cabo | 1643 |
-|  | `INDV` | `Indefinir_16` | Icone | nao | nao | Indefinir Veias | 1653 |
-|  | `PESQC` | `Pesquisar_16` | Icone | sim | sim | Pesquisar Veias Indefinidas | 1663 |
-|  | `SYNCV` | `Sincronizar_16` | Icone | sim | nao | Sincronizar Veias | 1673 |
-| Verificar Interligação | `VINT` | `Item` | IconeTexto | sim | sim | Verificar Interligação | 1813 |
-| Compilar Jumper Externo | `JMP` | `Item` | IconeTexto | sim | sim | Compilar Jumper Externo | 1817 |
-| Compilar Interligação | `INT` | `Item` | IconeTexto | sim | sim | Compilar Interligação | 1821 |
-| Sequenciador de Jumper Externo | `SEQJ` | `Item` | IconeTexto | sim | sim | Sequenciador de Jumper Externo | 1825 |
-| Clonar Cabos | `CLOCAB` | `Item` | IconeTexto | sim | sim | Clonar Cabos | 1829 |
-| Pesquisar Cabos e Veias | `PESQCAB` | `Item` | IconeTexto | sim | sim | Pesquisar Cabos e Veias | 1833 |
-| Estimativa Veias Faltantes | `ESTVL` | `Item` | IconeTexto | sim | sim | Estimativa Veias Faltantes | 1837 |
-| Estatística de Cabos Utilizados | `ESTVCABOS` | `Item` | IconeTexto | sim | sim | Estatística de Cabos Utilizados | 1841 |
-| Editor de Nome e Função Veias | `EDNOMEFUNVEIAS` | `Item` | IconeTexto | sim | sim | Editor de Nome e Função Veias | 1845 |
-| Recriar Textos dos Cabos | `RECRIACABOS` | `Item` | IconeTexto | sim | nao | Recriar Textos dos Cabos | 1849 |
-| Atributos do Cabo | `OPVEIAS` | `Item` | IconeTexto | sim | sim | Atributos do Cabo | 1853 |
-| Indefinir Todas Veias | `INDEFCAB` | `Item` | IconeTexto | nao | nao | Indefinir Todas Veias | 1857 |
-| Importar Interligação Excel | `IIEX` | `Item` | IconeTexto | sim | sim | Importar Interligação Excel | 1861 |
-| Apagar Revisões Interligação | `DELINTPROJ` | `Item` | IconeTexto | nao | nao | Apagar Revisões Interligação | 1865 |
+### 6. Construtivo (`qGpp1vUUxZV`, linha 1185)
 
-### 8. Utilitários (`mMensagem[1, 112]`, linha 1872)
+- linha
+  - Botao/IconeGrande "GERLM" `GERLM` icone LM_32/LM_32_Dark coberto, abre janela - Gerenciador de Materiais (linha 1242)
+  - Botao/IconeGrande "LAYMEC" `LAYMEC` icone Layout_32/Layout_32_Dark coberto, abre janela - Layout Mecânico (linha 1252)
+  - (quebra de linha)
+  - Botao/IconeGrande "PLAQ" `PLAQ` icone GerPlaquetas_32/GerPlaquetas_32_Dark coberto, abre janela - Gerenciador de Plaquetas (linha 1262)
+  - Menu/Menu icone Relatorios_16/Relatorios_16_Dark - Relatórios (linha 1272)
+    - ItemDeMenu/ItemDeMenu "Relatório LM" `EXPLM` icone Item coberto, abre janela (linha 1282)
+    - ItemDeMenu/ItemDeMenu "Relatório Lista de Plaquetas" `RELPL` icone Item coberto, abre janela (linha 1284)
+- --- daqui para baixo, a area recolhivel (RibbonPanelBreak) ---
+- linha
+  - Botao/IconeTexto "Dispositivos Independentes e Avulsos" `ATINDEP` icone Item coberto, abre janela (linha 1297)
+  - (quebra de linha)
+  - Botao/IconeTexto "Exportar Plaquetas BD Projeto" `EPLQ` icone Item coberto (linha 1301)
+  - (quebra de linha)
+  - Botao/IconeTexto "Exportar LM BD Projeto" `COMPLM` icone Item coberto (linha 1305)
+  - (quebra de linha)
+  - Botao/IconeTexto "Apagar LM BD Projeto" `DELLM` icone Item nao coberto (linha 1309)
+  - (quebra de linha)
+  - Botao/IconeTexto "Apagar Plaquetas BD Projetos" `DELPLA` icone Item nao coberto (linha 1313)
+  - (quebra de linha)
 
-| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
-|---|---|---|---|---|---|---|---|
-| PDF | `EXPPDF` | `PDF_VM_32` | Pequeno | sim | sim | Exportar PDF Inteligente | 1974 |
-| CLONAR | `CLONAR` | `Clonar_32` | Pequeno | sim | sim | Clonar | 1984 |
-| CBD | `CBD` | `Comprimir_32` | Pequeno | sim | nao | Compactador BD Projeto | 1994 |
-| EXPCOMP | `EXPCOMP` | `ExpImp_Preto_32` | Pequeno | sim | sim | Exportar e Importar Entre DWGs | 2004 |
-| RESTPROJ | `RESTPROJ` | `Sincroniza_32` | Pequeno | sim | nao | Restaura Projeto | 2014 |
-| MOVER | `MOV` | `Mover_32` | Pequeno | nao | nao | Mover elementos de uma página para outra | 2024 |
-| REVAUT | `REVAUT` | `Revisao_32` | Pequeno | sim | sim | Revisão Automática | 2034 |
-| EXPORTAR | `EXPDWG` | `DWG_Preto_32` | Pequeno | sim | sim | Exportar Páginas | 2044 |
-| IMPRIMIR | `IMPR` | `Imprimir_32` | Pequeno | sim | sim | Imprimir | 2054 |
-| Editar Títulos e Textos | `TROCTT` | `Item` | IconeTexto | sim | sim | Editar Títulos e Textos | 2082 |
-| Exportar e Importar Textos | `EXPIT` | `Item` | IconeTexto | sim | sim | Exportar e Importar Textos | 2086 |
-| Copiar Objetos | `COPYCAD` | `Item` | IconeTexto | sim | sim | Copiar Objetos | 2090 |
-| Trocar Blocos | `TROCBL` | `Item` | IconeTexto | sim | sim | Trocar Blocos | 2094 |
-| Navegador Elétron | `PESQUISA` | `Item` | IconeTexto | sim | sim | Navegador Elétron | 2098 |
-| Apagar XDatas de Terceiros | `APAGARXDATA` | `Item` | IconeTexto | sim | sim | Apagar XDatas de Terceiros | 2102 |
-| Importar DWG | `IMPCAD` | `Item` | IconeTexto | sim | sim | Importar DWG | 2106 |
-| Trocar Usuário e Data | `MUDAUSER` | `Item` | IconeTexto | sim | sim | Trocar Usuário e Data | 2110 |
-| Reset Janelas Abertas | `CorrigeJanelas` | `Item` | IconeTexto | nao | nao | Reset Janelas Abertas | 2114 |
+### 7. Cabos e Veias (`HEpp169Agfo`, linha 1321)
 
-### 9. Help (`mMensagem[1, -1]`, linha 2119)
+- linha
+  - Botao/IconeGrande "VEIA1" `VEIA1` icone Interlig1_32/Interlig1_32_Dark nao coberto - Inserir Veia Parte 1 (linha 1514)
+  - (quebra de linha)
+  - Botao/IconeGrande "VEIA" `VEIA` icone Interlig_32/Interlig_32_Dark nao coberto - Inserir Veia (linha 1524)
+- linha
+  - Botao/IconeGrande "VEIA2" `VEIA2` icone Interlig2_32/Interlig2_32_Dark nao coberto - Inserir Veia Parte 2 (linha 1534)
+  - (quebra de linha)
+  - Botao/IconeGrande "VEAUT" `VEAUT` icone VeiaAuto_32/VeiaAuto_32_Dark nao coberto - Veia Automática (linha 1544)
+- linha
+  - Botao/IconeGrande "BLI" `BLI` icone Blindagem_32/Blindagem_32_Dark nao coberto - Blindagem (linha 1554)
+  - (quebra de linha)
+  - Botao/IconeGrande "JUMPEXT" `JPEXT` icone JumperExt_32/JumperExt_32_Dark coberto, abre janela - Jumper Externo (linha 1564)
+- linha
+  - Botao/IconeGrande "IVEIEX" `IVEIEX` icone Excel_32/Excel_32_Dark coberto, abre janela - Importar Excel (linha 1574)
+  - (quebra de linha)
+  - Botao/IconeGrande "CONEXAO" `CON` icone Derivacao_32/Derivacao_32_Dark nao coberto - Derivação de Jumper (linha 1584)
+- linha
+  - Botao/IconeGrande "EDCABO" `EDCABO` icone Editar_Preto_32/Editar_Branco_32 coberto, abre janela - Editor de Cabos (linha 1594)
+  - (quebra de linha)
+  - Botao/IconeGrande "ATCABO" `ATCABO` icone Veias_32/Veias_32_Dark coberto, abre janela - Atribuir Veias (linha 1604)
+- (separador)
+- linha
+  - Botao/Icone `OCCAB` icone OcultarCabos_16/OcultarCabos_16_Dark nao coberto - Ocultar Nome (linha 1614)
+  - Botao/Icone `INDV` icone Indefinir_16/Indefinir_16_Dark nao coberto - Indefinir Veias (linha 1644)
+  - Menu/Menu icone Relatorios_16/Relatorios_16_Dark - Relatórios (linha 1674)
+    - ItemDeMenu/ItemDeMenu "Lista de Cabos" `LCAB` icone Item coberto, abre janela (linha 1684)
+    - ItemDeMenu/ItemDeMenu "Lista de Cabos Copel GT" `LCABCOP` icone Item coberto, abre janela (linha 1686)
+    - ItemDeMenu/ItemDeMenu "Lista de Veias" `LVEI` icone Item coberto, abre janela (linha 1688)
+    - ItemDeMenu/ItemDeMenu "Relatório de Interligação" `RINT` icone Item coberto, abre janela (linha 1690)
+    - ItemDeMenu/ItemDeMenu "Relatório de Interligação Eletrosul" `RINTE` icone Item coberto, abre janela (linha 1692)
+    - ItemDeMenu/ItemDeMenu "Lista de Jumpers" `LJUMP` icone Item coberto, abre janela (linha 1694)
+    - ItemDeMenu/ItemDeMenu "Interligação GIGA" `LGIGA` icone Item coberto, abre janela (linha 1696)
+    - ItemDeMenu/ItemDeMenu "Lista de Anilhas" `LANI` icone Item coberto, abre janela (linha 1698)
+  - (quebra de linha)
+  - Botao/Icone `LNOME` icone LigaDesligaAtributos_16/LigaDesligaAtributos_16_Dark nao coberto - Ligar Nome Cabo (linha 1624)
+  - Botao/Icone `PESQC` icone Pesquisar_16 coberto, abre janela - Pesquisar Veias Indefinidas (linha 1654)
+  - Menu/Menu icone Diagramas_16/Diagramas_16_Dark - Diagramas de Interligação (linha 1708)
+    - ItemDeMenu/ItemDeMenu "ELETRONORTE" `DIELN` icone Item coberto, abre janela - Diagrama de Interligação ELETRONORTE (linha 1718)
+    - ItemDeMenu/ItemDeMenu "CEMIG-GT PAINEL" `DICEMIGGTP` icone Item nao coberto, abre janela - Diagrama de Interligação CEMIG-GT PAINEL (linha 1720)
+    - ItemDeMenu/ItemDeMenu "CEMIG-GT EQUIP" `DICEMIGGTE` icone Item nao coberto, abre janela - Diagrama de Interligação CEMIG-GT EQUIP (linha 1722)
+    - ItemDeMenu/ItemDeMenu "CEMIG-D PAINEL" `DICEMIGDP` icone Item nao coberto, abre janela - Diagrama de Interligação CEMIG-D PAINEL (linha 1724)
+    - ItemDeMenu/ItemDeMenu "CEMIG-D EQUIP" `DICEMIGDE` icone Item nao coberto, abre janela - Diagrama de Interligação CEMIG-D EQUIP (linha 1726)
+    - ItemDeMenu/ItemDeMenu "CHESF" `DICHESF` icone Item nao coberto, abre janela - Diagrama de Interligação CHESF (linha 1728)
+    - ItemDeMenu/ItemDeMenu "CPFL SERVIÇOS" `DICPFL` icone Item nao coberto, abre janela - Diagrama de Interligação CPFL SERVIÇOS (linha 1730)
+    - ItemDeMenu/ItemDeMenu "CPFL TRANSMISSÃO" `DICPFLTR` icone Item nao coberto, abre janela - Diagrama de Interligação CPFL TRANSMISSÃO (linha 1732)
+    - ItemDeMenu/ItemDeMenu "EDP ES" `DIEDP` icone Item nao coberto, abre janela - Diagrama de Interligação EDP ES (linha 1734)
+    - ItemDeMenu/ItemDeMenu "EQUATORIAL" `DIEQUAT` icone Item nao coberto, abre janela - Diagrama de Interligação EQUATORIAL (linha 1736)
+    - ItemDeMenu/ItemDeMenu "ENERGISA MS" `DIENER` icone Item coberto, abre janela - Diagrama de Interligação ENERGISA MS (linha 1738)
+    - ItemDeMenu/ItemDeMenu "ENERGISA MT" `DIENERMT` icone Item coberto, abre janela - Diagrama de Interligação ENERGISA MT (linha 1740)
+    - ItemDeMenu/ItemDeMenu "ENERGISA SUL SUDESTE" `DIENERSSE` icone Item coberto, abre janela - Diagrama de Interligação ENERGISA S/SE (linha 1742)
+    - ItemDeMenu/ItemDeMenu "ENEL-SP" `DIENELSP` icone Item nao coberto, abre janela - Diagrama de Interligação ENEL-SP (linha 1744)
+    - ItemDeMenu/ItemDeMenu "FURNAS" `DIFURNAS` icone Item nao coberto, abre janela - Diagrama de Interligação FURNAS (linha 1746)
+    - ItemDeMenu/ItemDeMenu "ISA CTEEP" `DICTEEP` icone Item nao coberto, abre janela - Diagrama de Interligação ISA CTEEP (linha 1748)
+    - ItemDeMenu/ItemDeMenu "ITAIPU" `DIITAIPU` icone Item nao coberto, abre janela - Diagrama de Interligação ITAIPU (linha 1750)
+    - ItemDeMenu/ItemDeMenu "TAESA" `DITAESA` icone Item nao coberto, abre janela - Diagrama de Interligação TAESA (linha 1752)
+  - (quebra de linha)
+  - Botao/Icone `DNOME` icone Desliga_16/Desliga_16_Dark nao coberto - Desligar Nome Cabo (linha 1634)
+  - Botao/Icone `SYNCV` icone Sincronizar_16/Sincronizar_16_Dark coberto - Sincronizar Veias (linha 1664)
+- --- daqui para baixo, a area recolhivel (RibbonPanelBreak) ---
+- linha
+  - Botao/IconeTexto "Verificar Interligação" `VINT` icone Item coberto, abre janela (linha 1812)
+  - (quebra de linha)
+  - Botao/IconeTexto "Compilar Jumper Externo" `JMP` icone Item coberto, abre janela (linha 1816)
+  - (quebra de linha)
+  - Botao/IconeTexto "Compilar Interligação" `INT` icone Item coberto, abre janela (linha 1820)
+  - (quebra de linha)
+  - Botao/IconeTexto "Sequenciador de Jumper Externo" `SEQJ` icone Item coberto, abre janela (linha 1824)
+  - (quebra de linha)
+  - Botao/IconeTexto "Clonar Cabos" `CLOCAB` icone Item coberto, abre janela (linha 1828)
+  - (quebra de linha)
+  - Botao/IconeTexto "Pesquisar Cabos e Veias" `PESQCAB` icone Item coberto, abre janela (linha 1832)
+  - (quebra de linha)
+  - Botao/IconeTexto "Estimativa Veias Faltantes" `ESTVL` icone Item coberto, abre janela (linha 1836)
+  - (quebra de linha)
+  - Botao/IconeTexto "Estatística de Cabos Utilizados" `ESTVCABOS` icone Item coberto, abre janela (linha 1840)
+  - (quebra de linha)
+  - Botao/IconeTexto "Editor de Nome e Função Veias" `EDNOMEFUNVEIAS` icone Item coberto, abre janela (linha 1844)
+  - (quebra de linha)
+  - Botao/IconeTexto "Recriar Textos dos Cabos" `RECRIACABOS` icone Item coberto (linha 1848)
+  - (quebra de linha)
+  - Botao/IconeTexto "Atributos do Cabo" `OPVEIAS` icone Item coberto, abre janela (linha 1852)
+  - (quebra de linha)
+  - Botao/IconeTexto "Indefinir Todas Veias" `INDEFCAB` icone Item nao coberto (linha 1856)
+  - (quebra de linha)
+  - Botao/IconeTexto "Importar Interligação Excel" `IIEX` icone Item coberto, abre janela (linha 1860)
+  - (quebra de linha)
+  - Botao/IconeTexto "Apagar Revisões Interligação" `DELINTPROJ` icone Item nao coberto (linha 1864)
+  - (quebra de linha)
 
-| rotulo | comando | icone | grau | coberto | abre janela | dica | linha |
-|---|---|---|---|---|---|---|---|
-| Help | `AJUDA` | `Ajuda_32` | Pequeno | nao | nao | Help | 2153 |
+### 8. Utilitários (`E74p1tC6alM`, linha 1872)
 
-## O que a barra ja chama hoje
+- linha
+  - Botao/IconeGrande "PDF" `EXPPDF` icone PDF_VM_32 coberto, abre janela - Exportar PDF Inteligente (linha 1965)
+  - (quebra de linha)
+- linha
+  - Botao/IconeGrande "CLONAR" `CLONAR` icone Clonar_32/Clonar_32_Dark coberto, abre janela (linha 1975)
+  - (quebra de linha)
+  - Botao/IconeGrande "CBD" `CBD` icone Comprimir_32 coberto - Compactador BD Projeto (linha 1985)
+- linha
+  - Botao/IconeGrande "EXPCOMP" `EXPCOMP` icone ExpImp_Preto_32/ExpImp_Branco_32 coberto, abre janela - Exportar e Importar Entre DWGs (linha 1995)
+  - (quebra de linha)
+  - Botao/IconeGrande "RESTPROJ" `RESTPROJ` icone Sincroniza_32/Sincroniza_32_Dark coberto - Restaura Projeto (linha 2005)
+- linha
+  - Botao/IconeGrande "MOVER" `MOV` icone Mover_32/Mover_32_Dark nao coberto - Mover elementos de uma página para outra (linha 2015)
+  - (quebra de linha)
+  - Botao/IconeGrande "REVAUT" `REVAUT` icone Revisao_32/Revisao_32_dark coberto, abre janela - Revisão Automática (linha 2025)
+- linha
+  - Botao/IconeGrande "EXPORTAR" `EXPDWG` icone DWG_Preto_32/DWG_Branco_32 coberto, abre janela - Exportar Páginas (linha 2035)
+  - (quebra de linha)
+  - Botao/IconeGrande "IMPRIMIR" `IMPR` icone Imprimir_32 coberto, abre janela (linha 2045)
+- --- daqui para baixo, a area recolhivel (RibbonPanelBreak) ---
+- linha
+  - Botao/IconeTexto "Editar Títulos e Textos" `TROCTT` icone Item coberto, abre janela (linha 2081)
+  - (quebra de linha)
+  - Botao/IconeTexto "Exportar e Importar Textos" `EXPIT` icone Item coberto, abre janela (linha 2085)
+  - (quebra de linha)
+  - Botao/IconeTexto "Copiar Objetos" `COPYCAD` icone Item coberto, abre janela (linha 2089)
+  - (quebra de linha)
+  - Botao/IconeTexto "Trocar Blocos" `TROCBL` icone Item coberto, abre janela (linha 2093)
+  - (quebra de linha)
+  - Botao/IconeTexto "Navegador Elétron" `PESQUISA` icone Item coberto, abre janela (linha 2097)
+  - (quebra de linha)
+  - Botao/IconeTexto "Apagar XDatas de Terceiros" `APAGARXDATA` icone Item coberto, abre janela (linha 2101)
+  - (quebra de linha)
+  - Botao/IconeTexto "Importar DWG" `IMPCAD` icone Item coberto, abre janela (linha 2105)
+  - (quebra de linha)
+  - Botao/IconeTexto "Trocar Usuário e Data" `MUDAUSER` icone Item coberto, abre janela (linha 2109)
+  - (quebra de linha)
+  - Botao/IconeTexto "Reset Janelas Abertas" `CorrigeJanelas` icone Item nao coberto (linha 2113)
 
-Os botoes cujo comando o recoder responde, **na ordem da barra** - e esta a lista que a
-barra ativa. Os que **abrem janela** sao os do mapa `docs/reverso-comandos.txt` (rodada 128):
-viraram botao de verdade sem nenhum codigo novo, porque o comando ja existe no CAD.
+### 9. Help (`vwCp1jIpDXj`, linha 2119)
 
-| # | painel | rotulo | comando | icone | abre janela |
-|---|---|---|---|---|---|
-| 1 | Configuração | CFG | `CFG` | `` | sim |
-| 2 | Caderno | GER DWG | `GERDWG` | `Database_Preto_32` | sim |
-| 3 | Caderno | Cadastro de Painéis | `PN` | `Item` | sim |
-| 4 | Caderno | Duplicar Caderno | `DUPCAD` | `Item` | sim |
-| 5 | Caderno | Índice de Páginas | `INDPG` | `Item` | sim |
-| 6 | Caderno | Relatório de Revisões | `RELREV` | `Item` | sim |
-| 7 | Caderno | Relatório de Revisões Furnas | `RELREVF` | `Item` | sim |
-| 8 | Caderno | Relatório de Revisões Matricial | `RELMATRI` | `Item` | sim |
-| 9 | Dispositivos | GERCONT | `GERCONT` | `GerContatos_32` | sim |
-| 10 | Dispositivos | GERMASC | `GERMASC` | `GerMascaras_32` | sim |
-| 11 | Dispositivos | DISP | `DISP` | `Dispositivos_32` | sim |
-| 12 | Dispositivos | PORTA | `PORT` | `Portas_32` | sim |
-| 13 | Dispositivos | CONTATO | `CONT` | `Contatos_32` | sim |
-| 14 | Dispositivos | DEFINIÇÃO | `DEF` | `Definicao_32` | sim |
-| 15 | Dispositivos |  | `MASC` | `Mascara_16` | sim |
-| 16 | Dispositivos |  | `MOVPN` | `MoverPainel_16` | sim |
-| 17 | Dispositivos |  | `SYNCD` | `Sincronizar_16` | nao |
-| 18 | Dispositivos | Configuração da Lista de Pontos | `CONFLP` | `Item` | sim |
-| 19 | Dispositivos | Inserir Descrição Lista de Pontos | `ADDDESC` | `Item` | sim |
-| 20 | Dispositivos | Migrar Portas | `MIGPOR` | `Item` | sim |
-| 21 | Dispositivos | Importar Modelos de Contatos | `MCONT` | `Item` | sim |
-| 22 | Dispositivos | Importar Modelos de Máscara | `MMASC` | `Item` | sim |
-| 23 | Dispositivos | Editor de Funções | `EDTFUNC` | `Item` | sim |
-| 24 | Dispositivos | Editor Dispositivos e Máscaras | `EDTDISPS` | `Item` | sim |
-| 25 | Dispositivos | Editor Terminais Disp. Avulsos | `EDTDISPSA` | `Item` | sim |
-| 26 | Dispositivos | Relatório Entradas/Saídas | `RELEKTRO` | `Item` | sim |
-| 27 | Bornes | GERRB | `GERRB` | `ReguaBorne_32` | sim |
-| 28 | Bornes | BORNE | `BORN` | `Bornes_32` | sim |
-| 29 | Bornes | EDBORN | `EDBORN` | `Editar_Preto_32` | sim |
-| 30 | Bornes | SELBORN | `SELBORN` | `EditaBornesSelecao_32` | sim |
-| 31 | Bornes |  | `STATBORN` | `Estatistica_16` | sim |
-| 32 | Bornes | Migrar Bornes e Conexões | `MBOR` | `Item` | sim |
-| 33 | Bornes | Clonar Estrutura Régua | `CLOBORN` | `Item` | sim |
-| 34 | Fiação | CIRCUITO | `CIRC` | `Circuito_32` | sim |
-| 35 | Fiação |  | `INSM` | `InsereCor_16` | sim |
-| 36 | Fiação |  | `EDCONP` | `Editor_16` | sim |
-| 37 | Fiação |  | `APL` | `Aplicacao2_16` | sim |
-| 38 | Fiação |  | `EDTNCIRC` | `EditarBornes_16` | sim |
-| 39 | Fiação | Verificar Fiação | `VFIA` | `Item` | sim |
-| 40 | Fiação | Layout Rápido | `LR` | `Item` | sim |
-| 41 | Fiação | Compilar Fiação | `FIA` | `Item` | sim |
-| 42 | Fiação | Sequenciador | `SEQ` | `Item` | sim |
-| 43 | Fiação | Jumper Interno | `LNK` | `Item` | sim |
-| 44 | Construtivo | GERLM | `GERLM` | `LM_32` | sim |
-| 45 | Construtivo | LAYMEC | `LAYMEC` | `Layout_32` | sim |
-| 46 | Construtivo | PLAQ | `PLAQ` | `GerPlaquetas_32` | sim |
-| 47 | Construtivo | Dispositivos Independentes e Avulsos | `ATINDEP` | `Item` | sim |
-| 48 | Construtivo | Exportar Plaquetas BD Projeto | `EPLQ` | `Item` | nao |
-| 49 | Construtivo | Exportar LM BD Projeto | `COMPLM` | `Item` | nao |
-| 50 | Cabos e Veias | JUMPEXT | `JPEXT` | `JumperExt_32` | sim |
-| 51 | Cabos e Veias | IVEIEX | `IVEIEX` | `Excel_32` | sim |
-| 52 | Cabos e Veias | EDCABO | `EDCABO` | `Editar_Preto_32` | sim |
-| 53 | Cabos e Veias | ATCABO | `ATCABO` | `Veias_32` | sim |
-| 54 | Cabos e Veias |  | `PESQC` | `Pesquisar_16` | sim |
-| 55 | Cabos e Veias |  | `SYNCV` | `Sincronizar_16` | nao |
-| 56 | Cabos e Veias | Verificar Interligação | `VINT` | `Item` | sim |
-| 57 | Cabos e Veias | Compilar Jumper Externo | `JMP` | `Item` | sim |
-| 58 | Cabos e Veias | Compilar Interligação | `INT` | `Item` | sim |
-| 59 | Cabos e Veias | Sequenciador de Jumper Externo | `SEQJ` | `Item` | sim |
-| 60 | Cabos e Veias | Clonar Cabos | `CLOCAB` | `Item` | sim |
-| 61 | Cabos e Veias | Pesquisar Cabos e Veias | `PESQCAB` | `Item` | sim |
-| 62 | Cabos e Veias | Estimativa Veias Faltantes | `ESTVL` | `Item` | sim |
-| 63 | Cabos e Veias | Estatística de Cabos Utilizados | `ESTVCABOS` | `Item` | sim |
-| 64 | Cabos e Veias | Editor de Nome e Função Veias | `EDNOMEFUNVEIAS` | `Item` | sim |
-| 65 | Cabos e Veias | Recriar Textos dos Cabos | `RECRIACABOS` | `Item` | nao |
-| 66 | Cabos e Veias | Atributos do Cabo | `OPVEIAS` | `Item` | sim |
-| 67 | Cabos e Veias | Importar Interligação Excel | `IIEX` | `Item` | sim |
-| 68 | Utilitários | PDF | `EXPPDF` | `PDF_VM_32` | sim |
-| 69 | Utilitários | CLONAR | `CLONAR` | `Clonar_32` | sim |
-| 70 | Utilitários | CBD | `CBD` | `Comprimir_32` | nao |
-| 71 | Utilitários | EXPCOMP | `EXPCOMP` | `ExpImp_Preto_32` | sim |
-| 72 | Utilitários | RESTPROJ | `RESTPROJ` | `Sincroniza_32` | nao |
-| 73 | Utilitários | REVAUT | `REVAUT` | `Revisao_32` | sim |
-| 74 | Utilitários | EXPORTAR | `EXPDWG` | `DWG_Preto_32` | sim |
-| 75 | Utilitários | IMPRIMIR | `IMPR` | `Imprimir_32` | sim |
-| 76 | Utilitários | Editar Títulos e Textos | `TROCTT` | `Item` | sim |
-| 77 | Utilitários | Exportar e Importar Textos | `EXPIT` | `Item` | sim |
-| 78 | Utilitários | Copiar Objetos | `COPYCAD` | `Item` | sim |
-| 79 | Utilitários | Trocar Blocos | `TROCBL` | `Item` | sim |
-| 80 | Utilitários | Navegador Elétron | `PESQUISA` | `Item` | sim |
-| 81 | Utilitários | Apagar XDatas de Terceiros | `APAGARXDATA` | `Item` | sim |
-| 82 | Utilitários | Importar DWG | `IMPCAD` | `Item` | sim |
-| 83 | Utilitários | Trocar Usuário e Data | `MUDAUSER` | `Item` | sim |
+- linha
+  - Botao/IconeGrande "Help" `AJUDA` icone Ajuda_32/Ajuda_32_Dark nao coberto (linha 2144)
+  - (quebra de linha)
+  - Alternar/IconeGrande `InfoOn` icone InformationOn_32/InformationOn_32_Dark nao coberto (linha 2154)
 
 ## Contagens
 
 - Paineis: **9**.
-- Botoes: **121** (o recoder responde a **83**).
-- Botoes que o recoder responde **e** abrem janela: **76**.
-- Comandos distintos na barra: **120**.
-- Icones distintos: **60** (sem os vazios).
-- Chamadas dos ajudantes no `Ribbon.cs`: **120** + **1** `DialogLauncher` = **121** (contra **121** botoes extraidos: as quatro assinaturas dos ajudantes no fim do arquivo nao contam).
+- Botoes: **121**; menus: **5** com **39** itens; liga/desliga: **1**.
+- Acionaveis (botao, item de menu, liga/desliga): **161** - o recoder responde a **108**, dos quais **101** abrem janela.
 

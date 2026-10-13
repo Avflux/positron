@@ -6,7 +6,7 @@
 
 **Não.** O que está coberto é o **recorte** — as correções e a limpeza do CAD (frente 2), a base/contexto (frente 1) e os três pipelines —, e o que está **mapeado** são os **216 comandos** do reverso (todos classificados). O que **não** está coberto é a **lógica por trás dos formulários** (49% do código do reverso) nem a pilha de exportação/importação, as rotinas destrutivas e a integração de ambiente/licença.
 
-## 0. Estado medido agora — o que falta, em ordem (rodadas 132–146)
+## 0. Estado medido agora — o que falta, em ordem (rodadas 132–147)
 
 Esta seção responde à pergunta recorrente *"o que já cobrimos e o que falta"* **com número medido no
 próprio repo**, e não com memória: o `scripts/cobertura-do-reverso.ps1` cruza o mapa dos 216 comandos
@@ -26,8 +26,8 @@ powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acopl
 | comandos do reverso | **216** |
 | deles, abrem alguma janela / são regra de desenho pura | **121** / **95** |
 | telas `frm*` | **127** |
-| comandos que o plugin responde | **166** = **67 escritos à mão** (48 do reverso + 19 nossos) + **99 gerados** (só abrem a tela) |
-| comandos do reverso **sem nada no plugin** | **69** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **52** de regra pura |
+| comandos que o plugin responde | **168** = **69 escritos à mão** (49 do reverso + 20 nossos) + **99 gerados** (só abrem a tela) |
+| comandos do reverso **sem nada no plugin** | **68** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **51** de regra pura |
 | telas alcançadas por algum comando | **103** (5 com regra escrita à mão, 98 só casca) |
 | telas que **nenhum** comando abre (sub-janela: relatórios DWG/Excel, editores) | **19** |
 | telas sem comando e sem casca pelo nome (variante/splash) | **5** |
@@ -39,7 +39,7 @@ leu** — `-Decomp` aponta para outra cópia (a de fora do repo, por exemplo). O
 regeração da rodada 134 saiu **byte a byte igual** ao que já estava no repo: só a linha de
 proveniência mudou.
 
-**Os "52 sem tela e sem nada no plugin" não são 52 regras faltando:** a triagem do §7.6 já dividiu
+**Os "51 sem tela e sem nada no plugin" não são 51 regras faltando:** a triagem do §7.6 já dividiu
 cada um (só UI, interativo, destrutivo, ambiente ou substância coberta sob outro nome). A **regra em
 lote de verdade** estava na **frente 2**, e ela fechou no que é regra: dos **38** comandos, **37**
 estão entregues (o **`EncontraHandle`** na **rodada 146**; antes, o **`CorrigeInterligacao`** na

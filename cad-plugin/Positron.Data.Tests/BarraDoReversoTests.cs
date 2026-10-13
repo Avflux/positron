@@ -6,28 +6,49 @@ using Xunit;
 namespace Positron.Data.Tests
 {
     /// <summary>
-    /// A barra de ferramentas do reverso (`BarraDoReverso`) — a aba, os nove painéis e os 121 botões
-    /// do `Ribbon.cs`, medidos pelo `scripts/extrair-barra-do-reverso.ps1`.
+    /// A barra de ferramentas do reverso (`BarraDoReverso`) — a aba, os nove painéis e a árvore de
+    /// cada um como o `Ribbon.cs` a monta, medidos pelo `scripts/extrair-barra-do-reverso.ps1`.
     ///
-    /// O que estes testes protegem é o **cruzamento**: todo botão que diz abrir janela tem de ter o
-    /// comando no mapa dos 216 (`ComandosDoReverso`) **com** uma tela. É o que faz a barra ser uma
-    /// porta de entrada de verdade para as telas, e não um rótulo bonito.
+    /// O que estes testes protegem: (1) a **estrutura** — as contagens batem com os `new Ribbon*()`
+    /// do arquivo, e a árvore tem a forma do original (linhas, área recolhível, menus); (2) o
+    /// **cruzamento** — todo item que diz abrir janela tem o comando no mapa dos 216
+    /// (`ComandosDoReverso`) **com** uma tela.
     /// </summary>
     public class BarraDoReversoTests
     {
         [Fact]
-        public void ASaoDaAbaOAidEOtituloDoOriginal()
+        public void OIdEOTituloDaAbaSaoDoOriginal()
         {
             Assert.Equal("CENG.ID_Elet", BarraDoReverso.IdDaAbaDoOriginal);
             Assert.Equal("Elétron", BarraDoReverso.TituloDaAbaDoOriginal);
         }
 
-        [Fact]
-        public void SaoNovePaineisECentoEVinteEUmBotoes()
+        /// <summary>
+        /// As contagens por tipo são as do `Ribbon.cs` (o `new RibbonX()` de cada classe): o mapa não
+        /// perde nem inventa item. Os separadores contam cada **uso** na árvore (o original reusa a
+        /// mesma variável: 3 declarados, um deles usado seis vezes, e 3 criados na própria adição).
+        /// </summary>
+        [Theory]
+        [InlineData(TipoDoItemDaBarra.Botao, 121)]
+        [InlineData(TipoDoItemDaBarra.Menu, 5)]
+        [InlineData(TipoDoItemDaBarra.ItemDeMenu, 39)]
+        [InlineData(TipoDoItemDaBarra.Linha, 34)]
+        [InlineData(TipoDoItemDaBarra.QuebraDeLinha, 86)]
+        [InlineData(TipoDoItemDaBarra.Recolhe, 7)]
+        [InlineData(TipoDoItemDaBarra.ListaDeSecao, 1)]
+        [InlineData(TipoDoItemDaBarra.CampoDeCor, 1)]
+        [InlineData(TipoDoItemDaBarra.Alternar, 1)]
+        [InlineData(TipoDoItemDaBarra.Separador, 9)]
+        public void AsContagensSaoAsDoRibbon(TipoDoItemDaBarra tipo, int esperado)
         {
-            Assert.Equal(9, BarraDoReverso.Paineis.Count);
-            Assert.Equal(121, BarraDoReverso.Quantidade);
-            Assert.Equal(121, BarraDoReverso.Botoes.Count);
+            Assert.Equal(esperado, BarraDoReverso.Contar(tipo));
+        }
+
+        [Fact]
+        public void OsAcionaveisSaoBotoesItensDeMenuEOLigaDesliga()
+        {
+            Assert.Equal(121 + 39 + 1, BarraDoReverso.Acionaveis.Count);
+            Assert.All(BarraDoReverso.Acionaveis, item => Assert.True(item.Acionavel));
         }
 
         [Fact]
@@ -58,177 +79,204 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
-        public void OsPaineisSomamOsBotoesDaBarra()
+        public void AConfiguracaoEOBannerDesativadoEOCfgNoCanto()
         {
-            int total = 0;
+            PainelDaBarra configuracao = BarraDoReverso.Paineis[0];
+            ItemDaBarra banner = Assert.Single(configuracao.Itens);
+
+            Assert.Equal(TipoDoItemDaBarra.Botao, banner.Tipo);
+            Assert.Equal("Grande", banner.Grau);
+            Assert.True(banner.Desativado);
+            Assert.False(banner.TemComando);
+            Assert.Equal("Setup_32", banner.Icone);
+            Assert.Equal("Setup_32_Dark", banner.IconeEscuro);
+
+            Assert.NotNull(configuracao.Lancador);
+            Assert.Equal("CFG", configuracao.Lancador.Comando);
+            Assert.Equal("Dialogo", configuracao.Lancador.Grau);
+        }
+
+        /// <summary>O arquivo do original tem um só `DialogLauncher`: o `CFG` da Configuração.</summary>
+        [Fact]
+        public void SoAConfiguracaoTemBotaoNoCanto()
+        {
+            int comLancador = 0;
             foreach (PainelDaBarra painel in BarraDoReverso.Paineis)
             {
-                total += painel.Botoes.Count;
+                if (painel.Lancador != null)
+                {
+                    comLancador++;
+                }
             }
 
-            Assert.Equal(BarraDoReverso.Quantidade, total);
+            Assert.Equal(1, comLancador);
         }
 
         [Fact]
-        public void TodoBotaoTemLinhaDoRibbonEDica()
+        public void OCadernoAbreComDuasLinhasDeIconeGrandeEARecolhivel()
         {
-            Assert.All(BarraDoReverso.Botoes, botao =>
-            {
-                Assert.True(botao.Origem > 0, "botao sem a linha do Ribbon.cs");
-                Assert.False(string.IsNullOrEmpty(botao.Grau));
+            IReadOnlyList<ItemDaBarra> itens = BarraDoReverso.Paineis[1].Itens;
 
-                // O banner da versao e o unico sem rotulo e sem dica: o texto dele o original
-                // monta em execucao (versao + hardlock), entao no mapa ele sai vazio.
-                if (!botao.TemComando)
+            Assert.Equal(TipoDoItemDaBarra.Linha, itens[0].Tipo);
+            Assert.Equal(new[] { "CAD", "", "GERDWG" }, Comandos(itens[0].Filhos));
+            Assert.Equal(TipoDoItemDaBarra.QuebraDeLinha, itens[0].Filhos[1].Tipo);
+            Assert.Equal(new[] { "REGH", "", "REGV" }, Comandos(itens[1].Filhos));
+            Assert.Equal(TipoDoItemDaBarra.Recolhe, itens[2].Tipo);
+
+            ItemDaBarra gerdwg = BarraDoReverso.Buscar("GERDWG");
+            Assert.Equal("IconeGrande", gerdwg.Grau);
+            Assert.Equal("GER DWG", gerdwg.Rotulo);
+            Assert.Equal("Database_Preto_32", gerdwg.Icone);
+            Assert.Equal("Database_Branco_32", gerdwg.IconeEscuro);
+        }
+
+        [Fact]
+        public void AFiacaoTemAListaACorEOsDoisMenus()
+        {
+            PainelDaBarra fiacao = BarraDoReverso.Paineis[4];
+            ItemDaBarra linha = null;
+            foreach (ItemDaBarra item in fiacao.Itens)
+            {
+                if (item.Tipo == TipoDoItemDaBarra.Linha && item.Filhos[0].Tipo == TipoDoItemDaBarra.ListaDeSecao)
                 {
-                    return;
+                    linha = item;
+                }
+            }
+
+            Assert.NotNull(linha);
+            Assert.Equal(TipoDoItemDaBarra.CampoDeCor, linha.Filhos[1].Tipo);
+            Assert.Equal(65, linha.Filhos[0].Largura);
+
+            List<ItemDaBarra> menus = new List<ItemDaBarra>();
+            foreach (ItemDaBarra item in linha.Filhos)
+            {
+                if (item.Tipo == TipoDoItemDaBarra.Menu)
+                {
+                    menus.Add(item);
+                }
+            }
+
+            Assert.Equal(2, menus.Count);
+            Assert.Equal(9, menus[0].Filhos.Count);
+            Assert.Equal("RFIA", menus[0].Filhos[0].Comando);
+            Assert.Equal(new[] { "TPG", "ATPG" }, Comandos(menus[1].Filhos));
+        }
+
+        [Fact]
+        public void OHelpEOAjudaEOLigaDesligaInfoOn()
+        {
+            ItemDaBarra linha = Assert.Single(BarraDoReverso.Paineis[8].Itens);
+            Assert.Equal(new[] { "AJUDA", "", "InfoOn" }, Comandos(linha.Filhos));
+
+            ItemDaBarra info = linha.Filhos[2];
+            Assert.Equal(TipoDoItemDaBarra.Alternar, info.Tipo);
+            Assert.Equal("InformationOn_32", info.Icone);
+            Assert.Equal("InformationOn_32_Dark", info.IconeEscuro);
+        }
+
+        /// <summary>A forma da árvore: quebra só dentro de linha, item de menu só dentro de menu.</summary>
+        [Fact]
+        public void AArvoreTemAFormaDoRibbon()
+        {
+            foreach (PainelDaBarra painel in BarraDoReverso.Paineis)
+            {
+                int recolhe = 0;
+                foreach (ItemDaBarra item in painel.Itens)
+                {
+                    Assert.NotEqual(TipoDoItemDaBarra.QuebraDeLinha, item.Tipo);
+                    Assert.NotEqual(TipoDoItemDaBarra.ItemDeMenu, item.Tipo);
+                    if (item.Tipo == TipoDoItemDaBarra.Recolhe)
+                    {
+                        recolhe++;
+                    }
+
+                    foreach (ItemDaBarra descendente in item.EleEOsDescendentes())
+                    {
+                        if (descendente.Tipo == TipoDoItemDaBarra.Menu)
+                        {
+                            Assert.NotEmpty(descendente.Filhos);
+                            Assert.All(descendente.Filhos, filho => Assert.Equal(TipoDoItemDaBarra.ItemDeMenu, filho.Tipo));
+                        }
+                        else if (descendente.Tipo != TipoDoItemDaBarra.Linha)
+                        {
+                            Assert.Empty(descendente.Filhos);
+                        }
+                    }
                 }
 
-                Assert.False(string.IsNullOrEmpty(botao.Rotulo) && string.IsNullOrEmpty(botao.Dica));
+                Assert.True(recolhe <= 1, "painel " + painel.Titulo + " com mais de uma area recolhivel");
+            }
+        }
+
+        [Fact]
+        public void TodoAcionavelTemLinhaDoRibbonEGrau()
+        {
+            Assert.All(BarraDoReverso.Acionaveis, item =>
+            {
+                Assert.True(item.Origem > 0, "item sem a linha do Ribbon.cs");
+                Assert.False(string.IsNullOrEmpty(item.Grau));
+                if (item.TemComando)
+                {
+                    Assert.False(string.IsNullOrEmpty(item.Rotulo) && string.IsNullOrEmpty(item.Dica) && item.Tipo != TipoDoItemDaBarra.Alternar && item.Grau != "Dialogo");
+                }
             });
         }
 
         [Fact]
-        public void OPrimeiroBotaoEBannerDaVersao()
+        public void OsCobertosEOsQueAbremJanelaSomamOCruzamentoMedido()
         {
-            // O painel Configuração abre com o banner (sem comando): o `Text` dele monta a versão e
-            // o hardlock em tempo de execução, então o mapa sai com rótulo vazio.
-            BotaoDaBarra banner = BarraDoReverso.Paineis[0].Botoes[0];
-
-            Assert.False(banner.TemComando);
-            Assert.False(banner.Coberto);
-            Assert.Equal("Setup_32", banner.Icone);
-            Assert.Equal("Grande", banner.Grau);
-        }
-
-        /// <summary>O launcher do canto do painel também é um botão — e é o `CFG` no original.</summary>
-        [Fact]
-        public void OLancadorDeDialogoDaConfiguracaoEOComandoCfg()
-        {
-            BotaoDaBarra cfg = BarraDoReverso.Buscar("CFG");
-
-            Assert.NotNull(cfg);
-            Assert.Equal("Dialogo", cfg.Grau);
-            Assert.True(cfg.Coberto);
-            Assert.True(cfg.AbreJanela);
-        }
-
-        /// <summary>
-        /// O arquivo do original tem **um só** `DialogLauncher` (o `CFG` da Configuração) e **120**
-        /// chamadas de ajudante; 120 + 1 = os **121** botões do mapa. É a conta que fecha a extração
-        /// com o arquivo-fonte: se aparecesse um segundo launcher e ele não entrasse no mapa, a
-        /// barra ficaria com um botão a menos sem ninguém notar.
-        /// </summary>
-        [Fact]
-        public void OAjudanteEElancadorSomamOsCentoEVinteEUmBotoes()
-        {
-            int chamadas = 0;
-            int launchers = 0;
-            foreach (BotaoDaBarra botao in BarraDoReverso.Botoes)
-            {
-                if (botao.Grau == "Dialogo")
-                {
-                    launchers++;
-                    continue;
-                }
-
-                chamadas++;
-            }
-
-            Assert.Equal(120, chamadas);
-            Assert.Equal(1, launchers);
-            Assert.Equal(121, chamadas + launchers);
-            Assert.Equal("CFG", Assert.Single(BotoesDeDialogo()).Comando);
-        }
-
-        private static List<BotaoDaBarra> BotoesDeDialogo()
-        {
-            List<BotaoDaBarra> achados = new List<BotaoDaBarra>();
-            foreach (BotaoDaBarra botao in BarraDoReverso.Botoes)
-            {
-                if (botao.Grau == "Dialogo")
-                {
-                    achados.Add(botao);
-                }
-            }
-
-            return achados;
-        }
-
-        [Fact]
-        public void OGerdwgEOMesmoBotaoDoOriginal()
-        {
-            BotaoDaBarra botao = BarraDoReverso.Buscar("GERDWG");
-
-            Assert.NotNull(botao);
-            Assert.Equal("GER DWG", botao.Rotulo);
-            Assert.Equal("Database_Preto_32", botao.Icone);
-            Assert.Equal("Pequeno", botao.Grau);
-            Assert.True(botao.Utilizavel);
-        }
-
-        [Fact]
-        public void OsBotoesCobertosEAbrindoJanelaSomamOCruzamentoMedido()
-        {
-            Assert.Equal(83, BarraDoReverso.QuantosCobertos());
-            Assert.Equal(76, BarraDoReverso.QuantosAbremJanela());
+            Assert.Equal(108, BarraDoReverso.QuantosCobertos());
+            Assert.Equal(101, BarraDoReverso.QuantosAbremJanela());
         }
 
         /// <summary>
         /// O cruzamento que interessa: quem diz que abre janela tem o comando **e** a tela no outro
-        /// mapa. Um só dos dois lados seria um botão que não abre nada.
+        /// mapa. Um só dos dois lados seria um item que não abre nada.
         /// </summary>
         [Fact]
-        public void TodoBotaoQueDizAbrirJanelaTemAComandoETela()
+        public void TodoAcionavelQueDizAbrirJanelaTemAComandoETela()
         {
             List<string> conferidos = new List<string>();
-            List<string> ligados = new List<string>();
-            foreach (BotaoDaBarra botao in BarraDoReverso.Botoes)
+            List<string> semComando = new List<string>();
+            foreach (ItemDaBarra item in BarraDoReverso.Acionaveis)
             {
-                if (!botao.AbreJanela)
+                if (!item.AbreJanela)
                 {
                     continue;
                 }
 
-                Comando comando = ComandosDoReverso.Buscar(botao.Comando);
-                Assert.True(comando != null, "botao " + botao.Comando + " sem comando no mapa dos 216");
-                Assert.True(comando.AbreJanela, "botao " + botao.Comando + " marcado na barra mas sem janela no mapa");
+                Comando comando = ComandosDoReverso.Buscar(item.Comando);
+                Assert.True(comando != null, "item " + item.Comando + " sem comando no mapa dos 216");
+                Assert.True(comando.AbreJanela, "item " + item.Comando + " marcado na barra mas sem janela no mapa");
                 Assert.NotNull(FormulariosDoReverso.Buscar(comando.Janelas[0].Nome));
-                conferidos.Add(botao.Comando);
-                if (botao.Utilizavel)
+                conferidos.Add(item.Comando);
+                if (!item.Utilizavel)
                 {
-                    ligados.Add(botao.Comando);
+                    semComando.Add(item.Comando);
                 }
             }
 
-            // 78 botoes da barra do original abrem janela; 76 deles o recoder responde (TROCAPN e
-            // IMPBD ficaram de fora como os outros: variante de tela e comando com regra propria).
-            Assert.Equal(78, conferidos.Count);
-            Assert.Equal(76, ligados.Count);
-            Assert.DoesNotContain("TROCAPN", ligados);
-            Assert.DoesNotContain("IMPBD", ligados);
+            // 117 itens da barra abrem janela; 16 o recoder nao responde: TROCAPN e IMPBD e as 14
+            // variantes `DI*` do menu de relatorios (a tela com argumento, que nao vira comando).
+            Assert.Equal(117, conferidos.Count);
+            Assert.Equal(16, semComando.Count);
+            Assert.Contains("TROCAPN", semComando);
+            Assert.Contains("IMPBD", semComando);
+            Assert.Contains("DIFURNAS", semComando);
         }
 
-        /// <summary>Todo botão utilizável tem comando no plugin — e o Coberto vem de lá.</summary>
         [Fact]
-        public void UtilizavelExigeComandoECobertura()
+        public void UtilizavelExigeComandoCoberturaEItemAtivo()
         {
-            Assert.All(BarraDoReverso.Botoes, botao =>
-            {
-                Assert.Equal(botao.TemComando && botao.Coberto, botao.Utilizavel);
-                if (!botao.Utilizavel)
-                {
-                    return;
-                }
-
-                Assert.False(string.IsNullOrEmpty(botao.Comando));
-            });
+            Assert.All(BarraDoReverso.Acionaveis, item =>
+                Assert.Equal(item.TemComando && item.Coberto && !item.Desativado, item.Utilizavel));
         }
 
         [Fact]
         public void ABuscaIgnoraAMaiusculaEZeraONaoEncontrado()
         {
             Assert.NotNull(BarraDoReverso.Buscar("gerdwg"));
+            Assert.NotNull(BarraDoReverso.Buscar("rfia"));
             Assert.Null(BarraDoReverso.Buscar("NAOEXISTE"));
             Assert.Null(BarraDoReverso.Buscar(null));
             Assert.Null(BarraDoReverso.Buscar(string.Empty));
@@ -237,11 +285,28 @@ namespace Positron.Data.Tests
         [Fact]
         public void OsIconesSaoNomesDeRecursoDoOriginal()
         {
-            Assert.All(BarraDoReverso.Botoes, botao =>
+            foreach (PainelDaBarra painel in BarraDoReverso.Paineis)
             {
-                Assert.DoesNotContain(".", botao.Icone);
-                Assert.DoesNotContain("/", botao.Icone);
-            });
+                foreach (ItemDaBarra raiz in painel.Itens)
+                {
+                    foreach (ItemDaBarra item in raiz.EleEOsDescendentes())
+                    {
+                        Assert.DoesNotContain(".", item.Icone + item.IconeEscuro);
+                        Assert.DoesNotContain("/", item.Icone + item.IconeEscuro);
+                    }
+                }
+            }
+        }
+
+        private static string[] Comandos(IReadOnlyList<ItemDaBarra> itens)
+        {
+            List<string> saida = new List<string>();
+            foreach (ItemDaBarra item in itens)
+            {
+                saida.Add(item.Comando);
+            }
+
+            return saida.ToArray();
         }
 
         private static List<string> NomesDosPaineis()

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Positron.Data.Interface.Mapas;
@@ -17,52 +18,79 @@ namespace Positron.Plugin.Interface.Barra
 {
     /// <summary>
     /// A **barra de ferramentas** do Positron, montada a partir do **mapa do reverso**
-    /// (<see cref="BarraDoReverso"/>) — e não desenhada à mão: os nove painéis saem na ordem do
-    /// <c>CreateRibbon()</c>/<c>CreateRibbon2()</c> do original, com o **título** dele (resolvido
-    /// pela <c>mMensagem</c>), e cada um dos **121 botões** na ordem do corpo do <c>Ribbon.cs</c>,
-    /// com o rótulo, a dica e o **ícone do produto** (a <c>lib/Icons</c>, extraída do DLL).
+    /// (<see cref="BarraDoReverso"/>) — e não desenhada à mão: os nove painéis na ordem do
+    /// <c>CreateRibbon()</c>/<c>CreateRibbon2()</c> do original e, em cada um, a **árvore** que o
+    /// <c>Ribbon.cs</c> monta (rodada 147): as linhas com as quebras, a área recolhível, os
+    /// separadores, os menus suspensos, a lista de seção, o campo da cor, o liga/desliga e o botão do
+    /// canto — cada item com o **estilo do ajudante** que o configura no original (grande com texto,
+    /// ícone grande, ícone 16 com texto, só o ícone 16) e o ícone do **tema** do CAD.
     ///
-    /// O que decide se o botão funciona é o comando: <see cref="BotaoDaBarra.Coberto"/> é "o recoder
-    /// responde a esse comando hoje" — e é por isso que a barra agora **chama as janelas** do mapa
-    /// das telas (76 dos botões do original abrem uma tela, sem nenhum código novo: o comando já
-    /// existe no CAD desde a rodada 128). O botão cujo comando ainda não existe entra **desativado**
-    /// e com a dica dizendo isso: a barra do original fica inteira à vista, e o que funciona é o que
-    /// está ligado.
+    /// O que decide se o item funciona é o comando: <see cref="ItemDaBarra.Utilizavel"/> é "o recoder
+    /// responde a esse comando hoje". O item cujo comando ainda não existe entra **desativado** e com
+    /// a dica dizendo isso: a barra do original fica inteira à vista, e o que funciona é o que está
+    /// ligado. Três botões do original têm, no recoder, um comando **próprio** que faz o trabalho —
+    /// e o comando com o nome de lá só abre a casca da tela: eles chamam o nosso
+    /// (<see cref="ComandoNoRecoder"/>). Foi isso que tirou da barra o painel extra "Positron" que
+    /// repetia esses comandos (rodada 147).
     ///
-    /// Duas diferenças deliberadas do original, registradas: a aba é <c>POSITRON.ID_Positron</c> e
-    /// chama-se **Positron** (o original é <c>CENG.ID_Elet</c>/"Elétron" — o id e o título de lá
-    /// ficam no mapa), e os botões pequenos, que no original só mostram o ícone e ficam com o nome
-    /// na dica, aqui mostram o texto curto (a nossa barra tem menos botões por painel e o rótulo
-    /// ajuda a chamar a janela certa).
+    /// Diferença deliberada do original, registrada: a aba é <c>POSITRON.ID_Positron</c> e chama-se
+    /// **Positron** (o original é <c>CENG.ID_Elet</c>/"Elétron" — o id e o título de lá ficam no
+    /// mapa), e o banner do painel Configuração diz "Positron" (no original, a versão e o hardlock).
     ///
     /// **A mesma construção serve aos dois CADs** (rodada 138): o <c>ZwSoft.Windows</c> do ZWCAD e o
     /// <c>Autodesk.Windows</c> da <c>AdWindows.dll</c> são a mesma API de ribbon, então só o
-    /// <c>using</c> muda (os dois <c>RibbonControl</c>/<c>RibbonTab</c>/<c>RibbonButton</c> saem do
-    /// <c>using</c> condicional). Duas divergências ficam em <c>#if</c>, medidas no compilador: o
-    /// <c>Name</c> do item, que no ZWCAD se chama <c>Id</c> no AutoCAD, e o "desativado", que é
-    /// <c>IsActive</c> no ZWCAD e <c>IsEnabled</c> no AutoCAD.
+    /// <c>using</c> muda. Duas divergências ficam em <c>#if</c>: o <c>Name</c> do item, que no ZWCAD
+    /// se chama <c>Id</c> no AutoCAD, e o "desativado": o <c>IsEnabled</c> serve aos dois (está no
+    /// <c>RibbonItem</c>, inclusive na lista e no campo), e no ZWCAD o item de comando também leva o
+    /// <c>IsActive = false</c> que o original usa lá.
     ///
     /// **Onde ela não existe:** no <c>accoreconsole</c> (o harness headless) não há ribbon nenhum —
     /// o <c>ComponentManager.Ribbon</c> é nulo e o método devolve a linha dizendo isso, sem lançar.
-    /// Medido na rodada 138: no AutoCAD de interface cheia a aba é criada no load (a mensagem sai
-    /// com os painéis e os botões).
     /// </summary>
     internal static class BarraDeFerramentas
     {
         internal const string IdDaAba = "POSITRON.ID_Positron";
 
-        /// <summary>Os comandos do próprio recoder, que não têm lugar na barra do original.</summary>
-        private static readonly string[][] ComandosDoRecoder = new[]
+        /// <summary>
+        /// Os botões do original cujo trabalho, no recoder, é de um comando **nosso**: o comando com
+        /// o nome de lá existe, mas só abre a casca da tela (gerado na rodada 128).
+        /// </summary>
+        private static readonly Dictionary<string, string> Substitutos =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "CFG", "ELETCFG" },
+                { "VFIA", "VERIF" },
+                { "VINT", "VERIF" },
+            };
+
+        /// <summary>O comando que o item chama no recoder: o substituto, quando há, ou o do original.</summary>
+        internal static string ComandoNoRecoder(string comandoDoOriginal)
         {
-            new[] { "ELET", "Páginas", "Caderno_32" },
-            new[] { "FOLHAS", "Folhas", "Caderno_32" },
-            new[] { "JANELAS", "Janelas do reverso", "Item" },
-            new[] { "JANELA", "Uma janela", "Item" },
-            new[] { "VERIF", "Verificador", "Item" },
-            new[] { "ELETCFG", "Configuração", "Setup_32" },
-            new[] { "pzDiag", "Diagnóstico", "Item" },
-            new[] { "pzTelas", "Montar as telas", "Item" },
-        };
+            string nosso;
+            return Substitutos.TryGetValue(comandoDoOriginal ?? string.Empty, out nosso) ? nosso : comandoDoOriginal;
+        }
+
+        /// <summary>O que foi montado, por tipo — a linha do log e a medição contra o mapa.</summary>
+        private sealed class Contagem
+        {
+            internal readonly Dictionary<TipoDoItemDaBarra, int> PorTipo = new Dictionary<TipoDoItemDaBarra, int>();
+            internal int Ligados;
+            internal int Desativados;
+            internal int Substituidos;
+
+            internal void Somar(TipoDoItemDaBarra tipo)
+            {
+                int atual;
+                PorTipo.TryGetValue(tipo, out atual);
+                PorTipo[tipo] = atual + 1;
+            }
+
+            internal int De(TipoDoItemDaBarra tipo)
+            {
+                int atual;
+                return PorTipo.TryGetValue(tipo, out atual) ? atual : 0;
+            }
+        }
 
         /// <summary>Cria (ou recria) a aba e devolve a linha de resumo. Nunca lança.</summary>
         /// <remarks>
@@ -113,43 +141,376 @@ namespace Positron.Plugin.Interface.Barra
                 };
                 ribbon.Tabs.Add(aba);
 
-                int ativosDoOriginal = 0;
-                int desativados = 0;
+                bool escuro = TemaEscuro();
+                Contagem conta = new Contagem();
                 int paineis = 0;
                 foreach (PainelDaBarra painel in BarraDoReverso.Paineis)
                 {
                     RibbonPanelSource fonte = new RibbonPanelSource { Title = painel.Titulo };
-                    RibbonPanel quadro = new RibbonPanel { Source = fonte };
-                    aba.Panels.Add(quadro);
+                    aba.Panels.Add(new RibbonPanel { Source = fonte });
                     paineis++;
 
-                    foreach (BotaoDaBarra botao in painel.Botoes)
+                    foreach (ItemDaBarra item in painel.Itens)
                     {
-                        fonte.Items.Add(Botao(botao, ref ativosDoOriginal, ref desativados));
+                        fonte.Items.Add(Construir(item, escuro, conta));
+                    }
+
+                    if (painel.Lancador != null)
+                    {
+                        fonte.DialogLauncher = (RibbonCommandItem)Construir(painel.Lancador, escuro, conta);
                     }
                 }
 
-                // Os comandos que são nossos e não existem na barra do original (a paleta das
-                // folhas, o seletor das 127 telas, o verificador) num painel no fim, para não
-                // ficarem sem porta de entrada.
-                RibbonPanelSource nossa = new RibbonPanelSource { Title = "Positron" };
-                RibbonPanel quadroNossa = new RibbonPanel { Source = nossa };
-                aba.Panels.Add(quadroNossa);
-                paineis++;
-                foreach (string[] comando in ComandosDoRecoder)
-                {
-                    nossa.Items.Add(DoRecoder(comando));
-                }
+                // Como o original (`val.IsActive = true` no CreateRibbon): a aba abre à frente.
+                aba.IsActive = true;
 
                 return "Barra: aba \"" + aba.Title + "\" com " + paineis + " painel(is) — "
-                    + BarraDoReverso.Quantidade + " botão(ões) do original ("
-                    + ativosDoOriginal + " ligado(s), " + desativados + " desativado(s); "
-                    + BarraDoReverso.QuantosAbremJanela() + " abrem uma janela) e "
-                    + ComandosDoRecoder.Length + " do recoder.";
+                    + conta.De(TipoDoItemDaBarra.Botao) + " botão(ões), "
+                    + conta.De(TipoDoItemDaBarra.Menu) + " menu(s) com " + conta.De(TipoDoItemDaBarra.ItemDeMenu) + " item(ns), "
+                    + conta.De(TipoDoItemDaBarra.Alternar) + " liga/desliga, "
+                    + conta.De(TipoDoItemDaBarra.ListaDeSecao) + " lista e " + conta.De(TipoDoItemDaBarra.CampoDeCor) + " campo; "
+                    + conta.De(TipoDoItemDaBarra.Linha) + " linha(s), " + conta.De(TipoDoItemDaBarra.QuebraDeLinha) + " quebra(s), "
+                    + conta.De(TipoDoItemDaBarra.Recolhe) + " área(s) recolhível(is), " + conta.De(TipoDoItemDaBarra.Separador) + " separador(es). "
+                    + "Acionáveis: " + conta.Ligados + " ligado(s) (" + conta.Substituidos + " no comando do recoder), "
+                    + conta.Desativados + " desativado(s); tema " + (escuro ? "escuro" : "claro") + ".";
             }
             catch (Exception erro)
             {
                 return "Barra: falhou — " + erro.Message + ".";
+            }
+        }
+
+        /// <summary>
+        /// O instrumento do <c>pzBarra</c>: percorre a aba no <c>ComponentManager.Ribbon</c> (o que o
+        /// CAD tem de fato) e conta por classe — painéis, cada classe de item, os desativados e o
+        /// botão do canto. Nunca lança.
+        /// </summary>
+        internal static string Inspecionar()
+        {
+            try
+            {
+                RibbonControl ribbon = ComponentManager.Ribbon;
+                if (ribbon == null)
+                {
+                    return "pzBarra: o CAD não tem ribbon nesta sessão.";
+                }
+
+                RibbonTab aba = null;
+                int abasPositron = 0;
+                foreach (RibbonTab candidata in ribbon.Tabs)
+                {
+                    if (string.Equals(candidata.Id, IdDaAba, StringComparison.OrdinalIgnoreCase))
+                    {
+                        aba = candidata;
+                        abasPositron++;
+                    }
+                }
+
+                if (aba == null)
+                {
+                    return "pzBarra: a aba " + IdDaAba + " não está no ribbon.";
+                }
+
+                SortedDictionary<string, int> porClasse = new SortedDictionary<string, int>(StringComparer.Ordinal);
+                int desativados = 0;
+                int lancadores = 0;
+                List<string> titulos = new List<string>();
+                foreach (RibbonPanel painel in aba.Panels)
+                {
+                    titulos.Add(painel.Source.Title);
+                    if (painel.Source.DialogLauncher != null)
+                    {
+                        lancadores++;
+                    }
+
+                    foreach (RibbonItem item in painel.Source.Items)
+                    {
+                        ContarVivo(item, porClasse, ref desativados);
+                    }
+                }
+
+                List<string> partes = new List<string>();
+                foreach (KeyValuePair<string, int> par in porClasse)
+                {
+                    partes.Add(par.Key + "=" + par.Value);
+                }
+
+                return "pzBarra: " + abasPositron + " aba(s) " + IdDaAba + " (\"" + aba.Title + "\"), "
+                    + aba.Panels.Count + " painel(is) [" + string.Join(" | ", titulos.ToArray()) + "]; "
+                    + string.Join(", ", partes.ToArray()) + "; " + lancadores + " botão(ões) de canto; "
+                    + desativados + " item(ns) desativado(s).";
+            }
+            catch (Exception erro)
+            {
+                return "pzBarra: falhou — " + erro.Message + ".";
+            }
+        }
+
+        private static void ContarVivo(RibbonItem item, SortedDictionary<string, int> porClasse, ref int desativados)
+        {
+            string classe = item.GetType().Name;
+            int atual;
+            porClasse.TryGetValue(classe, out atual);
+            porClasse[classe] = atual + 1;
+            if (!item.IsEnabled)
+            {
+                desativados++;
+            }
+
+            RibbonRowPanel linha = item as RibbonRowPanel;
+            if (linha != null)
+            {
+                foreach (RibbonItem filho in linha.Items)
+                {
+                    ContarVivo(filho, porClasse, ref desativados);
+                }
+            }
+
+            RibbonMenuButton menu = item as RibbonMenuButton;
+            if (menu != null)
+            {
+                foreach (RibbonItem filho in menu.Items)
+                {
+                    ContarVivo(filho, porClasse, ref desativados);
+                }
+            }
+        }
+
+        /// <summary>Um item do mapa, com a subárvore, já no tipo do ribbon do CAD.</summary>
+        private static RibbonItem Construir(ItemDaBarra item, bool escuro, Contagem conta)
+        {
+            conta.Somar(item.Tipo);
+            switch (item.Tipo)
+            {
+                case TipoDoItemDaBarra.Linha:
+                    RibbonRowPanel linha = new RibbonRowPanel();
+                    foreach (ItemDaBarra filho in item.Filhos)
+                    {
+                        linha.Items.Add(Construir(filho, escuro, conta));
+                    }
+
+                    return linha;
+
+                case TipoDoItemDaBarra.QuebraDeLinha:
+                    return new RibbonRowBreak();
+
+                case TipoDoItemDaBarra.Recolhe:
+                    return new RibbonPanelBreak();
+
+                case TipoDoItemDaBarra.Separador:
+                    RibbonSeparator separador = new RibbonSeparator();
+                    if (item.Largura > 0)
+                    {
+                        // Os separadores com largura são os declarados no original, todos com o
+                        // `SeparatorStyle = 1` (o espaço, sem a linha).
+                        separador.Width = item.Largura;
+                        separador.SeparatorStyle = (RibbonSeparatorStyle)1;
+                    }
+
+                    return separador;
+
+                case TipoDoItemDaBarra.ListaDeSecao:
+                    RibbonCombo lista = new RibbonCombo
+                    {
+                        MinWidth = 15,
+                        Width = item.Largura,
+                        ShowText = false,
+                    };
+                    return Desativar(lista, "Seção ativa da fiação — ainda não portado no Positron (o original lia a "
+                        + "BitolaCollection e gravava a seção que o INSM/CON usam).", conta, false);
+
+                case TipoDoItemDaBarra.CampoDeCor:
+                    RibbonTextBox campo = new RibbonTextBox
+                    {
+                        MinWidth = 15,
+                        Width = item.Largura,
+                    };
+                    return Desativar(campo, "Cor ativa da fiação — ainda não portado no Positron (o original gravava "
+                        + "a cor que o INSM/CON usam).", conta, false);
+
+                case TipoDoItemDaBarra.Menu:
+                    RibbonMenuButton menu = new RibbonMenuButton
+                    {
+                        Text = string.Empty,
+                        ShowText = false,
+                        ShowImage = true,
+                        Image = Imagem(item, escuro),
+                        MinWidth = 15,
+                        Width = item.Largura > 0 ? item.Largura : 40,
+                        ToolTip = item.Dica,
+                    };
+                    bool algumLigado = false;
+                    foreach (ItemDaBarra filho in item.Filhos)
+                    {
+                        RibbonItem construido = Construir(filho, escuro, conta);
+                        menu.Items.Add(construido);
+                        algumLigado |= filho.Utilizavel;
+                    }
+
+                    return algumLigado ? (RibbonItem)menu : Desativar(menu, item.Dica + " — nenhum item portado no Positron.", conta, false);
+
+                case TipoDoItemDaBarra.ItemDeMenu:
+                    RibbonMenuItem itemDeMenu = new RibbonMenuItem
+                    {
+                        Text = item.Rotulo,
+                        ShowText = true,
+                        ShowImage = true,
+                        Image = Imagem(item, escuro),
+                    };
+                    return Ligar(itemDeMenu, item, conta, true);
+
+                case TipoDoItemDaBarra.Alternar:
+                    RibbonToggleButton alternar = new RibbonToggleButton
+                    {
+                        Size = RibbonItemSize.Large,
+                        LargeImage = Imagem(item, escuro),
+                        ShowText = false,
+                        ShowImage = true,
+                        Orientation = Orientation.Horizontal,
+                        Text = string.Empty,
+                    };
+                    return Ligar(alternar, item, conta, false);
+
+                default:
+                    return Ligar(Botao(item, escuro), item, conta, false);
+            }
+        }
+
+        /// <summary>O botão com o estilo do ajudante que o configura no original.</summary>
+        private static RibbonButton Botao(ItemDaBarra item, bool escuro)
+        {
+            BitmapImage imagem = Imagem(item, escuro);
+            RibbonButton botao = new RibbonButton { ShowImage = imagem != null };
+            switch (item.Grau)
+            {
+                case "Grande":
+                    // O `Nowp1LGUQxQ`: ícone grande, texto embaixo. O único é o banner da versão.
+                    botao.Text = item.TemComando ? item.Rotulo : "Positron";
+                    botao.ShowText = true;
+                    botao.LargeImage = imagem;
+                    botao.Size = RibbonItemSize.Large;
+                    botao.Orientation = Orientation.Vertical;
+                    break;
+
+                case "IconeGrande":
+                    // O `IsVp1wK9F5x`: ícone grande sem texto (o nome vai na dica).
+                    botao.Text = item.Rotulo;
+                    botao.ShowText = false;
+                    botao.LargeImage = imagem;
+                    botao.Size = RibbonItemSize.Large;
+                    botao.Orientation = Orientation.Horizontal;
+                    break;
+
+                case "IconeTexto":
+                    // O `PVGp1btLkXV`: ícone 16 com o texto ao lado.
+                    botao.Text = item.Rotulo;
+                    botao.ShowText = true;
+                    botao.Image = imagem;
+                    botao.Height = 16;
+                    botao.Size = RibbonItemSize.Standard;
+                    botao.Orientation = Orientation.Horizontal;
+                    break;
+
+                case "Icone":
+                    // O `UCHp1xnMtMs`: só o ícone 16x16.
+                    botao.ShowText = false;
+                    botao.Image = imagem;
+                    botao.Width = 16;
+                    botao.Height = 16;
+                    break;
+
+                default:
+                    // O botão do canto (`Dialogo`): o CAD desenha a setinha.
+                    botao.Text = item.Rotulo;
+                    botao.ShowText = true;
+                    botao.ShowImage = true;
+                    break;
+            }
+
+#if AUTOCAD
+            botao.Id = "POSITRON_" + item.Comando;
+#else
+            botao.Name = "POSITRON_" + item.Comando;
+#endif
+            return botao;
+        }
+
+        /// <summary>Liga o item ao comando do recoder, ou o desativa com o motivo na dica.</summary>
+        private static RibbonItem Ligar(RibbonCommandItem alvo, ItemDaBarra item, Contagem conta, bool cancelarAntes)
+        {
+            string dica = string.IsNullOrEmpty(item.Dica) ? item.Rotulo : item.Dica;
+            if (item.Desativado)
+            {
+                // O banner da versão: o original o cria inativo.
+                return Desativar(alvo, dica, conta, true);
+            }
+
+            if (!item.Utilizavel)
+            {
+                string motivo = item.TemComando
+                    ? " — ainda não portado no Positron (o comando " + item.Comando + " não existe aqui)."
+                    : " — sem comando.";
+                return Desativar(alvo, dica + motivo, conta, true);
+            }
+
+            string comando = ComandoNoRecoder(item.Comando);
+            bool substituido = !string.Equals(comando, item.Comando, StringComparison.OrdinalIgnoreCase);
+            if (substituido)
+            {
+                conta.Substituidos++;
+            }
+
+            // O item de menu manda um ESC antes (o `RibbomMenuItemCommandHandler` do original).
+            alvo.CommandParameter = (cancelarAntes ? "\u001b" : string.Empty) + comando + " ";
+            alvo.CommandHandler = new ComandoDoBotao();
+            alvo.ToolTip = dica
+                + (substituido ? " (" + comando + " do Positron)" : string.Empty)
+                + (item.AbreJanela && !substituido ? " (abre a janela do original)" : string.Empty);
+            conta.Ligados++;
+            return alvo;
+        }
+
+        /// <summary>O item fica na barra, inativo, com o motivo na dica.</summary>
+        private static RibbonItem Desativar(RibbonItem alvo, string dica, Contagem conta, bool acionavel)
+        {
+            alvo.IsEnabled = false;
+#if !AUTOCAD
+            // O que o original usa no ZWCAD (o banner); só o item de comando tem.
+            RibbonCommandItem deComando = alvo as RibbonCommandItem;
+            if (deComando != null)
+            {
+                deComando.IsActive = false;
+            }
+#endif
+            alvo.ToolTip = dica;
+            if (acionavel)
+            {
+                conta.Desativados++;
+            }
+
+            return alvo;
+        }
+
+        /// <summary>O ícone do tema do CAD: o escuro quando o original tem um e o tema é o escuro.</summary>
+        private static BitmapImage Imagem(ItemDaBarra item, bool escuro)
+        {
+            string nome = escuro && item.IconeEscuro.Length > 0 ? item.IconeEscuro : item.Icone;
+            return string.IsNullOrEmpty(nome) ? null : IconesEmbutidos.Imagem(nome);
+        }
+
+        /// <summary>
+        /// O tema do CAD: o <c>COLORTHEME</c> (0 = escuro), como o original lê. Sem a variável (CAD
+        /// antigo ou sem interface) fica o claro, que é o padrão de lá.
+        /// </summary>
+        private static bool TemaEscuro()
+        {
+            try
+            {
+                return Convert.ToInt32(Application.GetSystemVariable("COLORTHEME")) == 0;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
@@ -187,74 +548,9 @@ namespace Positron.Plugin.Interface.Barra
 #endif
 
         /// <summary>
-        /// Um botão do original. Com o comando que o recoder responde ele manda o
-        /// <c>CommandParameter</c> para a linha de comando (como o <c>AdskCommandHandler</c> do
-        /// reverso); sem ele, o botão entra **desativado** e a dica diz o porquê.
-        /// </summary>
-        private static RibbonButton Botao(BotaoDaBarra botao, ref int ativos, ref int desativados)
-        {
-            BitmapImage imagem = string.IsNullOrEmpty(botao.Icone) ? null : IconesEmbutidos.Imagem(botao.Icone);
-            string dica = string.IsNullOrEmpty(botao.Dica) ? botao.Rotulo : botao.Dica;
-
-            RibbonButton item = new RibbonButton
-            {
-#if AUTOCAD
-                Id = "POSITRON_" + botao.Comando,
-#else
-                Name = "POSITRON_" + botao.Comando,
-#endif
-                Text = botao.Rotulo,
-                ShowText = true,
-                ShowImage = imagem != null,
-                Image = imagem,
-                LargeImage = imagem,
-            };
-
-            if (botao.Utilizavel)
-            {
-                item.CommandParameter = botao.Comando + " ";
-                item.CommandHandler = new ComandoDoBotao();
-                item.ToolTip = dica + (botao.AbreJanela ? " (abre a janela do original)" : string.Empty);
-                ativos++;
-                return item;
-            }
-
-            // Como o original faz com o banner da versão: o item fica na barra, inativo.
-#if AUTOCAD
-            item.IsEnabled = false;
-#else
-            item.IsActive = false;
-#endif
-            item.ToolTip = dica + " — ainda não portado no Positron (o comando " + botao.Comando + " não existe aqui).";
-            desativados++;
-            return item;
-        }
-
-        /// <summary>Um botão dos comandos do recoder.</summary>
-        private static RibbonButton DoRecoder(string[] comando)
-        {
-            BitmapImage imagem = IconesEmbutidos.Imagem(comando[2]);
-            return new RibbonButton
-            {
-#if AUTOCAD
-                Id = "POSITRON_" + comando[0],
-#else
-                Name = "POSITRON_" + comando[0],
-#endif
-                Text = comando[1],
-                ShowText = true,
-                ShowImage = imagem != null,
-                Image = imagem,
-                LargeImage = imagem,
-                ToolTip = comando[1] + " (" + comando[0] + ")",
-                CommandParameter = comando[0] + " ",
-                CommandHandler = new ComandoDoBotao(),
-            };
-        }
-
-        /// <summary>
-        /// O <c>AdskCommandHandler</c> do reverso: o <c>ICommand</c> do botão manda o
-        /// <c>CommandParameter</c> para a linha de comando do CAD.
+        /// O <c>AdskCommandHandler</c> do reverso: o <c>ICommand</c> do item manda o
+        /// <c>CommandParameter</c> para a linha de comando do CAD (o botão, o item de menu e o
+        /// liga/desliga são todos <c>RibbonCommandItem</c>).
         /// </summary>
         private sealed class ComandoDoBotao : ICommand
         {
@@ -271,8 +567,8 @@ namespace Positron.Plugin.Interface.Barra
 
             public void Execute(object parameter)
             {
-                RibbonButton botao = parameter as RibbonButton;
-                string comando = botao == null ? null : botao.CommandParameter as string;
+                RibbonCommandItem item = parameter as RibbonCommandItem;
+                string comando = item == null ? null : item.CommandParameter as string;
                 if (string.IsNullOrEmpty(comando))
                 {
                     return;
