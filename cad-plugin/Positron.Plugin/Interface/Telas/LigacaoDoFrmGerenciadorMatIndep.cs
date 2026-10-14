@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using Positron.Data;
 using Positron.Data.Configuracao;
 using Positron.Data.Materiais;
+using Positron.Plugin.Materiais;
 
 namespace Positron.Plugin.Interface.Telas
 {
@@ -12,7 +13,9 @@ namespace Positron.Plugin.Interface.Telas
     /// Independentes e Avulsos"): a coluna <c>dgPaineis</c> com os **painéis da lista de materiais**
     /// do desenho ativo, a grade <c>dgDisp</c> com os itens do painel escolhido — nas doze colunas do
     /// <c>formataDGDisp</c> do original — e a **escrita da lista** (desde a rodada 151): o item avulso
-    /// que o <c>AdicionaUmItemMaterialAvulso</c> grava e o plano do <c>eK4ppmS0dUi</c>.
+    /// que o <c>AdicionaUmItemMaterialAvulso</c> grava e o plano do <c>eK4ppmS0dUi</c> — mais o **ramo
+    /// do desenho** dele (desde a rodada 152): o <c>clsDispositivo.EditaLMDoDispositivo</c>, que
+    /// regrava o <c>iLM1</c> do bloco e os atributos <c>MODELO</c>/<c>PAINEL</c>/<c>FABRICANTE</c>.
     ///
     /// **A diferença deliberada da rodada 148:** o original monta a lista de painéis varrendo o
     /// ModelSpace (<c>clsLM.PaineisDocumentoLM</c>, o painel de cada entidade por XData); aqui ela sai
@@ -27,10 +30,10 @@ namespace Positron.Plugin.Interface.Telas
     ///   atribuiu;
     /// - <b>Edita Material Selecionado</b> (<c>eK4ppmS0dUi</c>): para cada linha selecionada, o item
     ///   avulso é **substituído** (apagar pelo <c>Indice</c> e inserir de novo com o digitado) e a
-    ///   linha do desenho fica para o ramo que **ainda não está portado** — o
-    ///   <c>clsDispositivo.EditaLMDoDispositivo</c> (o XData do bloco e os atributos
-    ///   <c>MODELO</c>/<c>PAINEL</c>/<c>FABRICANTE</c>), que a tela **diz na linha de comando** em vez
-    ///   de gravar meia operação (o `IndiceMaterial` sozinho seria desfeito pela próxima projeção);
+    ///   linha **do desenho** vai para o <c>clsDispositivo.EditaLMDoDispositivo</c> (o XData do bloco
+    ///   e os atributos <c>MODELO</c>/<c>PAINEL</c>/<c>FABRICANTE</c>), pelo
+    ///   <see cref="DispositivoDaListaDoDesenho"/> — a lista e o bloco saem do mesmo clique, senão a
+    ///   próxima projeção desfaria a gravação;
     /// - <b>Apaga Material Selecionado</b> (<c>eUVppXAWerf</c>): só as linhas **avulsas** saem — as do
     ///   desenho são da projeção —, e o motivo aparece quando alguma é deixada de fora.
     ///
@@ -108,7 +111,7 @@ namespace Positron.Plugin.Interface.Telas
             Ligar(ControlesDaTela.Achar<Button>(janela, "BTAdicionaLM"),
                 (origem, evento) => Plugin.Escrever(Adicionar(janela, grade, estado, catalogo, config)));
             Ligar(ControlesDaTela.Achar<Button>(janela, "BTEditaLM"),
-                (origem, evento) => Plugin.Escrever(Editar(janela, grade, estado, catalogo, config)));
+                (origem, evento) => Plugin.Escrever(Editar(janela, grade, estado, catalogo, nomes, config)));
             Ligar(ControlesDaTela.Achar<Button>(janela, "BTApagaLM"),
                 (origem, evento) => Plugin.Escrever(Apagar(janela, grade, estado, catalogo, config)));
 
@@ -133,7 +136,7 @@ namespace Positron.Plugin.Interface.Telas
                 + (string.IsNullOrEmpty(materialDoPrimeiro) ? string.Empty : "; primeiro item: " + materialDoPrimeiro)
                 + "; Adiciona/Edita/Apaga ligados, a pesquisa desabilitada.");
 
-            GanchoDoHarness(janela, grade, estado, catalogo, config);
+            GanchoDoHarness(janela, grade, estado, catalogo, nomes, config);
         }
 
         /// <summary>Os textos e as dicas que o construtor do original aplica por cima do designer.</summary>
@@ -226,16 +229,15 @@ namespace Positron.Plugin.Interface.Telas
             }
         }
 
-        /// <summary>O nome do painel no cadastro e, sem cadastro, o índice — o `BuscaNomeDoPainel` do original.</summary>
+        /// <summary>
+        /// O nome do painel como o <c>Dicionario.BuscaNomeDoPainel</c> do original o responde — o
+        /// valor da tabela <c>Paineis</c> quando o índice está no cadastro e o literal <c>"???"</c>
+        /// quando não está (é o mesmo valor que vai para o atributo <c>PAINEL</c> do dispositivo, na
+        /// <see cref="DispositivoDaListaEdicao.NomeDoPainel"/>).
+        /// </summary>
         private static string NomeDoPainel(IReadOnlyDictionary<int, string> nomes, int painel)
         {
-            string nome;
-            if (nomes != null && nomes.TryGetValue(painel, out nome) && !string.IsNullOrEmpty(nome))
-            {
-                return nome;
-            }
-
-            return painel.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return DispositivoDaListaEdicao.NomeDoPainel(nomes, painel);
         }
 
         private static int PainelSelecionado(DataGridView paineis)
@@ -432,12 +434,17 @@ namespace Positron.Plugin.Interface.Telas
                 + ") gravado — a linha entrou com o Indice " + indice + " do banco.";
         }
 
-        /// <summary>O clique do <c>BTEditaLM</c> — o <c>eK4ppmS0dUi</c> (o plano do material escolhido).</summary>
+        /// <summary>
+        /// O clique do <c>BTEditaLM</c> — o <c>eK4ppmS0dUi</c>, nas duas metades do original: a
+        /// **lista** (o item avulso substituído) e o **desenho** (o
+        /// <c>clsDispositivo.EditaLMDoDispositivo</c> nos blocos das linhas com handle).
+        /// </summary>
         private static string Editar(
             Form janela,
             DataGridView grade,
             EstadoDaLista estado,
             IReadOnlyDictionary<int, MaterialDoCatalogo> catalogo,
+            IReadOnlyDictionary<int, string> nomes,
             ConfiguracaoPositron config)
         {
             List<LinhaDoItemNaGrade> selecionadas = Selecionadas(grade);
@@ -465,23 +472,27 @@ namespace Positron.Plugin.Interface.Telas
             }
 
             int substituidos = 0;
-            int doDesenho = 0;
+            int editados = 0;
             int ultimo = 0;
             try
             {
                 ProjectStore store = new ProjectStore(config.Banco);
                 foreach (AcaoNoItemDaLM acao in plano)
                 {
-                    if (acao.Tipo != TipoDeAcaoNoItemDaLM.Substituir)
+                    if (acao.Tipo == TipoDeAcaoNoItemDaLM.Substituir)
                     {
-                        doDesenho++;
+                        // O `eK4ppmS0dUi`: o `RemoveMaterialAvulso` pelo Indice e o insert de novo.
+                        store.RemoverItemDaLM(acao.Indice);
+                        ultimo = store.AdicionarItemDaLM(acao.Item);
+                        substituidos++;
                         continue;
                     }
 
-                    // O `eK4ppmS0dUi`: o `RemoveMaterialAvulso` pelo Indice e o insert de novo.
-                    store.RemoverItemDaLM(acao.Indice);
-                    ultimo = store.AdicionarItemDaLM(acao.Item);
-                    substituidos++;
+                    // A linha **do desenho** também passa pelo banco no original — o
+                    // `EditaUmItemMaterialAvulso(indiceLM, indice)` grava o material na propria linha
+                    // da `ListaMateriais` (o `UPDATE ... SET IndiceMaterial` pelo `Indice`) **antes**
+                    // do `EditaLMDoDispositivo`: a lista e o bloco saem do mesmo clique.
+                    editados += store.EditarMaterialDoItemDaLM(acao.Indice, acao.IndiceMaterial);
                 }
             }
             catch (Exception erro)
@@ -489,19 +500,68 @@ namespace Positron.Plugin.Interface.Telas
                 return "ATINDEP: falhou ao gravar a lista — " + erro.Message;
             }
 
+            // A outra metade do clique no original: o `clsDispositivo.EditaLMDoDispositivo` regrava o
+            // XData do bloco (o `iLM1`) e os atributos MODELO/PAINEL/FABRICANTE das linhas do desenho.
+            // A lista e o desenho sao a mesma verdade (a linha da grade e o desenho) e os dois tem de
+            // sair do clique: gravar so o `IndiceMaterial` deixaria a lista e o bloco discordando, e a
+            // proxima projecao (`COMPLM`) desfaria a gravacao.
+            List<ItemDoDispositivo> doDesenho = DispositivoDaListaEdicao.ItensParaODesenho(plano);
+            string desenho;
+            try
+            {
+                desenho = ResumoDoDesenho(doDesenho.Count == 0
+                    ? null
+                    : DispositivoDaListaDoDesenho.Executar(doDesenho, nomes, catalogo));
+            }
+            catch (Exception erro)
+            {
+                desenho = " o desenho nao foi gravado — " + erro.Message;
+            }
+
             Recarregar(janela, grade, catalogo, config, estado, ultimo);
 
-            string texto = "ATINDEP: " + substituidos + " item(ns) da tela regravado(s) com o material "
-                + codigoEscolhido.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".";
-            if (doDesenho > 0)
+            return "ATINDEP: " + substituidos + " item(ns) da tela regravado(s) com o material "
+                + codigoEscolhido.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                + " (" + editados + " linha(s) do desenho com o material gravado na lista)."
+                + desenho;
+        }
+
+        /// <summary>
+        /// O resumo do ramo do desenho para a linha de comando — as contagens do
+        /// <see cref="DispositivoDaListaDoDesenho.Resultado"/> que importam ficam em português de
+        /// gente; o que não aconteceu não aparece (o `null` é o plano sem linha de desenho).
+        /// </summary>
+        private static string ResumoDoDesenho(DispositivoDaListaDoDesenho.Resultado resultado)
+        {
+            if (resultado == null)
             {
-                // A outra metade do clique no original: o `clsDispositivo.EditaLMDoDispositivo` regrava
-                // o XData do bloco (o `iLM1`) e os atributos MODELO/PAINEL/FABRICANTE. Gravar só o
-                // `IndiceMaterial` deixaria a linha e o desenho discordando — e a próxima projeção
-                // desfaria a gravação —, então a tela diz o motivo em vez de gravar meia operação.
-                texto += " " + doDesenho + " linha(s) do desenho ficaram sem o material novo: a escrita "
-                    + "do lm no dispositivo (o EditaLMDoDispositivo, o XData do bloco e os atributos) "
-                    + "ainda não está portada.";
+                return string.Empty;
+            }
+
+            string texto = " o desenho: " + resultado.Dispositivos + " dispositivo(s) — "
+                + resultado.LmGravados + " lm(s) regravado(s) no XData (" + resultado.LmIguais
+                + " já com o material), " + resultado.AtributosGravados + " atributo(s) — "
+                + resultado.AtributosIguais + " já iguais, " + resultado.AtributosNaoAchados
+                + " tag(s) fora do bloco.";
+
+            if (resultado.BlocosNaoAchados > 0)
+            {
+                texto += " " + resultado.BlocosNaoAchados + " handle(s) não estão no desenho.";
+            }
+
+            if (resultado.NaoEhDispositivo > 0)
+            {
+                texto += " " + resultado.NaoEhDispositivo + " bloco(s) não são dispositivo tipo P.";
+            }
+
+            if (resultado.XDataCurto > 0)
+            {
+                texto += " " + resultado.XDataCurto + " dispositivo(s) com o XData curto demais.";
+            }
+
+            if (resultado.RegistroNaoAchado > 0)
+            {
+                texto += " " + resultado.RegistroNaoAchado + " app name(s) fora do buffer do bloco.";
             }
 
             return texto;
@@ -561,24 +621,43 @@ namespace Positron.Plugin.Interface.Telas
         // ------------------------------------------------------------------ o gancho do harness
 
         /// <summary>
-        /// O gancho do harness (um script não clica nos botões): <c>POSITRON_LIM_ITEM</c>
-        /// (<c>Indice;Tag;Quantidade;Codigo</c>) seleciona a linha pelo <c>Indice</c> e **depois**
-        /// preenche as caixas — a seleção chama o <c>PreencherMaterial</c>, que escreveria por cima do
-        /// digitado —, e <c>POSITRON_LIM_ACAO</c> roda a mesma ação do clique.
+        /// O gancho do harness (um script não clica nos botões): <c>POSITRON_LIM_PAINEL</c> escolhe o
+        /// painel da coluna da esquerda (a tela abre no primeiro da lista, e é o clique nele que
+        /// carrega outra grade — sem esta variável as linhas de um painel que não o primeiro ficam
+        /// fora do alcance do script), <c>POSITRON_LIM_ITEM</c> (<c>Indice;Tag;Quantidade;Codigo</c>)
+        /// seleciona a linha pelo <c>Indice</c> e **depois** preenche as caixas — a seleção chama o
+        /// <c>PreencherMaterial</c>, que escreveria por cima do digitado —, e <c>POSITRON_LIM_ACAO</c>
+        /// roda a mesma ação do clique.
         /// </summary>
         private static void GanchoDoHarness(
             Form janela,
             DataGridView grade,
             EstadoDaLista estado,
             IReadOnlyDictionary<int, MaterialDoCatalogo> catalogo,
+            IReadOnlyDictionary<int, string> nomes,
             ConfiguracaoPositron config)
         {
             string item = Environment.GetEnvironmentVariable("POSITRON_LIM_ITEM");
             string acao = Environment.GetEnvironmentVariable("POSITRON_LIM_ACAO");
+            string painelPedido = Environment.GetEnvironmentVariable("POSITRON_LIM_PAINEL");
 
-            if (string.IsNullOrEmpty(item) && string.IsNullOrEmpty(acao))
+            if (string.IsNullOrEmpty(item) && string.IsNullOrEmpty(acao) && string.IsNullOrEmpty(painelPedido))
             {
                 return;
+            }
+
+            int painel;
+            if (grade != null
+                && !string.IsNullOrEmpty(painelPedido)
+                && int.TryParse(painelPedido, out painel)
+                && painel != 0
+                && painel != estado.Painel)
+            {
+                // O `SelectionChanged` da coluna dos paineis, sem o clique.
+                estado.Painel = painel;
+                Recarregar(janela, grade, catalogo, config, estado, 0);
+                Plugin.Escrever("ATINDEP: painel " + painel + " escolhido pelo POSITRON_LIM_PAINEL ("
+                    + grade.Rows.Count + " item(ns)).");
             }
 
             if (!string.IsNullOrEmpty(item))
@@ -609,7 +688,7 @@ namespace Positron.Plugin.Interface.Telas
 
             if (string.Equals(acao, "editar", StringComparison.OrdinalIgnoreCase))
             {
-                Plugin.Escrever(Editar(janela, grade, estado, catalogo, config));
+                Plugin.Escrever(Editar(janela, grade, estado, catalogo, nomes, config));
             }
             else if (string.Equals(acao, "apagar", StringComparison.OrdinalIgnoreCase))
             {

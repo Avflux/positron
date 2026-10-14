@@ -60,6 +60,19 @@
 ;;; modelos 1..4 do dicionario `CONTATOS`. E o insumo do `bt3Principal` (o `P` sem
 ;;; LM ou com `?` nos terminais) e do `bt4Auxiliar` (o `A` cujos terminais divergem
 ;;; do contato do modelo).
+;;;
+;;; O dump sai no `load` — e, por isso, sempre o "antes" do que os comandos vao
+;;; fazer. Para dumpar **depois**, na mesma sessao, ha o comando `pz-dump`: ele
+;;; refaz o mesmo dump no arquivo do `POSITRON_XDATA` com o sufixo do
+;;; `POSITRON_XDATA_SUFIXO` (default vazio), de modo que o "antes" e o "depois" do
+;;; mesmo desenho nao se sobrescrevem:
+;;;
+;;;   POSITRON_XDATA=C:/.../dump.txt POSITRON_XDATA_SUFIXO=.depois
+;;;   ... -Fixture scripts/cad-dump-xdata.lsp -Comandos ELET,COMPLM,pz-dump
+;;;
+;;; (o `pz-dump` sozinho, como comando, nao tem aspas nem parenteses: e o unico
+;;; jeito de uma linha LISP chegar intacta ao `.scr` pelo harness — a licao da
+;;; rodada 135.)
 
 (setq *positron-dump-handles*
   (if (boundp '*positron-dump-handles*) *positron-dump-handles* '("4D642" "4D672")))
@@ -446,6 +459,15 @@
 
 ;; Sem `let`: AutoLISP nao tem esse special form (o load falha em silencio e nada e
 ;; dumado). O caminho usa barra normal, que o AutoCAD aceita no `open`.
+;; O comando `pz-dump`: o mesmo dump, **na hora** — o "depois" de um comando, na
+;; mesma sessao (o do load e o "antes"). Ver o cabecalho.
+(defun c:pz-dump ( / f sufixo)
+  (setq sufixo (getenv "POSITRON_XDATA_SUFIXO"))
+  (setq f (strcat pz-dump:saida (if (null sufixo) "" sufixo)))
+  (pz-dump:tudo f)
+  (princ (strcat "\npz-dump: " f "\n"))
+  (princ))
+
 (setq pz-dump:saida (getenv "POSITRON_XDATA"))
 (if (or (null pz-dump:saida) (= pz-dump:saida ""))
   (setq pz-dump:saida (strcat (getenv "TEMP") "/positron-xdata.txt")))
