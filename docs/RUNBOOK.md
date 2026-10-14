@@ -968,6 +968,33 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 156 — frente 12 (parte 8): as telas de revisões — `REVSIMP` e `REVCOMP` ligadas ao desenho e ao menu das folhas.**
+O item 4 da fila do `PLANO.md`: o submenu `Editar Revisões` da paleta de folhas (`FolhasControle.cs`) estava desabilitado com a suposição de que as revisões ficavam apenas no banco. A descompilação do original (`frmEditaRevisaoSimplificada.cs`, `frmEditaRevisaoCompleta.cs` e `Revisao.cs`) mostrou que ambas as telas leem e regravam as revisões **no desenho CAD** por página/layer:
+- a regra pura e modelos em `Positron.Data/Paginas/RevisoesDaPagina.cs` cobrem `RevisaoSimplificadaDaPagina`, `RevisaoCompletaDaPagina`, a substituição textual de campos (`OperacoesDeRevisao.Substituir`, com `DE`/`PARA`) e o mapeamento dos 15 campos da XData de revisão (`RevisaoCompletaXData`), espelhando a estrutura do original;
+- o adapter `RevisoesDoDesenho` (`cad-plugin/Positron.Plugin/Paginas/RevisoesDoDesenho.cs`) implementa a leitura e gravação no ModelSpace:
+  - simplificada: varre os textos `DBText` com XData `TituloPagina` no índice 8 ("REV") por layer de página, com fallback nas revisões do projeto (`ProjectStore.LerRevisoes`);
+  - completa: varre blocos `BlockReference` com XData `Revisao` (ou atributos `REV`/`DESC`/`DATA`/`ELAB`/`VERIF`/`APROV`) na camada da página;
+- `frmEditaRevisaoSimplificada` (`REVSIMP`): preenche a grade com as páginas do projeto, coluna 0 (Página) somente leitura, coluna 1 (Revisão) editável; menu de contexto com `Copiar`, `Colar`, `Limpar` e `Editar` (grava as revisões simplificadas de volta nas entidades `DBText` do desenho CAD);
+- `frmEditaRevisaoCompleta` (`REVCOMP`): preenche a grade com 7 colunas (Página, Revisão, Descrição, Data, Elaborador, Verificador, Aprovador); menu de contexto com `Copiar`, `Colar`, `Limpar`, `Substituir` (campos `DE`/`PARA` para substituição em lote) e `Editar` (grava as revisões completas nos blocos e XData do desenho);
+- `FolhasControle.cs`: o item `Editar Revisões` do menu de contexto foi habilitado com seus subitens `Simplificada` e `Completa` abrindo as telas correspondentes;
+- comandos diretos `REVSIMP` e `REVCOMP` adicionados em `Comandos.cs`;
+- as duas telas registradas em `LigacoesDasTelas`, subindo o total de telas ligadas à regra de **9** para **11 de 127**.
+
+```text
+# ZWCAD 2026, Funcional.dwg (DWG 63), banco r154.db
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 \
+  -Comandos "ELET,REVSIMP,REVCOMP,JANELAS" -Desenho "cad-plugin/reverso/Teste_projeto_real/Funcional.dwg" -Banco "<repo>\.tmp-smoke\r154.db"
+
+Positron — paleta de folhas com 16 página(s) (ancorada no CAD).
+REVSIMP: 16 página(s) carregada(s) na grade.
+REVSIMP: "Editar Revisão Simplificada" (frmEditaRevisaoSimplificada) aberta no CAD — 9 controle(s).
+REVCOMP: 16 página(s) carregada(s) na grade.
+REVCOMP: "Editar Revisão Completa" (frmEditaRevisaoCompleta) aberta no CAD — 18 controle(s).
+JANELAS: 127 de 127 tela(s) do reverso montada(s), nenhuma falha. Ligacoes: 11 de 127 tela(s) com regra (frmPesquisaXdatas, frmEstatisticaDeBornes, frmCompilarFiacao, frmCompilarInterligacao, frmCompilarJumperExt, frmGerenciadorMateriais, frmGerenciadorMatIndep, frmGerenciadorMascaras, frmGerenciadorContatos, frmEditaRevisaoSimplificada, frmEditaRevisaoCompleta).
+```
+
+`plugin:test` **746** (+4, `RevisoesDaPaginaTests`), as duas builds **0 avisos**.
+
 **Rodada 155 — frente 12 (parte 7): as telas de modelos — `GERMASC` e `GERCONT` ligadas ao desenho e ao catálogo.**
 As duas telas gêmeas de gerenciamento de modelos do reverso (`frmGerenciadorMascaras` e `frmGerenciadorContatos`)
 passam a ter comportamento real ligado à regra do recoder:

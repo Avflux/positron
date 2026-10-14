@@ -38,6 +38,8 @@ namespace Positron.Plugin.Interface.Telas
             new LigacaoDoFrmGerenciadorMatIndep(),
             new LigacaoDoFrmGerenciadorMascaras(),
             new LigacaoDoFrmGerenciadorContatos(),
+            new LigacaoDoFrmEditaRevisaoSimplificada(),
+            new LigacaoDoFrmEditaRevisaoCompleta(),
         };
 
         /// <summary>As telas ligadas hoje (para o diagnóstico e os testes não lerem a lista).</summary>

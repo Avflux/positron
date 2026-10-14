@@ -37,5 +37,23 @@ namespace Positron.Plugin.Interface.Telas
 
             return null;
         }
+
+        internal static T AcharItem<T>(ContextMenuStrip menu, string nome) where T : ToolStripItem
+        {
+            if (menu == null || string.IsNullOrEmpty(nome))
+            {
+                return null;
+            }
+
+            foreach (ToolStripItem item in menu.Items)
+            {
+                if (string.Equals(item.Name, nome, StringComparison.Ordinal))
+                {
+                    return item as T;
+                }
+            }
+
+            return null;
+        }
     }
 }

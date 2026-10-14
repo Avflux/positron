@@ -181,12 +181,26 @@ namespace Positron.Plugin.Interface.Folhas
             editarTitulos.Click += (origem, evento) => EditarTitulos();
             menu.Items.Add(editarTitulos);
 
-            ToolStripMenuItem revisoes = Desabilitado(
-                Positron.Data.Interface.MensagensDoReverso.EditarRevisoes,
-                "regra não portada (as revisões do projeto vivem no banco, não no desenho)",
-                "Editar_16");
-            revisoes.DropDownItems.Add(Desabilitado(Positron.Data.Interface.MensagensDoReverso.RevisaoSimplificada, "regra não portada"));
-            revisoes.DropDownItems.Add(Desabilitado(Positron.Data.Interface.MensagensDoReverso.RevisaoCompleta, "regra não portada"));
+            ToolStripMenuItem revisoes = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.EditarRevisoes)
+            {
+                ToolTipText = "editar revisões das páginas (simplificada ou completa)",
+            };
+            Icone(revisoes, "Editar_16");
+
+            ToolStripMenuItem revSimplificada = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.RevisaoSimplificada)
+            {
+                ToolTipText = "abre a tela de edição de revisão simplificada (frmEditaRevisaoSimplificada)",
+            };
+            revSimplificada.Click += (origem, evento) => AbrirRevisaoSimplificada();
+            revisoes.DropDownItems.Add(revSimplificada);
+
+            ToolStripMenuItem revCompleta = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.RevisaoCompleta)
+            {
+                ToolTipText = "abre a tela de edição de revisão completa (frmEditaRevisaoCompleta)",
+            };
+            revCompleta.Click += (origem, evento) => AbrirRevisaoCompleta();
+            revisoes.DropDownItems.Add(revCompleta);
+
             menu.Items.Add(revisoes);
 
             menu.Items.Add(new ToolStripSeparator());
@@ -502,6 +516,16 @@ namespace Positron.Plugin.Interface.Folhas
             int gravados = TitulosDaPaginaDoDesenho.Gravar(pagina, escolhidos);
             UltimaMensagem = "Editar Títulos: página \"" + pagina + "\" — " + gravados + " campo(s) regravado(s).";
             return UltimaMensagem;
+        }
+
+        private void AbrirRevisaoSimplificada()
+        {
+            UltimaMensagem = Telas.RenderizadorDeTelas.Abrir("frmEditaRevisaoSimplificada", "REVSIMP");
+        }
+
+        private void AbrirRevisaoCompleta()
+        {
+            UltimaMensagem = Telas.RenderizadorDeTelas.Abrir("frmEditaRevisaoCompleta", "REVCOMP");
         }
     }
 }

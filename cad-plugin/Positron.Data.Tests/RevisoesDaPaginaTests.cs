@@ -1,0 +1,88 @@
+using System.Collections.Generic;
+using Positron.Data.Fiacao;
+using Positron.Data.Paginas;
+using Xunit;
+
+namespace Positron.Data.Tests
+{
+    public class RevisoesDaPaginaTests
+    {
+        private static List<TypedXData> XDataRevisaoCompleta(int posicao, string revisao, string desc,
+            string elab, string verif, string aprov, string data)
+        {
+            RevisaoCompletaDaPagina rev = new RevisaoCompletaDaPagina("01", revisao, desc, data, elab, verif, aprov, posicao);
+            return new List<TypedXData>(RevisaoCompletaXData.ParaValores(rev, "usuario", "2026-10-14"));
+        }
+
+        [Fact]
+        public void Le_os_campos_do_xdata_de_revisao_completa()
+        {
+            List<TypedXData> valores = XDataRevisaoCompleta(1, "R1", "EMISSÃO INICIAL", "ANA", "BOB", "CARLOS", "14/10/2026");
+
+            RevisaoCompletaDaPagina lida;
+            Assert.True(RevisaoCompletaXData.Ler(valores, out lida));
+            Assert.NotNull(lida);
+            Assert.Equal(1, lida.Posicao);
+            Assert.Equal("R1", lida.Revisao);
+            Assert.Equal("R1", lida.RevisaoOriginal);
+            Assert.Equal("EMISSÃO INICIAL", lida.Descricao);
+            Assert.Equal("ANA", lida.Elaborador);
+            Assert.Equal("BOB", lida.Verificador);
+            Assert.Equal("CARLOS", lida.Aprovador);
+            Assert.Equal("14/10/2026", lida.Data);
+        }
+
+        [Fact]
+        public void Recusa_xdata_invalido_ou_incompleto()
+        {
+            RevisaoCompletaDaPagina lida;
+            Assert.False(RevisaoCompletaXData.Ler(null, out lida));
+            Assert.False(RevisaoCompletaXData.Ler(new List<TypedXData>(), out lida));
+
+            List<TypedXData> outroApp = new List<TypedXData>
+            {
+                new TypedXData(1001, "Outro"),
+                new TypedXData(1000, "Revisao"),
+                new TypedXData(1070, 1),
+                new TypedXData(1000, "R1"),
+                new TypedXData(1000, "D"),
+                new TypedXData(1000, "E"),
+                new TypedXData(1000, "V"),
+                new TypedXData(1000, "A"),
+                new TypedXData(1000, "01/01/2026"),
+            };
+            Assert.False(RevisaoCompletaXData.Ler(outroApp, out lida));
+
+            List<TypedXData> outraMarca = new List<TypedXData>
+            {
+                new TypedXData(1001, "DiagLog"),
+                new TypedXData(1000, "TituloPagina"),
+                new TypedXData(1070, 1),
+                new TypedXData(1000, "R1"),
+                new TypedXData(1000, "D"),
+                new TypedXData(1000, "E"),
+                new TypedXData(1000, "V"),
+                new TypedXData(1000, "A"),
+                new TypedXData(1000, "01/01/2026"),
+            };
+            Assert.False(RevisaoCompletaXData.Ler(outraMarca, out lida));
+        }
+
+        [Fact]
+        public void Substituicao_em_texto_funciona_conforme_esperado()
+        {
+            Assert.Equal("EMISSÃO FINAL", OperacoesDeRevisao.Substituir("EMISSÃO INICIAL ", "INICIAL", "FINAL"));
+            Assert.Equal("PROJETO ", OperacoesDeRevisao.Substituir("PROJETO ", "XPTO", "ABC"));
+            Assert.Equal("", OperacoesDeRevisao.Substituir("", "A", "B"));
+            Assert.Equal("TESTE", OperacoesDeRevisao.Substituir("TESTE", null, "B"));
+        }
+
+        [Fact]
+        public void Construtor_de_revisao_simplificada_normaliza_nulos()
+        {
+            RevisaoSimplificadaDaPagina rev = new RevisaoSimplificadaDaPagina(null, null);
+            Assert.Equal("", rev.Pagina);
+            Assert.Equal("", rev.Revisao);
+        }
+    }
+}

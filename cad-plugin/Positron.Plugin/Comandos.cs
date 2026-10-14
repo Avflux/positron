@@ -1071,6 +1071,24 @@ namespace Positron.Plugin
         }
 
         /// <summary>
+        /// <c>REVSIMP</c> — abre o formulário de edição de revisão simplificada (<c>frmEditaRevisaoSimplificada</c>).
+        /// </summary>
+        [CommandMethod("REVSIMP")]
+        public void ComandoRevSimp()
+        {
+            Plugin.Escrever(Interface.Telas.RenderizadorDeTelas.Abrir("frmEditaRevisaoSimplificada", "REVSIMP"));
+        }
+
+        /// <summary>
+        /// <c>REVCOMP</c> — abre o formulário de edição de revisão completa (<c>frmEditaRevisaoCompleta</c>).
+        /// </summary>
+        [CommandMethod("REVCOMP")]
+        public void ComandoRevComp()
+        {
+            Plugin.Escrever(Interface.Telas.RenderizadorDeTelas.Abrir("frmEditaRevisaoCompleta", "REVCOMP"));
+        }
+
+        /// <summary>
         /// <c>APAGAPAGINA</c> — apaga uma **página**: os elementos do ModelSpace no layer dela (o
         /// <c>Pagina.ApagarElementosPagina</c> do reverso) e o layer. A página vem de
         /// <c>POSITRON_PAGINA</c> — **sem ela o comando não faz nada** (é destrutivo e não adivinha
