@@ -64,17 +64,18 @@ namespace Positron.Data.Tests
             }
 
             Assert.Equal(121, contados);
-            Assert.Equal(119, soJanela);
+            Assert.Equal(120, soJanela);
         }
 
         /// <summary>
-        /// O contrato do que o plugin registra: 114 comandos do original respondem com o próprio nome
-        /// (99 de tela padrão + 15 de variantes mapeadas; o `ComandosDoOriginal.Gerado.cs` gera um método por um destes).
+        /// O contrato do que o plugin registra: 115 comandos do original respondem com o próprio nome
+        /// (100 de tela padrão + 15 de variantes mapeadas; o `ComandosDoOriginal.Gerado.cs` gera um método por um destes).
+        /// O `IMPBD` entrou na rodada 159: a guarda dele só barra o SQL Server, que o recoder não tem.
         /// </summary>
         [Fact]
-        public void CentoEQuatorzeComandosSaoLigaveis()
+        public void CentoEQuinzeComandosSaoLigaveis()
         {
-            Assert.Equal(114, ComandosDoReverso.QuantosLigaveis());
+            Assert.Equal(115, ComandosDoReverso.QuantosLigaveis());
 
             List<string> ligaveis = new List<string>();
             foreach (Comando comando in ComandosDoReverso.Todos)
@@ -85,7 +86,8 @@ namespace Positron.Data.Tests
                 }
             }
 
-            Assert.Equal(114, ligaveis.Count);
+            Assert.Equal(115, ligaveis.Count);
+            Assert.Contains("IMPBD", ligaveis);
             Assert.Contains("GERDWG", ligaveis);
             Assert.Contains("DEF", ligaveis);
             Assert.Contains("BORN", ligaveis);

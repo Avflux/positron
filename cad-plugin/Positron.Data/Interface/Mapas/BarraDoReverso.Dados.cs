@@ -41,7 +41,7 @@ namespace Positron.Data.Interface.Mapas
                             new ItemDaBarra(TipoDoItemDaBarra.QuebraDeLinha, "", "", "", "", "", "", 0, false, 288, false, false),
                             new ItemDaBarra(TipoDoItemDaBarra.Botao, "IconeTexto", "Duplicar Caderno", "DUPCAD", "Item", "", "Duplicar Caderno", 0, false, 289, true, true),
                             new ItemDaBarra(TipoDoItemDaBarra.QuebraDeLinha, "", "", "", "", "", "", 0, false, 292, false, false),
-                            new ItemDaBarra(TipoDoItemDaBarra.Botao, "IconeTexto", "Importar Projeto", "IMPBD", "Item", "", "Importar Projeto", 0, false, 293, false, true),
+                            new ItemDaBarra(TipoDoItemDaBarra.Botao, "IconeTexto", "Importar Projeto", "IMPBD", "Item", "", "Importar Projeto", 0, false, 293, true, true),
                             new ItemDaBarra(TipoDoItemDaBarra.QuebraDeLinha, "", "", "", "", "", "", 0, false, 296, false, false),
                             new ItemDaBarra(TipoDoItemDaBarra.Botao, "IconeTexto", "Índice de Páginas", "INDPG", "Item", "", "Índice de Páginas", 0, false, 297, true, true),
                             new ItemDaBarra(TipoDoItemDaBarra.QuebraDeLinha, "", "", "", "", "", "", 0, false, 300, false, false),

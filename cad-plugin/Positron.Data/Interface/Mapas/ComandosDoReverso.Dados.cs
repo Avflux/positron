@@ -123,7 +123,7 @@ namespace Positron.Data.Interface.Mapas
                 new Comando("GERRB", "Comandos.cs", 435, true, false, false, new Janela[] { new Janela("frmCriarReguas", "new frmCriarReguas()") }),
                 new Comando("HBASE", "Comandos.cs", 1441, false, false, false, new Janela[0]),
                 new Comando("IIEX", "Comandos.cs", 1013, true, false, false, new Janela[] { new Janela("frmImportarInterligExcel", "new frmImportarInterligExcel()") }),
-                new Comando("IMPBD", "Comandos.cs", 150, false, false, false, new Janela[] { new Janela("frmImportarProjetos", "new frmImportarProjetos()") }),
+                new Comando("IMPBD", "Comandos.cs", 150, true, false, false, new Janela[] { new Janela("frmImportarProjetos", "new frmImportarProjetos()") }),
                 new Comando("IMPCAD", "Comandos.cs", 1396, true, false, false, new Janela[] { new Janela("frmMisturador", "new frmMisturador()") }),
                 new Comando("IMPR", "Comandos.cs", 1342, true, false, false, new Janela[] { new Janela("frmImprimir", "new frmImprimir()") }),
                 new Comando("INDEFCAB", "Comandos.cs", 1007, false, false, false, new Janela[0]),

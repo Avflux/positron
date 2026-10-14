@@ -13,7 +13,7 @@ using ZwSoft.ZwCAD.Runtime;
 namespace Positron.Plugin
 {
     /// <summary>
-    /// Os comandos do original que **so abrem a janela** (114 dos 119):
+    /// Os comandos do original que **so abrem a janela** (115 dos 120):
     /// no reverso o corpo deles monta o `frm*` e mais nada - quem trabalha e a propria janela.
     /// Registrar com o nome do original e o que faz o produto responder como ele:
     /// `GERDWG` abre a `frmGerenciadorDWG`, `DEF` a `frmDefinicao`, `BORN` a `frmBornes`.
@@ -434,6 +434,13 @@ namespace Positron.Plugin
         public void IIEX()
         {
             Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("IIEX"));
+        }
+
+        /// <summary>`IMPBD` do reverso (`Comandos.cs:150`) - abre `frmImportarProjetos`.</summary>
+        [CommandMethod("IMPBD")]
+        public void IMPBD()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("IMPBD"));
         }
 
         /// <summary>`IMPCAD` do reverso (`Comandos.cs:1396`) - abre `frmMisturador`.</summary>

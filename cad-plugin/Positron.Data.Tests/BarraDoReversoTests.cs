@@ -225,8 +225,8 @@ namespace Positron.Data.Tests
         [Fact]
         public void OsCobertosEOsQueAbremJanelaSomamOCruzamentoMedido()
         {
-            Assert.Equal(123, BarraDoReverso.QuantosCobertos());
-            Assert.Equal(116, BarraDoReverso.QuantosAbremJanela());
+            Assert.Equal(124, BarraDoReverso.QuantosCobertos());
+            Assert.Equal(117, BarraDoReverso.QuantosAbremJanela());
         }
 
         /// <summary>
@@ -256,10 +256,9 @@ namespace Positron.Data.Tests
                 }
             }
 
-            // 117 itens da barra abrem janela; com as 15 variantes ligadas (rodada 158), sobra apenas 1: IMPBD.
+            // 117 itens da barra abrem janela; com as variantes (rodada 158) e o IMPBD (rodada 159), todos ligados.
             Assert.Equal(117, conferidos.Count);
-            Assert.Single(semComando);
-            Assert.Contains("IMPBD", semComando);
+            Assert.Empty(semComando);
         }
 
         [Fact]

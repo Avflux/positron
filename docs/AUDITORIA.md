@@ -26,16 +26,21 @@ powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acopl
 | comandos do reverso | **216** |
 | deles, abrem alguma janela / são regra de desenho pura | **121** / **95** |
 | telas `frm*` | **127** |
-| comandos que o plugin responde | **187** = **73 escritos à mão** (51 do reverso + 22 nossos) + **114 gerados** (só abrem a tela) |
-| comandos do reverso **sem nada no plugin** | **51** = **1** que abre janela (`IMPBD`) + **50** de regra pura |
-| telas alcançadas por algum comando | **107** (6 com regra escrita à mão, 101 só casca) |
+| comandos que o plugin responde | **188** = **73 escritos à mão** (51 do reverso + 22 nossos) + **115 gerados** (só abrem a tela) |
+| comandos do reverso **sem nada no plugin** | **50** = **0** que abre janela + **50** de regra pura |
+| telas alcançadas por algum comando | **108** (6 com regra escrita à mão, 102 só casca) |
 | telas que **nenhum** comando abre (sub-janela: relatórios DWG/Excel, editores) | **19** |
-| telas sem comando e sem casca pelo nome | **1** (`IMPBD`) |
+| telas sem comando e sem casca pelo nome | **0** |
 
 A rodada 158 ligou as **15 variantes** das telas (`VariantesDoReverso.cs`), gerando os 15 comandos
 no plugin e conectando-os na barra de ferramentas. Com isso, os comandos gerados subiram de 99 para
 **114**, os comandos sem nada caíram de 68 para **51** (restando apenas 1 que abre janela: `IMPBD`),
 as telas alcançadas subiram para **107** e a barra passou a ter 123 acionáveis cobertos e 116 abrindo janela.
+A rodada 159 ligou o último: o `IMPBD` (`frmImportarProjetos`) só tinha, além da janela, o aviso
+`mMensagem[1969]` ("Esta função não é suportada para o SQL Server.") no `else` da guarda do
+`Conf.Banco == "SV"` — o recoder não tem SQL Server, então ele virou o **115º gerado**: **50** sem nada
+(todos de regra pura), **108** telas alcançadas e a barra com **124** cobertos e **117** abrindo janela
+(nenhum item de janela sem comando). A tela é casca: a importação (`clsImportarProjetos`) segue na frente 9.
 
 **O reverso mora no repo desde a rodada 134** (`cad-plugin/reverso/Eletron4_ZWcad`, com o
 `decompiled/`, o `decompiled-cleaned/`, o `cleaned/` e o `DLL/`), e o painel agora **imprime de onde
@@ -192,7 +197,7 @@ Cruzamento com o §7.6 do `docs/PLANO.md`: **209 dos 216** nomes apareciam citad
 | classificados como **só UI** (o comando abre um formulário) | **68** |
 | **interativos/navegação** (ponto, seleção, jig, URL, páginas) | **28** |
 | **destrutivos com confirmação** (`MsgBox`): `DELFIPROJ`, `DELLM`, `DELPLA` | **3** |
-| **arquivo/ambiente**: `CHVAUT`, `SYNCLP`, `LXLS`, `PortasChesf`, `IMPBD` | **5** |
+| **arquivo/ambiente**: `CHVAUT`, `SYNCLP`, `LXLS`, `PortasChesf`, `IMPBD` (este abre a casca desde a 159) | **5** |
 | **cobertos pela substância** de outro comando ou pela projeção: `LAYELN`, `LAYELS`, `RECRIACABOS`, `SYNCC` | **4** |
 | comandos **próprios** do recoder (sem par): `ELETCFG`, `INDCABO`, `VERIF`, `ELETREL`, `ELETCMP`, `SobeLm`, `pzDiag`, `pzDiagCriar`, `ApagaERROS` | 9 (fora dos 216) |
 

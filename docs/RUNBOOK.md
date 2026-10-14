@@ -968,6 +968,24 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 159 — o `IMPBD` (`frmImportarProjetos`): o último comando do reverso que abre janela ligado.**
+Com a fila do `PLANO.md` toda ✅, o painel da rodada 158 deixava um único comando de janela sem nada no plugin. No original o `IMPBD` só abre a tela; o `else` da guarda `Conf.Banco == "SV"` mostra o `mMensagem[1, 1969]` ("Esta função não é suportada para o SQL Server."). O extrator via esse `MsgBox` como trabalho e o deixava de fora.
+- `scripts/extrair-comandos-do-reverso.ps1`: o `MsgBox(RuntimeHelpers.GetObjectValue(DeclaracoesGeral.mMensagem[...]))` conta como relato da guarda (o único corpo que muda é o do `IMPBD`); o recoder não tem SQL Server, então a guarda nunca barra;
+- regenerados `ComandosDoOriginal.Gerado.cs` (**115** gerados), `ComandosDoReverso.Dados.cs`, `docs/reverso-comandos.txt` e, pelo `extrair-barra-do-reverso.ps1`, `BarraDoReverso.Dados.cs` e `docs/reverso-barra-do-original.txt` (**124** cobertos, **117** abrindo janela, nenhum item de janela sem comando);
+- painel (`cobertura-do-reverso.ps1`): **50** do reverso sem nada (**0** abrem janela), **108** telas alcançadas;
+- a tela é casca: a importação (`clsImportarProjetos`) segue na frente 9.
+
+```text
+# ZWCAD 2026, banco novo
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Comandos "JANELAS,IMPBD"
+
+Barra: aba "Positron" com 9 painel(is) — 121 botão(ões), 5 menu(s) com 39 item(ns), 1 liga/desliga, 1 lista e 1 campo; 34 linha(s), 86 quebra(s), 7 área(s) recolhível(is), 9 separador(es). Acionáveis: 124 ligado(s) (3 no comando do recoder), 37 desativado(s); tema escuro.
+JANELAS: seletor aberto com 127 tela(s) do reverso.
+IMPBD: "Importar Projeto" (frmImportarProjetos) aberta no CAD — 25 controle(s).
+```
+
+`plugin:test` **778** (contagens atualizadas), as duas builds **0 avisos**.
+
 **Rodada 158 — as 15 variantes das telas (`DICHESF`, `DIFURNAS`... — `frmRelatorio_DInterlig`/`_DICemig`/`frmTrocaPaineis`) e os 15 comandos gerados.**
 O item 6 da fila do `PLANO.md`: a conferência visual da rodada 153 havia identificado que 15 janelas do reverso eram instanciadas com argumentos no construtor que alteravam o formulário base (`new frmRelatorio_DInterlig(1..11)`, `new frmRelatorio_DICemig(1..3)` e `new frmTrocaPaineis(bAbre: false)`). Essas variantes não eram geradas como comandos para não abrir a casca padrão sem fidelidade.
 - Mapa completo `VariantesDoReverso.cs` (`Positron.Data/Interface/Mapas/VariantesDoReverso.cs`) estruturando as 15 variantes com dados puros:

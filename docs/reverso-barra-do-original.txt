@@ -36,7 +36,7 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
 | # | painel | mMensagem | botoes | itens de menu | cobertos | metodo | linha |
 |---|---|---|---|---|---|---|---|
 | 1 | Configuração | 111 | 2 | 0 | 1 | `TSfp1Hv8Fcw` | 116 |
-| 2 | Caderno | 109 | 13 | 0 | 8 | `sqNp1kxf3Uh` | 158 |
+| 2 | Caderno | 109 | 13 | 0 | 9 | `sqNp1kxf3Uh` | 158 |
 | 3 | Dispositivos | 110 | 24 | 0 | 18 | `Xcxp1ds9OPI` | 319 |
 | 4 | Bornes | 540 | 9 | 0 | 7 | `fJdp1fB9M7a` | 654 |
 | 5 | Fiação | 559 | 16 | 11 | 21 | `RuZp1DKCh0P` | 812 |
@@ -70,7 +70,7 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
   - (quebra de linha)
   - Botao/IconeTexto "Duplicar Caderno" `DUPCAD` icone Item coberto, abre janela (linha 289)
   - (quebra de linha)
-  - Botao/IconeTexto "Importar Projeto" `IMPBD` icone Item nao coberto, abre janela (linha 293)
+  - Botao/IconeTexto "Importar Projeto" `IMPBD` icone Item coberto, abre janela (linha 293)
   - (quebra de linha)
   - Botao/IconeTexto "Índice de Páginas" `INDPG` icone Item coberto, abre janela (linha 297)
   - (quebra de linha)
@@ -382,5 +382,5 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
 
 - Paineis: **9**.
 - Botoes: **121**; menus: **5** com **39** itens; liga/desliga: **1**.
-- Acionaveis (botao, item de menu, liga/desliga): **161** - o recoder responde a **123**, dos quais **116** abrem janela.
+- Acionaveis (botao, item de menu, liga/desliga): **161** - o recoder responde a **124**, dos quais **117** abrem janela.
 

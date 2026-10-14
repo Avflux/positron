@@ -163,6 +163,9 @@ foreach ($arquivo in (Get-ChildItem -Path $Reverso -Recurse -Filter *.cs | Sort-
     # Tudo o que sobrar depois deles e trabalho de verdade - e entao o comando nao entra como
     # "so abre a janela" (e o SYNCD, que roda a sincronizacao inteira e nao abre nada).
     $resto = [regex]::Replace($resto, 'AbriuJanela', ' ')
+    # O aviso da guarda tambem e relato, nao regra: o `IMPBD` so abre a janela fora do SQL Server
+    # e, no `else`, mostra o `mMensagem[1, 1969]` ("Esta funcao nao e suportada para o SQL Server.").
+    $resto = [regex]::Replace($resto, 'MsgBox\s*\(\s*RuntimeHelpers\.GetObjectValue\s*\(\s*DeclaracoesGeral\.mMensagem\s*\[[^\]]*\]\s*\)', ' (')
     $benignos = 'ProjectData|Interaction|MsgBoxStyle|Operators|Conversions|Information|RuntimeHelpers|Strings|Geral|clsRegua|DeclaracoesGeral|Exception'
     $resto = [regex]::Replace($resto, '\b(' + $benignos + ')\b', '')
     $resto = [regex]::Replace($resto, '[^A-Za-z_0-9]', ' ')

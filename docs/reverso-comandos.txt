@@ -122,7 +122,7 @@ passa argumento (`new frmRelatorio_DICemig(3)`), entao aquele comando e uma vari
 | `GERRB` | `frmCriarReguas` | `new frmCriarReguas()` | sim | nao | nao |  | `Comandos.cs:435` |
 | `HBASE` |  | - | nao | nao | nao |  | `Comandos.cs:1441` |
 | `IIEX` | `frmImportarInterligExcel` | `new frmImportarInterligExcel()` | sim | nao | nao |  | `Comandos.cs:1013` |
-| `IMPBD` | `frmImportarProjetos` | `new frmImportarProjetos()` | nao | nao | nao | `Operators.CompareString(DeclaracoesGeral.Conf.Banco, "", TextCompare: true) != 0` | `Comandos.cs:150` |
+| `IMPBD` | `frmImportarProjetos` | `new frmImportarProjetos()` | sim | nao | nao | `Operators.CompareString(DeclaracoesGeral.Conf.Banco, "", TextCompare: true) != 0` | `Comandos.cs:150` |
 | `IMPCAD` | `frmMisturador` | `new frmMisturador()` | sim | nao | nao |  | `Comandos.cs:1396` |
 | `IMPR` | `frmImprimir` | `new frmImprimir()` | sim | nao | nao |  | `Comandos.cs:1342` |
 | `INDEFCAB` |  | - | nao | nao | nao |  | `Comandos.cs:1007` |
@@ -347,8 +347,8 @@ abrem. Quando a construcao tem argumento, ela aparece ao lado do comando.
 
 - `[CommandMethod]`: **216** nomes distintos no reverso.
 - Abrem alguma janela: **121**.
-- **So** abrem a janela (sem outra regra no corpo): **119**.
+- **So** abrem a janela (sem outra regra no corpo): **120**.
 - Dessas, abrem uma **variante** (construcao com argumento): **15**.
 - Ja tem par no recoder: **5**.
-- Viram comando do plugin (janela padrÃ£o ou variante suportada): **114**.
+- Viram comando do plugin (janela padrÃ£o ou variante suportada): **115**.
 
