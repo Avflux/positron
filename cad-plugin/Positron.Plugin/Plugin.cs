@@ -28,6 +28,8 @@ namespace Positron.Plugin
         {
             Escrever("Positron carregado. Digite ELET para começar — ELET abre a paleta de folhas (FOLHAS também).");
             Escrever("Positron: " + BuildCarregado());
+            Positron.Data.Recursos.RecursosDoProduto.GarantirTodosOsRecursos();
+            Escrever("Recursos: 4 template(s) DWG garantido(s) (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao).");
             Escrever(Interface.Barra.BarraDeFerramentas.Criar());
         }
 

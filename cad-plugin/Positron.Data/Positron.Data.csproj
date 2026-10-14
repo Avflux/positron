@@ -17,4 +17,11 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+  <!-- Os recursos DWG do produto original (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao) -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\lib\Recursos\*.dwg">
+      <LogicalName>Positron.Recursos.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

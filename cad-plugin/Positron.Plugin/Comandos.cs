@@ -1089,6 +1089,31 @@ namespace Positron.Plugin
         }
 
         /// <summary>
+        /// <c>ONSPL</c> — abre a tela de splash (<c>frmSplash</c>), idêntica ao original (<c>Comandos.cs:31</c>).
+        /// </summary>
+        [CommandMethod("ONSPL")]
+        public void ComandoOnSpl()
+        {
+            Plugin.Escrever(Interface.Telas.RenderizadorDeTelas.Abrir("frmSplash", "ONSPL"));
+        }
+
+        /// <summary>
+        /// <c>OFFSPL</c> — fecha a tela de splash ativa (<c>frmSplash</c>), idêntico ao original (<c>Comandos.cs:40</c>).
+        /// </summary>
+        [CommandMethod("OFFSPL")]
+        public void ComandoOffSpl()
+        {
+            if (Interface.Telas.LigacaoDoFrmSplash.Fechar())
+            {
+                Plugin.Escrever("OFFSPL: splash fechada.");
+            }
+            else
+            {
+                Plugin.Escrever("OFFSPL: nenhuma tela de splash aberta.");
+            }
+        }
+
+        /// <summary>
         /// <c>APAGAPAGINA</c> — apaga uma **página**: os elementos do ModelSpace no layer dela (o
         /// <c>Pagina.ApagarElementosPagina</c> do reverso) e o layer. A página vem de
         /// <c>POSITRON_PAGINA</c> — **sem ela o comando não faz nada** (é destrutivo e não adivinha

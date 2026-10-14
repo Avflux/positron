@@ -968,6 +968,33 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 157 — §7.8 fatia 6: o splash (`frmSplash`, `ONSPL`/`OFFSPL`) e os recursos DWG (`MascaraM.dwg`, `ErroFiacao.dwg`, `V_B_BORNECPFL.dwg`, `Revisao.dwg`).**
+O item 5 da fila do `PLANO.md` e a fatia 6 do shell (§7.8): no original, o splash (`frmSplash`) é a tela de boas-vindas acionada via LISP (`ONSPL`/`OFFSPL`), exibindo a marca com recorte de transparência azul (`SplashEL26`). Além disso, o produto depende de 4 templates/blocos DWG embutidos em `Eletron4.Resources.resx`: `MascaraM.dwg` (formato/máscara de página), `ErroFiacao.dwg` (marcador visual de erro de fiação), `V_B_BORNECPFL.dwg` (bloco de régua/borne CPFL) e `Revisao.dwg` (tabela/bloco de revisão).
+- Extração de recursos via script Python (`scripts/extrair-recursos-dwg.py`) decodificando os dados Base64 do `.resx` do reverso para `cad-plugin/lib/Recursos/*.dwg`, embutidos como recursos incorporados em `Positron.Data.csproj` sob o namespace lógico `Positron.Recursos.*`;
+- A classe de regra pura `RecursosDoProduto` (`cad-plugin/Positron.Data/Recursos/RecursosDoProduto.cs`):
+  - Valida o cabeçalho mágico DWG (`AC10xx`) e identifica a versão CAD correspondente (`AC1024` = AutoCAD 2010, `AC1021` = AutoCAD 2007);
+  - Define caminhos padrão em `%APPDATA%\Positron\Recursos\` e retrocompatibilidade com `%APPDATA%\Cadgraph\Eletron4\`;
+  - Garante a extração em disco de forma idempotente (`GarantirEmDisco`, `GarantirTodosOsRecursos`);
+- A ligação de interface `LigacaoDoFrmSplash` (`cad-plugin/Positron.Plugin/Interface/Telas/LigacaoDoFrmSplash.cs`):
+  - Aplica o fundo `SplashEL26`, chave de transparência `Color.Blue`, centralização na tela e borda nenhuma;
+  - Fecha o splash ao clique ou nas teclas ESC/Enter;
+  - Rastreia instância ativa para controle programático via `OFFSPL`;
+- Comandos CAD `ONSPL` e `OFFSPL` adicionados em `Comandos.cs`;
+- Inicialização do plugin (`Plugin.Initialize`) agora chama `RecursosDoProduto.GarantirTodosOsRecursos()` ao carregar, garantindo a presença dos templates em disco para qualquer comando subsequente;
+- Telas ligadas à regra aumentadas de **11** para **12 de 127** (`pzTelas`).
+
+```text
+# ZWCAD 2026, Funcional.dwg (DWG 63), banco r154.db
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Comandos "pzTelas,ONSPL,OFFSPL"
+
+Recursos: 4 template(s) DWG garantido(s) (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao).
+JANELAS: 127 de 127 tela(s) do reverso montada(s), nenhuma falha. Ligacoes: 12 de 127 tela(s) com regra (frmPesquisaXdatas, frmEstatisticaDeBornes, frmCompilarFiacao, frmCompilarInterligacao, frmCompilarJumperExt, frmGerenciadorMateriais, frmGerenciadorMatIndep, frmGerenciadorMascaras, frmGerenciadorContatos, frmEditaRevisaoSimplificada, frmEditaRevisaoCompleta, frmSplash).
+ONSPL: "frmSplash" (frmSplash) aberta no CAD — 0 controle(s).
+OFFSPL: splash fechada.
+```
+
+`plugin:test` **756** (+10, `RecursosDoProdutoTests`), as duas builds **0 avisos**. E2E `-Idempotencia` com baseline `VERIF 249` verificado.
+
 **Rodada 156 — frente 12 (parte 8): as telas de revisões — `REVSIMP` e `REVCOMP` ligadas ao desenho e ao menu das folhas.**
 O item 4 da fila do `PLANO.md`: o submenu `Editar Revisões` da paleta de folhas (`FolhasControle.cs`) estava desabilitado com a suposição de que as revisões ficavam apenas no banco. A descompilação do original (`frmEditaRevisaoSimplificada.cs`, `frmEditaRevisaoCompleta.cs` e `Revisao.cs`) mostrou que ambas as telas leem e regravam as revisões **no desenho CAD** por página/layer:
 - a regra pura e modelos em `Positron.Data/Paginas/RevisoesDaPagina.cs` cobrem `RevisaoSimplificadaDaPagina`, `RevisaoCompletaDaPagina`, a substituição textual de campos (`OperacoesDeRevisao.Substituir`, com `DE`/`PARA`) e o mapeamento dos 15 campos da XData de revisão (`RevisaoCompletaXData`), espelhando a estrutura do original;
