@@ -1928,9 +1928,10 @@ namespace Positron.Data
         /// <c>CarregaListaMateriaisDoDG</c> do <c>frmGerenciadorMateriais</c> e o
         /// <c>CarregaDadosLMMatriz</c> do <c>frmGerenciadorMatIndep</c>.
         ///
-        /// Só a **leitura**: quem grava o catálogo no original é o próprio formulário
-        /// (<c>AdicionaItemMaterial</c>/<c>EditaItemMaterial</c>/<c>RemoveMaterial</c>), que o recoder
-        /// ainda não porta.
+        /// A **escrita** do catálogo são o <see cref="AdicionarMaterial"/>, o
+        /// <see cref="EditarMaterial"/> e o <see cref="RemoverMaterial"/> abaixo — o
+        /// <c>AdicionaItemMaterial</c>/<c>EditaItemMaterial</c>/<c>RemoveMaterial</c> do
+        /// <c>cDadosAccessMateriais</c>, que o <c>GERLM</c> usa ao salvar.
         /// </summary>
         public List<MaterialDoCatalogo> LerMateriais()
         {
@@ -1964,6 +1965,77 @@ namespace Positron.Data
             }
 
             return materiais;
+        }
+
+        /// <summary>
+        /// Acrescenta um material ao catálogo — o <c>AdicionaItemMaterial</c> do
+        /// <c>cDadosAccessMateriais</c>. O <c>Indice</c> **não** entra: é a chave da tabela, que o
+        /// banco atribui (no Access o insert também não manda o índice).
+        /// </summary>
+        public void AdicionarMaterial(MaterialDoCatalogo material)
+        {
+            if (material == null)
+            {
+                return;
+            }
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "INSERT INTO Materiais(CodigoInterno, CodigoCliente, Modelo, Fabricante, " +
+                    "DescricaoResumida, DescricaoCompleta) VALUES(@codigo, @cliente, @modelo, " +
+                    "@fabricante, @resumida, @completa)";
+                comando.Parameters.AddWithValue("@codigo", material.CodigoInterno);
+                comando.Parameters.AddWithValue("@cliente", material.CodigoCliente ?? string.Empty);
+                comando.Parameters.AddWithValue("@modelo", material.Modelo ?? string.Empty);
+                comando.Parameters.AddWithValue("@fabricante", material.Fabricante ?? string.Empty);
+                comando.Parameters.AddWithValue("@resumida", material.DescricaoResumida ?? string.Empty);
+                comando.Parameters.AddWithValue("@completa", material.DescricaoCompleta ?? string.Empty);
+                comando.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Atualiza os cinco campos de um material **pelo código interno** — o
+        /// <c>EditaItemMaterial</c> do original (o código interno não muda).
+        /// </summary>
+        public void EditarMaterial(MaterialDoCatalogo material)
+        {
+            if (material == null)
+            {
+                return;
+            }
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "UPDATE Materiais SET CodigoCliente=@cliente, Modelo=@modelo, Fabricante=@fabricante, " +
+                    "DescricaoResumida=@resumida, DescricaoCompleta=@completa WHERE CodigoInterno=@codigo";
+                comando.Parameters.AddWithValue("@cliente", material.CodigoCliente ?? string.Empty);
+                comando.Parameters.AddWithValue("@modelo", material.Modelo ?? string.Empty);
+                comando.Parameters.AddWithValue("@fabricante", material.Fabricante ?? string.Empty);
+                comando.Parameters.AddWithValue("@resumida", material.DescricaoResumida ?? string.Empty);
+                comando.Parameters.AddWithValue("@completa", material.DescricaoCompleta ?? string.Empty);
+                comando.Parameters.AddWithValue("@codigo", material.CodigoInterno);
+                comando.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Apaga do catálogo **pelo código interno** — o <c>RemoveMaterial</c> do original; devolve
+        /// quantas linhas saíram (0 quando o código não existe mais).
+        /// </summary>
+        public int RemoverMaterial(int codigoInterno)
+        {
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText = "DELETE FROM Materiais WHERE CodigoInterno = @codigo";
+                comando.Parameters.AddWithValue("@codigo", codigoInterno);
+                return comando.ExecuteNonQuery();
+            }
         }
 
         /// <summary>

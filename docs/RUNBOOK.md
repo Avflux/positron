@@ -863,6 +863,99 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 149 — a escrita do catálogo de materiais: os quatro botões do `GERLM`.** O item que a rodada
+148 devolveu para a fila do `PLANO.md` era a **escrita do catálogo** — o `AdicionaItemMaterial`, o
+`EditaItemMaterial` e o `RemoveMaterial` do `cDadosAccessMateriais`, com o corpo do formulário
+(`OYXpWrD09De`, `KcbpW9CNreY`, `LNDpWzth4ys`, `iaGppGHMjAT`) decidindo o que cada botão faz.
+
+**A regra (`Positron.Data`).** No `Materiais/CatalogoDeMateriais.cs` entraram o `ProximoCodigo` e o
+`PlanoDeGravacao`, mais os tipos `LinhaDoCatalogoNaGrade`, `OperacaoNoCatalogo` e
+`TipoDeOperacaoNoCatalogo`. O `ProximoCodigo` é o `num` do Adiciona Material: o código **digitado**
+quando é número (a leitura é pela cultura **invariante**, como o `XDataNumero` do recoder, para o
+ponto não virar separador de milhar — a armadilha que a primeira passada da suíte pegou: `"5.6"`
+lia **56**; a vírgula do teclado brasileiro também entra) e, senão, o **maior da grade mais um**,
+começando em 1, com o laço `if (num < codigo) num = codigo + 1` reproduzido como está. O
+`PlanoDeGravacao` é o `btSalvar` na ordem do original: (1) as linhas **apagadas** na tela, (2) na
+ordem da grade, cada linha marcada **`A`** vira **remover + adicionar** — é o `RemoveMaterial`
+defensivo que o original faz antes do `AdicionaItemMaterial`, para um código repetido ser
+substituído — e cada **`E`** vira edição; linha sem marca não gera operação. A **escrita** ficou no
+`ProjectStore`: `AdicionarMaterial` (o `Indice` **não** vai no insert — é a chave que o banco atribui,
+como no Access), `EditarMaterial` (os cinco campos pelo `CodigoInterno`, que não muda) e
+`RemoverMaterial` (devolve quantas linhas saíram).
+
+**A ligação (`Positron.Plugin`).** O `LigacaoDoFrmGerenciadorMateriais` deixou de desabilitar o que
+grava e ligou os quatro botões, com um estado de edição por janela (a lista de apagados e o flag de
+alterado, que habilita o `Salvar`):
+
+- **Adiciona Material**: as seis caixas vazias não fazem nada; um código que **já está na grade** só
+  seleciona a linha (o laço do `ConditionalCompareObjectEqual`); senão o código sai do
+  `ProximoCodigo` e é **escrito de volta na caixa**, a linha entra no fim com a marca `A` e as seis
+  primeiras células ficam **verdes**.
+- **Edita Material Selecionado**: a linha recebe das caixas **só os campos que mudaram** (comparação
+  **sem caixa**, o `TextCompare` do VB), cada um pintado de **amarelo**, e a linha passa a `E`.
+- **Apaga Material Selecionado**: a linha sai da grade e o código interno (a coluna 6, o
+  `IndiceOriginal`) entra na lista de apagados.
+- **Salvar Alterações**: o plano vai para o banco **na ordem do original**, a grade é recarregada do
+  banco, as caixas são limpas e o `Salvar` volta a desabilitar.
+
+**Duas diferenças deliberadas:** o original pergunta "Salvar Alterações?" num `MsgBox` **ao fechar** a
+janela (e o "sim" chama o mesmo `iaGppGHMjAT`) — o recoder **não salva sozinho**, só avisa na linha de
+comando —, e a linha recém-acrescentada tem `0` na coluna do índice, que o original empurra para a
+lista de apagados ao ser removida (`RemoveMaterial(0)`), enquanto aqui o `0` **não** entra, porque
+apagar o material de código 0 apagaria **outro** material. Importar/Exportar do Excel continuam
+desabilitados com o motivo na dica (interop).
+
+**Como a tela é medida num script.** Não há clique, então o harness ganhou o gancho: ao abrir a
+tela, `POSITRON_LM_MATERIAL` (os seis campos separados por `;`), `POSITRON_LM_ACAO` (`adicionar` é o
+padrão quando só o material vem, ou `editar`/`apagar`) e `POSITRON_LM_SALVAR`=1 rodam a **mesma**
+ação do clique. **Ordem:** a seleção da linha do código vem **antes** do preenchimento das caixas —
+o `MostraSelecionado` da seleção escreveria por cima do digitado e um `editar` nunca acharia
+diferença (o original digita **depois** de clicar). As variáveis são exportadas no shell e o
+`accoreconsole` as herda:
+
+```bash
+# 1) acrescenta um material e grava (o banco é a cópia do banco do projeto)
+POSITRON_LM_MATERIAL="9001;CLI9001;MODELO-H;FAB-H;desc resumida do harness;desc completa do harness" \
+POSITRON_LM_SALVAR=1 npm run cad:smoke:acad -- -Dwg 63 -Revisao R0 -Comandos ELET,pzTelas \
+  -Desenho "cad-plugin/reverso/Teste_projeto_real/Funcional.dwg" -Banco ".tmp-smoke/r149.db"
+
+# 2) edita o que foi acrescentado (só os campos que mudam entram na gravação)
+POSITRON_LM_MATERIAL="9001;CLI-EDITADO;MODELO-H2;FAB-H;desc resumida editada;desc completa editada" \
+POSITRON_LM_ACAO=editar POSITRON_LM_SALVAR=1 npm run cad:smoke:acad -- ... -Banco ".tmp-smoke/r149.db"
+
+# 3) apaga o material, deixando o banco como estava
+POSITRON_LM_MATERIAL="9001" POSITRON_LM_ACAO=apagar POSITRON_LM_SALVAR=1 \
+  npm run cad:smoke:acad -- ... -Banco ".tmp-smoke/r149.db"
+```
+
+```text
+GERLM: 210 material(is) no catálogo ("TP KP101" no código 4); grade com 9 coluna(s); Adiciona/Edita/Apaga/Salvar ligados, o Excel desabilitado.
+GERLM: material 9001 "desc resumida do harness" marcado para acrescentar (A).
+GERLM: catálogo gravado — 0 removida(s), 1 acrescentada(s), 0 editada(s); a grade foi recarregada.
+GERLM: linha 9001 marcada para editar (E) — código do cliente, modelo, descrição resumida, descrição completa.
+GERLM: catálogo gravado — 0 removida(s), 0 acrescentada(s), 1 editada(s); a grade foi recarregada.
+GERLM: linha 9001 tirada da grade (entra na lista de apagados).
+GERLM: catálogo gravado — 1 removida(s), 0 acrescentada(s), 0 editada(s); a grade foi recarregada.
+JANELAS: 127 de 127 tela(s) do reverso montada(s), nenhuma falha. Ligacoes: 7 de 127 tela(s) com regra (...).
+```
+
+**O que a medida prova no banco** (conferida no SQLite depois de cada passo, não só pela linha do log):
+
+| passo | `Materiais` | o que ficou diferente |
+|---|---|---|
+| partida (banco da rodada 148) | **210** | — |
+| Adiciona + Salvar | **211** | a linha `9001` com os seis campos digitados e o `Indice` **595** que o **banco** atribuiu |
+| Edita + Salvar | **211** | só os **quatro** campos que mudaram (`Fabricante` foi digitado igual e **não** entrou) |
+| Apaga + Salvar | **210** | o `9001` fora; a tabela **igual à da partida** (hash `fbac1320…` dos dois lados) |
+
+e as **104** linhas da `ListaMateriais` e as **480** do cadastro `Paineis` não foram tocadas em nenhum
+passo — a escrita mexe só no catálogo.
+
+**O que a medida não cobre:** o `MsgBox` do fechamento (o recoder avisa na linha de comando, por
+desenho), a janela **aberta** no `accoreconsole` (o `JANELA` derruba o processo, o achado da rodada
+138) e a conferência **visual** da tela, que é do dono. O `plugin:test` **não roda** nesta máquina (o
+item do Troubleshooting) — a suíte inteira saiu pelo console runner do xunit: **705 testes, 0 falhas**.
+
 **Rodada 148 — as duas telas de materiais ligadas à regra (`GERLM` e `ATINDEP`).** O item 3 da fila do
 `PLANO.md` mandava confirmar no painel o que a regra cobre antes de ligar as telas: o
 `cobertura-do-reverso.ps1 -Listas` dizia `com a ligacao na tela: 5` e nenhuma das duas estava na
@@ -898,7 +991,8 @@ renderizador não aplica, porque ele pinta o texto do designer), o `Celula`/`Tex
   `formataDG`** (inclusive `IndiceOriginal`, `Ação` e `IndiceEL`, que são o contrato do `iaGppGHMjAT`
   de gravação: `A` acrescentar, `E` editar) e as linhas do catálogo no formato do
   `CarregaListaMateriaisDoDG`; o `MostraSelecionado` preenche as seis caixas do material. Os **seis**
-  botões que gravam/importam entram desabilitados com o motivo (`btSalvar` inclusive).
+  botões que gravam/importam entram desabilitados com o motivo (`btSalvar` inclusive) — **os quatro do
+  catálogo ficaram ligados na rodada 149**, que é a seção acima.
 - `LigacaoDoFrmGerenciadorMatIndep` (`ATINDEP`): a `dgPaineis` (índice **oculto** + nome do cadastro
   de `Paineis`) e a `dgDisp` com as **12 colunas do `formataDGDisp`**, preenchida **na ordem
   posicional** do `Rows.Add` do original — `Indice`, `DWG`, `Painel`, `Tag`, `IndiceMaterial`,
@@ -934,7 +1028,7 @@ npm run cad:smoke:acad -- -Dwg 63 -Revisao R0 -Comandos ELET,pzTelas -Desenho "<
 ```text
 COMPLM: 104 linha(s) em ListaMateriais (8 painel(is); 0 avulso(s); 199 borne(s) do desenho, 0 sem régua no dicionário; ordem do desenho; 83 posição(ões) de layout).
 ATINDEP: 8 painel(is) na ListaMateriais do DWG 63 (104 item(ns); 1 no painel 1); 210 material(is) no catálogo; primeiro item: "R16" → material 0 (fora do catálogo); os botões que gravam estão desabilitados.
-GERLM: 210 material(is) no catálogo ("TP KP101" no código 4); grade com 9 coluna(s); os botões que gravam estão desabilitados.
+GERLM: 210 material(is) no catálogo ("TP KP101" no código 4); grade com 9 coluna(s); os botões que gravam estão desabilitados.   <- rodada 148 (na 149 estes quatro passaram a gravar)
 JANELAS: 127 de 127 tela(s) do reverso montada(s), nenhuma falha. Ligacoes: 7 de 127 tela(s) com regra (frmPesquisaXdatas, frmEstatisticaDeBornes, frmCompilarFiacao, frmCompilarInterligacao, frmCompilarJumperExt, frmGerenciadorMateriais, frmGerenciadorMatIndep).
 ```
 

@@ -102,6 +102,158 @@ namespace Positron.Data.Tests
             Assert.Empty(PaineisDaListaDeMateriais.DoPainel(linhas, 77));
         }
 
+        [Fact]
+        public void ProximoCodigo_usa_o_digitado_quando_e_numero()
+        {
+            List<int> grade = new List<int> { 4, 5 };
+
+            // O `Versioned.IsNumeric` do VB tem prioridade sobre a grade.
+            Assert.Equal(4, CatalogoDeMateriais.ProximoCodigo(grade, "4"));
+            Assert.Equal(9, CatalogoDeMateriais.ProximoCodigo(grade, "9"));
+            // Decimal no campo (o `ToInteger` arredonda).
+            Assert.Equal(6, CatalogoDeMateriais.ProximoCodigo(grade, "5.6"));
+        }
+
+        [Fact]
+        public void ProximoCodigo_e_o_maior_da_grade_mais_um()
+        {
+            // O laço do original: `num = 1` e, a cada código, `if (num < codigo) num = codigo + 1`.
+            Assert.Equal(8, CatalogoDeMateriais.ProximoCodigo(new List<int> { 5, 7 }, ""));
+            Assert.Equal(10, CatalogoDeMateriais.ProximoCodigo(new List<int> { 3, 9, 5 }, "abc"));
+            Assert.Equal(1, CatalogoDeMateriais.ProximoCodigo(new List<int>(), ""));
+            Assert.Equal(1, CatalogoDeMateriais.ProximoCodigo(null, null));
+        }
+
+        [Fact]
+        public void Plano_de_gravacao_segue_a_ordem_do_original()
+        {
+            List<LinhaDoCatalogoNaGrade> linhas = new List<LinhaDoCatalogoNaGrade>
+            {
+                // Sem marca: veio do banco e não foi tocada.
+                new LinhaDoCatalogoNaGrade { CodigoInterno = 4, Marca = "" },
+                // `A` = acrescentada na tela: sai um remover defensivo antes do adicionar.
+                new LinhaDoCatalogoNaGrade { CodigoInterno = 12, Marca = "A", CodigoCliente = "CC", Modelo = "M" },
+                // `E` = editada na tela.
+                new LinhaDoCatalogoNaGrade { CodigoInterno = 5, Marca = "E", DescricaoResumida = "nova" },
+            };
+
+            List<OperacaoNoCatalogo> plano = CatalogoDeMateriais.PlanoDeGravacao(linhas, new List<int> { 77 });
+
+            // 1) os apagados na tela, 2) o par remover+adicionar do `A`, 3) a edição do `E`.
+            Assert.Equal(
+                new[]
+                {
+                    TipoDeOperacaoNoCatalogo.Remover,
+                    TipoDeOperacaoNoCatalogo.Remover,
+                    TipoDeOperacaoNoCatalogo.Adicionar,
+                    TipoDeOperacaoNoCatalogo.Editar,
+                },
+                plano.ConvertAll(o => o.Tipo));
+            Assert.Equal(new[] { 77, 12, 12, 5 }, plano.ConvertAll(o => o.Material.CodigoInterno));
+            Assert.Equal("CC", plano[2].Material.CodigoCliente);
+            Assert.Equal("nova", plano[3].Material.DescricaoResumida);
+        }
+
+        [Fact]
+        public void Escreve_o_catalogo_no_banco()
+        {
+            string caminho = BancoDeTeste.Criar();
+            try
+            {
+                ProjectStore store = new ProjectStore(caminho);
+
+                store.AdicionarMaterial(new MaterialDoCatalogo
+                {
+                    CodigoInterno = 12,
+                    CodigoCliente = "CC12",
+                    Modelo = "M12",
+                    Fabricante = "F12",
+                    DescricaoResumida = "Res 12",
+                    DescricaoCompleta = "Completa 12",
+                });
+
+                MaterialDoCatalogo lido = Assert.Single(store.LerMateriais());
+                Assert.Equal(12, lido.CodigoInterno);
+                Assert.Equal("CC12", lido.CodigoCliente);
+                Assert.Equal("Completa 12", lido.DescricaoCompleta);
+                Assert.True(lido.Indice > 0, "o Indice e a chave que o banco atribui (o insert nao manda)");
+
+                // A edição não troca o código interno — só os cinco campos.
+                store.EditarMaterial(new MaterialDoCatalogo
+                {
+                    CodigoInterno = 12,
+                    CodigoCliente = "NOVO",
+                    Modelo = "M12",
+                    Fabricante = "F12",
+                    DescricaoResumida = "Res 12 nova",
+                    DescricaoCompleta = "Completa 12 nova",
+                });
+
+                lido = Assert.Single(store.LerMateriais());
+                Assert.Equal("NOVO", lido.CodigoCliente);
+                Assert.Equal("Res 12 nova", lido.DescricaoResumida);
+                Assert.Equal("Completa 12 nova", lido.DescricaoCompleta);
+
+                Assert.Equal(1, store.RemoverMaterial(12));
+                Assert.Empty(store.LerMateriais());
+                // O código que não existe mais não derruba nem mente.
+                Assert.Equal(0, store.RemoverMaterial(12));
+            }
+            finally
+            {
+                BancoDeTeste.Limpar(caminho);
+            }
+        }
+
+        [Fact]
+        public void Plano_aplicado_grava_o_catalogo()
+        {
+            string caminho = BancoDeTeste.Criar();
+            try
+            {
+                ProjectStore store = new ProjectStore(caminho);
+                store.AdicionarMaterial(new MaterialDoCatalogo { CodigoInterno = 1, DescricaoResumida = "um" });
+                store.AdicionarMaterial(new MaterialDoCatalogo { CodigoInterno = 77, DescricaoResumida = "fora" });
+
+                List<LinhaDoCatalogoNaGrade> linhas = new List<LinhaDoCatalogoNaGrade>
+                {
+                    new LinhaDoCatalogoNaGrade { CodigoInterno = 1, Marca = "E", DescricaoResumida = "um novo" },
+                    new LinhaDoCatalogoNaGrade { CodigoInterno = 12, Marca = "A", DescricaoResumida = "doze" },
+                };
+
+                Executar(store, CatalogoDeMateriais.PlanoDeGravacao(linhas, new List<int> { 77 }));
+
+                List<MaterialDoCatalogo> lidos = store.LerMateriais();
+                Assert.Equal(new[] { 1, 12 }, lidos.ConvertAll(m => m.CodigoInterno));
+                Assert.Equal("um novo", lidos[0].DescricaoResumida);
+                Assert.Equal("doze", lidos[1].DescricaoResumida);
+            }
+            finally
+            {
+                BancoDeTeste.Limpar(caminho);
+            }
+        }
+
+        /// <summary>Executa o plano na mesma ordem em que a ligação do <c>GERLM</c> o executa.</summary>
+        private static void Executar(ProjectStore store, List<OperacaoNoCatalogo> plano)
+        {
+            foreach (OperacaoNoCatalogo operacao in plano)
+            {
+                switch (operacao.Tipo)
+                {
+                    case TipoDeOperacaoNoCatalogo.Remover:
+                        store.RemoverMaterial(operacao.Material.CodigoInterno);
+                        break;
+                    case TipoDeOperacaoNoCatalogo.Adicionar:
+                        store.AdicionarMaterial(operacao.Material);
+                        break;
+                    default:
+                        store.EditarMaterial(operacao.Material);
+                        break;
+                }
+            }
+        }
+
         private static SQLiteConnection Abrir(string caminho)
         {
             SQLiteConnection conexao = new SQLiteConnection("Data Source=" + caminho + ";Version=3;");

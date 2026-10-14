@@ -6,7 +6,7 @@
 
 **Não.** O que está coberto é o **recorte** — as correções e a limpeza do CAD (frente 2), a base/contexto (frente 1) e os três pipelines —, e o que está **mapeado** são os **216 comandos** do reverso (todos classificados). O que **não** está coberto é a **lógica por trás dos formulários** (49% do código do reverso) nem a pilha de exportação/importação, as rotinas destrutivas e a integração de ambiente/licença.
 
-## 0. Estado medido agora — o que falta, em ordem (rodadas 132–148)
+## 0. Estado medido agora — o que falta, em ordem (rodadas 132–149)
 
 Esta seção responde à pergunta recorrente *"o que já cobrimos e o que falta"* **com número medido no
 próprio repo**, e não com memória: o `scripts/cobertura-do-reverso.ps1` cruza o mapa dos 216 comandos
@@ -76,6 +76,16 @@ estão entregues (o **`EncontraHandle`** na **rodada 146**; antes, o **`CorrigeI
    o **Excel** entram desabilitados com o motivo na dica. A lista "a regra existe, falta a ligação"
    segue **vazia**, agora com **7** telas ligadas; as **duas regras que faltaram** na tela (a escrita
    do catálogo e a escrita da lista) voltaram para a fila do `PLANO.md`.
+4. ✅ **A escrita do catálogo de materiais** — `AdicionaItemMaterial`/`EditaItemMaterial`/
+   `RemoveMaterial` — **entregue na rodada 149**: o `ProximoCodigo` e o `PlanoDeGravacao` do
+   `iaGppGHMjAT` entram como regra pura (`CatalogoDeMateriais`, na ordem do original: apagados, depois
+   o par remover+adicionar do `A` e a edição do `E`), a escrita vira `ProjectStore.AdicionarMaterial`/
+   `EditarMaterial`/`RemoverMaterial` e os quatro botões do `GERLM` (Adiciona/Edita/Apaga/Salvar)
+   ficaram **ligados** — medido no AutoCAD 2020 com o banco do projeto real: o catálogo foi de **210**
+   para **211** e voltou a 210 no ciclo add→edita→apaga, com as 210 linhas originais e as 104 da
+   `ListaMateriais` **byte a byte iguais** (hash `fbac1320…`). **O que sobra da tela é a escrita da
+   lista** (o item avulso do `ATINDEP`, `AdicionaUmItemMaterialAvulso`/`EditaUmItemMaterialAvulso`/
+   `RemoveMaterialAvulso`) — que segue na fila do `PLANO.md`, mais a pintura do `MesclaDGDisp`.
 
 > **A fila desta seção está vazia desde a rodada 140:** o item 1 (`CorrigeInterligacao`) saiu na
 > **139** e o item 2 (as três telas de compilação) na **140**. Os próximos passos passaram a ser os do

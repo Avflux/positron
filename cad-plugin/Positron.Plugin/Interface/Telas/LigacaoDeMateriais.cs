@@ -98,6 +98,13 @@ namespace Positron.Plugin.Interface.Telas
             return Convert.ToString(linha.Cells[coluna].Value) ?? string.Empty;
         }
 
+        /// <summary>O texto atual de uma caixa pelo `Name` (vazio quando a caixa não existe).</summary>
+        protected static string LerCaixa(Form janela, string nome)
+        {
+            TextBox caixa = ControlesDaTela.Achar<TextBox>(janela, nome);
+            return caixa == null ? string.Empty : (caixa.Text ?? string.Empty);
+        }
+
         /// <summary>O texto de uma caixa pelo `Name` — a célula da grade preenchendo o campo da tela.</summary>
         protected static void TextoDaCaixa(Form janela, string nome, string valor)
         {
