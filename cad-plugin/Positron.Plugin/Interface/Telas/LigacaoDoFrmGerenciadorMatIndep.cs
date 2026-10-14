@@ -37,6 +37,10 @@ namespace Positron.Plugin.Interface.Telas
     /// - <b>Apaga Material Selecionado</b> (<c>eUVppXAWerf</c>): só as linhas **avulsas** saem — as do
     ///   desenho são da projeção —, e o motivo aparece quando alguma é deixada de fora.
     ///
+    /// **A pintura (rodada 154):** cada carga da grade termina no <c>MesclaDGDisp</c>, como lá — a
+    /// cor das células 3–5 pela origem da linha, a dica e o <c>ErrorText</c> do material
+    /// (<see cref="PinturaDaListaDoPainel"/>).
+    ///
     /// O <b>Pesquisar</b> (o <c>frmPesquisaMateriais</c>) continua desabilitado com o motivo na dica.
     ///
     /// **Como a tela é medida num script** (não há clique): <c>POSITRON_LIM_ITEM</c>
@@ -125,7 +129,7 @@ namespace Positron.Plugin.Interface.Telas
             if (doDesenho.Count > 0)
             {
                 estado.Painel = doDesenho[0];
-                doPrimeiro = CarregarDispositivos(grade, linhas, doDesenho[0], 0);
+                doPrimeiro = CarregarDispositivos(grade, linhas, doDesenho[0], 0, catalogo);
                 materialDoPrimeiro = PreencherMaterial(janela, grade, catalogo);
             }
 
@@ -134,6 +138,7 @@ namespace Positron.Plugin.Interface.Telas
                 + (doDesenho.Count == 0 ? "-" : doDesenho[0].ToString()) + ")"
                 + "; " + catalogo.Count + " material(is) no catálogo"
                 + (string.IsNullOrEmpty(materialDoPrimeiro) ? string.Empty : "; primeiro item: " + materialDoPrimeiro)
+                + "; " + ResumoDaPintura(grade)
                 + "; Adiciona/Edita/Apaga ligados, a pesquisa desabilitada.");
 
             GanchoDoHarness(janela, grade, estado, catalogo, nomes, config);
@@ -261,9 +266,15 @@ namespace Positron.Plugin.Interface.Telas
         /// O <c>CarregaDGDisp</c> do original para o painel escolhido: as linhas da lista na ordem
         /// posicional do `Rows.Add` — é o que as regras de cor e de erro do <c>MesclaDGDisp</c> leem
         /// nas células 4, 7 e 11. Com <paramref name="selecionar"/> a linha daquele <c>Indice</c> fica
-        /// selecionada (é como a linha recém-gravada continua escolhida depois da releitura).
+        /// selecionada (é como a linha recém-gravada continua escolhida depois da releitura). A carga
+        /// termina com a pintura, como o `CarregaDGDisp` termina no `MesclaDGDisp`.
         /// </summary>
-        private static int CarregarDispositivos(DataGridView grade, List<LinhaListaMaterial> linhas, int painel, int selecionar)
+        private static int CarregarDispositivos(
+            DataGridView grade,
+            List<LinhaListaMaterial> linhas,
+            int painel,
+            int selecionar,
+            IReadOnlyDictionary<int, MaterialDoCatalogo> catalogo)
         {
             if (grade == null)
             {
@@ -299,12 +310,89 @@ namespace Positron.Plugin.Interface.Telas
                 }
             }
 
+            Pintar(grade, catalogo);
             if (grade.Rows.Count > 0)
             {
                 grade.Rows[posicao >= 0 ? posicao : 0].Selected = true;
             }
 
             return grade.Rows.Count;
+        }
+
+        /// <summary>
+        /// O <c>MesclaDGDisp</c>: as células 3 a 5 de cada linha na cor da
+        /// <see cref="PinturaDaListaDoPainel"/>, com a dica e o <c>ErrorText</c> da célula 4.
+        /// </summary>
+        private static void Pintar(DataGridView grade, IReadOnlyDictionary<int, MaterialDoCatalogo> catalogo)
+        {
+            foreach (DataGridViewRow linha in grade.Rows)
+            {
+                if (linha.IsNewRow)
+                {
+                    continue;
+                }
+
+                PinturaDaLinha pintura = PinturaDaListaDoPainel.Pintar(DaLinha(linha), catalogo);
+                for (int coluna = 3; coluna <= 5 && coluna < linha.Cells.Count; coluna++)
+                {
+                    DataGridViewCell celula = linha.Cells[coluna];
+                    CorDaCelula fundo = coluna == 4 && pintura.FundoDoMaterial.HasValue
+                        ? pintura.FundoDoMaterial.Value
+                        : pintura.Fundo;
+                    celula.Style.BackColor = Cor(fundo);
+                    celula.Style.ForeColor = fundo == CorDaCelula.Coral ? System.Drawing.Color.White : System.Drawing.Color.Black;
+                    celula.ToolTipText = pintura.Dica;
+                }
+
+                if (linha.Cells.Count > 4)
+                {
+                    linha.Cells[4].ErrorText = pintura.Erro;
+                }
+            }
+        }
+
+        /// <summary>
+        /// O que a pintura deixou **na grade** (lido das células, não da regra): quantas linhas em
+        /// cada cor, quantas com o material em coral e quantas com <c>ErrorText</c> — a medida num
+        /// script, onde não há olho na tela.
+        /// </summary>
+        private static string ResumoDaPintura(DataGridView grade)
+        {
+            if (grade == null)
+            {
+                return "pintura: sem grade";
+            }
+
+            int limao = 0, ciano = 0, cinza = 0, coral = 0, erros = 0;
+            foreach (DataGridViewRow linha in grade.Rows)
+            {
+                if (linha.IsNewRow || linha.Cells.Count <= 4)
+                {
+                    continue;
+                }
+
+                System.Drawing.Color fundo = linha.Cells[3].Style.BackColor;
+                if (fundo == System.Drawing.Color.LemonChiffon) { limao++; }
+                else if (fundo == System.Drawing.Color.LightCyan) { ciano++; }
+                else if (fundo == System.Drawing.Color.LightGray) { cinza++; }
+
+                if (linha.Cells[4].Style.BackColor == System.Drawing.Color.LightCoral) { coral++; }
+                if (!string.IsNullOrEmpty(linha.Cells[4].ErrorText)) { erros++; }
+            }
+
+            return "pintura: " + limao + " do desenho, " + ciano + " avulso(s), " + cinza + " sem marca, "
+                + coral + " material(is) fora do catálogo, " + erros + " com erro";
+        }
+
+        private static System.Drawing.Color Cor(CorDaCelula cor)
+        {
+            switch (cor)
+            {
+                case CorDaCelula.Limao: return System.Drawing.Color.LemonChiffon;
+                case CorDaCelula.Ciano: return System.Drawing.Color.LightCyan;
+                case CorDaCelula.Coral: return System.Drawing.Color.LightCoral;
+                default: return System.Drawing.Color.LightGray;
+            }
         }
 
         /// <summary>
@@ -321,7 +409,7 @@ namespace Positron.Plugin.Interface.Telas
             int selecionar)
         {
             List<LinhaListaMaterial> linhas = LerLista(config, out _);
-            CarregarDispositivos(grade, linhas, estado.Painel, selecionar);
+            CarregarDispositivos(grade, linhas, estado.Painel, selecionar, catalogo);
             PreencherMaterial(janela, grade, catalogo);
         }
 
@@ -657,7 +745,7 @@ namespace Positron.Plugin.Interface.Telas
                 estado.Painel = painel;
                 Recarregar(janela, grade, catalogo, config, estado, 0);
                 Plugin.Escrever("ATINDEP: painel " + painel + " escolhido pelo POSITRON_LIM_PAINEL ("
-                    + grade.Rows.Count + " item(ns)).");
+                    + grade.Rows.Count + " item(ns); " + ResumoDaPintura(grade) + ").");
             }
 
             if (!string.IsNullOrEmpty(item))

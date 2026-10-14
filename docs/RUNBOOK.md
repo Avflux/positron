@@ -968,6 +968,35 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 154 — a pintura da grade do `ATINDEP`: o `MesclaDGDisp`.** O último item que a rodada
+148 deixou na tela. O original termina cada carga da `dgDisp` (`CarregaDGDisp`) no `MesclaDGDisp`
+(`frmGerenciadorMatIndep.cs:926`), que lê três células — a 4 (material), a 7 (`Avulso`) e a 11
+(`Handle`) — e o catálogo do `CarregaDadosLMMatriz`. A regra entrou em
+`Positron.Data/Materiais/PinturaDaListaDoPainel.cs`, na ordem do original (a seguinte sobrescreve):
+células 3–5 **cinza-claro**; com handle (veio do desenho) **limão**; avulso **ciano** com a dica
+"Dispositivo Avulso" (1200); com handle e não avulso a dica "Dispositivo Independente" (1201);
+material 0 sem handle → erro 1203 + 1202, com handle → 1201/1200 + 1202; material ≠ 0 fora do
+catálogo → **só a célula 4** em coral com texto branco e erro 1204 + 1205. O handle nulo e o vazio
+são o mesmo (o `Nothing = ""` do VB). Na tela, o `CarregarDispositivos` termina na pintura, e as
+linhas `ATINDEP:` da carga e do `POSITRON_LIM_PAINEL` dizem o que ficou **nas células** (lido da
+grade, não da regra).
+
+```text
+# ZWCAD 2026, Funcional.dwg (DWG 63), copia do banco de partida da rodada 152 (r154.db)
+POSITRON_LIM_PAINEL=503 powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 \
+  -Comandos "ELET,pzTelas" -Desenho "cad-plugin/reverso/Teste_projeto_real/Funcional.dwg" -Banco "<repo>\.tmp-smoke\r154.db"
+
+ATINDEP: 8 painel(is) na ListaMateriais do DWG 63 (104 item(ns); 1 no painel 1); 210 material(is) no catálogo; primeiro item: "R16" → material 0 (fora do catálogo); pintura: 1 do desenho, 0 avulso(s), 0 sem marca, 0 material(is) fora do catálogo, 1 com erro; ...
+ATINDEP: painel 503 escolhido pelo POSITRON_LIM_PAINEL (91 item(ns); pintura: 48 do desenho, 0 avulso(s), 43 sem marca, 0 material(is) fora do catálogo, 5 com erro).
+```
+
+A contagem do painel 503 conferida **direto no banco** (python/sqlite sobre a `ListaMateriais` e a
+`Materiais`): 91 linhas, 48 com handle e não avulsas, 0 avulsas, 43 sem marca, 0 material fora do
+catálogo, 5 com material 0 — igual. O banco sai com o mesmo hash (`b1a89e9d…`): a pintura não
+grava. **Não medido:** as cores na tela aberta (a janela não abre no console headless) e o ciano
+num banco com avulso (o caminho do avulso está nos testes; o da escrita, na rodada 151).
+`plugin:test` **734** (+5, `PinturaDaListaDoPainelTests`), as duas builds **0 avisos**.
+
 **Rodada 153 — as telas contra as capturas do original.** As 126 capturas da `captura_das_janelas`
 (commit `68f7b063`) viraram **124 pares** captura × reconstrução: o `RenderizadorDeTelas` e o
 `IconesEmbutidos` compilados num projeto mínimo fora do CAD (a `LigacoesDasTelas` e o
