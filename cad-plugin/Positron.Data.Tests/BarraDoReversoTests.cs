@@ -225,8 +225,8 @@ namespace Positron.Data.Tests
         [Fact]
         public void OsCobertosEOsQueAbremJanelaSomamOCruzamentoMedido()
         {
-            Assert.Equal(108, BarraDoReverso.QuantosCobertos());
-            Assert.Equal(101, BarraDoReverso.QuantosAbremJanela());
+            Assert.Equal(123, BarraDoReverso.QuantosCobertos());
+            Assert.Equal(116, BarraDoReverso.QuantosAbremJanela());
         }
 
         /// <summary>
@@ -256,13 +256,10 @@ namespace Positron.Data.Tests
                 }
             }
 
-            // 117 itens da barra abrem janela; 16 o recoder nao responde: TROCAPN e IMPBD e as 14
-            // variantes `DI*` do menu de relatorios (a tela com argumento, que nao vira comando).
+            // 117 itens da barra abrem janela; com as 15 variantes ligadas (rodada 158), sobra apenas 1: IMPBD.
             Assert.Equal(117, conferidos.Count);
-            Assert.Equal(16, semComando.Count);
-            Assert.Contains("TROCAPN", semComando);
+            Assert.Single(semComando);
             Assert.Contains("IMPBD", semComando);
-            Assert.Contains("DIFURNAS", semComando);
         }
 
         [Fact]

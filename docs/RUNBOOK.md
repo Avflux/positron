@@ -968,6 +968,34 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 158 — as 15 variantes das telas (`DICHESF`, `DIFURNAS`... — `frmRelatorio_DInterlig`/`_DICemig`/`frmTrocaPaineis`) e os 15 comandos gerados.**
+O item 6 da fila do `PLANO.md`: a conferência visual da rodada 153 havia identificado que 15 janelas do reverso eram instanciadas com argumentos no construtor que alteravam o formulário base (`new frmRelatorio_DInterlig(1..11)`, `new frmRelatorio_DICemig(1..3)` e `new frmTrocaPaineis(bAbre: false)`). Essas variantes não eram geradas como comandos para não abrir a casca padrão sem fidelidade.
+- Mapa completo `VariantesDoReverso.cs` (`Positron.Data/Interface/Mapas/VariantesDoReverso.cs`) estruturando as 15 variantes com dados puros:
+  - 11 variantes de `frmRelatorio_DInterlig`: `DICHESF` (1), `DICPFL` (2), `DICTEEP` (3), `DIEQUAT` (4), `DICPFLTR` (5), `DIEDP` (6), `DITAESA` (7), `DIFURNAS` (8), `DICEMIGGTP` (9), `DIENELSP` (10), `DIITAIPU` (11);
+  - 3 variantes de `frmRelatorio_DICemig`: `DICEMIGGTE` (1), `DICEMIGDP` (2), `DICEMIGDE` (3);
+  - 1 variante de `frmTrocaPaineis`: `TROCAPN` (`new frmTrocaPaineis(bAbre: false)`);
+  - Método puro `Aplicar(Tela baseTela)` que devolve uma nova instância de `Tela` adaptando o título da concessionária/tipo, visibilidade de grupos (`GroupBoxTipoCruz`, `GroupBoxPaineisCima`, `GroupBox1`, `rb2`, `tbReserva`), controles desabilitados/habilitados (`btMirrorJumper`, `btCima`, `btRebateCabos`, `rbC`, `rb4`, `btTrocaosPaineis`) e sobreposição de posições (ex.: `GroupBoxPaineisCima` reposicionado para `12, 459`);
+- Extrator `scripts/extrair-comandos-do-reverso.ps1` atualizado para incluir variantes em `Comando.Ligavel` e gerar os métodos em `ComandosDoOriginal.Gerado.cs`;
+- Comandos gerados subiram de 99 para **114**; comandos do reverso sem nada no plugin caíram de 68 para **51** (apenas 1 abrindo janela: `IMPBD`; 50 de regra pura);
+- Telas alcançadas no CAD subiram de 104 para **107** (+3: `frmRelatorio_DInterlig`, `frmRelatorio_DICemig`, `frmTrocaPaineis`);
+- `BarraDoReverso.Dados.cs` atualizado: acionáveis cobertos na barra subiram de 108 para **123** (+15), e os que abrem janela de 101 para **116** (+15); itens de janela sem comando na barra caíram de 16 para apenas **1** (`IMPBD`);
+- `RenderizadorDeTelas.cs` e `JanelasDoOriginal.cs` ajustados para buscar a variante pelo nome do comando ou rótulo e aplicar as alterações antes da montagem da janela modeless;
+- Testes unitários novos em `VariantesDoReversoTests.cs` (+15 asserções) e contagens atualizadas em `ComandosDoReversoTests.cs` e `BarraDoReversoTests.cs`.
+
+```text
+# ZWCAD 2026, banco novo
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Comandos "JANELAS,DICHESF,DICEMIGDE,TROCAPN"
+
+Recursos: 4 template(s) DWG garantido(s) (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao).
+Barra: aba "Positron" com 9 painel(is) — 121 botão(ões), 5 menu(s) com 39 item(ns), 1 liga/desliga, 1 lista e 1 campo; 34 linha(s), 86 quebra(s), 7 área(s) recolhível(is), 9 separador(es). Acionáveis: 123 ligado(s) (3 no comando do recoder), 38 desativado(s); tema escuro.
+JANELAS: seletor aberto com 127 tela(s) do reverso.
+DICHESF: "Diagrama de Interligação CHESF" (frmRelatorio_DInterlig) aberta no CAD — 54 controle(s).
+DICEMIGDE: "Diagrama de Interligação CEMIG-D EQUIP" (frmRelatorio_DICemig) aberta no CAD — 44 controle(s).
+TROCAPN: "Trocar Painel" (frmTrocaPaineis) aberta no CAD — 13 controle(s).
+```
+
+`plugin:test` **778** (+22), as duas builds **0 avisos**.
+
 **Rodada 157 — §7.8 fatia 6: o splash (`frmSplash`, `ONSPL`/`OFFSPL`) e os recursos DWG (`MascaraM.dwg`, `ErroFiacao.dwg`, `V_B_BORNECPFL.dwg`, `Revisao.dwg`).**
 O item 5 da fila do `PLANO.md` e a fatia 6 do shell (§7.8): no original, o splash (`frmSplash`) é a tela de boas-vindas acionada via LISP (`ONSPL`/`OFFSPL`), exibindo a marca com recorte de transparência azul (`SplashEL26`). Além disso, o produto depende de 4 templates/blocos DWG embutidos em `Eletron4.Resources.resx`: `MascaraM.dwg` (formato/máscara de página), `ErroFiacao.dwg` (marcador visual de erro de fiação), `V_B_BORNECPFL.dwg` (bloco de régua/borne CPFL) e `Revisao.dwg` (tabela/bloco de revisão).
 - Extração de recursos via script Python (`scripts/extrair-recursos-dwg.py`) decodificando os dados Base64 do `.resx` do reverso para `cad-plugin/lib/Recursos/*.dwg`, embutidos como recursos incorporados em `Positron.Data.csproj` sob o namespace lógico `Positron.Recursos.*`;

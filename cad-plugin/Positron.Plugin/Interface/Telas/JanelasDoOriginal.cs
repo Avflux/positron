@@ -12,10 +12,9 @@ namespace Positron.Plugin.Interface.Telas
     /// O caminho é um só para todos: o comando gerado (<c>ComandosDoOriginal.Gerado.cs</c>) diz o
     /// **nome**, o mapa do reverso (<see cref="ComandosDoReverso"/>) diz a **tela**, e aqui a
     /// janela é montada e aberta pelo <see cref="RenderizadorDeTelas"/> (modeless, dentro do CAD).
-    /// A variante — o comando que abre a mesma tela com um argumento
-    /// (<c>new frmRelatorio_DICemig(3)</c>) — **não** é registrada como comando: abrir a tela padrão
-    /// no lugar dela seria mentir, então ela fica no mapa, com a construção, à espera da rodada que
-    /// portar o relatório.
+    /// As 15 variantes do original (<c>new frmRelatorio_DInterlig(1..11)</c>,
+    /// <c>new frmRelatorio_DICemig(1..3)</c> e <c>new frmTrocaPaineis(bAbre: false)</c>) são
+    /// adaptadas via <see cref="VariantesDoReverso"/> e abrem a tela com título e grupos fiéis.
     ///
     /// Nunca lança: um comando que estoura derruba a linha de comando do CAD.
     /// </summary>

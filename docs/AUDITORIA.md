@@ -26,16 +26,16 @@ powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acopl
 | comandos do reverso | **216** |
 | deles, abrem alguma janela / são regra de desenho pura | **121** / **95** |
 | telas `frm*` | **127** |
-| comandos que o plugin responde | **168** = **69 escritos à mão** (49 do reverso + 20 nossos) + **99 gerados** (só abrem a tela) |
-| comandos do reverso **sem nada no plugin** | **68** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **51** de regra pura |
-| telas alcançadas por algum comando | **103** (7 com regra escrita à mão, 96 só casca) |
+| comandos que o plugin responde | **187** = **73 escritos à mão** (51 do reverso + 22 nossos) + **114 gerados** (só abrem a tela) |
+| comandos do reverso **sem nada no plugin** | **51** = **1** que abre janela (`IMPBD`) + **50** de regra pura |
+| telas alcançadas por algum comando | **107** (6 com regra escrita à mão, 101 só casca) |
 | telas que **nenhum** comando abre (sub-janela: relatórios DWG/Excel, editores) | **19** |
-| telas sem comando e sem casca pelo nome (variante/splash) | **5** |
+| telas sem comando e sem casca pelo nome | **1** (`IMPBD`) |
 
-As rodadas 150 e 151 (a barra do AutoCAD e a escrita da lista de materiais) **não acrescentaram comando
-nem tela com regra nova** — o painel da rodada 151 devolve os mesmos números —, então a tabela acima
-segue valendo: o que a 151 mudou foi **quanto** da tela do `ATINDEP` está ligado (a escrita da lista),
-e não a contagem de telas com regra.
+A rodada 158 ligou as **15 variantes** das telas (`VariantesDoReverso.cs`), gerando os 15 comandos
+no plugin e conectando-os na barra de ferramentas. Com isso, os comandos gerados subiram de 99 para
+**114**, os comandos sem nada caíram de 68 para **51** (restando apenas 1 que abre janela: `IMPBD`),
+as telas alcançadas subiram para **107** e a barra passou a ter 123 acionáveis cobertos e 116 abrindo janela.
 
 **O reverso mora no repo desde a rodada 134** (`cad-plugin/reverso/Eletron4_ZWcad`, com o
 `decompiled/`, o `decompiled-cleaned/`, o `cleaned/` e o `DLL/`), e o painel agora **imprime de onde

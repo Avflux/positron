@@ -203,7 +203,7 @@ $reservadas = @('abstract', 'as', 'base', 'bool', 'break', 'byte', 'case', 'catc
 $comTelas = @($unicos | Where-Object { $_.Telas.Count -gt 0 })
 $soJanela = @($unicos | Where-Object { $_.SomenteJanela })
 $variante = @($soJanela | Where-Object { $_.ComVariante })
-$ligaveis = @($soJanela | Where-Object { (-not $_.ComVariante) -and (-not $_.JaNoPlugin) -and ($_.Nome -match '^[A-Za-z_][A-Za-z_0-9]*$') -and ($reservadas -notcontains $_.Nome) })
+$ligaveis = @($soJanela | Where-Object { (-not $_.JaNoPlugin) -and ($_.Nome -match '^[A-Za-z_][A-Za-z_0-9]*$') -and ($reservadas -notcontains $_.Nome) })
 
 if ($Amostra) {
   Write-Output "--- SO ABRE A JANELA, SEM VARIANTE (primeiros 30) ---"
@@ -272,7 +272,7 @@ foreach ($t in ($porTela.Keys | Sort-Object)) {
 [void]$doc.Add('- **So** abrem a janela (sem outra regra no corpo): **' + $soJanela.Count + '**.')
 [void]$doc.Add('- Dessas, abrem uma **variante** (construcao com argumento): **' + $variante.Count + '**.')
 [void]$doc.Add('- Ja tem par no recoder: **' + @($soJanela | Where-Object { $_.JaNoPlugin }).Count + '**.')
-[void]$doc.Add('- Viram comando do plugin (sem par e sem variante): **' + $ligaveis.Count + '**.')
+[void]$doc.Add('- Viram comando do plugin (janela padrão ou variante suportada): **' + $ligaveis.Count + '**.')
 [void]$doc.Add('')
 
 [System.IO.File]::WriteAllLines((Join-Path (Get-Location) $Mapa), $doc)

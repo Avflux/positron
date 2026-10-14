@@ -13,7 +13,7 @@ using ZwSoft.ZwCAD.Runtime;
 namespace Positron.Plugin
 {
     /// <summary>
-    /// Os comandos do original que **so abrem a janela** (99 dos 119):
+    /// Os comandos do original que **so abrem a janela** (114 dos 119):
     /// no reverso o corpo deles monta o `frm*` e mais nada - quem trabalha e a propria janela.
     /// Registrar com o nome do original e o que faz o produto responder como ele:
     /// `GERDWG` abre a `frmGerenciadorDWG`, `DEF` a `frmDefinicao`, `BORN` a `frmBornes`.
@@ -135,11 +135,81 @@ namespace Positron.Plugin
             Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DEF"));
         }
 
+        /// <summary>`DICEMIGDE` do reverso (`Comandos.cs:1089`) - abre `frmRelatorio_DICemig`.</summary>
+        [CommandMethod("DICEMIGDE")]
+        public void DICEMIGDE()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DICEMIGDE"));
+        }
+
+        /// <summary>`DICEMIGDP` do reverso (`Comandos.cs:1083`) - abre `frmRelatorio_DICemig`.</summary>
+        [CommandMethod("DICEMIGDP")]
+        public void DICEMIGDP()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DICEMIGDP"));
+        }
+
+        /// <summary>`DICEMIGGTE` do reverso (`Comandos.cs:1077`) - abre `frmRelatorio_DICemig`.</summary>
+        [CommandMethod("DICEMIGGTE")]
+        public void DICEMIGGTE()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DICEMIGGTE"));
+        }
+
+        /// <summary>`DICEMIGGTP` do reverso (`Comandos.cs:1071`) - abre `frmRelatorio_DInterlig`.</summary>
+        [CommandMethod("DICEMIGGTP")]
+        public void DICEMIGGTP()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DICEMIGGTP"));
+        }
+
+        /// <summary>`DICHESF` do reverso (`Comandos.cs:1095`) - abre `frmRelatorio_DInterlig`.</summary>
+        [CommandMethod("DICHESF")]
+        public void DICHESF()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DICHESF"));
+        }
+
+        /// <summary>`DICPFL` do reverso (`Comandos.cs:1101`) - abre `frmRelatorio_DInterlig`.</summary>
+        [CommandMethod("DICPFL")]
+        public void DICPFL()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DICPFL"));
+        }
+
+        /// <summary>`DICPFLTR` do reverso (`Comandos.cs:1107`) - abre `frmRelatorio_DInterlig`.</summary>
+        [CommandMethod("DICPFLTR")]
+        public void DICPFLTR()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DICPFLTR"));
+        }
+
+        /// <summary>`DICTEEP` do reverso (`Comandos.cs:1155`) - abre `frmRelatorio_DInterlig`.</summary>
+        [CommandMethod("DICTEEP")]
+        public void DICTEEP()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DICTEEP"));
+        }
+
+        /// <summary>`DIEDP` do reverso (`Comandos.cs:1113`) - abre `frmRelatorio_DInterlig`.</summary>
+        [CommandMethod("DIEDP")]
+        public void DIEDP()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DIEDP"));
+        }
+
         /// <summary>`DIELN` do reverso (`Comandos.cs:1065`) - abre `frmRelatorio_Aranha`.</summary>
         [CommandMethod("DIELN")]
         public void DIELN()
         {
             Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DIELN"));
+        }
+
+        /// <summary>`DIENELSP` do reverso (`Comandos.cs:1143`) - abre `frmRelatorio_DInterlig`.</summary>
+        [CommandMethod("DIENELSP")]
+        public void DIENELSP()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DIENELSP"));
         }
 
         /// <summary>`DIENER` do reverso (`Comandos.cs:1125`) - abre `frmRelatorio_DIEnergisaMS`.</summary>
@@ -163,11 +233,39 @@ namespace Positron.Plugin
             Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DIENERSSE"));
         }
 
+        /// <summary>`DIEQUAT` do reverso (`Comandos.cs:1119`) - abre `frmRelatorio_DInterlig`.</summary>
+        [CommandMethod("DIEQUAT")]
+        public void DIEQUAT()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DIEQUAT"));
+        }
+
+        /// <summary>`DIFURNAS` do reverso (`Comandos.cs:1149`) - abre `frmRelatorio_DInterlig`.</summary>
+        [CommandMethod("DIFURNAS")]
+        public void DIFURNAS()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DIFURNAS"));
+        }
+
+        /// <summary>`DIITAIPU` do reverso (`Comandos.cs:1161`) - abre `frmRelatorio_DInterlig`.</summary>
+        [CommandMethod("DIITAIPU")]
+        public void DIITAIPU()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DIITAIPU"));
+        }
+
         /// <summary>`DISP` do reverso (`Comandos.cs:205`) - abre `frmDispPrincipal`.</summary>
         [CommandMethod("DISP")]
         public void DISP()
         {
             Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DISP"));
+        }
+
+        /// <summary>`DITAESA` do reverso (`Comandos.cs:1167`) - abre `frmRelatorio_DInterlig`.</summary>
+        [CommandMethod("DITAESA")]
+        public void DITAESA()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("DITAESA"));
         }
 
         /// <summary>`DPOT` do reverso (`Comandos.cs:723`) - abre `frmRelatorio_DistribuicaoPotencial`.</summary>
@@ -686,6 +784,13 @@ namespace Positron.Plugin
         public void TPG()
         {
             Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("TPG"));
+        }
+
+        /// <summary>`TROCAPN` do reverso (`Comandos.cs:1378`) - abre `frmTrocaPaineis`.</summary>
+        [CommandMethod("TROCAPN")]
+        public void TROCAPN()
+        {
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("TROCAPN"));
         }
 
         /// <summary>`TROCBL` do reverso (`Comandos.cs:1366`) - abre `frmTrocaEditaBlocos`.</summary>

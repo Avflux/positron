@@ -188,9 +188,7 @@ renderizador, valendo para todas as telas):
 
 **O que sobra** (nao e da casca estatica; cada grupo e uma rodada propria):
 
-- **variantes** (`DICHESF`, `DIFURNAS`... os 15 do `frmRelatorio_DInterlig`/`_DICemig`): o titulo e
-  os grupos que cada variante mostra/esconde vem do `switch` do construtor; a tela padrao abre com
-  o ultimo caso (`ENEL-SP`). As variantes nao sao comando ainda (`JanelasDoOriginal`);
+- **variantes** (`DICHESF`, `DIFURNAS`... os 15 do `frmRelatorio_DInterlig`/`_DICemig`/`frmTrocaPaineis`): entregues na **rodada 158** (`VariantesDoReverso.cs`), com títulos, visibilidade de grupos, controles habilitados/desabilitados e posições sobrescritas, com todos os 15 comandos registrados no plugin (`ComandosDoOriginal.Gerado.cs`) e ligados na barra de ferramentas;
 - **grades que o original abre sem coluna** e so monta ao selecionar (`frmTopograficoAnilha`,
   `frmCompilar*` "Erros", `frmCopiarObjetos`, `frmMisturador`, `frmNavegador`, `frmPesquisaCabos`,
   `frmPlaquetas`, `frmRelatorio_Materiais`/`_Elektro`/`_Veias`/`_PotenciaisSiemens`...): a casca

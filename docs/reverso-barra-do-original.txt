@@ -28,7 +28,7 @@ Graus: **Grande** (icone grande, texto embaixo), **IconeGrande** (icone grande, 
 | Separador | 6 | 6 |
 
 Os separadores do mapa contam as **declaracoes** (o original reusa a mesma variavel: o `val6` do
-painel Fiacao entra oito vezes); na arvore, cada uso aparece. Criados e **nunca colocados** num
+painel Fiacao entra seis vezes); na arvore, cada uso aparece. Criados e **nunca colocados** num
 conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val7` do painel 5 (linha 1005, comando ``).
 
 ## Os paineis
@@ -36,12 +36,12 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
 | # | painel | mMensagem | botoes | itens de menu | cobertos | metodo | linha |
 |---|---|---|---|---|---|---|---|
 | 1 | Configuração | 111 | 2 | 0 | 1 | `TSfp1Hv8Fcw` | 116 |
-| 2 | Caderno | 109 | 13 | 0 | 7 | `sqNp1kxf3Uh` | 158 |
+| 2 | Caderno | 109 | 13 | 0 | 8 | `sqNp1kxf3Uh` | 158 |
 | 3 | Dispositivos | 110 | 24 | 0 | 18 | `Xcxp1ds9OPI` | 319 |
 | 4 | Bornes | 540 | 9 | 0 | 7 | `fJdp1fB9M7a` | 654 |
 | 5 | Fiação | 559 | 16 | 11 | 21 | `RuZp1DKCh0P` | 812 |
 | 6 | Construtivo | 1549 | 8 | 2 | 8 | `qGpp1vUUxZV` | 1185 |
-| 7 | Cabos e Veias | 560 | 30 | 26 | 30 | `HEpp169Agfo` | 1321 |
+| 7 | Cabos e Veias | 560 | 30 | 26 | 44 | `HEpp169Agfo` | 1321 |
 | 8 | Utilitários | 112 | 18 | 0 | 16 | `E74p1tC6alM` | 1872 |
 | 9 | Help | -1 | 1 | 0 | 0 | `vwCp1jIpDXj` | 2119 |
 
@@ -66,7 +66,7 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
 - linha
   - Botao/IconeTexto "Cadastro de Painéis" `PN` icone Item coberto, abre janela (linha 281)
   - (quebra de linha)
-  - Botao/IconeTexto "Trocar Painel" `TROCAPN` icone Item nao coberto, abre janela (linha 285)
+  - Botao/IconeTexto "Trocar Painel" `TROCAPN` icone Item coberto, abre janela (linha 285)
   - (quebra de linha)
   - Botao/IconeTexto "Duplicar Caderno" `DUPCAD` icone Item coberto, abre janela (linha 289)
   - (quebra de linha)
@@ -279,23 +279,23 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
   - Botao/Icone `PESQC` icone Pesquisar_16 coberto, abre janela - Pesquisar Veias Indefinidas (linha 1654)
   - Menu/Menu icone Diagramas_16/Diagramas_16_Dark - Diagramas de Interligação (linha 1708)
     - ItemDeMenu/ItemDeMenu "ELETRONORTE" `DIELN` icone Item coberto, abre janela - Diagrama de Interligação ELETRONORTE (linha 1718)
-    - ItemDeMenu/ItemDeMenu "CEMIG-GT PAINEL" `DICEMIGGTP` icone Item nao coberto, abre janela - Diagrama de Interligação CEMIG-GT PAINEL (linha 1720)
-    - ItemDeMenu/ItemDeMenu "CEMIG-GT EQUIP" `DICEMIGGTE` icone Item nao coberto, abre janela - Diagrama de Interligação CEMIG-GT EQUIP (linha 1722)
-    - ItemDeMenu/ItemDeMenu "CEMIG-D PAINEL" `DICEMIGDP` icone Item nao coberto, abre janela - Diagrama de Interligação CEMIG-D PAINEL (linha 1724)
-    - ItemDeMenu/ItemDeMenu "CEMIG-D EQUIP" `DICEMIGDE` icone Item nao coberto, abre janela - Diagrama de Interligação CEMIG-D EQUIP (linha 1726)
-    - ItemDeMenu/ItemDeMenu "CHESF" `DICHESF` icone Item nao coberto, abre janela - Diagrama de Interligação CHESF (linha 1728)
-    - ItemDeMenu/ItemDeMenu "CPFL SERVIÇOS" `DICPFL` icone Item nao coberto, abre janela - Diagrama de Interligação CPFL SERVIÇOS (linha 1730)
-    - ItemDeMenu/ItemDeMenu "CPFL TRANSMISSÃO" `DICPFLTR` icone Item nao coberto, abre janela - Diagrama de Interligação CPFL TRANSMISSÃO (linha 1732)
-    - ItemDeMenu/ItemDeMenu "EDP ES" `DIEDP` icone Item nao coberto, abre janela - Diagrama de Interligação EDP ES (linha 1734)
-    - ItemDeMenu/ItemDeMenu "EQUATORIAL" `DIEQUAT` icone Item nao coberto, abre janela - Diagrama de Interligação EQUATORIAL (linha 1736)
+    - ItemDeMenu/ItemDeMenu "CEMIG-GT PAINEL" `DICEMIGGTP` icone Item coberto, abre janela - Diagrama de Interligação CEMIG-GT PAINEL (linha 1720)
+    - ItemDeMenu/ItemDeMenu "CEMIG-GT EQUIP" `DICEMIGGTE` icone Item coberto, abre janela - Diagrama de Interligação CEMIG-GT EQUIP (linha 1722)
+    - ItemDeMenu/ItemDeMenu "CEMIG-D PAINEL" `DICEMIGDP` icone Item coberto, abre janela - Diagrama de Interligação CEMIG-D PAINEL (linha 1724)
+    - ItemDeMenu/ItemDeMenu "CEMIG-D EQUIP" `DICEMIGDE` icone Item coberto, abre janela - Diagrama de Interligação CEMIG-D EQUIP (linha 1726)
+    - ItemDeMenu/ItemDeMenu "CHESF" `DICHESF` icone Item coberto, abre janela - Diagrama de Interligação CHESF (linha 1728)
+    - ItemDeMenu/ItemDeMenu "CPFL SERVIÇOS" `DICPFL` icone Item coberto, abre janela - Diagrama de Interligação CPFL SERVIÇOS (linha 1730)
+    - ItemDeMenu/ItemDeMenu "CPFL TRANSMISSÃO" `DICPFLTR` icone Item coberto, abre janela - Diagrama de Interligação CPFL TRANSMISSÃO (linha 1732)
+    - ItemDeMenu/ItemDeMenu "EDP ES" `DIEDP` icone Item coberto, abre janela - Diagrama de Interligação EDP ES (linha 1734)
+    - ItemDeMenu/ItemDeMenu "EQUATORIAL" `DIEQUAT` icone Item coberto, abre janela - Diagrama de Interligação EQUATORIAL (linha 1736)
     - ItemDeMenu/ItemDeMenu "ENERGISA MS" `DIENER` icone Item coberto, abre janela - Diagrama de Interligação ENERGISA MS (linha 1738)
     - ItemDeMenu/ItemDeMenu "ENERGISA MT" `DIENERMT` icone Item coberto, abre janela - Diagrama de Interligação ENERGISA MT (linha 1740)
     - ItemDeMenu/ItemDeMenu "ENERGISA SUL SUDESTE" `DIENERSSE` icone Item coberto, abre janela - Diagrama de Interligação ENERGISA S/SE (linha 1742)
-    - ItemDeMenu/ItemDeMenu "ENEL-SP" `DIENELSP` icone Item nao coberto, abre janela - Diagrama de Interligação ENEL-SP (linha 1744)
-    - ItemDeMenu/ItemDeMenu "FURNAS" `DIFURNAS` icone Item nao coberto, abre janela - Diagrama de Interligação FURNAS (linha 1746)
-    - ItemDeMenu/ItemDeMenu "ISA CTEEP" `DICTEEP` icone Item nao coberto, abre janela - Diagrama de Interligação ISA CTEEP (linha 1748)
-    - ItemDeMenu/ItemDeMenu "ITAIPU" `DIITAIPU` icone Item nao coberto, abre janela - Diagrama de Interligação ITAIPU (linha 1750)
-    - ItemDeMenu/ItemDeMenu "TAESA" `DITAESA` icone Item nao coberto, abre janela - Diagrama de Interligação TAESA (linha 1752)
+    - ItemDeMenu/ItemDeMenu "ENEL-SP" `DIENELSP` icone Item coberto, abre janela - Diagrama de Interligação ENEL-SP (linha 1744)
+    - ItemDeMenu/ItemDeMenu "FURNAS" `DIFURNAS` icone Item coberto, abre janela - Diagrama de Interligação FURNAS (linha 1746)
+    - ItemDeMenu/ItemDeMenu "ISA CTEEP" `DICTEEP` icone Item coberto, abre janela - Diagrama de Interligação ISA CTEEP (linha 1748)
+    - ItemDeMenu/ItemDeMenu "ITAIPU" `DIITAIPU` icone Item coberto, abre janela - Diagrama de Interligação ITAIPU (linha 1750)
+    - ItemDeMenu/ItemDeMenu "TAESA" `DITAESA` icone Item coberto, abre janela - Diagrama de Interligação TAESA (linha 1752)
   - (quebra de linha)
   - Botao/Icone `DNOME` icone Desliga_16/Desliga_16_Dark nao coberto - Desligar Nome Cabo (linha 1634)
   - Botao/Icone `SYNCV` icone Sincronizar_16/Sincronizar_16_Dark coberto - Sincronizar Veias (linha 1664)
@@ -382,5 +382,5 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
 
 - Paineis: **9**.
 - Botoes: **121**; menus: **5** com **39** itens; liga/desliga: **1**.
-- Acionaveis (botao, item de menu, liga/desliga): **161** - o recoder responde a **108**, dos quais **101** abrem janela.
+- Acionaveis (botao, item de menu, liga/desliga): **161** - o recoder responde a **123**, dos quais **116** abrem janela.
 

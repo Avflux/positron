@@ -42,8 +42,8 @@ passa argumento (`new frmRelatorio_DICemig(3)`), entao aquele comando e uma vari
 | `CONT` | `frmContatosAux` | `new frmContatosAux()` | sim | nao | nao |  | `Comandos.cs:217` |
 | `COPIAINT` | `frmCopia` | `new frmCopia()` | sim | nao | nao |  | `Comandos.cs:1242` |
 | `COPYCAD` | `frmCopiarObjetos` | `new frmCopiarObjetos()` | sim | nao | nao |  | `Comandos.cs:1360` |
-| `CorrigeAtributos` |  | - | nao | nao | nao | `Operators.CompareString(clsTrocaEditaBlocosMat.mAtributos[i].sHandleBlocoo, clsTrocaEditaBlocosMat.mAtributos[i].sHandleBlocooNovo, TextCompare: true) != 0 && !list.Contains(clsTrocaEditaBlocosMat.mAtributos[i].sHandleBlocooNovo)` `clsTrocaEditaBlocosMat.lBlocosExistentesTrocados.Count > 1` `list.Count >= 1` `Operators.CompareString(clsTrocaEditaBlocosMat.sBlocosNaoExistentes, "", TextCompare: true) != 0` | `clsTrocaEditaBlocos.cs:141` |
-| `CorrigeAtributosSemMsg` |  | - | nao | nao | nao |  | `clsTrocaEditaBlocos.cs:267` |
+| `CorrigeAtributos` |  | - | nao | nao | sim | `Operators.CompareString(clsTrocaEditaBlocosMat.mAtributos[i].sHandleBlocoo, clsTrocaEditaBlocosMat.mAtributos[i].sHandleBlocooNovo, TextCompare: true) != 0 && !list.Contains(clsTrocaEditaBlocosMat.mAtributos[i].sHandleBlocooNovo)` `clsTrocaEditaBlocosMat.lBlocosExistentesTrocados.Count > 1` `list.Count >= 1` `Operators.CompareString(clsTrocaEditaBlocosMat.sBlocosNaoExistentes, "", TextCompare: true) != 0` | `clsTrocaEditaBlocos.cs:141` |
+| `CorrigeAtributosSemMsg` |  | - | nao | nao | sim |  | `clsTrocaEditaBlocos.cs:267` |
 | `CorrigeBlocosContatosAux` |  | - | nao | nao | sim | `array2.Count() <= 1` `val6 == null` `Operators.CompareString(XDataDispositivo.verificaTipoDispositivo(ref ent, ref tipoImportado), "", TextCompare: true) != 0` `(array2[k].iModelo == structureAuxiliar.IndexModelo) & (array2[k].iContato == structureAuxiliar.IndexContato)` | `Correcao.cs:1834` |
 | `CorrigeBornes` |  | - | nao | nao | sim | `Operators.CompareString(XDataDispositivo.verificaTipoDispositivo(ref ent, ref tipoImportado), "", TextCompare: true) == 0` `structureBorne.Visivel == -1` | `Correcao.cs:317` |
 | `CorrigeCabos` |  | - | nao | nao | sim |  | `Correcao.cs:1556` |
@@ -53,7 +53,7 @@ passa argumento (`new frmRelatorio_DICemig(3)`), entao aquele comando e uma vari
 | `corrigeDicMascaras` |  | - | nao | nao | sim | `!list.Contains(mPortas[j].IndiceDaPorta)` `array[0].MaxIndice < mPortas[j].IndiceDaPorta` `Information.UBound(array) > 0` `array[l].IndiceDaPorta > array[l + 1].IndiceDaPorta` | `Correcao.cs:1148` |
 | `CorrigeDisp` |  | - | nao | nao | sim | `((SymbolTable)val4).Has("")` | `Correcao.cs:259` |
 | `CorrigeHandleSuperior` |  | - | nao | nao | sim | `Operators.CompareString(DeclaracoesGeral.companyHardlock.ToUpper(), "", TextCompare: true) != 0` `pl == null` `XDataConexao.lerXDataConexao(ref pl, ref conex) && conex.Tipo == 3` `flag && conex.Painel == num2 && ((Operators.CompareString(conex.Handle, sHandle, TextCompare: true) != 0) | (Operators.CompareString(conex.Nome, sNome, TextCompare: true) != 0) | (conex.Potencial != iPotencial))` | `Correcao.cs:2684` |
-| `CorrigeInterligacao` |  | - | nao | nao | nao | `pl != null` `XDataInterligacao.lerXDataInterligacao(ref pl, ref ilig)` `pl2 == null` `!XDataInterligacao.lerXDataInterligacao(ref pl2, ref ilig2)` `ilig2.NumVeia == -1000` `ilig2.Tipo == 1` `!(((ilig2.Painel1 == num3) & (ilig2.Painel2 == num4)) | ((ilig2.Painel1 == num4) & (ilig2.Painel2 == num3)))` `num3 >= num4` `!(((ilig2.Painel1 == num4) & (ilig2.Painel2 == num3)) | ((ilig2.Painel1 == num3) & (ilig2.Painel2 == num4)))` `!(((ilig2.Painel1 == num3) & (ilig2.Painel2 == num4)) | ((ilig2.Painel1 == num4) & (ilig2.Painel2 == num3)))` `(ilig2.Tipo == 2) | (ilig2.Tipo == 3)` `!flag` `ilig2.Painel1 == 0` `ilig2.Painel2 != num5` `ilig2.Painel1 != num5` `num != 0` | `clsUtilitarios.cs:611` |
+| `CorrigeInterligacao` |  | - | nao | nao | sim | `pl != null` `XDataInterligacao.lerXDataInterligacao(ref pl, ref ilig)` `pl2 == null` `!XDataInterligacao.lerXDataInterligacao(ref pl2, ref ilig2)` `ilig2.NumVeia == -1000` `ilig2.Tipo == 1` `!(((ilig2.Painel1 == num3) & (ilig2.Painel2 == num4)) | ((ilig2.Painel1 == num4) & (ilig2.Painel2 == num3)))` `num3 >= num4` `!(((ilig2.Painel1 == num4) & (ilig2.Painel2 == num3)) | ((ilig2.Painel1 == num3) & (ilig2.Painel2 == num4)))` `!(((ilig2.Painel1 == num3) & (ilig2.Painel2 == num4)) | ((ilig2.Painel1 == num4) & (ilig2.Painel2 == num3)))` `(ilig2.Tipo == 2) | (ilig2.Tipo == 3)` `!flag` `ilig2.Painel1 == 0` `ilig2.Painel2 != num5` `ilig2.Painel1 != num5` `num != 0` | `clsUtilitarios.cs:611` |
 | `CorrigeJanelas` |  | - | nao | nao | nao |  | `Correcao.cs:1083` |
 | `CorrigeModelosDeContatos` |  | - | nao | nao | sim |  | `Correcao.cs:1354` |
 | `corrigeOrdemBornes` |  | - | nao | nao | sim | `Operators.CompareString(XDataDispositivo.verificaTipoDispositivo(ref ent, ref tipoImportado), "", TextCompare: true) == 0` `Information.UBound(array) >= 2` `array[j].IndiceRegua > array[j + 1].IndiceRegua` `array[j].IndiceRegua == array[j + 1].IndiceRegua && array[j].Ordem > array[j + 1].Ordem` `num5 != array[l].IndiceRegua` `array[l].IndiceRegua == num5` `val6 == null` `Operators.CompareString(XDataDispositivo.verificaTipoDispositivo(ref ent, ref tipoImportado), "", TextCompare: true) == 0` `structureBorne2.Ordem != array[m].Ordem` | `Correcao.cs:1564` |
@@ -103,7 +103,7 @@ passa argumento (`new frmRelatorio_DICemig(3)`), entao aquele comando e uma vari
 | `EDTFUNC` | `frmEditaFuncaoBobina` | `new frmEditaFuncaoBobina()` | sim | nao | nao |  | `Comandos.cs:348` |
 | `EDTNCIRC` | `frmEditaNomeCircuitos` | `new frmEditaNomeCircuitos()` | sim | nao | nao |  | `Comandos.cs:567` |
 | `ELET` |  | - | nao | nao | sim |  | `Comandos.cs:49` |
-| `EncontraHandle` |  | - | nao | nao | nao | `Operators.CompareString(text, "", TextCompare: true) != 0` `val6 != null` | `clsUtilitarios.cs:950` |
+| `EncontraHandle` |  | - | nao | nao | sim | `Operators.CompareString(text, "", TextCompare: true) != 0` `val6 != null` | `clsUtilitarios.cs:950` |
 | `EPLQ` |  | - | nao | nao | sim | `msgBoxResult == MsgBoxResult.Yes` | `Comandos.cs:378` |
 | `ESTF` | `frmRelatorio_EstatisticaFiacao` | `new frmRelatorio_EstatisticaFiacao()` | sim | nao | nao |  | `Comandos.cs:747` |
 | `ESTVCABOS` | `frmEstatisticaDeCabos` | `new frmEstatisticaDeCabos()` | sim | nao | nao |  | `Comandos.cs:956` |
@@ -143,8 +143,8 @@ passa argumento (`new frmRelatorio_DICemig(3)`), entao aquele comando e uma vari
 | `LCABCOP` | `frmRelatorio_VeiasCopel` | `new frmRelatorio_VeiasCopel()` | sim | nao | nao |  | `Comandos.cs:1047` |
 | `LDAT` |  | - | nao | nao | nao |  | `Comandos.cs:253` |
 | `LDNR` |  | - | nao | nao | nao |  | `Comandos.cs:456` |
-| `LeAtributos` |  | - | nao | nao | nao | `blockRef == null || !mNomeBlocos.Contains(blockRef.Name.ToUpper()) || Operators.CompareString(clsBlocos.TipoBlocoDoEletron(ref blockRef, ref sNomeBloco), "", TextCompare: true) == 0` `!clsTrocaEditaBlocosMat.lBlocosAlterados.Contains(((object)((DBObject)blockRef).Handle/*cast due to constrained. prefix*/).ToString())` `!lBlocosNaoExistentes.Contains(blockRef.Name.ToUpper())` `!((Entity)val7).Visible` `!lAtributos.Contains(((object)((DBObject)blockRef).Handle/*cast due to constrained. prefix*/).ToString())` | `clsTrocaEditaBlocos.cs:18` |
-| `LeTodosAtributos` |  | - | nao | nao | nao | `blockRef == null || Operators.CompareString(clsBlocos.TipoBlocoDoEletron(ref blockRef, ref sNomeBloco), "", TextCompare: true) == 0` `!((Entity)val7).Visible` | `clsTrocaEditaBlocos.cs:171` |
+| `LeAtributos` |  | - | nao | nao | sim | `blockRef == null || !mNomeBlocos.Contains(blockRef.Name.ToUpper()) || Operators.CompareString(clsBlocos.TipoBlocoDoEletron(ref blockRef, ref sNomeBloco), "", TextCompare: true) == 0` `!clsTrocaEditaBlocosMat.lBlocosAlterados.Contains(((object)((DBObject)blockRef).Handle/*cast due to constrained. prefix*/).ToString())` `!lBlocosNaoExistentes.Contains(blockRef.Name.ToUpper())` `!((Entity)val7).Visible` `!lAtributos.Contains(((object)((DBObject)blockRef).Handle/*cast due to constrained. prefix*/).ToString())` | `clsTrocaEditaBlocos.cs:18` |
+| `LeTodosAtributos` |  | - | nao | nao | sim | `blockRef == null || Operators.CompareString(clsBlocos.TipoBlocoDoEletron(ref blockRef, ref sNomeBloco), "", TextCompare: true) == 0` `!((Entity)val7).Visible` | `clsTrocaEditaBlocos.cs:171` |
 | `LGIGA` | `frmRelatorio_InterligacaoGIGA` | `new frmRelatorio_InterligacaoGIGA()` | sim | nao | nao |  | `Comandos.cs:1179` |
 | `Limpahandle` |  | - | nao | nao | sim | `Operators.CompareString(DeclaracoesGeral.companyHardlock.ToUpper(), "", TextCompare: true) != 0` `pl != null` `XDataConexao.lerXDataConexao(ref pl, ref conex) && conex.Tipo == 3` | `Correcao.cs:2785` |
 | `LimpaTextosLPCopiados` |  | - | nao | nao | sim | `pl == null` `XDataConexao.lerXDataConexao(ref pl, ref conex) && conex.Tipo == 1` `num3 < Math.Round(maxPoint.Y, 2)` `val7 == null` `val8 != null` `flag` `maxPoint.Y < num2` `flag` `num != 0` | `Correcao.cs:777` |
@@ -165,10 +165,10 @@ passa argumento (`new frmRelatorio_DICemig(3)`), entao aquele comando e uma vari
 | `MUDAUSER` | `FrmTrocaUsuario` | `new FrmTrocaUsuario()` | sim | nao | nao |  | `Comandos.cs:1390` |
 | `OCCAB` |  | - | nao | nao | nao |  | `Comandos.cs:827` |
 | `OCPN` |  | - | nao | nao | nao |  | `Comandos.cs:462` |
-| `OFFSPL` |  | - | nao | nao | nao | `Operators.CompareString(DeclaracoesGeral.companyHardlock.ToUpper(), "", TextCompare: true) == 0` | `Comandos.cs:40` |
-| `ONSPL` | `frmSplash` | `new frmSplash()` | nao | nao | nao | `Operators.CompareString(DeclaracoesGeral.companyHardlock.ToUpper(), "", TextCompare: true) == 0` | `Comandos.cs:31` |
+| `OFFSPL` |  | - | nao | nao | sim | `Operators.CompareString(DeclaracoesGeral.companyHardlock.ToUpper(), "", TextCompare: true) == 0` | `Comandos.cs:40` |
+| `ONSPL` | `frmSplash` | `new frmSplash()` | nao | nao | sim | `Operators.CompareString(DeclaracoesGeral.companyHardlock.ToUpper(), "", TextCompare: true) == 0` | `Comandos.cs:31` |
 | `OPVEIAS` | `frmDadosOpcionaisVeias` | `new frmDadosOpcionaisVeias()` | sim | nao | nao |  | `Comandos.cs:968` |
-| `PAG` |  | - | nao | nao | nao | `DeclaracoesGeral._pspag == null` `Operators.CompareString(DeclaracoesGeral.ConfElet.Idioma, "", TextCompare: true) != 0` `Operators.CompareString(DeclaracoesGeral.ConfElet.Idioma, "", TextCompare: true) == 0` | `Comandos.cs:1447` |
+| `PAG` |  | - | nao | nao | sim | `DeclaracoesGeral._pspag == null` `Operators.CompareString(DeclaracoesGeral.ConfElet.Idioma, "", TextCompare: true) != 0` `Operators.CompareString(DeclaracoesGeral.ConfElet.Idioma, "", TextCompare: true) == 0` | `Comandos.cs:1447` |
 | `PAS` |  | - | nao | nao | nao |  | `Comandos.cs:1435` |
 | `PESQC` | `frmPesquisaVeiasIndefinidas` | `new frmPesquisaVeiasIndefinidas()` | sim | nao | nao |  | `Comandos.cs:856` |
 | `PESQCAB` | `frmPesquisaCabos` | `new frmPesquisaCabos()` | sim | nao | nao |  | `Comandos.cs:944` |
@@ -179,7 +179,7 @@ passa argumento (`new frmRelatorio_DICemig(3)`), entao aquele comando e uma vari
 | `PN` | `frmCadastroDePaineis` | `new frmCadastroDePaineis()` | sim | nao | nao |  | `Comandos.cs:144` |
 | `PORT` | `frmPortas` | `new frmPortas()` | sim | nao | nao |  | `Comandos.cs:211` |
 | `PortasChesf` |  | - | nao | nao | nao |  | `clsUtilitarios.cs:123` |
-| `PreencheNovosAtributos` |  | - | nao | nao | nao | `clsTrocaEditaBlocosMat.lBlocosExistentesTrocados[i].Contains("")` `clsTrocaEditaBlocosMat.lBlocosExistentesTrocados[i].Contains("")` | `clsTrocaEditaBlocos.cs:278` |
+| `PreencheNovosAtributos` |  | - | nao | nao | sim | `clsTrocaEditaBlocosMat.lBlocosExistentesTrocados[i].Contains("")` `clsTrocaEditaBlocosMat.lBlocosExistentesTrocados[i].Contains("")` | `clsTrocaEditaBlocos.cs:278` |
 | `RANI` | `frmRelatorio_Anilhas` | `new frmRelatorio_Anilhas()` | sim | nao | nao |  | `Comandos.cs:729` |
 | `RBORELS` | `frmRelatorio_Fiacao_Compacta` | `new frmRelatorio_Fiacao_Compacta()` | sim | nao | nao |  | `Comandos.cs:699` |
 | `RDIF` | `frmRelatorio_Diferencial` | `new frmRelatorio_Diferencial()` | sim | nao | nao |  | `Comandos.cs:717` |
@@ -350,5 +350,5 @@ abrem. Quando a construcao tem argumento, ela aparece ao lado do comando.
 - **So** abrem a janela (sem outra regra no corpo): **119**.
 - Dessas, abrem uma **variante** (construcao com argumento): **15**.
 - Ja tem par no recoder: **5**.
-- Viram comando do plugin (sem par e sem variante): **99**.
+- Viram comando do plugin (janela padrÃ£o ou variante suportada): **114**.
 

@@ -68,13 +68,13 @@ namespace Positron.Data.Tests
         }
 
         /// <summary>
-        /// O contrato do que o plugin registra: 99 comandos do original respondem com o próprio nome
-        /// e abrem a tela padrão (o `ComandosDoOriginal.Gerado.cs` gera um método por um destes).
+        /// O contrato do que o plugin registra: 114 comandos do original respondem com o próprio nome
+        /// (99 de tela padrão + 15 de variantes mapeadas; o `ComandosDoOriginal.Gerado.cs` gera um método por um destes).
         /// </summary>
         [Fact]
-        public void NoventaENoveComandosSAoLigaveis()
+        public void CentoEQuatorzeComandosSaoLigaveis()
         {
-            Assert.Equal(99, ComandosDoReverso.QuantosLigaveis());
+            Assert.Equal(114, ComandosDoReverso.QuantosLigaveis());
 
             List<string> ligaveis = new List<string>();
             foreach (Comando comando in ComandosDoReverso.Todos)
@@ -85,10 +85,14 @@ namespace Positron.Data.Tests
                 }
             }
 
-            Assert.Equal(99, ligaveis.Count);
+            Assert.Equal(114, ligaveis.Count);
             Assert.Contains("GERDWG", ligaveis);
             Assert.Contains("DEF", ligaveis);
             Assert.Contains("BORN", ligaveis);
+            Assert.Contains("DICHESF", ligaveis);
+            Assert.Contains("DIFURNAS", ligaveis);
+            Assert.Contains("DICEMIGDE", ligaveis);
+            Assert.Contains("TROCAPN", ligaveis);
             Assert.DoesNotContain("SYNCD", ligaveis);
             Assert.DoesNotContain("APAGARXDATA", ligaveis);
         }
@@ -165,11 +169,10 @@ namespace Positron.Data.Tests
 
         /// <summary>
         /// As variantes do diagrama de interligação: **um** `frmRelatorio_DInterlig` aberto por onze
-        /// comandos, cada um com o seu argumento. O argumento é o relatório — abrir a tela padrão no
-        /// lugar deles seria mentir, então nenhum é ligável.
+        /// comandos, cada um com o seu argumento. Agora com o mapa de variantes, todos são ligáveis.
         /// </summary>
         [Fact]
-        public void AsVariantesDoDiagramaDeInterligacaoNaoSaoLigaveis()
+        public void AsVariantesDoDiagramaDeInterligacaoSaoLigaveis()
         {
             Comando primeira = ComandosDoReverso.Buscar("DICHESF");
             Comando outra = ComandosDoReverso.Buscar("DIITAIPU");
@@ -182,13 +185,13 @@ namespace Positron.Data.Tests
             Assert.True(primeira.ComVariante);
             Assert.True(outra.ComVariante);
             Assert.True(primeira.Janelas[0].ComArgumento);
-            Assert.False(primeira.Ligavel);
-            Assert.False(outra.Ligavel);
+            Assert.True(primeira.Ligavel);
+            Assert.True(outra.Ligavel);
         }
 
-        /// <summary>A variante também pode ser argumento nomeado (`new frmTrocaPaineis(bAbre: false)`).</summary>
+        /// <summary>A variante também por argumento nomeado (`new frmTrocaPaineis(bAbre: false)`) agora é ligável.</summary>
         [Fact]
-        public void AVariantePorArgumentoNomeadoTambemFicaDeFora()
+        public void AVariantePorArgumentoNomeadoTambemELigavel()
         {
             Comando comando = ComandosDoReverso.Buscar("TROCAPN");
 
@@ -196,7 +199,7 @@ namespace Positron.Data.Tests
             Assert.Equal("frmTrocaPaineis", comando.Janelas[0].Nome);
             Assert.Equal("new frmTrocaPaineis(bAbre: false)", comando.Janelas[0].Construcao);
             Assert.True(comando.ComVariante);
-            Assert.False(comando.Ligavel);
+            Assert.True(comando.Ligavel);
         }
 
         [Fact]

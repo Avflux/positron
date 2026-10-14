@@ -111,7 +111,10 @@ namespace Positron.Plugin.Interface.Telas
         /// </summary>
         internal static string Abrir(string nome, string rotulo)
         {
-            Tela tela = FormulariosDoReverso.Buscar(nome);
+            VarianteDeTela variante = VariantesDoReverso.Buscar(nome) ?? VariantesDoReverso.Buscar(rotulo);
+            string nomeTela = variante != null ? variante.Tela : nome;
+
+            Tela tela = FormulariosDoReverso.Buscar(nomeTela);
             if (tela == null)
             {
                 return rotulo + ": não há \"" + nome + "\" no mapa do reverso (são " + FormulariosDoReverso.Quantidade + " telas).";
@@ -119,6 +122,11 @@ namespace Positron.Plugin.Interface.Telas
 
             try
             {
+                if (variante != null)
+                {
+                    tela = variante.Aplicar(tela);
+                }
+
                 Form janela = Montar(tela);
                 Mostrar(janela);
                 return rotulo + ": \"" + tela.Titulo + "\" (" + tela.Nome + ") aberta no CAD — " + tela.Campos.Count + " controle(s).";

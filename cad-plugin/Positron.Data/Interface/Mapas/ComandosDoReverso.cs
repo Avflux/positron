@@ -190,10 +190,10 @@ namespace Positron.Data.Interface.Mapas
             get { return _janelas.Length > 0; }
         }
 
-        /// <summary>Dá para registrar com o nome do original: só abre, e abre a tela padrão.</summary>
+        /// <summary>Dá para registrar com o nome do original: só abre a janela (padrão ou variante mapeada).</summary>
         public bool Ligavel
         {
-            get { return SomenteJanela && !ComVariante && AbreJanela && !JaNoPlugin; }
+            get { return SomenteJanela && AbreJanela && !JaNoPlugin; }
         }
     }
 
