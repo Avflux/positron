@@ -2489,6 +2489,11 @@ powershell -ExecutionPolicy Bypass -File scripts/extrair-formularios-do-reverso.
 # dados: cad-plugin/Positron.Data/Interface/FormulariosDoReverso.Dados.cs
 ```
 
+**Como a tela fica de verdade:** `docs/reverso-capturas.txt` liga cada captura do original rodando
+(`cad-plugin/reverso/captura_das_janelas/*.png`) ao `frm*` e ao comando. Para conferir uma tela
+reconstruida, abra a captura ao lado do `JANELA` com `POSITRON_JANELA=<frm*>` — o mapa diz o que o
+designer declara, a captura mostra o que o construtor e a carga mudam depois dele.
+
 E as imagens que so existem no `.resx` de cada formulario (o `Resources` global nao as tem — elas
 sao um `Bitmap` serializado pelo `BinaryFormatter`, decodificado com o mesmo caminho do
 `ResourceReader`):

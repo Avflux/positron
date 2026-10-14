@@ -1,0 +1,187 @@
+# As capturas das janelas do original (o Eletron4 rodando)
+
+As imagens em `cad-plugin\reverso\captura_das_janelas` sao capturas de tela do **Eletron4
+original aberto no CAD**: a referencia visual de como cada janela fica de verdade, com fonte,
+icones, grades e dados carregados. O `docs/reverso-formularios.txt` diz o que o designer
+declara (caixa, texto e icone de cada controle); a captura mostra o resultado em execucao,
+inclusive o que o construtor e as rotinas de carga mudam depois do designer (titulos trocados,
+colunas criadas, janelas redimensionadas). Na duvida entre os dois, vale a captura: e o que o
+usuario via.
+
+Capturas: **126**, cobrindo **106** janelas.
+
+Como ler a tabela:
+
+- **janela** e o `frm*` do descompilado (`decompiled-cleaned\Eletron4\<janela>.cs`), o mesmo
+  nome do `docs/reverso-formularios.txt` e do comando `JANELA` (`POSITRON_JANELA=<janela>`),
+  que abre a reconstrucao do Positron para comparar lado a lado;
+- **comando(s)** vem do `docs/reverso-comandos.txt`. Quando a tela tem variante
+  (`new frmRelatorio_DInterlig(7)`), a linha diz qual comando abre aquela captura; `-` = a
+  tela nao tem comando proprio (abre por outra tela ou pela paleta);
+- **captura** e o tamanho da imagem em pixels **com** a moldura do Windows (barra de titulo e
+  bordas, cerca de +5..+10 na largura e +35 na altura); **client** e o `ClientSize` do
+  designer, **sem** a moldura. Diferenca bem maior que a moldura = a tela muda de tamanho em
+  execucao (anotado na observacao);
+- varias capturas da mesma tela (`clonar equipamentos1..6`, `configuracao geral 1..3`) sao as
+  abas ou os estados dela.
+
+Os nomes dos arquivos sao os de quem capturou, mantidos como vieram (inclusive `Poortas`,
+`idice de pagina`, `coneções` e `transmisão`).
+
+| captura | janela | comando(s) | captura (px) | client do designer | observacao |
+|---|---|---|---|---|---|
+| `anilhas do topográfico.png` | `frmTopograficoAnilha` | `ATPG` | 640 x 497 | 634 x 461 |  |
+| `apagar xdatas de terceiros.png` | `frmPesquisaXdatas` | `APAGARXDATA` | 311 x 500 | 304 x 461 |  |
+| `aplicação da fiação.png` | `frmAplicacao` | `APL` | 841 x 371 | 834 x 336 |  |
+| `atribuir definições.png` | `frmDefinicao` | `DEF` | 787 x 481 | 784 x 441 |  |
+| `atributos do cabo.png` | `frmDadosOpcionaisVeias` | `OPVEIAS` | 427 x 228 | 419 x 191 |  |
+| `cadastro de painéis.png` | `frmCadastroDePaineis` | `PN` | 693 x 394 | 689 x 361 |  |
+| `circuitos.png` | `frmCircuito` | `CIRC` | 241 x 323 | 238 x 290 |  |
+| `clonar cabos.png` | `frmClonarCabos` | `CLOCAB` | 338 x 507 | 334 x 474 |  |
+| `clonar equipamentos1.png` | `frmClonar` | `CLONAR` | 459 x 497 | 454 x 461 | uma das 6 capturas da tela (abas/estados) |
+| `clonar equipamentos2.png` | `frmClonar` | `CLONAR` | 459 x 495 | 454 x 461 | uma das 6 capturas da tela (abas/estados) |
+| `clonar equipamentos3.png` | `frmClonar` | `CLONAR` | 459 x 497 | 454 x 461 | uma das 6 capturas da tela (abas/estados) |
+| `clonar equipamentos4.png` | `frmClonar` | `CLONAR` | 458 x 493 | 454 x 461 | uma das 6 capturas da tela (abas/estados) |
+| `clonar equipamentos5.png` | `frmClonar` | `CLONAR` | 458 x 495 | 454 x 461 | uma das 6 capturas da tela (abas/estados) |
+| `clonar equipamentos6.png` | `frmClonar` | `CLONAR` | 460 x 499 | 454 x 461 | uma das 6 capturas da tela (abas/estados) |
+| `clonar estrutura régua.png` | `frmClonarEstruturaRegua` | `CLOBORN` | 446 x 445 | 442 x 411 |  |
+| `compilar fiação.png` | `frmCompilarFiacao` | `FIA` | 515 x 443 | 507 x 407 |  |
+| `compilar interligação.png` | `frmCompilarInterligacao` | `INT` | 389 x 362 | 374 x 321 |  |
+| `compilar jumper externo.png` | `frmCompilarJumperExt` | `JMP` | 379 x 359 | 374 x 321 |  |
+| `configuração geral 1.png` | `frmConfiguracaoGeral` | `CFG` | 466 x 698 | 459 x 663 | uma das 3 capturas da tela (abas/estados) |
+| `configuração geral 2.png` | `frmConfiguracaoGeral` | `CFG` | 466 x 701 | 459 x 663 | uma das 3 capturas da tela (abas/estados) |
+| `configuração geral 3.png` | `frmConfiguracaoGeral` | `CFG` | 466 x 699 | 459 x 663 | uma das 3 capturas da tela (abas/estados) |
+| `configurações de lista de pontos.png` | `frmConfiguracaoLP` | `CONFLP` | 364 x 553 | 359 x 521 |  |
+| `contatos auxiliares.png` | `frmContatosAux` | `CONT` | 494 x 560 | 488 x 524 | o designer deixa o titulo "ANSI" |
+| `copiar objetos.png` | `frmCopiarObjetos` | `COPYCAD` | 180 x 604 | 174 x 567 |  |
+| `diagrama de interligação CEMIG-D equip.png` | `frmRelatorio_DICemig` | `DICEMIGDE` (`new frmRelatorio_DICemig(3)`) | 417 x 646 | 414 x 611 |  |
+| `diagrama de interligação CEMIG-D painel.png` | `frmRelatorio_DICemig` | `DICEMIGDP` (`new frmRelatorio_DICemig(2)`) | 420 x 646 | 414 x 611 |  |
+| `diagrama de interligação CEMIG-GT equip.png` | `frmRelatorio_DICemig` | `DICEMIGGTE` (`new frmRelatorio_DICemig(1)`) | 418 x 649 | 414 x 611 |  |
+| `diagrama de interligação CEMIG-GT painel.png` | `frmRelatorio_DInterlig` | `DICEMIGGTP` (`new frmRelatorio_DInterlig(9)`) | 409 x 647 | 404 x 611 |  |
+| `diagrama de interligação chesf.png` | `frmRelatorio_DInterlig` | `DICHESF` (`new frmRelatorio_DInterlig(1)`) | 409 x 644 | 404 x 611 |  |
+| `diagrama de interligação CPFL serviços.png` | `frmRelatorio_DInterlig` | `DICPFL` (`new frmRelatorio_DInterlig(2)`) | 408 x 650 | 404 x 611 |  |
+| `diagrama de interligação CPFL transmisão.png` | `frmRelatorio_DInterlig` | `DICPFLTR` (`new frmRelatorio_DInterlig(5)`) | 411 x 646 | 404 x 611 |  |
+| `diagrama de interligação EDP ES.png` | `frmRelatorio_DInterlig` | `DIEDP` (`new frmRelatorio_DInterlig(6)`) | 411 x 649 | 404 x 611 |  |
+| `diagrama de interligação eletronorte.png` | `frmRelatorio_Aranha` | `DIELN` | 421 x 650 | 414 x 611 |  |
+| `diagrama de interligação ENEL-SP.png` | `frmRelatorio_DInterlig` | `DIENELSP` (`new frmRelatorio_DInterlig(10)`) | 407 x 643 | 404 x 611 |  |
+| `diagrama de interligação ENERGISA MS.png` | `frmRelatorio_DIEnergisaMS` | `DIENER` | 409 x 577 | 404 x 541 |  |
+| `diagrama de interligação ENERGISA MT.png` | `frmRelatorio_DIEnergisaMT` | `DIENERMT` | 411 x 578 | 404 x 541 |  |
+| `diagrama de interligação ENERGISA S-SE.png` | `frmRelatorio_DIEnergisaSSE` | `DIENERSSE` | 409 x 497 | 404 x 461 |  |
+| `diagrama de interligação EQUATORIAL.png` | `frmRelatorio_DInterlig` | `DIEQUAT` (`new frmRelatorio_DInterlig(4)`) | 410 x 648 | 404 x 611 |  |
+| `diagrama de interligação FURNAS.png` | `frmRelatorio_DInterlig` | `DIFURNAS` (`new frmRelatorio_DInterlig(8)`) | 408 x 647 | 404 x 611 |  |
+| `diagrama de interligação ISA CTEEP.png` | `frmRelatorio_DInterlig` | `DICTEEP` (`new frmRelatorio_DInterlig(3)`) | 411 x 650 | 404 x 611 |  |
+| `diagrama de interligação ITAIPU.png` | `frmRelatorio_DInterlig` | `DIITAIPU` (`new frmRelatorio_DInterlig(11)`) | 409 x 648 | 404 x 611 |  |
+| `diagrama de interligação TAESA.png` | `frmRelatorio_DInterlig` | `DITAESA` (`new frmRelatorio_DInterlig(7)`) | 410 x 652 | 404 x 611 |  |
+| `dispositivo principal.png` | `frmDispPrincipal` | `DISP` | 487 x 573 | 484 x 536 |  |
+| `dispositivos independentes e avulsos.png` | `frmGerenciadorMatIndep` | `ATINDEP` | 770 x 295 | 764 x 261 |  |
+| `distribuição de potenciais.png` | `frmRelatorio_DistribuicaoPotencial` | `DPOT` | 428 x 610 | 424 x 576 |  |
+| `duplicar caderno.png` | `frmDuplicarCaderno` | `DUPCAD` | 394 x 151 | 384 x 111 |  |
+| `editar bornes.png` | `frmGerenciadorReguasBornes` | `EDBORN` | 865 x 707 | 859 x 671 | titulo "Editor de Bornes", o mesmo do `SELBORN` |
+| `editar os títulos.png` | `frmEditaTitulos` | - | 692 x 528 | 684 x 492 | aberta pelo menu de contexto da paleta Paginas (Editar Titulos) |
+| `editar revisão completa.png` | `frmEditaRevisaoCompleta` | - | 689 x 496 | 684 x 462 | aberta pelo menu de contexto da paleta Paginas (Editar Revisoes > Completa) |
+| `editar revisão simplificada.png` | `frmEditaRevisaoSimplificada` | - | 463 x 497 | 214 x 462 | aberta pelo menu de contexto da paleta Paginas (Editar Revisoes > Simplificada); mais larga que o designer |
+| `editar títulos e textos.png` | `frmEditaTitulosTextos` | `TROCTT` | 386 x 382 | 380 x 349 |  |
+| `editor de bornes.png` | `frmEditaBornesSelecao` | `SELBORN` | 332 x 543 | 324 x 500 |  |
+| `editor de cabos.png` | `frmEditorCabos` | `EDCABO` | 1013 x 427 | 1004 x 391 |  |
+| `editor de funções.png` | `frmEditaFuncaoBobina` | `EDTFUNC` | 440 x 410 | 434 x 371 | o designer deixa o titulo "ANSI" |
+| `editor de nome e função veias.png` | `frmEditarNomesFuncoesVeias` | `EDNOMEFUNVEIAS` | 433 x 531 | 424 x 493 |  |
+| `editor dispositivos e máscaras.png` | `frmEditaVariosDispositivos` | `EDTDISPS` | 535 x 395 | 534 x 361 |  |
+| `editor terminais disp. avulsos.png` | `frmEditaDispositivosAvulsos` | `EDTDISPSA` | 360 x 497 | 354 x 461 |  |
+| `estatística de bornes.png` | `frmEstatisticaDeBornes` | `STATBORN` | 439 x 536 | 434 x 502 |  |
+| `estimativa de cabos utilizados por formação.png` | `frmEstatisticaDeCabos` | `ESTVCABOS` | 550 x 297 | 544 x 261 |  |
+| `estimativa de fiação.png` | `frmRelatorio_EstatisticaFiacao` | `ESTF` | 490 x 549 | 484 x 512 |  |
+| `estimativa veias faltantes.png` | `frmEstimativaVeiasLivres` | `ESTVL` | 420 x 398 | 414 x 361 |  |
+| `estrutura de régua de bornes.png` | `frmRelatorio_Fiacao_Compacta` | `RBORELS` | 689 x 523 | 684 x 491 |  |
+| `exportar e importar textos.png` | `frmExportarImportarTextos` | `EXPIT` | 750 x 440 | 744 x 402 |  |
+| `exportar importar.png` | `frmExportarImportar` | `EXPCOMP` | 369 x 379 | 364 x 341 |  |
+| `exportar páginas.png` | `frmExportarDWGs` | `EXPDWG` | 460 x 375 | 454 x 341 |  |
+| `exportar PDF inteligente.png` | `frmPDF` | `EXPPDF` | 460 x 309 | 454 x 276 |  |
+| `gerenciador de contatos.png` | `frmGerenciadorContatos` | `GERCONT` | 1047 x 477 | 1044 x 445 |  |
+| `gerenciador de dwgs do projeto.png` | `frmGerenciadorDWG` | `GERDWG` | 985 x 350 | 979 x 314 |  |
+| `gerenciador de máscaras.png` | `frmGerenciadorMascaras` | `GERMASC` | 1315 x 444 | 1314 x 412 |  |
+| `gerenciador de materiais.png` | `frmGerenciadorMateriais` | `GERLM` | 805 x 456 | 804 x 426 |  |
+| `gerenciador de plaquetas.png` | `frmPlaquetas` | `PLAQ` | 939 x 628 | 934 x 592 |  |
+| `gerenciador de réguas de bornes.png` | `frmCriarReguas` | `GERRB` | 392 x 401 | 384 x 361 |  |
+| `ídice de página.png` | `frmRelatorio_IndicedePaginas` | `INDPG` | 445 x 334 | 438 x 296 |  |
+| `importar cabos do excel.png` | `FrmImportarCabosExcel` | `IVEIEX` | 271 x 178 | 264 x 141 |  |
+| `importar DWG.png` | `frmMisturador` | `IMPCAD` | 652 x 322 | 644 x 288 |  |
+| `importar interligação excel.png` | `frmImportarInterligExcel` | `IIEX` | 363 x 496 | 1284 x 474 | bem mais estreita que o designer: a tela muda de tamanho em execucao |
+| `importar modelo de contatos.png` | `frmImportarModelosDeContatos` | `MCONT` | 962 x 630 | 959 x 598 |  |
+| `importar modelo de máscara.png` | `frmImportarModelosDeMascaras` | `MMASC` | 966 x 681 | 959 x 645 |  |
+| `importar projeto.png` | `frmImportarProjetos` | `IMPBD` | 787 x 596 | 784 x 561 |  |
+| `imprimir.png` | `frmImprimir` | `IMPR` | 176 x 465 | 169 x 427 |  |
+| `inserir bornes.png` | `frmBornes` | `BORN` | 610 x 510 | 604 x 475 |  |
+| `inserir descrição lp.png` | `frmTextoLP` | `ADDDESC` | 383 x 249 | 374 x 211 |  |
+| `interligação de painéis.png` | `frmatribuirVeias` | `ATCABO` | 492 x 298 | 484 x 261 |  |
+| `interligação GIGA.png` | `frmRelatorio_InterligacaoGIGA` | `LGIGA` | 791 x 466 | 784 x 431 |  |
+| `jumper externo.png` | `frmJumper` | `JPEXT` | 270 x 292 | 261 x 253 |  |
+| `jumper interno.png` | `frmLink` | `LNK` | 521 x 597 | 514 x 562 | titulo "Jumper Interno (Link)" |
+| `layout mecânico.png` | `frmLayoutMec` | `LAYMEC` | 634 x 646 | 631 x 611 |  |
+| `layout rápido.png` | `frmLayoutRapido` | `LR` | 787 x 595 | 784 x 561 |  |
+| `lista de anilhas.png` | `frmRelatorio_AnilhasCabos` | `LANI` | 738 x 549 | 734 x 511 |  |
+| `lista de cabos copel GT.png` | `frmRelatorio_VeiasCopel` | `LCABCOP` | 891 x 696 | 884 x 661 |  |
+| `lista de cabos.png` | `frmRelatorio_Cabos` | `LCAB` | 887 x 649 | 884 x 611 |  |
+| `lista de jumpers.png` | `frmRelatorio_Jumpers` | `LJUMP` | 889 x 550 | 884 x 512 |  |
+| `lista de veias.png` | `frmRelatorio_Veias` | `LVEI` | 891 x 645 | 884 x 611 |  |
+| `marcador.png` | `frmMarcador` | `INSM` | 173 x 283 | 166 x 246 |  |
+| `máscara.png` | `frmMascara` | `MASC` | 742 x 457 | 734 x 421 |  |
+| `migrar bornes e coneções.png` | `frmMigraBornes` | `MBOR` | 415 x 498 | 413 x 465 |  |
+| `migrar portas.png` | `frmMigraPortas` | `MIGPOR` | 593 x 348 | 584 x 311 |  |
+| `navegador elétron.png` | `frmNavegador` | `PESQUISA`, `PesquisaBlocos` | 720 x 455 | 714 x 421 |  |
+| `paginas.png` | `uscPaginas` | `PAG` | 357 x 834 | - | a paleta (UserControl, nao `frm*`), sem projeto |
+| `paginas1.png` | `uscPaginas` | `PAG` | 425 x 834 | - | a paleta com projeto e o menu de contexto das folhas aberto |
+| `pesquisar cabos e veias.png` | `frmPesquisaCabos` | `PESQCAB` | 416 x 413 | 414 x 381 |  |
+| `pesquisar veias indefinidas.png` | `frmPesquisaVeiasIndefinidas` | `PESQC` | 392 x 203 | 384 x 161 |  |
+| `Poortas.png` | `frmPortas` | `PORT` | 493 x 534 | 487 x 494 |  |
+| `relatório de anilhas.png` | `frmRelatorio_Anilhas` | `RANI` | 838 x 677 | 834 x 641 |  |
+| `relatório de interligação eletrosul.png` | `frmRelatorio_InterligacaoEletrosul` | `RINTE` | 1025 x 699 | 1019 x 661 |  |
+| `relatório de interligação.png` | `frmRelatorio_Interligacao` | `RINT` | 1024 x 647 | 1019 x 609 |  |
+| `relatório de lista de materiais.png` | `frmRelatorio_Materiais` | `EXPLM` | 1008 x 457 | 1002 x 428 |  |
+| `relatório de potenciais.png` | `frmRelatorio_Potenciais` | `RPOT` | 886 x 548 | 884 x 512 |  |
+| `relatório de revisões furnas.png` | `frmRelatorio_Furnas` | `RELREVF` | 231 x 149 | 224 x 111 |  |
+| `relatório de revisões matricial.png` | `frmRelatorio_Rev_Matricial` | `RELMATRI` | 670 x 142 | 664 x 106 |  |
+| `relatório de revisões.png` | `frmRelatorio_Rev` | `RELREV` | 447 x 391 | 444 x 356 |  |
+| `relatório diferencial.png` | `frmRelatorio_Diferencial` | `RDIF` | 890 x 573 | 884 x 538 |  |
+| `relatório entradas;saídas.png` | `frmRelatorio_Elektro` | `RELEKTRO` | 686 x 445 | 684 x 411 |  |
+| `relatório lista de plaquetas.png` | `frmRelatorio_Plaquetas` | `RELPL` | 939 x 498 | 934 x 461 |  |
+| `relatório siemens.png` | `frmRelatorio_PotenciaisSiemens` | `RPOTS` | 1048 x 584 | 1045 x 549 |  |
+| `relatório taf.png` | `frmRelatorio_TAF` | `RTAF` | 891 x 418 | 884 x 381 | o titulo leva o nome do arquivo ativo (`Relatorio TAF >> <arquivo>`) |
+| `revisão automática.png` | `frmRevisaoAutomatica` | `REVAUT` | 490 x 238 | 484 x 201 |  |
+| `sequenciador de jumper externo.png` | `frmSequenciadorJumper` | `SEQJ` | 739 x 436 | 734 x 401 |  |
+| `sequenciador.png` | `frmSequenciador` | `SEQ` | 843 x 619 | 834 x 583 |  |
+| `topográfico.png` | `frmTopografico` | `TPG` | 538 x 694 | 534 x 661 |  |
+| `trocar blocos - substituir blocos.png` | `frmTrocaEditaBlocos` | `TROCBL` | 361 x 252 | 354 x 217 |  |
+| `trocar painel.png` | `frmTrocaPaineis` | `TROCAPN` | 789 x 385 | 784 x 350 |  |
+| `trocar painel1.png` | `frmMudaPN` | `MOVPN` | 250 x 260 | 245 x 223 | mesmo titulo do `TROCAPN`, outra tela |
+| `trocar usuário e data.png` | `FrmTrocaUsuario` | `MUDAUSER` | 298 x 229 | 294 x 194 |  |
+| `verificar fiação.png` | `frmVerificadorProjetoFiacao` | `VFIA` | 537 x 529 | 534 x 490 |  |
+| `verificar interligação.png` | `frmVerificadorProjetoInterligacao` | `VINT` | 371 x 502 | 364 x 462 |  |
+
+## As janelas sem captura (22)
+
+Telas do `docs/reverso-formularios.txt` que ainda nao tem imagem do original rodando.
+
+| janela | titulo do designer | comando(s) |
+|---|---|---|
+| `frmAdicionaUmCabo` | Adicionar Cabo | - |
+| `FrmBuscaNuvem` | FrmBuscaNuvem | - |
+| `frmCarregaEL` | Controle de Licença do Elétron | - |
+| `frmConfiguracaoBDProjeto` | Banco de Dados do Projeto | - |
+| `frmCopia` | Cópia sem Função Elétrica | `COPIAINT` |
+| `frmEditaConexao` | Editar Conexão | `EDCONP` |
+| `frmEditaNomeCircuitos` | Editar Nome de Circuitos | `EDTNCIRC` |
+| `frmFERRAR` | frmFERRAR | - |
+| `frmPesquisaMateriais` | Pesquisar Materiais | - |
+| `frmPositivoInterno` | Positivo Interno | - |
+| `frmRelatorio_Fiacao` | Relatórios de Fiação | `RFIA` |
+| `frmRelatorio_Fiacao_Excel` | Relatório de Fiação Excel - Elétron | - |
+| `frmRelatorio_FiacaoDWG` | Relatório de Fiação DWG | - |
+| `frmRelatorio_FiacaoDWGCompacta` | Estrutura de Régua de Bornes | - |
+| `frmRelatorio_InterligacaoEletroSul_Excel` | INDICE | - |
+| `frmRelatorio_JumpersDWG` | Lista de Jumpers | - |
+| `frmRelatorio_MateriaisDWG` | Lista de Materiais DWG - {Dicionario.BuscaNomeDoPainel(h3hpNaCbc4r)} | - |
+| `frmRelatorio_PlaquetasDWG` | Relatório Lista de Plaquetas : {Dicionario.BuscaNomeDoPainel(iPnSel)} | - |
+| `frmRelatorio_PotenciaisDWG` | Relatório de Potenciais | - |
+| `frmSplash` | frmSplash | `ONSPL` |
+| `frmTrocarChave` | Troca Chave Primária | `TCHAVE` |
+| `frmVisualizarBloco` | Blocos | - |
