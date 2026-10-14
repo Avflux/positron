@@ -6,7 +6,7 @@
 
 **Não.** O que está coberto é o **recorte** — as correções e a limpeza do CAD (frente 2), a base/contexto (frente 1) e os três pipelines —, e o que está **mapeado** são os **216 comandos** do reverso (todos classificados). O que **não** está coberto é a **lógica por trás dos formulários** (49% do código do reverso) nem a pilha de exportação/importação, as rotinas destrutivas e a integração de ambiente/licença.
 
-## 0. Estado medido agora — o que falta, em ordem (rodadas 132–149)
+## 0. Estado medido agora — o que falta, em ordem (rodadas 132–151)
 
 Esta seção responde à pergunta recorrente *"o que já cobrimos e o que falta"* **com número medido no
 próprio repo**, e não com memória: o `scripts/cobertura-do-reverso.ps1` cruza o mapa dos 216 comandos
@@ -31,6 +31,11 @@ powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acopl
 | telas alcançadas por algum comando | **103** (7 com regra escrita à mão, 96 só casca) |
 | telas que **nenhum** comando abre (sub-janela: relatórios DWG/Excel, editores) | **19** |
 | telas sem comando e sem casca pelo nome (variante/splash) | **5** |
+
+As rodadas 150 e 151 (a barra do AutoCAD e a escrita da lista de materiais) **não acrescentaram comando
+nem tela com regra nova** — o painel da rodada 151 devolve os mesmos números —, então a tabela acima
+segue valendo: o que a 151 mudou foi **quanto** da tela do `ATINDEP` está ligado (a escrita da lista),
+e não a contagem de telas com regra.
 
 **O reverso mora no repo desde a rodada 134** (`cad-plugin/reverso/Eletron4_ZWcad`, com o
 `decompiled/`, o `decompiled-cleaned/`, o `cleaned/` e o `DLL/`), e o painel agora **imprime de onde
@@ -83,9 +88,19 @@ estão entregues (o **`EncontraHandle`** na **rodada 146**; antes, o **`CorrigeI
    `EditarMaterial`/`RemoverMaterial` e os quatro botões do `GERLM` (Adiciona/Edita/Apaga/Salvar)
    ficaram **ligados** — medido no AutoCAD 2020 com o banco do projeto real: o catálogo foi de **210**
    para **211** e voltou a 210 no ciclo add→edita→apaga, com as 210 linhas originais e as 104 da
-   `ListaMateriais` **byte a byte iguais** (hash `fbac1320…`). **O que sobra da tela é a escrita da
-   lista** (o item avulso do `ATINDEP`, `AdicionaUmItemMaterialAvulso`/`EditaUmItemMaterialAvulso`/
-   `RemoveMaterialAvulso`) — que segue na fila do `PLANO.md`, mais a pintura do `MesclaDGDisp`.
+   `ListaMateriais` **byte a byte iguais** (hash `fbac1320…`). **A escrita da lista saiu na rodada
+   151** — ver o item 5.
+5. ✅ **A escrita da lista de materiais** — `AdicionaUmItemMaterialAvulso`/`EditaUmItemMaterialAvulso`/
+   `RemoveMaterialAvulso` — **entregue na rodada 151**: o item avulso do `ATINDEP` (a `Ordem` do
+   `rfCpTfmCm7Q`, o guarda do código 0, o plano do `eK4ppmS0dUi` com a **substituição** da linha
+   avulsa) e a escrita no `ProjectStore` (`AdicionarItemDaLM`/`EditarMaterialDoItemDaLM`/
+   `RemoverItemDaLM`), lisos os três botões da tela — medido no AutoCAD 2020 no banco do projeto
+   real: a `ListaMateriais` de **104** para **105** e de volta às **104** com o **hash da partida**
+   (`bb955f9e…`), com o catálogo e o cadastro de painéis intactos. **O que sobra da tela, agora na
+   fila do `PLANO.md`:** o ramo do **desenho** do `Edita` — a escrita do `lm` no dispositivo (o
+   `clsDispositivo.EditaLMDoDispositivo`: o XData `DISPOSITIVO`, o `iLM1` do `array[21]`, e os
+   atributos `MODELO`/`PAINEL`/`FABRICANTE` do bloco), que a tela hoje **recusa com o motivo** — e a
+   **pintura** da grade (o `MesclaDGDisp`, as cores por avulso/material e o `ErrorText`).
 
 > **A fila desta seção está vazia desde a rodada 140:** o item 1 (`CorrigeInterligacao`) saiu na
 > **139** e o item 2 (as três telas de compilação) na **140**. Os próximos passos passaram a ser os do

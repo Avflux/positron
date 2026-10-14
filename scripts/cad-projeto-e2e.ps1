@@ -55,7 +55,15 @@ $smokeScript = Join-Path $PSScriptRoot $(if ($Cad -eq 'AutoCAD') { 'cad-autocad-
 $ErrorActionPreference = "Stop"
 $raiz = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $raiz 'services\sidecar\.venv\Scripts\python.exe'
-$relatorio = Join-Path $env:TEMP 'positron-relatorio.txt'
+
+# O relatorio e os dumps da idempotencia saem **ao lado do banco**, e nao no TEMP do sistema:
+# (1) e onde o proprio ELETREL grava quando `POSITRON_RELATORIO` nao esta definido (o
+# `CaminhoDoRelatorio` do plugin); (2) medido nesta maquina (rodada 151), o python do venv do sidecar
+# **nao tem permissao de escrita no `%TEMP%`** — o dump da idempotencia morria com `PermissionError` e
+# o passo 6 passava lendo um relatorio velho de outra rodada. Com o `-Banco` dentro do repo (a receita
+# desta maquina) os dois funcionam; com o banco no default, a pasta e a mesma de antes.
+$pastaSaida = Split-Path -Parent ([System.IO.Path]::GetFullPath($Banco))
+$relatorio = Join-Path $pastaSaida 'positron-relatorio.txt'
 
 # O projeto real (desenho + banco de referencia do produto) mora DENTRO do repo desde a rodada 134
 # (cad-plugin/reverso/Teste_projeto_real); os defaults saem da RAIZ DO REPO, e nao do diretorio de
@@ -123,8 +131,8 @@ if ($Idempotencia) {
     Write-Host "=== 7/7 idempotencia (3a passada e comparacao de conteudo) ===" -ForegroundColor Cyan
     & powershell -NoProfile -ExecutionPolicy Bypass -File $smokeScript -Dwg $Dwg -Revisao $Revisao -Comandos FIA,INT -Desenho $Desenho -Banco $Banco 2>&1 |
         Select-String -Pattern "FIA:|INT:" | ForEach-Object { "  " + $_.Line }
-    $dumpA = Join-Path $env:TEMP 'positron-e2e-a.txt'
-    $dumpB = Join-Path $env:TEMP 'positron-e2e-b.txt'
+    $dumpA = Join-Path $pastaSaida 'positron-e2e-a.txt'
+    $dumpB = Join-Path $pastaSaida 'positron-e2e-b.txt'
     & $python (Join-Path $PSScriptRoot 'cad-dump-tabelas.py') dump $Banco $Dwg $dumpA | ForEach-Object { "  $_" }
     & powershell -NoProfile -ExecutionPolicy Bypass -File $smokeScript -Dwg $Dwg -Revisao $Revisao -Comandos FIA,INT -Desenho $Desenho -Banco $Banco 2>&1 | Out-Null
     & $python (Join-Path $PSScriptRoot 'cad-dump-tabelas.py') dump $Banco $Dwg $dumpB | ForEach-Object { "  $_" }

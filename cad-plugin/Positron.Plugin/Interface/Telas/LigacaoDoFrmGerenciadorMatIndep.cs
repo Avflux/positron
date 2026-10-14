@@ -11,28 +11,50 @@ namespace Positron.Plugin.Interface.Telas
     /// A ligação do <c>frmGerenciadorMatIndep</c> (o comando <c>ATINDEP</c>, "Dispositivos
     /// Independentes e Avulsos"): a coluna <c>dgPaineis</c> com os **painéis da lista de materiais**
     /// do desenho ativo, a grade <c>dgDisp</c> com os itens do painel escolhido — nas doze colunas do
-    /// <c>formataDGDisp</c> do original — e, na seleção de um item, as caixas do material
-    /// (<c>TBTag</c>, <c>TBQuantidade</c> e as quatro do catálogo, o <c>U7Epp0og4bx</c> +
-    /// <c>ODLpp1Gpc7y</c>).
+    /// <c>formataDGDisp</c> do original — e a **escrita da lista** (desde a rodada 151): o item avulso
+    /// que o <c>AdicionaUmItemMaterialAvulso</c> grava e o plano do <c>eK4ppmS0dUi</c>.
     ///
     /// **A diferença deliberada da rodada 148:** o original monta a lista de painéis varrendo o
     /// ModelSpace (<c>clsLM.PaineisDocumentoLM</c>, o painel de cada entidade por XData); aqui ela sai
     /// da <c>ListaMateriais</c> do desenho — a projeção que o <c>COMPLM</c> já gravou (a regra do
     /// recoder). O painel continua vindo do desenho; o caminho é que não é uma segunda varredura.
     ///
-    /// Os itens de <c>dgDisp</c> são as linhas da <c>ListaMateriais</c> do painel, com os mesmos doze
-    /// valores na mesma ordem posicional do original (`Indice`, `DWG`, `Painel`, `Tag`,
-    /// `IndiceMaterial`, `Quantidade`, `Ordem`, `Avulso`, `Destino`, `DescDestino`, `Alternativo`,
-    /// `Handle`) — é o que as regras de cor e de erro do <c>MesclaDGDisp</c> leem nas células 4, 7 e
-    /// 11. A **pintura** da grade fica para a rodada que portar a edição, junto com o
-    /// <c>frmPesquisaMateriais</c> (o botão de pesquisa do material).
+    /// **A escrita (rodada 151), na ordem do original:**
     ///
-    /// **Desabilitado com o motivo na dica:** os três botões que gravam a lista (o
-    /// <c>AdicionaUmItemMaterialAvulso</c>/<c>EditaUmItemMaterialAvulso</c>/<c>RemoveMaterialAvulso</c>
-    /// do original) e o de pesquisa.
+    /// - <b>Adiciona Material</b> (<c>jnTppR04rG4</c>): a caixa do código no <c>0</c> não acrescenta
+    ///   nada; senão a linha entra **avulsa**, com a <c>Ordem</c> do contador que começa em 100000 (o
+    ///   `rfCpTfmCm7Q`), e a lista é relida — a linha já aparece com o <c>Indice</c> que o banco
+    ///   atribuiu;
+    /// - <b>Edita Material Selecionado</b> (<c>eK4ppmS0dUi</c>): para cada linha selecionada, o item
+    ///   avulso é **substituído** (apagar pelo <c>Indice</c> e inserir de novo com o digitado) e a
+    ///   linha do desenho fica para o ramo que **ainda não está portado** — o
+    ///   <c>clsDispositivo.EditaLMDoDispositivo</c> (o XData do bloco e os atributos
+    ///   <c>MODELO</c>/<c>PAINEL</c>/<c>FABRICANTE</c>), que a tela **diz na linha de comando** em vez
+    ///   de gravar meia operação (o `IndiceMaterial` sozinho seria desfeito pela próxima projeção);
+    /// - <b>Apaga Material Selecionado</b> (<c>eUVppXAWerf</c>): só as linhas **avulsas** saem — as do
+    ///   desenho são da projeção —, e o motivo aparece quando alguma é deixada de fora.
+    ///
+    /// O <b>Pesquisar</b> (o <c>frmPesquisaMateriais</c>) continua desabilitado com o motivo na dica.
+    ///
+    /// **Como a tela é medida num script** (não há clique): <c>POSITRON_LIM_ITEM</c>
+    /// (<c>Indice;Tag;Quantidade;Codigo</c>) seleciona a linha pelo <c>Indice</c> e preenche as caixas,
+    /// e <c>POSITRON_LIM_ACAO</c> (<c>adicionar</c>, <c>editar</c> ou <c>apagar</c>) roda a **mesma**
+    /// ação do clique. Sem nenhuma das duas variáveis, nada acontece.
     /// </summary>
     internal sealed class LigacaoDoFrmGerenciadorMatIndep : LigacaoDeMateriais
     {
+        /// <summary>
+        /// O estado da janela: o painel escolhido na coluna da esquerda e o contador do item avulso
+        /// (o `mTqpTGZErsQ` e o `rfCpTfmCm7Q` do original).
+        /// </summary>
+        private sealed class EstadoDaLista
+        {
+            internal int Painel;
+
+            /// <summary>Quantos itens **esta janela** já acrescentou — a <c>Ordem</c> sai daqui.</summary>
+            internal int Acrescentados;
+        }
+
         public override string NomeDaTela
         {
             get { return "frmGerenciadorMatIndep"; }
@@ -54,6 +76,8 @@ namespace Positron.Plugin.Interface.Telas
             IReadOnlyDictionary<int, string> nomes = LerNomesDePaineis(config);
 
             List<int> doDesenho = PaineisDaListaDeMateriais.Distintos(linhas);
+            EstadoDaLista estado = new EstadoDaLista();
+
             if (paineis != null)
             {
                 paineis.Rows.Clear();
@@ -63,7 +87,10 @@ namespace Positron.Plugin.Interface.Telas
                 }
 
                 paineis.SelectionChanged += (origem, evento) =>
-                    CarregarDispositivos(grade, linhas, PainelSelecionado(paineis));
+                {
+                    estado.Painel = PainelSelecionado(paineis);
+                    Recarregar(janela, grade, catalogo, config, estado, 0);
+                };
 
                 // O original seleciona a primeira linha ao terminar a carga (o `CarregaDGPainelLM`).
                 if (paineis.Rows.Count > 0)
@@ -77,6 +104,14 @@ namespace Positron.Plugin.Interface.Telas
                 grade.SelectionChanged += (origem, evento) => PreencherMaterial(janela, grade, catalogo);
             }
 
+            // Os três botões que gravam a lista (o `jnTppR04rG4`, o `eK4ppmS0dUi` e o `eUVppXAWerf`).
+            Ligar(ControlesDaTela.Achar<Button>(janela, "BTAdicionaLM"),
+                (origem, evento) => Plugin.Escrever(Adicionar(janela, grade, estado, catalogo, config)));
+            Ligar(ControlesDaTela.Achar<Button>(janela, "BTEditaLM"),
+                (origem, evento) => Plugin.Escrever(Editar(janela, grade, estado, catalogo, config)));
+            Ligar(ControlesDaTela.Achar<Button>(janela, "BTApagaLM"),
+                (origem, evento) => Plugin.Escrever(Apagar(janela, grade, estado, catalogo, config)));
+
             Motivos(janela);
 
             // A carga da primeira linha é explícita aqui: num script a tela não é *mostrada*, e a
@@ -86,7 +121,8 @@ namespace Positron.Plugin.Interface.Telas
             string materialDoPrimeiro = string.Empty;
             if (doDesenho.Count > 0)
             {
-                doPrimeiro = CarregarDispositivos(grade, linhas, doDesenho[0]);
+                estado.Painel = doDesenho[0];
+                doPrimeiro = CarregarDispositivos(grade, linhas, doDesenho[0], 0);
                 materialDoPrimeiro = PreencherMaterial(janela, grade, catalogo);
             }
 
@@ -95,7 +131,9 @@ namespace Positron.Plugin.Interface.Telas
                 + (doDesenho.Count == 0 ? "-" : doDesenho[0].ToString()) + ")"
                 + "; " + catalogo.Count + " material(is) no catálogo"
                 + (string.IsNullOrEmpty(materialDoPrimeiro) ? string.Empty : "; primeiro item: " + materialDoPrimeiro)
-                + "; os botões que gravam estão desabilitados.");
+                + "; Adiciona/Edita/Apaga ligados, a pesquisa desabilitada.");
+
+            GanchoDoHarness(janela, grade, estado, catalogo, config);
         }
 
         /// <summary>Os textos e as dicas que o construtor do original aplica por cima do designer.</summary>
@@ -118,6 +156,8 @@ namespace Positron.Plugin.Interface.Telas
         /// <summary>
         /// As colunas do <c>formataDGPainelLM</c> e do <c>formataDGDisp</c> do original. A coluna 0 da
         /// grade dos painéis fica **oculta** (o original mostra só o nome e guarda o índice na linha).
+        /// A grade dos itens é de **seleção múltipla** (o `dgDisp.MultiSelect = true` do construtor):
+        /// o Edita e o Apaga varrem as linhas selecionadas.
         /// </summary>
         private static void MontarColunas(DataGridView paineis, DataGridView grade)
         {
@@ -144,6 +184,7 @@ namespace Positron.Plugin.Interface.Telas
                 grade.Columns.Add("DESCDEST", string.Empty);
                 grade.Columns.Add("Alternativo", string.Empty);
                 grade.Columns.Add("indexModelo", string.Empty);
+                grade.MultiSelect = true;
             }
         }
 
@@ -216,9 +257,11 @@ namespace Positron.Plugin.Interface.Telas
 
         /// <summary>
         /// O <c>CarregaDGDisp</c> do original para o painel escolhido: as linhas da lista na ordem
-        /// posicional do `Rows.Add` (a edição não entra — só o que o banco já tem).
+        /// posicional do `Rows.Add` — é o que as regras de cor e de erro do <c>MesclaDGDisp</c> leem
+        /// nas células 4, 7 e 11. Com <paramref name="selecionar"/> a linha daquele <c>Indice</c> fica
+        /// selecionada (é como a linha recém-gravada continua escolhida depois da releitura).
         /// </summary>
-        private static int CarregarDispositivos(DataGridView grade, List<LinhaListaMaterial> linhas, int painel)
+        private static int CarregarDispositivos(DataGridView grade, List<LinhaListaMaterial> linhas, int painel, int selecionar)
         {
             if (grade == null)
             {
@@ -231,9 +274,10 @@ namespace Positron.Plugin.Interface.Telas
                 return 0;
             }
 
+            int posicao = -1;
             foreach (LinhaListaMaterial linha in PaineisDaListaDeMateriais.DoPainel(linhas, painel))
             {
-                grade.Rows.Add(
+                int indice = grade.Rows.Add(
                     linha.Indice,
                     linha.DWG,
                     linha.Painel,
@@ -246,14 +290,37 @@ namespace Positron.Plugin.Interface.Telas
                     linha.DescDestino,
                     linha.Alternativo,
                     linha.Handle);
+
+                if (selecionar != 0 && linha.Indice == selecionar)
+                {
+                    posicao = indice;
+                }
             }
 
             if (grade.Rows.Count > 0)
             {
-                grade.Rows[0].Selected = true;
+                grade.Rows[posicao >= 0 ? posicao : 0].Selected = true;
             }
 
             return grade.Rows.Count;
+        }
+
+        /// <summary>
+        /// Relê a lista do banco e reconstrói a grade do painel escolhido — a releitura que o original
+        /// faz depois do <b>Adiciona</b> (o <c>oZXpp56N3Ah</c>) e que aqui fecha também o Edita e o
+        /// Apaga: é assim que a grade passa a ter as chaves do **banco** e não as da tela.
+        /// </summary>
+        private static void Recarregar(
+            Form janela,
+            DataGridView grade,
+            IReadOnlyDictionary<int, MaterialDoCatalogo> catalogo,
+            ConfiguracaoPositron config,
+            EstadoDaLista estado,
+            int selecionar)
+        {
+            List<LinhaListaMaterial> linhas = LerLista(config, out _);
+            CarregarDispositivos(grade, linhas, estado.Painel, selecionar);
+            PreencherMaterial(janela, grade, catalogo);
         }
 
         /// <summary>
@@ -307,11 +374,332 @@ namespace Positron.Plugin.Interface.Telas
                 + " \"" + material.DescricaoResumida + "\"";
         }
 
+        // ------------------------------------------------------------------ as três ações da tela
+
+        /// <summary>O clique do <c>BTAdicionaLM</c> — o <c>jnTppR04rG4</c> e o `AdicionaUmItemMaterialAvulso`.</summary>
+        private static string Adicionar(
+            Form janela,
+            DataGridView grade,
+            EstadoDaLista estado,
+            IReadOnlyDictionary<int, MaterialDoCatalogo> catalogo,
+            ConfiguracaoPositron config)
+        {
+            if (grade == null)
+            {
+                return "ATINDEP: a grade dos itens não está na tela.";
+            }
+
+            string codigo = LerCaixa(janela, "tbCodigo1");
+            if (!ListaMateriaisEdicao.PodeAcrescentarItem(codigo))
+            {
+                return "ATINDEP: a caixa do código está no 0 — escolha o material; a linha do dispositivo "
+                    + "sem material não entra na lista (o guarda do original).";
+            }
+
+            if (config == null || string.IsNullOrEmpty(config.Banco))
+            {
+                return "ATINDEP: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
+            }
+
+            if (estado.Painel == 0)
+            {
+                return "ATINDEP: escolha o painel na coluna da esquerda.";
+            }
+
+            LinhaListaMaterial item = ListaMateriaisEdicao.ItemNovo(
+                config.Dwg,
+                estado.Painel,
+                LerCaixa(janela, "TBTag"),
+                codigo,
+                LerCaixa(janela, "TBQuantidade"),
+                ListaMateriaisEdicao.OrdemDoItemAvulso(estado.Acrescentados));
+
+            int indice;
+            try
+            {
+                indice = new ProjectStore(config.Banco).AdicionarItemDaLM(item);
+            }
+            catch (Exception erro)
+            {
+                return "ATINDEP: falhou ao gravar o item avulso — " + erro.Message;
+            }
+
+            estado.Acrescentados++;
+            Recarregar(janela, grade, catalogo, config, estado, indice);
+
+            return "ATINDEP: item avulso " + item.IndiceMaterial + " \"" + item.Tag + "\" no painel "
+                + estado.Painel + " (quantidade " + item.Quantidade + ", Ordem " + item.Ordem
+                + ") gravado — a linha entrou com o Indice " + indice + " do banco.";
+        }
+
+        /// <summary>O clique do <c>BTEditaLM</c> — o <c>eK4ppmS0dUi</c> (o plano do material escolhido).</summary>
+        private static string Editar(
+            Form janela,
+            DataGridView grade,
+            EstadoDaLista estado,
+            IReadOnlyDictionary<int, MaterialDoCatalogo> catalogo,
+            ConfiguracaoPositron config)
+        {
+            List<LinhaDoItemNaGrade> selecionadas = Selecionadas(grade);
+            if (selecionadas.Count == 0)
+            {
+                return "ATINDEP: escolha o item a editar na grade.";
+            }
+
+            if (config == null || string.IsNullOrEmpty(config.Banco))
+            {
+                return "ATINDEP: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
+            }
+
+            int codigoEscolhido = ListaMateriaisEdicao.CodigoDoTexto(LerCaixa(janela, "tbCodigo1"));
+            List<AcaoNoItemDaLM> plano = ListaMateriaisEdicao.PlanoDoMaterialEscolhido(
+                selecionadas,
+                LerCaixa(janela, "TBTag"),
+                LerCaixa(janela, "TBQuantidade"),
+                LerCaixa(janela, "tbCodigo1"));
+
+            if (plano.Count == 0)
+            {
+                return "ATINDEP: nenhuma linha selecionada é item da tela (avulsa) nem dispositivo com "
+                    + "handle — não há o que editar.";
+            }
+
+            int substituidos = 0;
+            int doDesenho = 0;
+            int ultimo = 0;
+            try
+            {
+                ProjectStore store = new ProjectStore(config.Banco);
+                foreach (AcaoNoItemDaLM acao in plano)
+                {
+                    if (acao.Tipo != TipoDeAcaoNoItemDaLM.Substituir)
+                    {
+                        doDesenho++;
+                        continue;
+                    }
+
+                    // O `eK4ppmS0dUi`: o `RemoveMaterialAvulso` pelo Indice e o insert de novo.
+                    store.RemoverItemDaLM(acao.Indice);
+                    ultimo = store.AdicionarItemDaLM(acao.Item);
+                    substituidos++;
+                }
+            }
+            catch (Exception erro)
+            {
+                return "ATINDEP: falhou ao gravar a lista — " + erro.Message;
+            }
+
+            Recarregar(janela, grade, catalogo, config, estado, ultimo);
+
+            string texto = "ATINDEP: " + substituidos + " item(ns) da tela regravado(s) com o material "
+                + codigoEscolhido.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".";
+            if (doDesenho > 0)
+            {
+                // A outra metade do clique no original: o `clsDispositivo.EditaLMDoDispositivo` regrava
+                // o XData do bloco (o `iLM1`) e os atributos MODELO/PAINEL/FABRICANTE. Gravar só o
+                // `IndiceMaterial` deixaria a linha e o desenho discordando — e a próxima projeção
+                // desfaria a gravação —, então a tela diz o motivo em vez de gravar meia operação.
+                texto += " " + doDesenho + " linha(s) do desenho ficaram sem o material novo: a escrita "
+                    + "do lm no dispositivo (o EditaLMDoDispositivo, o XData do bloco e os atributos) "
+                    + "ainda não está portada.";
+            }
+
+            return texto;
+        }
+
+        /// <summary>O clique do <c>BTApagaLM</c> — o <c>eUVppXAWerf</c> (só as linhas avulsas saem).</summary>
+        private static string Apagar(
+            Form janela,
+            DataGridView grade,
+            EstadoDaLista estado,
+            IReadOnlyDictionary<int, MaterialDoCatalogo> catalogo,
+            ConfiguracaoPositron config)
+        {
+            List<LinhaDoItemNaGrade> selecionadas = Selecionadas(grade);
+            if (selecionadas.Count == 0)
+            {
+                return "ATINDEP: escolha o item a apagar na grade.";
+            }
+
+            if (config == null || string.IsNullOrEmpty(config.Banco))
+            {
+                return "ATINDEP: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
+            }
+
+            int apagadas = 0;
+            int doDesenho = 0;
+            try
+            {
+                ProjectStore store = new ProjectStore(config.Banco);
+
+                // O original varre de baixo para cima; a linha do desenho não é tocada (o teste do
+                // `Cells[7]`), e aqui ela também aparece na contagem para não sumir em silêncio.
+                for (int i = selecionadas.Count - 1; i >= 0; i--)
+                {
+                    if (!selecionadas[i].Avulso)
+                    {
+                        doDesenho++;
+                        continue;
+                    }
+
+                    apagadas += store.RemoverItemDaLM(selecionadas[i].Indice);
+                }
+            }
+            catch (Exception erro)
+            {
+                return "ATINDEP: falhou ao apagar o item — " + erro.Message;
+            }
+
+            Recarregar(janela, grade, catalogo, config, estado, 0);
+
+            return "ATINDEP: " + apagadas + " item(ns) da tela apagado(s)."
+                + (doDesenho > 0
+                    ? " " + doDesenho + " linha(s) do desenho não entram: quem as escreve é a projeção (o COMPLM)."
+                    : string.Empty);
+        }
+
+        // ------------------------------------------------------------------ o gancho do harness
+
+        /// <summary>
+        /// O gancho do harness (um script não clica nos botões): <c>POSITRON_LIM_ITEM</c>
+        /// (<c>Indice;Tag;Quantidade;Codigo</c>) seleciona a linha pelo <c>Indice</c> e **depois**
+        /// preenche as caixas — a seleção chama o <c>PreencherMaterial</c>, que escreveria por cima do
+        /// digitado —, e <c>POSITRON_LIM_ACAO</c> roda a mesma ação do clique.
+        /// </summary>
+        private static void GanchoDoHarness(
+            Form janela,
+            DataGridView grade,
+            EstadoDaLista estado,
+            IReadOnlyDictionary<int, MaterialDoCatalogo> catalogo,
+            ConfiguracaoPositron config)
+        {
+            string item = Environment.GetEnvironmentVariable("POSITRON_LIM_ITEM");
+            string acao = Environment.GetEnvironmentVariable("POSITRON_LIM_ACAO");
+
+            if (string.IsNullOrEmpty(item) && string.IsNullOrEmpty(acao))
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(item))
+            {
+                string[] campos = item.Split(';');
+
+                int indice;
+                if (grade != null && int.TryParse(Campo(campos, 0), out indice) && indice != 0)
+                {
+                    // A grade é de seleção múltipla: a linha do script tem de ficar **sozinha**
+                    // selecionada (num clique o usuário escolhe uma ou algumas, e o Ctrl é dele).
+                    grade.ClearSelection();
+                    foreach (DataGridViewRow linha in grade.Rows)
+                    {
+                        if (CodigoDaLinha(linha, 0) == indice)
+                        {
+                            linha.Selected = true;
+                            PreencherMaterial(janela, grade, catalogo);
+                            break;
+                        }
+                    }
+                }
+
+                TextoDaCaixa(janela, "TBTag", Campo(campos, 1));
+                TextoDaCaixa(janela, "TBQuantidade", Campo(campos, 2));
+                TextoDaCaixa(janela, "tbCodigo1", Campo(campos, 3));
+            }
+
+            if (string.Equals(acao, "editar", StringComparison.OrdinalIgnoreCase))
+            {
+                Plugin.Escrever(Editar(janela, grade, estado, catalogo, config));
+            }
+            else if (string.Equals(acao, "apagar", StringComparison.OrdinalIgnoreCase))
+            {
+                Plugin.Escrever(Apagar(janela, grade, estado, catalogo, config));
+            }
+            else if (string.Equals(acao, "adicionar", StringComparison.OrdinalIgnoreCase))
+            {
+                Plugin.Escrever(Adicionar(janela, grade, estado, catalogo, config));
+            }
+        }
+
+        // ------------------------------------------------------------------ os ajudantes
+
+        private static void Ligar(Button botao, EventHandler acao)
+        {
+            if (botao != null)
+            {
+                botao.Click += acao;
+            }
+        }
+
+        /// <summary>As linhas **selecionadas** da grade, na ordem da tela — as do `eK4ppmS0dUi`/`eUVppXAWerf`.</summary>
+        private static List<LinhaDoItemNaGrade> Selecionadas(DataGridView grade)
+        {
+            List<LinhaDoItemNaGrade> selecionadas = new List<LinhaDoItemNaGrade>();
+            if (grade == null)
+            {
+                return selecionadas;
+            }
+
+            foreach (DataGridViewRow linha in grade.SelectedRows)
+            {
+                selecionadas.Add(DaLinha(linha));
+            }
+
+            return selecionadas;
+        }
+
+        /// <summary>A linha da grade nas doze células posicionais do <c>formataDGDisp</c>.</summary>
+        private static LinhaDoItemNaGrade DaLinha(DataGridViewRow linha)
+        {
+            return new LinhaDoItemNaGrade
+            {
+                Indice = CodigoDaLinha(linha, 0),
+                DWG = CodigoDaLinha(linha, 1),
+                Painel = CodigoDaLinha(linha, 2),
+                Tag = Celula(linha, 3),
+                IndiceMaterial = CodigoDaLinha(linha, 4),
+                Quantidade = CodigoDaLinha(linha, 5),
+                Ordem = CodigoDaLinha(linha, 6),
+                Avulso = Logico(linha, 7),
+                Destino = Celula(linha, 8),
+                DescDestino = Celula(linha, 9),
+                Alternativo = Celula(linha, 10),
+                Handle = Celula(linha, 11),
+            };
+        }
+
+        private static int CodigoDaLinha(DataGridViewRow linha, int coluna)
+        {
+            int codigo;
+            return int.TryParse(Celula(linha, coluna), out codigo) ? codigo : 0;
+        }
+
+        /// <summary>A célula 7 (`Avulso`) como booleano — a grade a recebe do banco como `bool`.</summary>
+        private static bool Logico(DataGridViewRow linha, int coluna)
+        {
+            if (linha == null || coluna >= linha.Cells.Count)
+            {
+                return false;
+            }
+
+            object valor = linha.Cells[coluna].Value;
+            if (valor is bool)
+            {
+                return (bool)valor;
+            }
+
+            bool logico;
+            return bool.TryParse(Celula(linha, coluna), out logico) && logico;
+        }
+
+        private static string Campo(string[] campos, int indice)
+        {
+            return indice < campos.Length ? (campos[indice] ?? string.Empty) : string.Empty;
+        }
+
+        /// <summary>O que continua sem regra na tela: a pesquisa do material (o `frmPesquisaMateriais`).</summary>
         private static void Motivos(Form janela)
         {
-            Desabilitar(janela, "BTAdicionaLM", "Adiciona Material: grava um item avulso na ListaMateriais");
-            Desabilitar(janela, "BTEditaLM", "Edita Material Selecionado: grava na ListaMateriais");
-            Desabilitar(janela, "BTApagaLM", "Apaga Material Selecionado: destrutivo — apaga o item da ListaMateriais");
             Desabilitar(janela, "btPesquisaLM1", "Pesquisar: abre o frmPesquisaMateriais, que o recoder ainda não porta");
         }
     }

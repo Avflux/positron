@@ -2102,6 +2102,90 @@ namespace Positron.Data
         }
 
         /// <summary>
+        /// Acrescenta um item **avulso** à <c>ListaMateriais</c> — o <c>AdicionaUmItemMaterialAvulso</c>
+        /// do <c>cDadosAccessMateriais</c>, o clique do <b>Adiciona Material</b> do
+        /// <c>frmGerenciadorMatIndep</c>. Devolve o <c>Indice</c> que o **banco** atribuiu (o insert do
+        /// original também não o manda: é a chave da tabela).
+        ///
+        /// O <c>IndiceLM</c> e o <c>OrdemLay</c> **não** entram no insert, como no original (o
+        /// <c>IndiceLM</c> que a tela manda é o índice da **linha da grade**, que não é o número do
+        /// LM — quem o atribui é o <c>AtualizaIndiceLM</c> dos relatórios). Os campos de texto vão
+        /// como o usuário os digitou (o `""` do original, e não ausente).
+        /// </summary>
+        public int AdicionarItemDaLM(LinhaListaMaterial linha)
+        {
+            if (linha == null)
+            {
+                return 0;
+            }
+
+            using (SQLiteConnection conexao = Abrir())
+            {
+                using (SQLiteCommand comando = conexao.CreateCommand())
+                {
+                    comando.CommandText =
+                        "INSERT INTO ListaMateriais(DWG, Painel, Tag, IndiceMaterial, Quantidade, Ordem, " +
+                        "Avulso, Destino, DescDestino, Alternativo, Handle) " +
+                        "VALUES(@dwg, @painel, @tag, @indiceMaterial, @quantidade, @ordem, " +
+                        "@avulso, @destino, @descDestino, @alternativo, @handle)";
+                    comando.Parameters.AddWithValue("@dwg", linha.DWG);
+                    comando.Parameters.AddWithValue("@painel", linha.Painel);
+                    comando.Parameters.AddWithValue("@tag", linha.Tag ?? string.Empty);
+                    comando.Parameters.AddWithValue("@indiceMaterial", linha.IndiceMaterial);
+                    comando.Parameters.AddWithValue("@quantidade", linha.Quantidade);
+                    comando.Parameters.AddWithValue("@ordem", linha.Ordem);
+                    comando.Parameters.AddWithValue("@avulso", linha.Avulso ? 1 : 0);
+                    comando.Parameters.AddWithValue("@destino", linha.Destino ?? string.Empty);
+                    comando.Parameters.AddWithValue("@descDestino", linha.DescDestino ?? string.Empty);
+                    comando.Parameters.AddWithValue("@alternativo", linha.Alternativo ?? string.Empty);
+                    comando.Parameters.AddWithValue("@handle", linha.Handle ?? string.Empty);
+                    comando.ExecuteNonQuery();
+                }
+
+                using (SQLiteCommand ultimo = conexao.CreateCommand())
+                {
+                    ultimo.CommandText = "SELECT last_insert_rowid()";
+                    return Convert.ToInt32(ultimo.ExecuteScalar());
+                }
+            }
+        }
+
+        /// <summary>
+        /// Troca o material de **uma linha** da lista pelo <c>Indice</c> dela — o
+        /// <c>EditaUmItemMaterialAvulso</c> do original (`UPDATE ListaMateriais SET IndiceMaterial`),
+        /// que o <b>Edita Material Selecionado</b> usa nas duas pontas: a linha avulsa que volta
+        /// regravada e a linha do desenho. Devolve quantas linhas mudaram.
+        /// </summary>
+        public int EditarMaterialDoItemDaLM(int indice, int indiceMaterial)
+        {
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "UPDATE ListaMateriais SET IndiceMaterial=@indiceMaterial WHERE Indice=@indice";
+                comando.Parameters.AddWithValue("@indiceMaterial", indiceMaterial);
+                comando.Parameters.AddWithValue("@indice", indice);
+                return comando.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Apaga **uma linha** da lista pelo <c>Indice</c> — o <c>RemoveMaterialAvulso</c> do original.
+        /// Devolve quantas linhas saíram (0 quando a chave não existe mais, o caso da linha que a grade
+        /// mostra e o banco não tem).
+        /// </summary>
+        public int RemoverItemDaLM(int indice)
+        {
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText = "DELETE FROM ListaMateriais WHERE Indice = @indice";
+                comando.Parameters.AddWithValue("@indice", indice);
+                return comando.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
         /// Apaga as linhas **não-avulsas** do desenho — o <c>RemoveMateriaisLista</c>
         /// do original. Os itens avulsos (o que o usuário lançou à mão no app) ficam:
         /// o fluxo os relê em seguida (<c>CapturaMateriaisAvulso</c>) e os regrava.

@@ -701,10 +701,19 @@ npm run cad:smoke:acad -- -Comandos ELET -Banco ".tmp-smoke/r150.db"
 ```
 
 O mesmo vale para o `TEMP` do **console runner do xunit** (`.tmp-smoke/temp`) e para o
-`cad:projeto:acad` (`-Banco`). O ciclo do `-Idempotencia` **passa** mesmo com o `%TEMP%` assim (os
-dumps `cad-dump-tabelas.py` falham com `PermissionError: ... positron-e2e-a.txt` e a comparação segue
-pelo hash das tabelas: `hash A = hash B = 7c1635f0…`), mas o ruído no meio da saída é isso, não
-regressão. Se acontecer em outra máquina, confira se `%TEMP%` é gravável antes de suspeitar do plugin.
+`cad:projeto:acad` (`-Banco`).
+
+**A causa, medida na rodada 151:** quem escreve o banco no `cad-autocad-smoke.ps1` é o **python do venv
+do sidecar** (`ProjectDatabase(...).create_from_schema()`), e é **ele** que não escreve no `%TEMP%`
+nesta máquina — a prova é direta: `services/sidecar/.venv/Scripts/python.exe -c "open(r'C:\Users\...\AppData\Local\Temp\x.txt','w')"`
+dá `PermissionError: [Errno 13]`, enquanto o python **do sistema** escreve o mesmo caminho. Os dumps
+da idempotência (`cad-dump-tabelas.py`, também pelo python do venv) sofriam o mesmo, e o efeito era
+**pior que ruído**: com o dump falhando, o passo 7 comparava os arquivos **da rodada anterior** — na
+rodada 150 o `hash A = hash B = 7c1635f0…` saiu dos dumps de 12/10 e o passo 6 conferia a linha de
+base num `positron-relatorio.txt` **velho** do `%TEMP%` (o plugin grava o relatório **ao lado do
+banco**). Desde a rodada 151 o `cad-projeto-e2e.ps1` põe **relatório e dumps na pasta do banco** — o
+mesmo lugar em que o `ELETREL` grava —, e a idempotência mede o que diz medir. Se acontecer em outra
+máquina, confira se o python do venv escreve no `%TEMP%` antes de suspeitar do plugin.
 
 ### A barra no AutoCAD parece a **antiga** (com o painel extra "Positron")
 
@@ -750,11 +759,32 @@ mkdir -p .tmp-smoke/xunit && (cd .tmp-smoke/xunit && unzip -o -q ../xunit-consol
 # e a cada rodada: TEMP precisa ser um caminho Windows válido (o `BancoDeTeste` grava no TEMP)
 TEMP='C:\Users\<voce>\AppData\Local\Temp' .tmp-smoke/xunit/tools/net472/xunit.console.exe \
     cad-plugin/Positron.Data.Tests/bin/Debug/net472/Positron.Data.Tests.dll
-# -> Total: 700, Errors: 0, Failed: 0, Skipped: 0
+# -> Total: 718, Errors: 0, Failed: 0, Skipped: 0
 ```
 
 O `Path.GetTempPath()` do teste segue o `TEMP` do processo: num shell do Git Bash (onde `TEMP=/tmp`)
 as falhas são todas `unable to open database file`, não um defeito do código.
+
+**Acesso negado (medido na rodada 151):** se a árvore do repo estiver numa origem que o .NET Framework
+trata como **remota** (a mesma que obriga o `-PastaLocal` do harness do CAD — numa pasta do Desktop,
+por exemplo), o runner termina com `System.IO.FileLoadException: Não foi possível carregar arquivo ou
+assembly 'xunit.execution.desktop' ... Acesso negado.` A saída é rodar a cópia **fora dali**, no
+`%TEMP%`:
+
+```bash
+DEST=/c/Users/<voce>/AppData/Local/Temp/pm151; BIN=cad-plugin/Positron.Data.Tests/bin/Debug/net472
+RUNNER=.tmp-smoke/xunit/tools/net472
+mkdir -p $DEST
+cp $RUNNER/xunit.console.exe $RUNNER/xunit.console.exe.config $RUNNER/xunit.abstractions.dll \
+   $RUNNER/xunit.execution.desktop.dll $RUNNER/xunit.runner.utility.net452.dll \
+   $RUNNER/xunit.runner.reporters.net452.dll $DEST/
+cp $BIN/Positron.Contract.dll $BIN/Positron.Data.dll $BIN/Positron.Data.Tests.dll $BIN/schema.sql $DEST/
+(cd $DEST && TEMP='C:\Users\<voce>\AppData\Local\Temp' ./xunit.console.exe Positron.Data.Tests.dll)
+```
+
+Duas armadilhas da cópia: o runner precisa do `xunit.execution.desktop.dll` **na própria pasta** (ele
+não o resolve pela pasta do teste) e as DLLs do xunit no `bin` do teste são de versões **diferentes**
+(as 2.9.0 do adaptador) — copie as do runner **depois** das do teste, ou só as do `Positron.*`.
 
 ### `entget` sem applist não devolve XData no ZWCAD 2026
 
@@ -937,6 +967,118 @@ regra) é a **§0 do `AUDITORIA.md`**, que se reproduz com `scripts/cobertura-do
 do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o detalhe rodada a rodada
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
+
+**Rodada 151 — a escrita da lista de materiais: o item avulso do `ATINDEP`.** O segundo item que a
+rodada 148 devolveu para a fila do `PLANO.md` era a **escrita da lista** — o `AdicionaUmItemMaterialAvulso`,
+o `EditaUmItemMaterialAvulso` e o `RemoveMaterialAvulso` do `cDadosAccessMateriais`, com o corpo do
+formulário (`jnTppR04rG4`, `eK4ppmS0dUi`, `eUVppXAWerf`) decidindo o que cada botão faz.
+
+**A regra (`Positron.Data`).** O `Materiais/ListaMateriaisEdicao.cs` traz o assunto inteiro do item
+avulso: a `Ordem` do `rfCpTfmCm7Q` (o construtor deixa **100000** e soma 1 por item da janela — é o que
+joga a linha nova para o fim da lista), a quantidade do `eK4ppmS0dUi` (a caixa vazia ou no `"0"` vira
+`"1"`), o guarda do `jnTppR04rG4` (`tbCodigo1.Text <> "0"`, **sem aparar**: com a caixa vazia o original
+acrescenta o material 0, e é o que se reproduz), o `ItemNovo` e o `PlanoDoMaterialEscolhido`. O plano é
+o laço do `eK4ppmS0dUi` lido linha a linha: para **cada** linha selecionada, o item **avulso** vira
+**substituição** (o `RemoveMaterialAvulso` pelo `Indice` e o insert de novo, com a tag, a quantidade e o
+material digitados) e a linha **com `Handle`** vira a ação do **material do dispositivo** — as duas
+saem da mesma linha quando ela é as duas coisas, como no original. A leitura da grade é a
+`LinhaDoItemNaGrade`, nas **doze células posicionais** do `formataDGDisp`.
+
+**A escrita (`ProjectStore`).** `AdicionarItemDaLM` (o insert **sem** o `Indice`, que é a chave do
+banco — devolve o que ele atribuiu), `EditarMaterialDoItemDaLM` (o `UPDATE ... SET IndiceMaterial` pelo
+`Indice`) e `RemoverItemDaLM` (o `DELETE` pelo `Indice`, devolvendo quantas linhas saíram).
+
+**As diferenças deliberadas (as três):**
+
+1. **O ramo do desenho não é gravado.** O `Edita` do original, na linha que tem `Handle`, faz também o
+   `clsDispositivo.EditaLMDoDispositivo` — o XData `DISPOSITIVO` (o `iLM1`, o `array[21]`) e os
+   atributos `MODELO`/`PAINEL`/`FABRICANTE` do bloco. Como o `IndiceMaterial` sozinho deixaria a linha e
+   o desenho discordando (e a próxima projeção desfaria a gravação), a tela **diz o motivo na linha de
+   comando** em vez de gravar meia operação — e o comando voltou para a fila do `PLANO.md`.
+2. **O `IndiceLM` do item novo fica ausente.** O original grava nele o **índice da linha da grade** (o
+   parâmetro `indice` do `AdicionaUmItemMaterialAvulso`), que não é o número do LM — esse é do
+   `AtualizaIndiceLM` dos relatórios. Ausente, e não inventado.
+3. **A grade é relida do banco depois de cada gravação** (o original só repinta depois do editar e
+   apaga), então as chaves da grade são as do banco; e a linha **do desenho** que o `Apaga` deixa de
+   fora entra na contagem da resposta, em vez de sumir em silêncio.
+
+**Como a tela é medida num script.** O gancho do harness é o `POSITRON_LIM_ITEM`
+(`Indice;Tag;Quantidade;Codigo`) com o `POSITRON_LIM_ACAO` (`adicionar`, `editar` ou `apagar`): o
+`Indice` **seleciona** a linha e o resto preenche as caixas — nesta ordem, porque a seleção chama o
+`PreencherMaterial` e escreveria por cima do digitado. A seleção **limpa** as outras linhas antes
+(a `dgDisp` é de seleção múltipla, como no construtor do original) — sem isso a linha do desenho
+entraria junto no editar/apagar.
+
+```bash
+# o banco do projeto real (copia do da rodada 149): 210 materiais, 480 paineis, 104 linhas de lista
+cp .tmp-smoke/r149.db .tmp-smoke/r151.db
+
+# 1) acrescenta um item avulso no painel 1 (o painel que a tela abre)
+POSITRON_LIM_ITEM="0;AV151;2;9001" POSITRON_LIM_ACAO=adicionar npm run cad:smoke:acad -- \
+  -Dwg 63 -Revisao R0 -Comandos ELET,pzTelas \
+  -Desenho "cad-plugin/reverso/Teste_projeto_real/Funcional.dwg" -Banco ".tmp-smoke/r151.db"
+
+# 2) edita o que foi acrescentado (o `Indice` da linha vem do banco: 105)
+POSITRON_LIM_ITEM="105;AV151-EDITADO;3;9002" POSITRON_LIM_ACAO=editar npm run cad:smoke:acad -- ... -Banco ".tmp-smoke/r151.db"
+
+# 3) apaga o item, deixando o banco como estava
+POSITRON_LIM_ITEM="105;;;" POSITRON_LIM_ACAO=apagar npm run cad:smoke:acad -- ... -Banco ".tmp-smoke/r151.db"
+
+# 4) os dois guardas: a linha DO DESENHO (o `R16`, indice 12) no apagar e no editar, e a caixa no 0
+POSITRON_LIM_ITEM="12;;;" POSITRON_LIM_ACAO=apagar npm run cad:smoke:acad -- ... -Banco ".tmp-smoke/r151.db"
+POSITRON_LIM_ITEM="12;R16;1;9001" POSITRON_LIM_ACAO=editar npm run cad:smoke:acad -- ... -Banco ".tmp-smoke/r151.db"
+POSITRON_LIM_ITEM="0;AV151;1;0" POSITRON_LIM_ACAO=adicionar npm run cad:smoke:acad -- ... -Banco ".tmp-smoke/r151.db"
+```
+
+```text
+ATINDEP: 8 painel(is) na ListaMateriais do DWG 63 (104 item(ns); 1 no painel 1); 210 material(is) no catálogo; primeiro item: "R16" → material 0 (fora do catálogo); Adiciona/Edita/Apaga ligados, a pesquisa desabilitada.
+ATINDEP: item avulso 9001 "AV151" no painel 1 (quantidade 2, Ordem 100000) gravado — a linha entrou com o Indice 105 do banco.
+ATINDEP: 1 item(ns) da tela regravado(s) com o material 9002.
+ATINDEP: 1 item(ns) da tela apagado(s).
+ATINDEP: 0 item(ns) da tela apagado(s). 1 linha(s) do desenho não entram: quem as escreve é a projeção (o COMPLM).
+ATINDEP: 0 item(ns) da tela regravado(s) com o material 9001. 1 linha(s) do desenho ficaram sem o material novo: a escrita do lm no dispositivo (o EditaLMDoDispositivo, o XData do bloco e os atributos) ainda não está portada.
+ATINDEP: a caixa do código está no 0 — escolha o material; a linha do dispositivo sem material não entra na lista (o guarda do original).
+JANELAS: 127 de 127 tela(s) do reverso montada(s), nenhuma falha. Ligacoes: 7 de 127 tela(s) com regra (...).
+```
+
+**O que a medida prova no banco** (hash canônico das três tabelas, conferido no SQLite depois de cada
+passo — o instrumento é o `hash-lm.py`, cópia local no `.tmp-smoke`):
+
+| passo | `ListaMateriais` | hash da tabela | a linha |
+|---|---|---|---|
+| partida | **104** | `bb955f9e5833b39a` | — |
+| Adiciona | **105** | `ecc29b60e84e04a6` | `(105, 63, 1, 'AV151', 9001, 2, 100000, 1, None, None)` |
+| Edita | **105** | `9769ccd8caab6211` | `(105, 63, 1, 'AV151-EDITADO', 9002, 3, 100000, 1, None, None)` |
+| Apaga | **104** | `bb955f9e5833b39a` | — (o **mesmo hash da partida**) |
+| guardas (4 a 6) | **104** | `bb955f9e5833b39a` | — |
+
+e a `Materiais` (210, hash `6e4fe9e2155dd676`) e o cadastro `Paineis` (480, `b79ededdb5c5a3a3`) não
+mudaram em passo nenhum — a escrita mexe só na lista. O `Avulso` = 1 e o `IndiceLM`/`OrdemLay` **nulos**
+do item novo são o que a regra manda gravar (o original mandaria o índice da linha da grade no
+`IndiceLM`). O `Indice` 105 ficou **o mesmo** na substituição: o `DELETE` + `INSERT` do original deixa o
+SQLite reusar a chave da linha que saiu (a tabela não usa `AUTOINCREMENT`) — por isso a grade é relida
+do banco depois de cada gravação.
+
+**O que a medida não cobre:** a janela **aberta** no `accoreconsole` (o `ShowModelessDialog` derruba o
+processo, o achado da rodada 138), a **conferência visual** da tela (do dono) e o ramo do
+`EditaLMDoDispositivo`, que não é portado — o que dele se prova é a **recusa com o motivo** e o banco
+intacto.
+
+**Gate:** `plugin:test` **718** (+13, `ListaMateriaisEdicaoTests`), as duas builds **0 avisos**, o ciclo
+completo `cad-projeto-e2e.ps1 -Cad AutoCAD -Idempotencia` verde com o relatório **novo** (249 problemas,
+a linha de base 107+119+11+10+2 conferida) e a idempotência no mesmo hash (`7c1635f0…`).
+
+**Dois achados de instrumento nesta rodada** (os dois por causa do repo estar no Desktop):
+
+1. **O console runner do xunit não carrega os assemblies da árvore do repo** — `System.IO.FileLoadException
+   ... Acesso negado`, a mesma origem remota que o `-PastaLocal` do harness já contorna para o
+   `NETLOAD`. A suíte sai copiando as dependências do runner e as DLLs do teste para uma pasta local
+   (`%TEMP%`) e rodando lá — receita atualizada no item do Troubleshooting.
+2. **O python do venv do sidecar não escreve no `%TEMP%`** (`PermissionError` num caminho explícito,
+   enquanto o python do sistema escreve): os dumps da idempotência do `cad-projeto-e2e.ps1` morriam e o
+   passo 6 conferia a linha de base num `positron-relatorio.txt` **velho** de outra rodada (o plugin
+   grava o relatório **ao lado do banco**, e o script procurava no `%TEMP%`). O script passou a usar a
+   pasta do banco para os dois — é o mesmo lugar onde o ELETREL grava.
 
 **Rodada 150 — a barra do AutoCAD: o pacote velho em `%APPDATA%`.** O dono do produto apontou que a
 ribbon do **AutoCAD** estava com os mesmos problemas que a rodada 147 resolveu para o ZWCAD (o painel
@@ -5848,6 +5990,12 @@ que não apontam para o lugar certo (`cadeia de caracteres sem terminador`).
 Salve sempre como **UTF-8 com BOM**.
 
 ## Estado de verificação
+
+> **Nesta máquina, a partir da rodada 136, o host CAD é o AutoCAD 2020** (o `C:\Program Files\ZWSOFT`
+> não existe aqui; o `cad:projeto:e2e` roda com `-Cad AutoCAD` e a API do AutoCAD está vendorizada em
+> `cad-plugin/lib/AutoCAD/2020`). Os itens abaixo que falam do ZWCAD 2026 ficam como o registro da
+> **máquina da rodada 58** — o estado vivo está no topo do `PLANO.md` e as receitas, nas seções
+> "Rodar o plugin dentro de um CAD de verdade".
 
 Para não passar a impressão de que tudo foi testado do mesmo jeito:
 
