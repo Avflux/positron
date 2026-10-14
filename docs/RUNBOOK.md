@@ -968,6 +968,29 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 155 — frente 12 (parte 7): as telas de modelos — `GERMASC` e `GERCONT` ligadas ao desenho e ao catálogo.**
+As duas telas gêmeas de gerenciamento de modelos do reverso (`frmGerenciadorMascaras` e `frmGerenciadorContatos`)
+passam a ter comportamento real ligado à regra do recoder:
+- a base comum `LigacaoDeModelos` reúne a leitura do catálogo de materiais (`ProjectStore.LerMateriais`), a resolução dos slots LM1/LM2 e o padrão de desativação de botões com motivo na dica;
+- a regra pura `FormatacaoDeModelos` (`Positron.Data/Modelos/FormatacaoDeModelos.cs`) resolve os textos de descrição, modelo e fabricante para os códigos de materiais digitados ou associados aos modelos, além da normalização dos nomes de bloco topográfico e de layout;
+- `frmGerenciadorMascaras` (`GERMASC`): preenche `DGMascaras` com os modelos de máscara do desenho (`ModelosMascaraDoDesenho.LerModelos`), sincroniza a seleção com as caixas de modelo/materiais/simbologia e preenche `DGPortas` com os componentes do modelo ativo (`ModelosMascaraDoDesenho.LerPortas`), além de ligar as caixas da porta selecionada (`TBEFC`, `TBTerminais`, `TBOrientacao`, `TBRegua`, `TBBornes`);
+- `frmGerenciadorContatos` (`GERCONT`): preenche `DGModelo` com os modelos de contato do desenho (`ContatosDoDesenho.LerModelos`), sincroniza a seleção com as caixas de modelo/terminais/orientação/materiais/simbologia e preenche `DGContato` com os contatos auxiliares do modelo ativo (`ContatosDoDesenho.LerAuxiliares`), além de ligar as caixas e combos do contato selecionado (`TBT1`..`TBT3`, `tbOrientacaoTerminais`, `CBTipo`, `CBComportamento`);
+- botões de criação, edição, deleção, interop do Excel e seleção em tela ficam desabilitados com o motivo na dica (o mesmo padrão das rodadas anteriores);
+- as ligações foram registradas em `LigacoesDasTelas`, subindo o total de telas ligadas à regra de **7** para **9 de 127**.
+
+```text
+# ZWCAD 2026, Funcional.dwg (DWG 63), banco r154.db
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0 \
+  -Comandos "ELET,GERMASC,GERCONT" -Desenho "cad-plugin/reverso/Teste_projeto_real/Funcional.dwg" -Banco "<repo>\.tmp-smoke\r154.db"
+
+GERMASC: 7 modelo(s) de máscara lido(s) do desenho (16 porta(s) no primeiro modelo "BARRA TERRA"); 210 material(is) no catálogo; botões de edição desabilitados.
+GERMASC: "Gerenciador de Máscaras" (frmGerenciadorMascaras) aberta no CAD — 50 controle(s).
+GERCONT: 8 modelo(s) de contato lido(s) do desenho (1 auxiliar(es) no primeiro modelo "FUSÍVEL"); 210 material(is) no catálogo; botões de edição desabilitados.
+GERCONT: "Gerenciador de Contatos" (frmGerenciadorContatos) aberta no CAD — 64 controle(s).
+```
+
+E no `pzTelas`: `Ligacoes: 9 de 127 tela(s) com regra (frmPesquisaXdatas, frmEstatisticaDeBornes, frmCompilarFiacao, frmCompilarInterligacao, frmCompilarJumperExt, frmGerenciadorMateriais, frmGerenciadorMatIndep, frmGerenciadorMascaras, frmGerenciadorContatos)`. `plugin:test` **742** (+8, `FormatacaoDeModelosTests`), as duas builds **0 avisos**.
+
 **Rodada 154 — a pintura da grade do `ATINDEP`: o `MesclaDGDisp`.** O último item que a rodada
 148 deixou na tela. O original termina cada carga da `dgDisp` (`CarregaDGDisp`) no `MesclaDGDisp`
 (`frmGerenciadorMatIndep.cs:926`), que lê três células — a 4 (material), a 7 (`Avulso`) e a 11
