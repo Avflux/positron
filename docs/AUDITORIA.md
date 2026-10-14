@@ -6,7 +6,7 @@
 
 **Não.** O que está coberto é o **recorte** — as correções e a limpeza do CAD (frente 2), a base/contexto (frente 1) e os três pipelines —, e o que está **mapeado** são os **216 comandos** do reverso (todos classificados). O que **não** está coberto é a **lógica por trás dos formulários** (49% do código do reverso) nem a pilha de exportação/importação, as rotinas destrutivas e a integração de ambiente/licença.
 
-## 0. Estado medido agora — o que falta, em ordem (rodadas 132–147)
+## 0. Estado medido agora — o que falta, em ordem (rodadas 132–148)
 
 Esta seção responde à pergunta recorrente *"o que já cobrimos e o que falta"* **com número medido no
 próprio repo**, e não com memória: o `scripts/cobertura-do-reverso.ps1` cruza o mapa dos 216 comandos
@@ -28,7 +28,7 @@ powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acopl
 | telas `frm*` | **127** |
 | comandos que o plugin responde | **168** = **69 escritos à mão** (49 do reverso + 20 nossos) + **99 gerados** (só abrem a tela) |
 | comandos do reverso **sem nada no plugin** | **68** = **17** que abrem janela (15 variantes + `IMPBD` + `ONSPL`/`TROCAPN`) + **51** de regra pura |
-| telas alcançadas por algum comando | **103** (5 com regra escrita à mão, 98 só casca) |
+| telas alcançadas por algum comando | **103** (7 com regra escrita à mão, 96 só casca) |
 | telas que **nenhum** comando abre (sub-janela: relatórios DWG/Excel, editores) | **19** |
 | telas sem comando e sem casca pelo nome (variante/splash) | **5** |
 
@@ -69,6 +69,13 @@ estão entregues (o **`EncontraHandle`** na **rodada 146**; antes, o **`CorrigeI
    motivo na dica**, como o menu das folhas. Com isso a lista "a regra existe, falta a ligação" do
    painel (`scripts/cobertura-do-reverso.ps1`, linha `com a ligacao na tela`) ficou **vazia**: as
    **5** telas cuja regra existe estão ligadas.
+3. ✅ **Ligar as duas telas de materiais** — `frmGerenciadorMateriais` (`GERLM`) e
+   `frmGerenciadorMatIndep` (`ATINDEP`) — **entregue na rodada 148**: a leitura do catálogo
+   (`Materiais`, a regra nova `CatalogoDeMateriais`) e da lista (`ListaMateriais`) entra na grade, a
+   seleção preenche as caixas do material e o que **grava** (a edição do catálogo e o item avulso) e
+   o **Excel** entram desabilitados com o motivo na dica. A lista "a regra existe, falta a ligação"
+   segue **vazia**, agora com **7** telas ligadas; as **duas regras que faltaram** na tela (a escrita
+   do catálogo e a escrita da lista) voltaram para a fila do `PLANO.md`.
 
 > **A fila desta seção está vazia desde a rodada 140:** o item 1 (`CorrigeInterligacao`) saiu na
 > **139** e o item 2 (as três telas de compilação) na **140**. Os próximos passos passaram a ser os do
@@ -199,7 +206,7 @@ Ou seja: o recoder é **≈23,5 mil linhas** contra **408 mil** do reverso. Mesm
 - **Frente 7**: o pipeline das veias `SYNCV` (111) e o `RECRIACABOS` (115).
 - **Frente 9**: `CBD` (112), `RESTPROJ` e `ApagaERROS` (113).
 - **Ferramentas**: `pzDiag` (103) e a prova do `IndefineUmaPorta` em C# (104).
-- **Verificação**: `npm run plugin:test` (**514**), `npm run plugin:build`, `npm run plugin:build:autocad` e a medição no ZWCAD 2026 (sempre a partir de cópia limpa).
+- **Verificação**: `npm run plugin:test` (**700** hoje; **514** era o número desta seção em 2026-09-23), `npm run plugin:build`, `npm run plugin:build:autocad` e a medição no CAD (sempre a partir de cópia limpa).
 
 ## 5. Conclusão
 

@@ -420,6 +420,8 @@ namespace Positron.Data.Tests
                 Assert.Equal(2, lidas.Count);
                 Assert.Equal("D1", lidas[0].Tag);
                 Assert.Equal(12, lidas[0].OrdemLay);
+                // A leitura devolve a chave da linha (a primeira coluna da grade do ATINDEP).
+                Assert.Equal(new[] { 1, 2 }, lidas.ConvertAll(l => l.Indice));
                 Assert.Equal(63, lidas[1].Quantidade);
                 Assert.Equal(10000, lidas[1].OrdemLay);
                 Assert.Equal(0, lidas[0].IndiceLM);

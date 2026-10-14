@@ -1924,6 +1924,49 @@ namespace Positron.Data
         }
 
         /// <summary>
+        /// O **catálogo de materiais** (<c>Materiais</c>) ordenado por código interno — o
+        /// <c>CarregaListaMateriaisDoDG</c> do <c>frmGerenciadorMateriais</c> e o
+        /// <c>CarregaDadosLMMatriz</c> do <c>frmGerenciadorMatIndep</c>.
+        ///
+        /// Só a **leitura**: quem grava o catálogo no original é o próprio formulário
+        /// (<c>AdicionaItemMaterial</c>/<c>EditaItemMaterial</c>/<c>RemoveMaterial</c>), que o recoder
+        /// ainda não porta.
+        /// </summary>
+        public List<MaterialDoCatalogo> LerMateriais()
+        {
+            List<MaterialDoCatalogo> materiais = new List<MaterialDoCatalogo>();
+
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT Indice, CodigoInterno, CodigoCliente, Modelo, Fabricante, " +
+                    "DescricaoResumida, DescricaoCompleta FROM Materiais ORDER BY CodigoInterno";
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        materiais.Add(new MaterialDoCatalogo
+                        {
+                            Indice = (int)(Inteiro(leitor, "Indice") ?? 0),
+                            CodigoInterno = (int)(Inteiro(leitor, "CodigoInterno") ?? 0),
+                            // O `TiraDBNull` do original: no catálogo a coluna nula é texto vazio,
+                            // porque os campos vão direto para a grade e para as caixas da tela.
+                            CodigoCliente = Texto(leitor, "CodigoCliente") ?? string.Empty,
+                            Modelo = Texto(leitor, "Modelo") ?? string.Empty,
+                            Fabricante = Texto(leitor, "Fabricante") ?? string.Empty,
+                            DescricaoResumida = Texto(leitor, "DescricaoResumida") ?? string.Empty,
+                            DescricaoCompleta = Texto(leitor, "DescricaoCompleta") ?? string.Empty,
+                        });
+                    }
+                }
+            }
+
+            return materiais;
+        }
+
+        /// <summary>
         /// As linhas de <c>ListaMateriais</c> de um desenho, na ordem do original
         /// (<c>ORDER BY Painel, Ordem</c>) — o <c>CarregaOrdemEmMateriais</c>.
         ///
@@ -1948,7 +1991,7 @@ namespace Positron.Data
             using (SQLiteCommand comando = conexao.CreateCommand())
             {
                 comando.CommandText =
-                    "SELECT DWG, Painel, Tag, IndiceMaterial, Quantidade, Ordem, Avulso, Destino, " +
+                    "SELECT Indice, DWG, Painel, Tag, IndiceMaterial, Quantidade, Ordem, Avulso, Destino, " +
                     "DescDestino, Alternativo, Handle, IndiceLM, OrdemLay FROM ListaMateriais WHERE DWG = @dwg";
                 if (somenteAvulsos)
                 {
@@ -1964,6 +2007,7 @@ namespace Positron.Data
                     {
                         linhas.Add(new LinhaListaMaterial
                         {
+                            Indice = (int)(Inteiro(leitor, "Indice") ?? 0),
                             DWG = (int)(Inteiro(leitor, "DWG") ?? 0),
                             Painel = (int)(Inteiro(leitor, "Painel") ?? 0),
                             Tag = Texto(leitor, "Tag"),

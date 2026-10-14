@@ -11,11 +11,12 @@
 > nova primeiro). Ao fechar uma rodada: (1) linha no §5, (2) seção no `RUNBOOK.md`, (3) aqui **só**
 > os números do *Estado* e o ✅ na fila — nada de parágrafo novo neste quadro.
 >
-> **Estado:** **69 comandos** escritos à mão + **99** gerados, **696 testes** (`npm run plugin:test`),
+> **Estado:** **69 comandos** escritos à mão + **99** gerados, **700 testes** (`npm run plugin:test`),
 > as duas builds com 0 avisos, último ciclo completo `-Idempotencia` verde (hash `7c1635f0…`, `VERIF`
-> **249**). **Host desta máquina: ZWCAD 2026** (o alvo do produto; voltou na rodada 146 e o AutoCAD
-> 2020 saiu — a build AutoCAD segue compilando contra a API vendorizada). Desde as rodadas 137–138 o **autoload**, a
-> **paleta** e a **barra** funcionam nos dois CADs com os mesmos números. Telas do reverso: **5 de
+> **249**). **Host medido nesta máquina: AutoCAD 2020** — o `C:\Program Files\ZWSOFT` não existe aqui e a
+> rodada 148 correu nele (`cad:projeto:acad`; o alvo do produto segue o **ZWCAD 2026** e os números das
+> rodadas anteriores são os que elas mediram). Desde as rodadas 137–138 o **autoload**, a
+> **paleta** e a **barra** funcionam nos dois CADs com os mesmos números. Telas do reverso: **7 de
 > 127** ligadas à regra; a fila "a regra existe, falta a ligação" está **vazia**.
 >
 > | frente | onde | situação |
@@ -24,7 +25,7 @@
 > | 2 — correções e limpeza do CAD | §7.6, `AUDITORIA.md` §0 | **37 de 38** ✅ no que é regra (o `EncontraHandle` entrou na 146); o `CorrigeJanelas` é ambiente |
 > | 10 — páginas e caderno (regra → casca) | §7.7 | ✅ fatias **1–6** (a 6 é a paleta das folhas; o cadastro de DWGs saiu para a fila) |
 > | 11 — shell (arranque, paleta, barra, autoload) | §7.8 | fatias **1–5** ✅ (a barra com a árvore do `Ribbon.cs` desde a 147); fatia 6 (splash/recursos) parcial |
-> | 12 — as 127 telas do reverso | §7.9 | todas abrem fiéis; **5** com regra |
+> | 12 — as 127 telas do reverso | §7.9 | todas abrem fiéis; **7** com regra |
 > | 3–9 — edição (réguas, dispositivos, fiação, cabos, materiais, exportação) | §7.6 | triadas; portam comando a comando |
 > | relatórios · banco multiusuário | §7.3, Etapa 9 | ⏳ decisão do dono |
 >
@@ -36,10 +37,14 @@
 >    `AtivaPagina` da 145 (o `-1` fica ligado e a capa desliga fora dela).
 >    Fora da fila, a pedido do dono: ✅ **a barra do original de verdade** (**rodada 147**) — a árvore
 >    do `Ribbon.cs`, sem o painel duplicado do recoder; a conferência visual é do dono.
-> 3. **Telas do §7.9 cuja regra o recoder já tem** — `frmGerenciadorMateriais` (`GERLM`) e
->    `frmGerenciadorMatIndep` (`ATINDEP`) contra a `ListaMateriais`; depois `GERMASC`/`GERCONT`.
->    Antes de cada uma, confirmar no painel (`scripts/cobertura-do-reverso.ps1 -Listas`) que a regra
->    cobre a tela inteira; o que faltar volta para esta fila como item de regra.
+> 3. ✅ **Telas do §7.9 cuja regra o recoder já tem** — `frmGerenciadorMateriais` (`GERLM`) e
+>    `frmGerenciadorMatIndep` (`ATINDEP`) **entregues na rodada 148** (a leitura: o catálogo
+>    `Materiais`, a `ListaMateriais` e a seleção; o que **grava** entrou desabilitado com o motivo
+>    na dica). O painel confirmou o que faltava e **dois itens de regra voltaram para esta fila**:
+>    a **escrita do catálogo** (o `AdicionaItemMaterial`/`EditaItemMaterial`/`RemoveMaterial` que os
+>    botões do `GERLM` disparam) e a **escrita da lista** (o item avulso do `ATINDEP`,
+>    `AdicionaUmItemMaterialAvulso`/`EditaUmItemMaterialAvulso`/`RemoveMaterialAvulso`). Depois
+>    delas, as telas do §7.9 `GERMASC`/`GERCONT` contra o dicionário de máscaras e os modelos de contatos.
 > 4. **`Editar Revisões`** do menu das folhas — hoje desabilitado: as revisões do projeto vivem no
 >    banco; precisa da leitura das revisões (`ProjectStore.LerRevisoes` já existe, rodada 140).
 > 5. **§7.8 fatia 6** — o splash e os recursos (`MascaraM.dwg`).
@@ -759,6 +764,7 @@ aberto por **cópia no TEMP**).
 | 124 — os **icones do produto original** extraidos e na barra | 2026-09-23 | (este commit) | o `ResourceManager` no assembly limpo devolveu os `Bitmap`: **348 icones** (1,95 MB) salvos em `cad-plugin/lib/Icons/` pelo novo `scripts/extrair-icones-do-reverso.ps1` (lê os nomes dos acessores do próprio produto, resolve as dependências do assembly limpo e salva cada um em PNG), e o mapa da barra passou a extrair **(comando, rótulo, ícone)** — o `Ribbon.cs` atribui `image = Resources.X` antes de cada botão —, com os 42 pares em `docs/reverso-barra-do-original.txt` (ex.: `CAD = CADERNO \| Caderno_32`, `CBD = CBD \| Comprimir_32`, `RESTPROJ = RESTPROJ \| Sincroniza_32`); no plugin os PNGs entram como **recursos embutidos** (`Positron.Icons.<nome>.png`) e o `IconsDoReverso` os converte como o `Ribbon.getBitmap` do reverso (Bitmap → PNG em memória → `BitmapImage`, com cache), com os botões usando o **ícone do original** onde o comando existe na barra dele (`CBD`, `RESTPROJ`) e o **genérico `Item`** nos demais — exatamente o que o próprio reverso faz; a ideia dos ícones internos do CAD fica como **reserva** para os comandos ainda não portados (e o `IconsDoReverso` já cai no genérico quando o nome não existe); **medido no ZWCAD 2026** (a DLL foi de 1,7 MB para **2,13 MB** com os ícones): `Barra: aba "Positron" com 12 botão(ões).` e `Positron — paleta de folhas com 16 página(s) (ancorada no CAD).`; as duas builds 0 erros |
 | 125 — frente 10, fatia 4: o **Renomear Páginas** ligado na regra do RENPAGA | 2026-09-23 | (este commit) | o menu de contexto das folhas tinha sete itens do reverso e agora **um funciona** com a regra do original: a regra pura `PaginasDoCaderno.SufixoValido` + `Renomear` (o sufixo é **um** caractere — número ou letra **maiúscula**, o `Asc` 65..90 do `RENPAGA`, que recusa a minúscula e mais de um caractere — e cada página vira `página + sufixo`, o `renumerarPaginasLote`), o adapter `PaginasDoDesenho.Renomear` (renomeia os **layers** das páginas e devolve quantos renomeou) e, na paleta, um campo para o sufixo (padrão `A`), o botão **Renomear Páginas** no rodapé e o item do menu ligados na mesma operação, com a grade recarregando depois; os outros três itens seguem desabilitados **com o motivo registrado** (Nova Página depende do `capturaTitulos`/blocos de formato, Inserir precisa do `calculaNovaPagina` e do `Conf.PassoPagina`, Excluir é destrutivo — `ApagarElementosPagina` — e entra com confirmação); **medido no ZWCAD 2026** (a paleta continua abrindo com as 16 folhas, agora com o rodapé novo) e **+3 testes** que fixam a recusa da minúscula e do sufixo vazio (`plugin:test` **527**); as duas builds 0 erros |
 | 126 — frente 10, fatia 3: a **página entre duas** (o "Inserir") | 2026-09-23 | (este commit) | o `Pagina.calculaNovaPagina` do reverso (170 linhas) foi portado **ramo a ramo** para `NovaPaginaEntre`, com o **`Conf.PassoPagina`** (novo na configuração, padrão 1): cada lado é partido em número/letra (o `Asc` da última letra e o prefixo; no ramo **numérico** vale o **número inteiro**, no alfanumérico o `Mid(1, len-1)`), as **quatro** combinações seguem a mesma casca ("cabe no passo? então a letra; senão o próximo número; não cabe? então `num4 + Passo`"), o posterior **vazio** vale o sentinela `1000000` (o fim) e a saída é PgNum + PgAlfa (vazia no código 64) + Pagina + PgDec; o item **Inserir** ficou **ligado** — pega a página selecionada e a **próxima**, calcula e **informa** (a criação do layer/formato entra na fatia 6); **+5 testes** (plugin:test **532**) e as duas builds 0 erros, com a paleta abrindo as 16 folhas no ZWCAD |
+| 148 — frente 12: as **duas telas de materiais** ligadas à regra (`frmGerenciadorMateriais`/`GERLM` e `frmGerenciadorMatIndep`/`ATINDEP`) | 2026-10-13 | (este commit) | a regra nova é a **leitura do catálogo** — `MaterialDoCatalogo` e `CatalogoDeMateriais.Indexar`/`Buscar` (o `CarregaListaMateriaisDoDG`/`CarregaDadosLMMatriz`, por `CodigoInterno`, com o `TiraDBNull` do original) mais o `ProjectStore.LerMateriais` — e os **painéis da lista** (`PaineisDaListaDeMateriais.Distintos`/`DoPainel`, no assunto da `ListaMateriais`); o `LerListaMateriais` passou a devolver o `Indice` (a 1ª coluna da grade do `ATINDEP`). A ligação é uma base (`LigacaoDeMateriais`: o catálogo, os textos/dicas e o desabilitar-com-motivo) e um arquivo por tela: no `GERLM` a grade `DGMateriais` com as **9 colunas do `formataDG`** (a `Ação`/`IndiceEL` inclusive, que são o contrato da gravação) e o `MostraSelecionado`; no `ATINDEP` a `dgPaineis` (índice oculto + nome do cadastro) e a `dgDisp` com as **12 colunas do `formataDGDisp`** e a ordem posicional do `Rows.Add` do original (`Indice`, `DWG`, `Painel`, `Tag`, `IndiceMaterial`, `Quantidade`, `Ordem`, `Avulso`, `Destino`, `DescDestino`, `Alternativo`, `Handle`), mais as caixas do material pelo `ODLpp1Gpc7y`; os 10 botões que **gravam** (catálogo/lista) e os 2 do **Excel** entram desabilitados com o motivo na dica. **Duas diferenças deliberadas:** a lista de painéis sai da `ListaMateriais` (a regra do recoder) em vez da segunda varredura do ModelSpace do `clsLM.PaineisDocumentoLM`, e a pintura do `MesclaDGDisp` fica para a rodada que portar a edição. **Medido no AutoCAD 2020** (o host instalado; o `pzTelas` monta as 127 e roda as ligações): `GERLM: 210 material(is) no catálogo ("TP KP101" no código 4); grade com 9 coluna(s)` e `ATINDEP: 8 painel(is) na ListaMateriais do DWG 63 (104 item(ns); 1 no painel 1); 210 material(is) no catálogo; primeiro item: "R16" → material 0 (fora do catálogo)` — os 210 materiais e os 480 painéis são os do `RCD.mdb` importado, e as 104 linhas da `ListaMateriais` são as do `COMPLM` no `Funcional.dwg`. `Ligacoes: 7 de 127`; `plugin:test` **700** (+4, `CatalogoDeMateriaisTests`), as duas builds **0 avisos** |
 | 147 — frente 11, fatia 4: a **barra do original de verdade** — a árvore do `Ribbon.cs` e o fim do painel duplicado | 2026-10-13 | (este commit) | o extrator virou um **intérprete** do corpo de cada painel (cria → configura → adiciona) e o mapa passou a ter a árvore: **34** linhas, **7** áreas recolhíveis, **5** menus com **39** itens, a lista de seção, o campo da cor, o `InfoOn` e os ícones dos dois temas, conferidos contra os `new RibbonX()` do arquivo; o montador aplica o estilo de cada ajudante e o tema do CAD; saiu o **10º painel "Positron"** (os `CFG`/`VFIA`/`VINT` do original chamam `ELETCFG`/`VERIF`) e entrou o `PAG`. **Medido no ZWCAD 2026** com o instrumento novo `pzBarra` (lê o ribbon vivo): uma aba, 9 painéis e as mesmas contagens do `Ribbon.cs` em todos os tipos; 108 acionáveis ligados, 53 desativados com o motivo. `plugin:test` **696**, as duas builds **0 avisos** |
 | 146 — frente 2 (parte 27): o **`EncontraHandle`** e a correção do `AtivaPagina` da rodada 145 | 2026-10-13 | (este commit) | o comando do original (`clsUtilitarios.cs:950`) acha a entidade pelo handle, ativa a página dela e dá zoom com margem 20: a regra pura `LocalizacaoPorHandle` (`LerHandle` + `Janela`), o adapter `LocalizacaoPorHandleDoDesenho` e o `PaletaDeFolhas.Recarregar()`; o `AtivaPagina` passou a manter o `-1` (formato do corpo) e a **desligar a capa** fora dela (o `right` do `Pagina.cs:1279` — a rodada 145 tinha o contrário). **Medido no ZWCAD 2026** (o host voltou; o AutoCAD 2020 saiu): página `2` → `0`/`-1`/`2` ligados, capa desligada; capa → `-1` desligado; vista centrada no que o comando calculou; `ZZZ` e `FFFFFF` recusados sem tocar no desenho. O item 1 da fila (`GERDWG`/`DUPCAD`) saiu: é o **cadastro de DWGs do banco**, não páginas — vira item próprio, à espera da decisão do dono. `plugin:test` **685** (+13), as duas builds **0 avisos** |
 | 145 — fatia 5 (parte 2): a **página ativa** e o **passo da página** (regra, comandos e formulários) | 2026-10-12 | (este commit) | a `Pagina.cs` do original (o `AtivaPagina`/1243, o `LocalizaPaginaAtiva`/1347, o `checaCapa`/2595 e o `redefinePasso`/2657, com os comandos `PAS`/`PAG`) virou a regra pura `PaginaAtiva` (o `PapelDoLayerNaAtivacao`, a **lista literal das capas** — o `00000001` de oito posições **não** é capa, limite do original registrado —, o `Localiza` e o `Plano`) + o adapter `PaginaAtivaDoDesenho` (`Ler()` = a `Clayer`, `Ativar(pagina)` com o `IsOff`: página ligada e corrente, o `0` e a capa ligados, o resto desligado) e os comandos **`ATIVAPAGINA`** (alvo em `POSITRON_PAGINA`, senão a página ativa, senão a última; o alvo explícito passa pela `ExclusaoDePagina.Recusa`) e **`PASSO`** (o `redefinePasso` via argumento/`POSITRON_PASSO_PAGINA`, inteiro > 0, persistido com `ConfiguracaoPositron.Salvar()`); na tela, a linha 'Página ativa' no rodapé, a coluna `PgAtiva` e os formulários de **Editar Unidade/Alternativo/Títulos** ligados; **medido (AutoCAD 2020)** na fixture `scripts/cad-fixture-pagina-ativa.lsp` com o `pz-conta-camadas`: `ATIVAPAGINA: pagina "3" — 2 layer(s) desligado(s), 3 ligado(s), 2 alterado(s); capa "1".` e o dump independente com o `2` e o `-1` desligados, `0`/`1`/`3` ligados e a corrente `3`; o `PASSO` leu/gravou 5 e a guarda recusou `TRABALHO` sem tocar no desenho; `plugin:test` **672** (+12, `PaginaAtivaTests`) e as duas builds **0 avisos** |
@@ -1099,16 +1105,19 @@ regra`. Duas diferenças deliberadas: onde o original mostra `MsgBox`, o recoder
 de comando** (o `MsgBox` trava um script), e onde a tela lia o banco, entra a regra do recoder que o
 comando equivalente já usa e já foi medida.
 
-**Ligadas até aqui (rodadas 130 e 140):** `frmPesquisaXdatas` (`APAGARXDATA`, com a grade lendo o
+**Ligadas até aqui (rodadas 130, 140 e 148):** `frmPesquisaXdatas` (`APAGARXDATA`, com a grade lendo o
 ModelSpace), `frmEstatisticaDeBornes` (a estatística do `STATBORN` + os sete totais do rodapé) e as
 **três telas de compilação** — `frmCompilarFiacao` (`FIA`), `frmCompilarInterligacao` (`INT`) e
 `frmCompilarJumperExt` (`JMP`), com o `btAnalisar` rodando o pipeline, a `dgERROS` com os problemas
-da revisão e a `dgRevisao` com as revisões do DWG no banco — **5 de 127**, cada uma com o seu arquivo
-(`LigacaoDoFrm*`, e a base `LigacaoDeCompilacao` para as três de compilação).
+da revisão e a `dgRevisao` com as revisões do DWG no banco —, mais as **duas de materiais** da rodada
+148: `frmGerenciadorMateriais` (`GERLM`, a grade do catálogo `Materiais` e o `MostraSelecionado`) e
+`frmGerenciadorMatIndep` (`ATINDEP`, os painéis e os itens da `ListaMateriais` do painel, com as
+caixas do material) — **7 de 127**, cada uma com o seu arquivo
+(`LigacaoDoFrm*`, a base `LigacaoDeCompilacao` para as três de compilação e a `LigacaoDeMateriais`
+para as duas de materiais).
 
 **Candidatas óbvias para as próximas rodadas** (tela do mapa × comando que o recoder já tem):
-`frmGerenciadorMateriais` (`GERLM`) e `frmGerenciadorMatIndep` (`ATINDEP`) contra a
-`ListaMateriais`; `frmGerenciadorMascaras` (`GERMASC`) e `frmGerenciadorContatos` (`GERCONT`)
+`frmGerenciadorMascaras` (`GERMASC`) e `frmGerenciadorContatos` (`GERCONT`)
 contra o dicionário de máscaras e os modelos de contatos; `frmGerenciadorDWG` (`GERDWG`) e
 `frmDuplicarCaderno` (`DUPCAD`) contra as páginas do caderno (`PaginasDoDesenho`); e as telas de
 relatório (`frmRelatorio_*`) contra os relatórios que o app já gera.

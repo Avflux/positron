@@ -10,6 +10,13 @@ namespace Positron.Data.Materiais
     /// <summary>Uma linha de <c>ListaMateriais</c> (o <c>clsLM.LMateriais</c> do original).</summary>
     public sealed class LinhaListaMaterial
     {
+        /// <summary>
+        /// A chave da linha (<c>ListaMateriais.Indice</c>). **Não sai da geração** — o gerador só
+        /// monta as linhas e quem grava é o banco —, mas a leitura a devolve: é a primeira coluna da
+        /// grade do <c>frmGerenciadorMatIndep</c> (o <c>structureDispLM.Indice</c>).
+        /// </summary>
+        public int Indice { get; set; }
+
         public int DWG { get; set; }
 
         public int Painel { get; set; }
@@ -748,6 +755,59 @@ namespace Positron.Data.Materiais
             public int IndiceRegua { get; set; }
 
             public BorneReserva Reserva { get; set; }
+        }
+    }
+
+    /// <summary>
+    /// Os **painéis da lista de materiais** de um desenho, sem repetir e na ordem da lista — é a
+    /// coluna da esquerda do <c>frmGerenciadorMatIndep</c> (<c>ATINDEP</c>).
+    ///
+    /// O original monta essa lista pelo **desenho** (<c>clsLM.PaineisDocumentoLM</c>, varrendo o
+    /// ModelSpace e lendo o painel de cada entidade por XData); o recoder a monta pela
+    /// <c>ListaMateriais</c> do desenho — que é a projeção do <c>COMPLM</c> sobre esse mesmo desenho.
+    /// É a diferença deliberada da rodada 148: em vez de uma segunda varredura do ModelSpace, a
+    /// tela usa a lista que o plugin já gravou (a regra que o recoder tem).
+    /// </summary>
+    public static class PaineisDaListaDeMateriais
+    {
+        /// <summary>Os painéis distintos, na ordem em que aparecem nas linhas (a lista vem ordenada por <c>Painel, Ordem</c>).</summary>
+        public static List<int> Distintos(IEnumerable<LinhaListaMaterial> linhas)
+        {
+            List<int> paineis = new List<int>();
+            if (linhas == null)
+            {
+                return paineis;
+            }
+
+            foreach (LinhaListaMaterial linha in linhas)
+            {
+                if (linha != null && !paineis.Contains(linha.Painel))
+                {
+                    paineis.Add(linha.Painel);
+                }
+            }
+
+            return paineis;
+        }
+
+        /// <summary>As linhas da lista que são de um painel, na ordem em que vieram (o <c>CarregaDadosDispositivos</c> por painel).</summary>
+        public static List<LinhaListaMaterial> DoPainel(IEnumerable<LinhaListaMaterial> linhas, int painel)
+        {
+            List<LinhaListaMaterial> doPainel = new List<LinhaListaMaterial>();
+            if (linhas == null)
+            {
+                return doPainel;
+            }
+
+            foreach (LinhaListaMaterial linha in linhas)
+            {
+                if (linha != null && linha.Painel == painel)
+                {
+                    doPainel.Add(linha);
+                }
+            }
+
+            return doPainel;
         }
     }
 }

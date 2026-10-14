@@ -657,6 +657,30 @@ da API que o stub ainda não tem (foi o `Circle`, na rodada 14) **só aparece ne
 segunda build** — o `plugin:test` não compila o projeto do plugin, então passa verde
 do mesmo jeito. Rodar as duas depois de mexer em adapter.
 
+### `npm run plugin:test` sai 0 sem rodar teste nenhum (o adaptador do xunit não carrega)
+
+**Medido na rodada 148, com o SDK 10.0.100-rc e o `xunit.runner.visualstudio` 2.8.2:** o
+`dotnet test` (e o `dotnet vstest`) **não carrega** o `xunit.runner.visualstudio.testadapter.dll`
+compilado para net472 — a mensagem é `Falha ao carregar as extensões do arquivo ...` seguida de
+`Não há nenhum teste disponível ...` — e o comando **termina com exit 0**. É um falso verde: o
+`npm run plugin:test` passa sem ter rodado nada.
+
+O caminho que roda a suíte inteira nesta máquina é o **console runner do xunit** (net472), que não
+depende do VSTest:
+
+```bash
+# uma vez (fica no .tmp-smoke, que é ignorado pelo git)
+curl -sSL -o .tmp-smoke/xunit-console.zip https://www.nuget.org/api/v2/package/xunit.runner.console/2.9.2
+mkdir -p .tmp-smoke/xunit && (cd .tmp-smoke/xunit && unzip -o -q ../xunit-console.zip)
+# e a cada rodada: TEMP precisa ser um caminho Windows válido (o `BancoDeTeste` grava no TEMP)
+TEMP='C:\Users\<voce>\AppData\Local\Temp' .tmp-smoke/xunit/tools/net472/xunit.console.exe \
+    cad-plugin/Positron.Data.Tests/bin/Debug/net472/Positron.Data.Tests.dll
+# -> Total: 700, Errors: 0, Failed: 0, Skipped: 0
+```
+
+O `Path.GetTempPath()` do teste segue o `TEMP` do processo: num shell do Git Bash (onde `TEMP=/tmp`)
+as falhas são todas `unable to open database file`, não um defeito do código.
+
 ### `entget` sem applist não devolve XData no ZWCAD 2026
 
 `(entget e)` **não** trouxe o grupo `-3` no desenho real (o dump dizia "nenhuma
@@ -838,6 +862,94 @@ regra) é a **§0 do `AUDITORIA.md`**, que se reproduz com `scripts/cobertura-do
 do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o detalhe rodada a rodada
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
+
+**Rodada 148 — as duas telas de materiais ligadas à regra (`GERLM` e `ATINDEP`).** O item 3 da fila do
+`PLANO.md` mandava confirmar no painel o que a regra cobre antes de ligar as telas: o
+`cobertura-do-reverso.ps1 -Listas` dizia `com a ligacao na tela: 5` e nenhuma das duas estava na
+lista. O que faltava era **leitura**, e ela entrou como regra primeiro.
+
+**A regra (`Positron.Data`).** `Materiais/CatalogoDeMateriais.cs` traz o `MaterialDoCatalogo` —
+`Indice`, `CodigoInterno`, `CodigoCliente`, `Modelo`, `Fabricante`, `DescricaoResumida`/
+`DescricaoCompleta`, a tabela `Materiais` (o `LM` do original) — e o `CatalogoDeMateriais` com o
+`Indexar` (por `CodigoInterno`, o primeiro vence, como o laço do `ODLpp1Gpc7y`) e o `Buscar` (que
+nunca lança). O `ProjectStore.LerMateriais()` lê com o `order by CodigoInterno` do
+`CarregaListaMateriaisDoDG` e com o `TiraDBNull` do original — **coluna nula é texto vazio**, porque
+os campos vão direto para a grade e para as caixas. O `LerListaMateriais` passou a devolver também o
+`Indice` da linha (a chave da tabela, que é a primeira coluna da grade do `ATINDEP`). No
+`ListaMateriaisGerador.cs` entrou o assunto da lista: `PaineisDaListaDeMateriais.Distintos` (os
+painéis sem repetir, **na ordem da lista**) e `DoPainel` (as linhas de um painel) — são a coluna da
+esquerda e a grade do `ATINDEP`. Os testes são o `CatalogoDeMateriaisTests` (o catálogo lido do banco
+com a ordem e o nulo, o índice que não repete, a busca sem resultado, os painéis e as linhas do
+painel) e uma linha nova no `ListaMateriaisTests` (o `Indice` que a leitura devolve).
+
+**A suíte nesta máquina.** O `npm run plugin:test` **não roda** aqui: o `dotnet test` com o SDK 10
+preview não carrega o `xunit.runner.visualstudio.testadapter.dll` do net472, **não descobre teste
+nenhum** e ainda sai 0 (ver o item novo do Troubleshooting). A suíte inteira foi rodada pelo console
+runner do xunit: **700 testes, 0 erro(s), 0 falha(s), 0 ignorado(s)** — os 4 novos do
+`CatalogoDeMateriaisTests` incluídos.
+
+**A ligação (`Positron.Plugin`).** `Interface/Telas/LigacaoDeMateriais.cs` é a base das duas telas —
+o catálogo do banco, os **textos e as dicas do construtor do original** (as `mMensagem` que o
+renderizador não aplica, porque ele pinta o texto do designer), o `Celula`/`TextoDaCaixa` e o
+`Desabilitar` que deixa o motivo na dica — e cada tela tem o seu arquivo, registrado no
+`LigacoesDasTelas`:
+
+- `LigacaoDoFrmGerenciadorMateriais` (`GERLM`): a grade `DGMateriais` com as **9 colunas do
+  `formataDG`** (inclusive `IndiceOriginal`, `Ação` e `IndiceEL`, que são o contrato do `iaGppGHMjAT`
+  de gravação: `A` acrescentar, `E` editar) e as linhas do catálogo no formato do
+  `CarregaListaMateriaisDoDG`; o `MostraSelecionado` preenche as seis caixas do material. Os **seis**
+  botões que gravam/importam entram desabilitados com o motivo (`btSalvar` inclusive).
+- `LigacaoDoFrmGerenciadorMatIndep` (`ATINDEP`): a `dgPaineis` (índice **oculto** + nome do cadastro
+  de `Paineis`) e a `dgDisp` com as **12 colunas do `formataDGDisp`**, preenchida **na ordem
+  posicional** do `Rows.Add` do original — `Indice`, `DWG`, `Painel`, `Tag`, `IndiceMaterial`,
+  `Quantidade`, `Ordem`, `Avulso`, `Destino`, `DescDestino`, `Alternativo`, `Handle` —, porque são as
+  células 4, 7 e 11 que as regras de cor/erro do `MesclaDGDisp` leem; a seleção de um item preenche
+  `TBTag`, `TBQuantidade` e as quatro caixas do catálogo pelo código interno da célula 4 (o
+  `U7Epp0og4bx` + `ODLpp1Gpc7y`). Os quatro botões de gravação/pesquisa entram desabilitados.
+
+**Duas diferenças deliberadas em relação ao original** (as duas registradas em comentário no código):
+(1) a lista de painéis sai da **`ListaMateriais`** — a regra do recoder —, em vez de uma segunda
+varredura do ModelSpace pelo `clsLM.PaineisDocumentoLM`, que lê o painel de cada entidade por XData;
+(2) a **pintura** da grade (o `MesclaDGDisp`, com as cores por avulso/material e o `ErrorText`) fica
+para a rodada que portar a **edição** — junto com ela voltaram para a fila do `PLANO.md` as duas
+regras que a tela pede e o recoder não tem: a **escrita do catálogo**
+(`AdicionaItemMaterial`/`EditaItemMaterial`/`RemoveMaterial`) e a **escrita da lista** (o item avulso:
+`AdicionaUmItemMaterialAvulso`/`EditaUmItemMaterialAvulso`/`RemoveMaterialAvulso`).
+
+**Medido no AutoCAD 2020** (o `C:\Program Files\ZWSOFT` não existe nesta máquina; o ciclo é o
+`cad:projeto:acad`). O banco do projeto saiu da projeção do desenho real e o catálogo/cadastro do
+Access:
+
+```bash
+# 1) o banco do projeto + a projeção + a lista de materiais (as telas leem a ListaMateriais)
+#    (o `Desenho` é a COPI del `Funcional.dwg`; o original nunca é tocado)
+# 2) o catálogo `Materiais` (210) e o cadastro `Paineis` (480), que vivem no `RCD.mdb`
+powershell -ExecutionPolicy Bypass -File scripts/cad-importa-catalogo.ps1 `
+    -Banco "<repo>\.tmp-smoke\positron-projeto.db" `
+    -Mdb "<repo>\cad-plugin\reverso\Teste_projeto_real\RCD.mdb"
+# 3) a medida das telas: o `pzTelas` monta as 127 e roda cada ligação
+npm run cad:smoke:acad -- -Dwg 63 -Revisao R0 -Comandos ELET,pzTelas -Desenho "<copia do Funcional.dwg>" -Banco "<...>\positron-projeto.db"
+```
+
+```text
+COMPLM: 104 linha(s) em ListaMateriais (8 painel(is); 0 avulso(s); 199 borne(s) do desenho, 0 sem régua no dicionário; ordem do desenho; 83 posição(ões) de layout).
+ATINDEP: 8 painel(is) na ListaMateriais do DWG 63 (104 item(ns); 1 no painel 1); 210 material(is) no catálogo; primeiro item: "R16" → material 0 (fora do catálogo); os botões que gravam estão desabilitados.
+GERLM: 210 material(is) no catálogo ("TP KP101" no código 4); grade com 9 coluna(s); os botões que gravam estão desabilitados.
+JANELAS: 127 de 127 tela(s) do reverso montada(s), nenhuma falha. Ligacoes: 7 de 127 tela(s) com regra (frmPesquisaXdatas, frmEstatisticaDeBornes, frmCompilarFiacao, frmCompilarInterligacao, frmCompilarJumperExt, frmGerenciadorMateriais, frmGerenciadorMatIndep).
+```
+
+Os 210 materiais e os 480 painéis são os **do produto** (importados do `RCD.mdb`), e as 104 linhas da
+`ListaMateriais` são as do `COMPLM` no `Funcional.dwg` — nada de dado de teste na medida. O `R16` do
+painel 1 tem `lm = 0` (o `BorneSemLm` do `VERIF`), então a primeira linha **exercita o ramo em que a
+célula 4 não casa com o catálogo** e a caixa do código fica no `0` que o original deixa; o ramo com
+material (o `Buscar` que preenche as quatro caixas) está no teste da regra.
+
+**O que a medida não cobre:** abrir a janela pelo comando (`JANELA` com
+`POSITRON_JANELA=frmGerenciadorMatIndep`) **roda a ligação** — a linha `ATINDEP:` sai no log —, mas a
+janela não abre no `accoreconsole`: o `ShowModelessDialog` derruba o processo antes da linha de
+comando, a mesma limitação do `PaletteSet` registrada na rodada 138. Como nas outras cinco ligações,
+a evidência do script é o `pzTelas` (monta as 127 e descarta), e a conferência **visual** da tela é do
+dono do produto.
 
 **Rodada 147 — a barra do original de verdade: a árvore do `Ribbon.cs`, sem o painel duplicado.** O dono do produto viu a barra do ZWCAD "misturada, com interface duplicada reverso/recoder". A comparação com o `Ribbon.cs` confirmou: os 9 painéis e os 121 botões batiam no nome e na ordem, mas (1) havia um **10º painel "Positron"** com 8 botões nossos — `ELET` e `FOLHAS` (a mesma paleta), `ELETCFG` (repete o `CFG` do canto da Configuração), `VERIF` (repete o `VFIA`/`VINT`) e quatro ferramentas de diagnóstico (`JANELAS`, `JANELA`, `pzDiag`, `pzTelas`); (2) o `CFG`, o `VFIA` e o `VINT` do original abriam a **casca** gerada da tela, sem comportamento, enquanto o comando que faz o trabalho estava no painel extra; (3) a forma não era a do original — tudo numa fileira, o mesmo estilo em todos os botões, sem as **34 linhas**, as **7 áreas recolhíveis**, os **5 menus suspensos com 39 itens** (os relatórios `RFIA`, `RPOT`, `LCAB`, `DI*`…), a **lista de seção**, o **campo da cor**, o **liga/desliga `InfoOn`** e os ícones do **tema escuro**. O Eletron original **não** está sendo carregado junto: não está no autoload do ZWCAD (`HKLM\...\ZWCAD\2026\en-US\Applications`) e o `ZWCAD.CUIX` do perfil não guarda nada dele nem do Positron.
 
