@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.IO;
+using System.Reflection;
 #if AUTOCAD
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.EditorInput;
@@ -25,7 +27,37 @@ namespace Positron.Plugin
         public void Initialize()
         {
             Escrever("Positron carregado. Digite ELET para começar — ELET abre a paleta de folhas (FOLHAS também).");
+            Escrever("Positron: " + BuildCarregado());
             Escrever(Interface.Barra.BarraDeFerramentas.Criar());
+        }
+
+        /// <summary>
+        /// **Qual build está carregado** — o caminho da DLL e a data do arquivo, na abertura.
+        ///
+        /// Existe por um defeito medido (rodada 150): a interface cheia do AutoCAD carrega a DLL do
+        /// **pacote instalado** (`%APPDATA%\Autodesk\ApplicationPlugins\Positron.bundle`, cópia feita
+        /// pelo <c>instala-bundle.ps1</c>) e não a do <c>bin\</c> — um pacote velho faz o CAD mostrar
+        /// uma barra velha com o log parecendo novo. Com a data na primeira linha, o log diz sozinho
+        /// qual build está no ar.
+        /// </summary>
+        private static string BuildCarregado()
+        {
+            try
+            {
+                string caminho = Assembly.GetExecutingAssembly().Location;
+                if (string.IsNullOrEmpty(caminho))
+                {
+                    return "build desconhecido (a DLL não tem caminho em disco).";
+                }
+
+                return "DLL de "
+                    + File.GetLastWriteTime(caminho).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)
+                    + " — " + caminho;
+            }
+            catch (System.Exception)
+            {
+                return "build desconhecido (não deu para ler a data da DLL).";
+            }
         }
 
         public void Terminate()

@@ -433,8 +433,35 @@ Start-Process 'C:\Program Files\Autodesk\AutoCAD 2020\acad.exe' -ArgumentList @(
 # 25 s depois leia $env:POSITRON_LOG: 'Positron carregado', a paleta e a linha 'Barra: aba "Positron" ...'
 ```
 
+**O pacote em `%APPDATA%` é uma cópia da DLL** (rodada 149): depois de **qualquer** build, o AutoCAD
+só enxerga a versão nova se o `instala-bundle.ps1` rodar de novo — o smoke do ZWCAD carrega a DLL
+recém-compilada por `NETLOAD` e por isso nunca sofre disso, e é o caminho por onde o defeito entra
+silencioso: em 13/10 o bundle do AutoCAD era o **da rodada 138** (instalado em 12/10) e a barra de
+lá continuava a antiga, com o painel extra "Positron" — o mesmo defeito que a rodada 147 tinha
+corrigido, medido e fechado **no ZWCAD** (ver o item do Troubleshooting).
+
 A **validação visual** (a aba na fita e a paleta ancorada) é do dono do produto; o que é automático —
-a aba existir com os 10 painéis/121 botões e a paleta reportar as 16 páginas — sai no log.
+a aba existir com os 9 painéis do original, os 121 botões e as contagens por tipo, e a paleta reportar
+as 16 páginas — sai no log. **Números do AutoCAD 2020** (rodada 149; o `pzBarra` lê a aba **viva**,
+pelo COM, porque o `Idle` não dispara enquanto um script roda):
+
+```text
+Barra: aba "Positron" com 9 painel(is) — 121 botão(ões), 5 menu(s) com 39 item(ns), 1 liga/desliga, 1 lista e 1 campo; 34 linha(s), 86 quebra(s), 7 área(s) recolhível(is), 9 separador(es). Acionáveis: 108 ligado(s) (3 no comando do recoder), 53 desativado(s); tema escuro.
+pzBarra: 1 aba(s) POSITRON.ID_Positron ("Positron"), 9 painel(is) [Configuração | Caderno | Dispositivos | Bornes | Fiação | Construtivo | Cabos e Veias | Utilitários | Help]; RibbonButton=120, RibbonCombo=1, RibbonMenuButton=5, RibbonMenuItem=39, RibbonPanelBreak=7, RibbonRowBreak=86, RibbonRowPanel=34, RibbonSeparator=9, RibbonTextBox=1, RibbonToggleButton=1; 1 botão(ões) de canto; 55 item(ns) desativado(s).
+```
+
+— **as mesmas linhas do ZWCAD 2026** (rodada 147): uma aba, nove painéis do original, sem o painel
+extra, os três comandos substitutos e o mesmo par 108/53 acionáveis. A receita da leitura viva no
+AutoCAD (o script sozinho não serve: `pzBarra` roda **antes** da barra existir, e o log sai
+`pzBarra: a aba POSITRON.ID_Positron não está no ribbon`):
+
+```powershell
+$env:POSITRON_LOG = "$pasta\positron-gui.txt"       # sem /b: o AutoCAD fica na linha de comando
+Start-Process 'C:\Program Files\Autodesk\AutoCAD 2020\acad.exe' -ArgumentList @('/nologo','/i',$copia)
+Start-Sleep 30                                       # a barra entra na primeira ociosidade
+$prog = [Runtime.InteropServices.Marshal]::GetActiveObject('AutoCAD.Application.23')   # (2020)
+$prog.ActiveDocument.SendCommand('pzBarra ')         # aí sim: a aba já existe
+```
 
 Diferenças em relação ao ZWCAD, todas medidas aqui:
 
@@ -450,9 +477,9 @@ Diferenças em relação ao ZWCAD, todas medidas aqui:
   config e o harness recebe os parâmetros errados). Chame o `.ps1` direto — é o que
   o `cad-projeto-e2e.ps1` faz — ou use o `npm run` pelo **bash**, onde o `--` é
   repassado certo;
-- **a barra de ferramentas é do ZWCAD**: o build AutoCAD loga `Barra: disponível apenas no
-  build ZWCAD (o ZdWindows é a API de interface)` — a **paleta de folhas** funciona ancorada
-  no CAD e a fita não é montada (gap de host registrado na rodada 136, não é regressão).
+- a **barra** funciona nos dois CADs desde a rodada 138 (a `AdWindows` do AutoCAD é a irmã da
+  `ZdWindows` do ZWCAD e a construção é a mesma): a linha antiga `Barra: disponível apenas no build
+  ZWCAD` **não existe mais** — ver os números do AutoCAD logo acima.
 
 **O `-Cad AutoCAD` do `cad-projeto-e2e.ps1` troca o harness e roda tudo sem ZWCAD.**
 Medido nesta máquina, o ciclo completo reproduz o alvo ZWCAD linha a linha:
@@ -652,10 +679,58 @@ Dois detalhes que só apareceram no desenho real e zeravam o `Bornes4F`:
 ### Rodar **as duas** builds do plugin
 
 `npm run plugin:build` compila contra o ZWCAD real; `npm run plugin:build:autocad`
-compila contra o **stub** (`Positron.CadStub`), que é um gate separado. Usar um tipo
-da API que o stub ainda não tem (foi o `Circle`, na rodada 14) **só aparece nessa
-segunda build** — o `plugin:test` não compila o projeto do plugin, então passa verde
-do mesmo jeito. Rodar as duas depois de mexer em adapter.
+compila contra a **API do AutoCAD** (a cópia vendorizada em `cad-plugin/lib/AutoCAD/2020`
+desde a rodada 136 e, sem ela, a instalação local — o stub `Positron.CadStub` só entra quando
+não há nenhuma das duas). Usar um tipo da API que o stub ainda não tem (foi o `Circle`, na
+rodada 14) **só aparece nessa segunda build** — o `plugin:test` não compila o projeto do
+plugin, então passa verde do mesmo jeito. Rodar as duas depois de mexer em adapter — e, se a
+mudança for de **interface**, reinstalar o pacote do AutoCAD (ver a entrada da barra antiga).
+
+### `falha ao criar banco de dados novo: unable to open database file` (o banco no `%TEMP%`)
+
+**Medido na rodada 150.** O `cad-autocad-smoke.ps1` cria o `.db` do projeto no `%TEMP%` quando o
+`-Banco` não vem. Nesta máquina a criação **falhou** ali — `sidecar.protocol.DatabaseError: falha ao
+criar banco de dados novo: unable to open database file` —, e o `sqlite3` puro dá o mesmo erro (assim
+como um `open(...,'w')` no Python, com `PermissionError`, ainda que a ACL da pasta mostre
+`FullControl` para o usuário): é permissão/ambiente, não schema nem path errado. O contorno que as
+receitas usam é passar o banco **dentro do repo**, que é gravável:
+
+```bash
+cp .tmp-smoke/positron-projeto.db .tmp-smoke/r150.db
+npm run cad:smoke:acad -- -Comandos ELET -Banco ".tmp-smoke/r150.db"
+```
+
+O mesmo vale para o `TEMP` do **console runner do xunit** (`.tmp-smoke/temp`) e para o
+`cad:projeto:acad` (`-Banco`). O ciclo do `-Idempotencia` **passa** mesmo com o `%TEMP%` assim (os
+dumps `cad-dump-tabelas.py` falham com `PermissionError: ... positron-e2e-a.txt` e a comparação segue
+pelo hash das tabelas: `hash A = hash B = 7c1635f0…`), mas o ruído no meio da saída é isso, não
+regressão. Se acontecer em outra máquina, confira se `%TEMP%` é gravável antes de suspeitar do plugin.
+
+### A barra no AutoCAD parece a **antiga** (com o painel extra "Positron")
+
+**Medido na rodada 149.** A interface cheia do AutoCAD carrega o plugin pelo **autoload**, e o pacote
+em `%APPDATA%\Autodesk\ApplicationPlugins\Positron.bundle` é uma **cópia da DLL** — feita pelo
+`scripts/instala-bundle.ps1`. Quem compila (`plugin:build:autocad`) **não** atualiza essa cópia: o
+AutoCAD segue carregando a DLL da instalação anterior, por mais nova que seja a do `bin\`. Foi o que
+aconteceu com a barra: o bundle era o da rodada 138 (12/10) e a fita continuava com o painel extra
+"Positron" e a forma plana que a rodada 147 corrigiu — o `pzBarra` do ZWCAD, que carrega a DLL
+**recém-compilada** por `NETLOAD`, mostrava a barra nova o tempo todo. O defeito não estava no
+código: **instale o pacote depois de cada build** e o AutoCAD passa a mostrar a mesma barra.
+
+```powershell
+npm run plugin:build:all
+powershell -ExecutionPolicy Bypass -File scripts/instala-bundle.ps1 -Cad AutoCAD
+# a prova é ler a aba viva (ver a seção do AutoCAD 2020): 'pzBarra: 1 aba(s) ... 9 painel(is)'
+```
+
+Sintoma de que a cópia está velha: o log da interface cheia abre com **10 painel(is)** — os nove do
+original mais um **Positron** extra, repetindo `ELETCFG`/`VERIF` em botões próprios — em vez dos
+nove, ou o `Barra:`/`pzBarra` discordam entre si. A segunda linha do log diz o que está no ar:
+`Positron: DLL de <data> — <caminho>`; na interface cheia o caminho é o do **pacote**, e a data tem de
+bater com a do `cad-plugin\Positron.Plugin\bin\Debug\AutoCAD\net472\Positron.Plugin.AutoCAD.dll`.
+
+O mesmo vale para a **paleta** e para qualquer correção testada por `NETLOAD`/`accoreconsole` (que
+carregam a DLL do `bin\`): o que o dono vê na interface do AutoCAD é sempre a cópia do pacote.
 
 ### `npm run plugin:test` sai 0 sem rodar teste nenhum (o adaptador do xunit não carrega)
 
@@ -862,6 +937,62 @@ regra) é a **§0 do `AUDITORIA.md`**, que se reproduz com `scripts/cobertura-do
 do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o detalhe rodada a rodada
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
+
+**Rodada 150 — a barra do AutoCAD: o pacote velho em `%APPDATA%`.** O dono do produto apontou que a
+ribbon do **AutoCAD** estava com os mesmos problemas que a rodada 147 resolveu para o ZWCAD (o painel
+extra "Positron", a forma plana). A conferência começou pelo código e ele estava certo: a construção é
+**uma só** para os dois CADs desde a rodada 138 (só o `using` muda, mais dois `#if` de `Name`/`Id` e do
+`IsActive`), e o montador do AutoCAD abre com os mesmos **9 painéis**. O defeito estava **fora do
+código**: a interface cheia carrega o plugin pelo **autoload**, e o pacote em
+`%APPDATA%\Autodesk\ApplicationPlugins\Positron.bundle` é uma **cópia da DLL**, feita pelo
+`scripts/instala-bundle.ps1`. O pacote instalado era o de **12/10** — anterior à rodada 147 (commit
+`dc41a8fd`) —, então o AutoCAD mostrava a barra antiga enquanto o ZWCAD, medido por `NETLOAD` de uma
+DLL recém-compilada, mostrava a nova. Rodar `instala-bundle.ps1 -Cad AutoCAD` depois do build é o que
+faltava (está no Troubleshooting, com o sintoma que identifica a cópia velha).
+
+**A leitura viva da aba no AutoCAD.** O `pzBarra` nunca tinha rodado no AutoCAD: num script ele lê
+**antes** da barra existir (`pzBarra: a aba POSITRON.ID_Positron não está no ribbon` — medido, o `Idle`
+que cria a aba não dispara enquanto o script roda, nem com `delay`). A leitura saiu por **COM**, com o
+CAD já parado na linha de comando:
+
+```powershell
+$env:POSITRON_LOG = "$pasta\positron-gui.txt"      # sem /b
+Start-Process 'C:\Program Files\Autodesk\AutoCAD 2020\acad.exe' -ArgumentList @('/nologo','/i',$copia)
+Start-Sleep 30                                      # a aba entra na primeira ociosidade
+$prog = [Runtime.InteropServices.Marshal]::GetActiveObject('AutoCAD.Application.23')   # (2020)
+$prog.ActiveDocument.SendCommand('pzBarra ')
+```
+
+```text
+Barra: aba "Positron" com 9 painel(is) — 121 botão(ões), 5 menu(s) com 39 item(ns), 1 liga/desliga, 1 lista e 1 campo; 34 linha(s), 86 quebra(s), 7 área(s) recolhível(is), 9 separador(es). Acionáveis: 108 ligado(s) (3 no comando do recoder), 53 desativado(s); tema escuro.
+pzBarra: 1 aba(s) POSITRON.ID_Positron ("Positron"), 9 painel(is) [Configuração | Caderno | Dispositivos | Bornes | Fiação | Construtivo | Cabos e Veias | Utilitários | Help]; RibbonButton=120, RibbonCombo=1, RibbonMenuButton=5, RibbonMenuItem=39, RibbonPanelBreak=7, RibbonRowBreak=86, RibbonRowPanel=34, RibbonSeparator=9, RibbonTextBox=1, RibbonToggleButton=1; 1 botão(ões) de canto; 55 item(ns) desativado(s).
+```
+
+**As linhas são as mesmas do ZWCAD 2026** da rodada 147 — uma aba, nove painéis na ordem do original,
+sem o painel extra, os **3** comandos substitutos (`CFG`/`VFIA`/`VINT`) e o mesmo par **108 ligados / 53
+desativados**. Com isso a barra do §7.8 deixa de ser "medida só no ZWCAD": o AutoCAD 2020 reproduz a
+fita **por igual**, como já fazia com os pipelines.
+
+**O que impede o defeito de voltar invisível.** O `Plugin.Initialize` passou a escrever, logo abaixo do
+`Positron carregado`, **qual build está carregado**:
+
+```text
+Positron: DLL de 2026-10-13 22:00 — C:\Users\RNO\AppData\Roaming\Autodesk\ApplicationPlugins\Positron.bundle\Positron.Plugin.AutoCAD.dll
+```
+
+A linha (caminho + data do arquivo) separa as duas fontes de DLL: no headless do `cad:smoke:acad` ela
+diz `C:\positron-smoke\cad\Positron.Plugin.AutoCAD.dll` (a cópia do `NETLOAD`), na interface cheia diz
+a pasta do **pacote** — se a data for antiga, é o pacote que está velho, não o código. O `smoke` segue
+verde (a checagem dele continua na string `Positron carregado`, que não mudou).
+
+**Achado de instalação (não é do plugin):** nesta máquina a criação do banco no `%TEMP%` falhou
+(`falha ao criar banco de dados novo: unable to open database file`, no `sqlite3` puro também): a
+receita do smoke sem `-Banco` não roda **aqui** — as medições desta rodada passaram `-Banco` com um
+arquivo dentro do repo. Está no Troubleshooting.
+
+**Gate:** as duas builds **0 avisos**, `plugin:test` **705** (inalterado — a rodada não toca o
+`Positron.Data`), o `cad:smoke:acad` verde com a linha nova e a leitura viva acima. A **conferência
+visual** da fita continua sendo do dono.
 
 **Rodada 149 — a escrita do catálogo de materiais: os quatro botões do `GERLM`.** O item que a rodada
 148 devolveu para a fila do `PLANO.md` era a **escrita do catálogo** — o `AdicionaItemMaterial`, o
