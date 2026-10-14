@@ -52,7 +52,7 @@ Os nomes dos arquivos sao os de quem capturou, mantidos como vieram (inclusive `
 | `configuração geral 2.png` | `frmConfiguracaoGeral` | `CFG` | 466 x 701 | 459 x 663 | uma das 3 capturas da tela (abas/estados) |
 | `configuração geral 3.png` | `frmConfiguracaoGeral` | `CFG` | 466 x 699 | 459 x 663 | uma das 3 capturas da tela (abas/estados) |
 | `configurações de lista de pontos.png` | `frmConfiguracaoLP` | `CONFLP` | 364 x 553 | 359 x 521 |  |
-| `contatos auxiliares.png` | `frmContatosAux` | `CONT` | 494 x 560 | 488 x 524 | o designer deixa o titulo "ANSI" |
+| `contatos auxiliares.png` | `frmContatosAux` | `CONT` | 494 x 560 | 488 x 524 | o mapa trazia o titulo "ANSI" (o `text` de uma variavel local do construtor); corrigido na rodada 153 |
 | `copiar objetos.png` | `frmCopiarObjetos` | `COPYCAD` | 180 x 604 | 174 x 567 |  |
 | `diagrama de interligação CEMIG-D equip.png` | `frmRelatorio_DICemig` | `DICEMIGDE` (`new frmRelatorio_DICemig(3)`) | 417 x 646 | 414 x 611 |  |
 | `diagrama de interligação CEMIG-D painel.png` | `frmRelatorio_DICemig` | `DICEMIGDP` (`new frmRelatorio_DICemig(2)`) | 420 x 646 | 414 x 611 |  |
@@ -83,7 +83,7 @@ Os nomes dos arquivos sao os de quem capturou, mantidos como vieram (inclusive `
 | `editar títulos e textos.png` | `frmEditaTitulosTextos` | `TROCTT` | 386 x 382 | 380 x 349 |  |
 | `editor de bornes.png` | `frmEditaBornesSelecao` | `SELBORN` | 332 x 543 | 324 x 500 |  |
 | `editor de cabos.png` | `frmEditorCabos` | `EDCABO` | 1013 x 427 | 1004 x 391 |  |
-| `editor de funções.png` | `frmEditaFuncaoBobina` | `EDTFUNC` | 440 x 410 | 434 x 371 | o designer deixa o titulo "ANSI" |
+| `editor de funções.png` | `frmEditaFuncaoBobina` | `EDTFUNC` | 440 x 410 | 434 x 371 | o mapa trazia o titulo "ANSI" (o `text` de uma variavel local do construtor); corrigido na rodada 153 |
 | `editor de nome e função veias.png` | `frmEditarNomesFuncoesVeias` | `EDNOMEFUNVEIAS` | 433 x 531 | 424 x 493 |  |
 | `editor dispositivos e máscaras.png` | `frmEditaVariosDispositivos` | `EDTDISPS` | 535 x 395 | 534 x 361 |  |
 | `editor terminais disp. avulsos.png` | `frmEditaDispositivosAvulsos` | `EDTDISPSA` | 360 x 497 | 354 x 461 |  |
@@ -156,6 +156,57 @@ Os nomes dos arquivos sao os de quem capturou, mantidos como vieram (inclusive `
 | `trocar usuário e data.png` | `FrmTrocaUsuario` | `MUDAUSER` | 298 x 229 | 294 x 194 |  |
 | `verificar fiação.png` | `frmVerificadorProjetoFiacao` | `VFIA` | 537 x 529 | 534 x 490 |  |
 | `verificar interligação.png` | `frmVerificadorProjetoInterligacao` | `VINT` | 371 x 502 | 364 x 462 |  |
+
+## A conferencia com a reconstrucao (rodada 153)
+
+Cada tela foi montada pelo `RenderizadorDeTelas` **fora do CAD** (o renderizador e o
+`IconesEmbutidos` compilados num projeto minimo, com a ligacao das telas e o
+`ShowModelessDialog` trocados por vazios; `Application.EnableVisualStyles()` como no CAD),
+desenhada com `DrawToBitmap` e posta **ao lado da captura** (124 pares). Duas passadas de
+revisao, antes e depois das correcoes. A moldura da janela, os dados (linhas das grades, valores
+de configuracao) e o estado (marcado/desmarcado, habilitado) ficaram fora da comparacao: sao da
+regra de cada tela, nao da casca.
+
+**Corrigido na rodada 153** (no gerador `scripts/extrair-formularios-do-reverso.ps1` e no
+renderizador, valendo para todas as telas):
+
+- as **abas** saiam duplicadas ou vazias (`frmConfiguracaoGeral` com 6 abas, `frmClonar` sem
+  conteudo): o renderizador pendurava os filhos uma vez **por filho** e nao por recipiente;
+- o **texto traduzido na carga** (`CKNomeVisivel.Text = mMensagem[1, 910]`) vale mais que o do
+  designer ("CKNomeVisivel" -> "Nome Visivel"), inclusive a aba pelo indice
+  (`TabControl1.TabPages[0].Text`, as abas `TabPage1..6` do `frmClonar`);
+- as **colunas das grades** na ordem do original, com o `Visible = false` (os indices escondidos) e
+  a largura que a rotina calcula sobre a do designer (`float num = dg.Width - 22`), e o **estilo do
+  cabecalho** do designer (negrito, centralizado);
+- os textos `"1" + numberDecimalSeparator + "5"` (eram lidos como um literal so: `1" + number...`),
+  o `mMensagem[...].ToString().ToUpper()` ("EXTRA") e o `
+` dos literais;
+- o campo de entrada cujo valor inteiro e de execucao (`{Jah1LWHafV.alturaFonteCruzamento}`) abre
+  **vazio**, em vez da expressao crua;
+- o titulo do construtor lido com caixa (`text = "ANSI"` de uma variavel local nao e o `Text`):
+  `frmContatosAux`, `frmEditaFuncaoBobina` e `frmRelatorio_InterligacaoEletroSul_Excel`.
+
+**O que sobra** (nao e da casca estatica; cada grupo e uma rodada propria):
+
+- **variantes** (`DICHESF`, `DIFURNAS`... os 15 do `frmRelatorio_DInterlig`/`_DICemig`): o titulo e
+  os grupos que cada variante mostra/esconde vem do `switch` do construtor; a tela padrao abre com
+  o ultimo caso (`ENEL-SP`). As variantes nao sao comando ainda (`JanelasDoOriginal`);
+- **grades que o original abre sem coluna** e so monta ao selecionar (`frmTopograficoAnilha`,
+  `frmCompilar*` "Erros", `frmCopiarObjetos`, `frmMisturador`, `frmNavegador`, `frmPesquisaCabos`,
+  `frmPlaquetas`, `frmRelatorio_Materiais`/`_Elektro`/`_Veias`/`_PotenciaisSiemens`...): a casca
+  mostra as colunas da rotina de carga;
+- **grades cujas colunas o gerador nao le** (`Columns.Add` de um argumento, `ColumnCount`,
+  `DataSource`): `frmDefinicao`, `frmContatosAux`, `frmClonarEstruturaRegua`,
+  `frmGerenciadorReguasBornes`, `frmEditaFuncaoBobina`, `frmEstatisticaDeBornes`,
+  `frmGerenciadorDWG`, `frmGerenciadorMateriais`, `frmImportarModelos*`, `frmBornes`,
+  `frmCriarReguas`, `frmLayoutRapido`, `frmRelatorio_InterligacaoGIGA`;
+- **layout montado em execucao**: `frmCadastroDePaineis` (uma grade, nao duas),
+  `frmEditaRevisaoSimplificada` e `frmImportarInterligExcel` (largura), os `GBEX` dos
+  `frmVerificadorProjeto*`, a linha de edicao do `frmEditorCabos`, os delimitadores do
+  `frmTopografico`/`frmRelatorio_Anilhas`;
+- **rotulos de execucao que nao sao `mMensagem`**: `lblSecao`/`lblCor` dos sequenciadores,
+  `LabelPainel`, `lb#`, os contadores ("Label1", "Total", "Tot") e os titulos com
+  `{DeclaracoesGeral.arqAtivo.Nome}`.
 
 ## As janelas sem captura (22)
 

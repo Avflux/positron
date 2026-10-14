@@ -34,14 +34,16 @@ namespace Positron.Data.Tests
         [Fact]
         public void OsCamposSomamOTotalMedidoNoReverso()
         {
-            // 2589 controles do designer + 842 colunas de grade das rotinas de carga.
+            // 2589 controles do designer + 835 colunas de grade das rotinas de carga (eram 842 ate
+            // o `mMensagem[...].ToString().ToUpper()` resolver: 7 cabecalhos eram o mesmo de outra
+            // rotina da mesma grade).
             int total = 0;
             foreach (Tela tela in FormulariosDoReverso.Todas)
             {
                 total += tela.Campos.Count;
             }
 
-            Assert.Equal(3431, total);
+            Assert.Equal(3424, total);
         }
 
         [Fact]
@@ -252,6 +254,48 @@ namespace Positron.Data.Tests
             // as abas puxam os paineis: o TabPage e filho do TabControl
             Assert.Contains(tela.Campos, campo => campo.Tipo == "TabControl");
             Assert.Contains(tela.Campos, campo => campo.Tipo == "TabPage" && !string.IsNullOrEmpty(campo.Pai));
+        }
+
+        /// <summary>
+        /// A rotina de idioma do original troca o texto do designer pelo da `mMensagem` em toda
+        /// carga: o "CKNomeVisível" do designer aparece como "Nome Visível" (a captura do PORT).
+        /// </summary>
+        [Fact]
+        public void OTextoTraduzidoNaCargaValeMaisQueODoDesigner()
+        {
+            Tela portas = FormulariosDoReverso.Buscar("frmPortas");
+            Assert.Equal("Nome Visível", Achar(portas, "CKNomeVisivel").Texto);
+            Assert.Equal("Múltipla Inserção", Achar(portas, "GroupBox1").Texto);
+
+            // a aba traduzida pelo indice (`TabControl1.TabPages[0].Text = mMensagem[...]`)
+            Assert.Equal("Seleção", Achar(FormulariosDoReverso.Buscar("frmClonar"), "TabPage1").Texto);
+        }
+
+        /// <summary>
+        /// O ajuste das colunas que a rotina de carga faz logo depois do `Columns.Add`: o indice
+        /// escondido (`Visible = false`) e a largura calculada sobre a do designer
+        /// (`float num = dgEquip.Width - 22`, 184 - 22 = 162).
+        /// </summary>
+        [Fact]
+        public void AColunaDaCargaTrazALarguraEOVisibleDaRotina()
+        {
+            Tela tela = FormulariosDoReverso.Buscar("frmTopograficoAnilha");
+            IReadOnlyList<Campo> colunas = Filhos(tela, "dgEquip");
+
+            Assert.Equal(2, colunas.Count);
+            Assert.Equal("Indice", colunas[0].Texto);
+            Assert.Equal("False", colunas[0].Propriedade("Visible"));
+            Assert.Equal("162", colunas[1].Propriedade("Width"));
+        }
+
+        /// <summary>O estilo de celula do designer sai como `Estilo.Sub` (o cabecalho em negrito).</summary>
+        [Fact]
+        public void OEstiloDoCabecalhoDaGradeEPreservado()
+        {
+            Campo grade = Achar(FormulariosDoReverso.Buscar("frmTopograficoAnilha"), "dgEquip");
+
+            Assert.Contains("FontStyle.Bold", grade.Propriedade("ColumnHeadersDefaultCellStyle.Font"));
+            Assert.Equal("MiddleCenter", grade.Propriedade("ColumnHeadersDefaultCellStyle.Alignment"));
         }
 
         private static Campo Achar(Tela tela, string nome)

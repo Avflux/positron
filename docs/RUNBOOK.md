@@ -968,6 +968,49 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 153 — as telas contra as capturas do original.** As 126 capturas da `captura_das_janelas`
+(commit `68f7b063`) viraram **124 pares** captura × reconstrução: o `RenderizadorDeTelas` e o
+`IconesEmbutidos` compilados num projeto mínimo fora do CAD (a `LigacoesDasTelas` e o
+`ShowModelessDialog` trocados por vazios, `EnableVisualStyles` como no CAD), cada tela montada,
+mostrada fora da vista e desenhada com `DrawToBitmap`, e o par revisado em duas passadas (antes e
+depois). A premissa "a maioria já está certa" **não se confirmou na primeira passada**: só 2 de 124
+pares saíram sem diferença (`frmEstimativaVeiasLivres`, `frmLink`). As causas eram **genéricas**,
+e foram corrigidas na origem — no gerador (`scripts/extrair-formularios-do-reverso.ps1`) e no
+renderizador —, não tela a tela:
+
+- **abas duplicadas/vazias**: o `Montar` chamava o `Ligar` uma vez **por filho** (o `TabPages.Add`
+  repetido duplicava as abas do `frmConfiguracaoGeral` e esvaziava as do `frmClonar`); agora uma vez
+  por recipiente;
+- **o texto traduzido na carga**: a rotina de idioma (`CKNomeVisivel.Text = mMensagem[1, 910]`) é a
+  primeira atribuição `mMensagem` fora do designer e vale mais que o texto do designer
+  ("CKNomeVisível", "lbFunção", "_Atribuir"...); as abas pelo índice (`TabControl1.TabPages[0].Text`);
+- **as colunas das grades**: o renderizador as montava na ordem crua do mapa (não na `Ordem`); o
+  gerador agora lê, na mesma rotina do `Columns.Add`, o `Columns[i].Visible` e o `Columns[i].Width`
+  — este calculado com as locais (`float num = dgEquip.Width - 22` → 184 − 22 = **162**), o índice
+  contado desde o último `Columns.Clear()`, vale a primeira atribuição —, e o **estilo de célula**
+  do designer sai como `ColumnHeadersDefaultCellStyle.Font` etc. (o renderizador aplica o caminho
+  com ponto sobre o objeto do controle). Largura de coluna é **propriedade** (`Width`), não a caixa
+  do `Campo` (o contrato largura/altura em par do `TodoCampoTemTipoECaixaValida`);
+- **textos de execução**: `"1" + numberDecimalSeparator + "5"` era lido como **um** literal (o
+  regex aceitava aspas no meio) e virava `1" + number...`; agora `1,5` (pt-BR). O
+  `.ToString().ToUpper()` resolve ("EXTRA"), o literal desescapa `
+`, e o campo de entrada cujo
+  valor inteiro só existe em execução abre vazio (o rótulo e o título seguem com a expressão);
+- **o título do construtor** era lido com `-match` (sem caixa): o `text = "ANSI";` de uma local
+  sobrescrevia o `Text` — `frmContatosAux` e `frmEditaFuncaoBobina` voltam a "Contatos Auxiliares" e
+  "Editor de Funções".
+
+Na segunda passada as telas batem no texto, nas abas e nos ícones; **o que sobra não é da casca
+estática** e está listado por grupo em `docs/reverso-capturas.txt` (§ "A conferência"): as
+**variantes** (`DInterlig`/`DICemig` abrem com o título do último caso, `ENEL-SP`; não são comando
+ainda), as grades que o original abre **sem coluna**, as que o gerador **não lê** (`Columns.Add` de um
+argumento, `ColumnCount`, `DataSource`), o **layout montado em execução** (`frmCadastroDePaineis`,
+os `GBEX` dos verificadores) e os rótulos de execução que não são `mMensagem`. O mapa passou de
+**3431** para **3424** campos: 7 cabeçalhos `mMensagem[...].ToUpper()` resolvidos eram o mesmo de
+outra rotina da mesma grade. `plugin:test` **729** (+3: a tradução, a coluna da carga e o estilo do
+cabeçalho), as duas builds **0 avisos**. **Não medido:** as telas abertas dentro do CAD (o par é do
+renderizador fora dele, com a mesma fonte e os mesmos estilos visuais).
+
 **Rodada 152 — o ramo do desenho do `Edita` do `ATINDEP`: o `EditaLMDoDispositivo`.** A linha da
 grade que veio **do desenho** (tem `Handle`) agora sai do clique nas duas metades do original: o
 `IndiceMaterial` da linha na `ListaMateriais` e o bloco — o `iLM1` no XData `Dispositivo` (só quando

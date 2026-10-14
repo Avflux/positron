@@ -48,8 +48,19 @@ $uteis = @(
   'ImageAlign', 'ItemHeight', 'Maximum', 'MaxLength', 'Minimum', 'MultiSelect', 'Multiline',
   'Orientation', 'PasswordChar', 'ReadOnly', 'RowHeadersVisible', 'ScrollBars', 'SelectionMode',
   'ShowLines', 'SplitterDistance', 'TextAlign', 'UseVisualStyleBackColor', 'View', 'Visible',
-  'WordWrap', 'AllowUserToAddRows', 'ContextMenuStrip'
+  'WordWrap', 'AllowUserToAddRows', 'ContextMenuStrip', 'ColumnHeadersVisible',
+  'ColumnHeadersHeightSizeMode', 'ColumnHeadersHeight', 'AutoSizeColumnsMode', 'AutoSizeMode',
+  'FillWeight'
 )
+
+# O estilo de celula do designer (`dataGridViewCellStyle.Font = ...` e depois
+# `dg.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle`): sai como `Estilo.Sub` (o
+# `ColumnHeadersDefaultCellStyle.Font` do cabecalho em negrito, por exemplo).
+$estilosDeCelula = @(
+  'ColumnHeadersDefaultCellStyle', 'DefaultCellStyle', 'RowsDefaultCellStyle',
+  'AlternatingRowsDefaultCellStyle', 'RowHeadersDefaultCellStyle'
+)
+$uteisDoEstilo = @('Alignment', 'BackColor', 'Font', 'ForeColor', 'SelectionBackColor', 'SelectionForeColor', 'WrapMode')
 
 # Propriedades da propria janela (a moldura): so valem no formulario, nao em controle.
 $uteisJanela = @(
@@ -85,6 +96,11 @@ function Dividir-Argumentos([string]$s) {
 # Tenta resolver uma expressao como TEXTO; devolve $null quando ela so existe em tempo de execucao.
 function ResolverTexto([string]$e) {
   $e = $e.Trim()
+  if ($e -match '^(.+)\.(ToUpper|ToLower|Trim|ToString)\(\)$') {
+    $dentro = ResolverTexto $Matches[1]
+    if ($null -eq $dentro -or $dentro -match '^\{') { return '{' + $e + '}' }
+    switch ($Matches[2]) { 'ToUpper' { return $dentro.ToUpper() } 'ToLower' { return $dentro.ToLower() } 'Trim' { return $dentro.Trim() } default { return $dentro } }
+  }
   if ($e -match '^Conversions\.ToString\((.+)\)$') { return ResolverTexto $Matches[1] }
   if ($e -match '^Operators\.(ConcatenateObject|AddObject)\((.+)\)$') {
     # cuidado: `$args` e automatico do PowerShell - nao pode ser o nome da variavel
@@ -96,13 +112,18 @@ function ResolverTexto([string]$e) {
     }
     return $null
   }
-  if ($e -match '^"(.*)"$') { return $Matches[1].Replace('\"', '"').Replace('\\', '\') }
+  # um literal so (sem aspas soltas no meio: `"0" + x + "05"` nao e um literal)
+  if ($e -match '^"((?:[^"\\]|\\.)*)"$') {
+    return $Matches[1].Replace('\\', "`0").Replace('\"', '"').Replace('\r', "`r").Replace('\n', "`n").Replace('\t', "`t").Replace("`0", '\')
+  }
   if ($e -match '^DeclaracoesGeral\.mMensagem\[1,\s*(\d+)\]$') {
     $i = [int]$Matches[1]
     if ($mm.ContainsKey($i)) { return $mm[$i] }
     return "?$i"
   }
   if ($e -match '^Application\.ProductName$') { return 'Positron' }
+  # o separador decimal da cultura (`"1" + numberDecimalSeparator + "5"`): o original roda em pt-BR
+  if ($e -match '^(?:CultureInfo\.CurrentCulture\.NumberFormat\.)?[nN]umberDecimalSeparator$') { return ',' }
   if ($e -match '^Operators\.(AddObject|ConcatenateObject)\(') { return $null }
   # o que so existe em tempo de execucao vira um marcador explicito
   return '{' + $e + '}'
@@ -114,8 +135,9 @@ function Resolver([string]$expr) {
 
   # texto: literal, mMensagem[N] ou a soma dos dois (inclusive a concatenacao do VB)
   if ($e -match '^"' -or $e -match '^Conversions\.ToString\(' -or $e -match '^DeclaracoesGeral\.mMensagem') {
-    $t = ResolverTexto $e
-    if ($null -ne $t) { return @{ Tipo = 'texto'; Valor = $t } }
+    $inteiro = ResolverTexto $e
+    # o marcador `{...}` da expressao inteira so vale se a soma pedaco a pedaco nao resolver
+    if ($null -ne $inteiro -and -not $inteiro.StartsWith('{')) { return @{ Tipo = 'texto'; Valor = $inteiro } }
   }
   $pedacos = $e -split '\s*\+\s*'
   if ($pedacos.Count -gt 1) {
@@ -123,6 +145,7 @@ function Resolver([string]$expr) {
     foreach ($p in $pedacos) { $t = ResolverTexto $p; if ($null -eq $t) { $ok = $false; break }; $soma += $t }
     if ($ok) { return @{ Tipo = 'texto'; Valor = $soma } }
   }
+  if ($null -ne $inteiro) { return @{ Tipo = 'texto'; Valor = $inteiro } }
 
   if ($e -match '^Resources\.(\w+)$') { return @{ Tipo = 'imagem'; Valor = $Matches[1] } }
   # a imagem do resx do proprio formulario: `(Image)componentResourceManager.GetObject("X.Image")`
@@ -148,6 +171,21 @@ function Resolver([string]$expr) {
   if ($e -match '^(\d+)$') { return @{ Tipo = 'bruto'; Valor = $Matches[1] } }
 
   return @{ Tipo = 'bruto'; Valor = $e }
+}
+
+# A conta de largura de uma rotina de carga (`(int)Math.Round(num * 2f / 10f)`), com as variaveis
+# locais ja conhecidas e o `dg.Width` do designer; devolve $null quando sobra algo de execucao.
+function Calcular([string]$expr, $numeros, $larguraDe) {
+  $inv = [System.Globalization.CultureInfo]::InvariantCulture
+  $e = $expr -replace '\((int|double|float)\)', '' -replace 'Math\.Round\(', '('
+  $e = [regex]::Replace($e, '\b(\w+)\.Width\b', {
+    param($m) if ($larguraDe.ContainsKey($m.Groups[1].Value)) { [string]$larguraDe[$m.Groups[1].Value] } else { $m.Value } })
+  $e = [regex]::Replace($e, '\b[A-Za-z_]\w*\b', {
+    param($m) if ($numeros.ContainsKey($m.Value)) { $numeros[$m.Value].ToString($inv) } else { $m.Value } })
+  $e = [regex]::Replace($e, '(\d+(?:\.\d+)?)[fd]?\b', { param($m) $m.Groups[1].Value })
+  if ($e -match '[A-Za-z_]' -or $e -notmatch '\d') { return $null }
+  try { return [double]((New-Object System.Data.DataTable).Compute("Convert($e, 'System.Double')", '')) }
+  catch { return $null }
 }
 
 # ---------------------------------------------------------------- disseca um frm
@@ -249,7 +287,6 @@ function Ler-Formulario([string]$caminho) {
     foreach ($p in $props) {
       if ($p.Nome -eq 'Location') { $par = $p.Valor -split ',\s*'; $x = [int]$par[0]; $y = [int]$par[1] }
       if ($p.Nome -eq 'Size') { $par = $p.Valor -split ',\s*'; $l = [int]$par[0]; $a = [int]$par[1] }
-      if ($ehColuna -and $p.Nome -eq 'Width') { $l = [int]$p.Valor }
     }
 
     $pai = ''
@@ -259,7 +296,16 @@ function Ler-Formulario([string]$caminho) {
 
     $extras = New-Object System.Collections.Generic.List[string]
     foreach ($p in $props) {
-      if ($uteis -notcontains $p.Nome) { continue }
+      if ($estilosDeCelula -contains $p.Nome) {
+        if ($propsDe.ContainsKey($p.Valor) -and -not $tipoDe.ContainsKey($p.Valor)) {
+          foreach ($sp in $propsDe[$p.Valor]) {
+            if ($uteisDoEstilo -contains $sp.Nome) { $extras.Add($p.Nome + '.' + $sp.Nome); $extras.Add($sp.Valor) }
+          }
+        }
+        continue
+      }
+      # a largura da coluna vai como propriedade (a caixa x/y/l/a e so de controle)
+      if ($uteis -notcontains $p.Nome -and -not ($ehColuna -and $p.Nome -eq 'Width')) { continue }
       $valorDaProp = $p.Valor
       # a referencia a outro controle (o menu de contexto da grade) vira o nome do designer
       if ($valorDaProp -match '^\{(.+)\}$' -and $nomeDe.ContainsKey($Matches[1])) { $valorDaProp = $nomeDe[$Matches[1]] }
@@ -285,15 +331,22 @@ function Ler-Formulario([string]$caminho) {
     if (-not $varDoNome.ContainsKey($nomeDe[$var])) { $varDoNome[$nomeDe[$var]] = $var }
   }
 
+  #     E a TRADUCAO: a rotina de idioma do original (`CKNomeVisivel.Text = mMensagem[1, 910]`)
+  #     troca o texto do designer ("CKNomeVisível") pelo da mMensagem em toda carga - entao a
+  #     primeira atribuicao fora do designer que vem da mMensagem vale mais que o designer.
   foreach ($campo in $campos) {
     if ($campo.Tipo -eq 'Coluna' -or $campo.Tipo -eq 'Item') { continue }
-    if ($campo.Texto -ne '' -and $campo.Texto -ne $campo.Nome) { continue }
     if (-not $campo.Nome -or -not $varDoNome.ContainsKey($campo.Nome)) { continue }
 
     $var = $varDoNome[$campo.Nome]
-    foreach ($l in $linhas) {
-      if ($l -notmatch ('^\s*' + [regex]::Escape($var) + '\.Text = (.*);$')) { continue }
-      $achado = Resolver $Matches[1]
+    $ehPlaceholder = ($campo.Texto -eq '' -or $campo.Texto -eq $campo.Nome)
+    for ($n = 0; $n -lt $linhas.Count; $n++) {
+      if ($n -ge ($linhaIni - 1) -and $n -lt $linhaFim) { continue }
+      if ($linhas[$n] -notmatch ('^\s*' + [regex]::Escape($var) + '\.Text = (.*);$')) { continue }
+      $expr = $Matches[1]
+      $traducao = $expr -match 'mMensagem'
+      if (-not $traducao -and -not $ehPlaceholder) { continue }
+      $achado = Resolver $expr
       if ($achado.Tipo -ne 'texto') { continue }
       if ($achado.Valor -eq $campo.Nome) { continue }
       $campo.Texto = $achado.Valor
@@ -301,17 +354,60 @@ function Ler-Formulario([string]$caminho) {
     }
   }
 
+  #     A aba traduzida pelo indice (`TabControl1.TabPages[0].Text = mMensagem[1, 889]`): o
+  #     indice e a ordem do `Controls.Add` das abas no designer.
+  $traduzidas = @{}
+  foreach ($l in $linhas) {
+    if ($l -notmatch '^\s*(\w+)\.TabPages\[(\d+)\]\.Text = (.*);$') { continue }
+    $abaDe = $Matches[1]; $i = [int]$Matches[2]; $expr = $Matches[3]
+    $chave = $abaDe + '|' + $i
+    if ($traduzidas.ContainsKey($chave) -or $expr -notmatch 'mMensagem') { continue }
+    $achado = Resolver $expr
+    if ($achado.Tipo -ne 'texto') { continue }
+    $abas = @($campos | Where-Object { $_.Tipo -eq 'TabPage' -and $_.Pai -eq $abaDe } | Sort-Object { $_.Ordem })
+    if ($i -lt $abas.Count) { $abas[$i].Texto = $achado.Valor; $traduzidas[$chave] = $true }
+  }
+
   # 3b) as colunas das grades: o designer NAO as cria - quem as cria sao as rotinas de carga
   #     (`dg.Columns.Add("nome", "cabecalho")`), em qualquer metodo do arquivo. So entram as
-  #     chamadas de duas strings resolviveis; o ajuste de largura em tempo de execucao (`Columns[0].Width`)
-  #     fica de fora (nao ha como reproduzir sem os dados).
+  #     chamadas de duas strings resolviveis. O ajuste que a mesma rotina faz logo depois
+  #     (`dg.Columns[0].Visible = false`, `dg.Columns[1].Width = (int)Math.Round(num / 10f)` com
+  #     `float num = dg.Width - 22`) entra quando a conta fecha com a largura do designer: o
+  #     indice conta a partir do ultimo `Columns.Clear()` da grade e vale a primeira atribuicao.
   $vistas = @{}
+  $atuais = @{}     # grade -> as colunas desde o ultimo Clear (o indice do Columns[i])
+  $numeros = @{}    # variavel local -> valor (o `num` das larguras)
+  $larguraDe = @{}
+  foreach ($c in $campos) { if ($c.L -ne [int]::MinValue -and $c.Nome) { $larguraDe[$c.Nome] = $c.L } }
   foreach ($l in $linhas) {
+    if ($l -match '^\s*(?:float|double|int) (\w+) = (.+);$') {
+      $valor = Calcular $Matches[2] $numeros $larguraDe
+      if ($null -ne $valor) { $numeros[$Matches[1]] = $valor } else { $numeros.Remove($Matches[1]) }
+      continue
+    }
+    if ($l -match '^\s*(\w+)\.Columns\.Clear\(\);$') { $atuais[$Matches[1]] = New-Object System.Collections.Generic.List[object]; continue }
+    if ($l -match '^\s*(\w+)\.Columns\[(\d+)\]\.(Width|Visible) = (.+);$') {
+      $grade = $Matches[1]; $i = [int]$Matches[2]; $prop = $Matches[3]; $expr = $Matches[4]
+      if (-not $atuais.ContainsKey($grade) -or $i -ge $atuais[$grade].Count) { continue }
+      $coluna = $atuais[$grade][$i]
+      if ($null -eq $coluna) { continue }
+      if ($prop -eq 'Visible') {
+        if ($coluna.Extras -notcontains 'Visible' -and $expr -match '^(true|false)$') {
+          $coluna.Extras.Add('Visible'); $coluna.Extras.Add((Get-Culture).TextInfo.ToTitleCase($expr))
+        }
+      }
+      elseif ($coluna.Extras -notcontains 'Width') {
+        $valor = Calcular $expr $numeros $larguraDe
+        if ($null -ne $valor) { $coluna.Extras.Add('Width'); $coluna.Extras.Add([string][int][Math]::Round($valor)) }
+      }
+      continue
+    }
     if ($l -notmatch '^\s*(\w+)\.Columns\.Add\((.+)\);$') { continue }
     $grade = $Matches[1]
     if (-not $tipoDe.ContainsKey($grade) -or $tipoDe[$grade] -ne 'DataGridView') { continue }
+    if (-not $atuais.ContainsKey($grade)) { $atuais[$grade] = New-Object System.Collections.Generic.List[object] }
     $args = Dividir-Argumentos $Matches[2]
-    if ($args.Count -ne 2) { continue }
+    if ($args.Count -ne 2) { $atuais[$grade].Add($null); continue }
     $nome = ResolverTexto $args[0]
     $rotulo = ResolverTexto $args[1]
     if ($null -eq $rotulo) { $rotulo = $args[1].Trim() }
@@ -319,16 +415,18 @@ function Ler-Formulario([string]$caminho) {
     # a mesma coluna aparece em varias rotinas de carga (com espacos sobrando as vezes): dedup
     $rotulo = $rotulo.Trim()
     $chave = $grade + '|' + $nome + '|' + $rotulo
-    if ($vistas.ContainsKey($chave)) { continue }
-    $vistas[$chave] = $true
+    if ($vistas.ContainsKey($chave)) { $atuais[$grade].Add($vistas[$chave]); continue }
     $ordem++
-    $campos.Add(@{
+    $coluna = @{
       Tipo = 'Coluna'; Nome = $nome; Pai = $grade; Ordem = $ordem
       X = [int]::MinValue; Y = [int]::MinValue; L = [int]::MinValue; A = [int]::MinValue
       Texto = $rotulo; Imagem = ''; Extras = New-Object System.Collections.Generic.List[string]
       Propriedades = New-Object System.Collections.Generic.List[object]
       ColunaReal = 'Coluna (da rotina de carga)'
-    })
+    }
+    $vistas[$chave] = $coluna
+    $atuais[$grade].Add($coluna)
+    $campos.Add($coluna)
   }
 
   # 4) o titulo: o designer escreve, mas o construtor sobrescreve (o caso do frmPesquisaXdatas)
@@ -337,7 +435,8 @@ function Ler-Formulario([string]$caminho) {
   if ($iCtor.Success) {
     $fimCtor = $txt.IndexOf("`r`n`t}", $iCtor.Index)
     $corpoCtor = $txt.Substring($iCtor.Index, $fimCtor - $iCtor.Index)
-    foreach ($l in ($corpoCtor -split "`r?`n")) { if ($l -match '^\s*Text = (.*);$') { $titulo = (Resolver $Matches[1]).Valor } }
+    # -cmatch: o `text = "ANSI";` de uma variavel local do construtor nao e o titulo
+    foreach ($l in ($corpoCtor -split "`r?`n")) { if ($l -cmatch '^\s*Text = (.*);$') { $titulo = (Resolver $Matches[1]).Valor } }
   }
   if (-not $titulo) { foreach ($p in $propsForm) { if ($p.Nome -eq 'Text') { $titulo = $p.Valor } } }
   if (-not $titulo) { $titulo = $nomeArquivo }

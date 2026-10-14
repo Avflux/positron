@@ -5,7 +5,7 @@ Gerado por `scripts/extrair-formularios-do-reverso.ps1` a partir do decompilado
 inteiro e o de4dot nao ofuscou os nomes de controle nem os valores das propriedades:
 a formatacao das janelas esta no arquivo, nao foi perdida.
 
-Formularios: **127**. Controles mapeados: **3431**.
+Formularios: **127**. Controles mapeados: **3424**.
 
 Os textos vem da `mMensagem` do original (resolvidos pelo indice) ou de literal;
 os icones, do nome do recurso (`Resources.X`), extraidos em `cad-plugin/lib/Icons`.
@@ -38,7 +38,7 @@ os icones, do nome do recurso (`Resources.X`), extraidos em `cad-plugin/lib/Icon
 | `frmPesquisaXdatas` | Apagar XDatas de Terceiros | 304 x 461 | 6 | `frmPesquisaXdatas.cs` |
 | `frmRelatorio_AnilhasCabos` | Lista de Anilhas | 734 x 511 | 45 | `frmRelatorio_AnilhasCabos.cs` |
 | `frmRelatorio_Aranha` | Diagrama de Interligação ELETRONORTE | 414 x 611 | 45 | `frmRelatorio_Aranha.cs` |
-| `frmRelatorio_Cabos` | Lista de Cabos | 884 x 611 | 101 | `frmRelatorio_Cabos.cs` |
+| `frmRelatorio_Cabos` | Lista de Cabos | 884 x 611 | 94 | `frmRelatorio_Cabos.cs` |
 | `frmRelatorio_Anilhas` | Relatório de Anilhas | 834 x 641 | 45 | `frmRelatorio_Anilhas.cs` |
 | `frmPlaquetas` | Gerenciador de Plaquetas | 934 x 592 | 40 | `frmPlaquetas.cs` |
 | `frmPortas` | Portas | 487 x 494 | 20 | `frmPortas.cs` |
@@ -65,7 +65,7 @@ os icones, do nome do recurso (`Resources.X`), extraidos em `cad-plugin/lib/Icon
 | `frmRelatorio_MateriaisDWG` | Lista de Materiais DWG - {Dicionario.BuscaNomeDoPainel(h3hpNaCbc4r)} | 447 x 361 | 45 | `frmRelatorio_MateriaisDWG.cs` |
 | `frmRelatorio_Jumpers` | Lista de Jumpers | 884 x 512 | 20 | `frmRelatorio_Jumpers.cs` |
 | `frmRelatorio_InterligacaoEletrosul` | Relatório de Interligação Eletrosul | 1019 x 661 | 43 | `frmRelatorio_InterligacaoEletrosul.cs` |
-| `frmRelatorio_InterligacaoEletroSul_Excel` | INDICE | 290 x 246 | 16 | `frmRelatorio_InterligacaoEletroSul_Excel.cs` |
+| `frmRelatorio_InterligacaoEletroSul_Excel` | Relatório de Interligação Eletrosul | 290 x 246 | 16 | `frmRelatorio_InterligacaoEletroSul_Excel.cs` |
 | `frmRelatorio_InterligacaoGIGA` | Interligação GIGA | 784 x 431 | 25 | `frmRelatorio_InterligacaoGIGA.cs` |
 | `frmRelatorio_Plaquetas` | Relatório Lista de Plaquetas | 934 x 461 | 15 | `frmRelatorio_Plaquetas.cs` |
 | `frmRelatorio_Rev` | Relatório de Revisões | 444 x 356 | 47 | `frmRelatorio_Rev.cs` |
@@ -81,10 +81,10 @@ os icones, do nome do recurso (`Resources.X`), extraidos em `cad-plugin/lib/Icon
 | `frmDefinicao` | Atribuir Definição | 784 x 441 | 15 | `frmDefinicao.cs` |
 | `frmCopiarObjetos` | Copiar Objetos | 174 x 567 | 15 | `frmCopiarObjetos.cs` |
 | `frmConfiguracaoLP` | Configuração da Lista de Pontos | 359 x 521 | 34 | `frmConfiguracaoLP.cs` |
-| `frmContatosAux` | ANSI | 488 x 524 | 10 | `frmContatosAux.cs` |
+| `frmContatosAux` | Contatos Auxiliares | 488 x 524 | 10 | `frmContatosAux.cs` |
 | `frmCopia` | Cópia sem Função Elétrica | 304 x 361 | 8 | `frmCopia.cs` |
 | `frmDispPrincipal` | Dispositivo Principal | 484 x 536 | 51 | `frmDispPrincipal.cs` |
-| `frmEditaFuncaoBobina` | ANSI | 434 x 371 | 5 | `frmEditaFuncaoBobina.cs` |
+| `frmEditaFuncaoBobina` | Editor de Funções | 434 x 371 | 5 | `frmEditaFuncaoBobina.cs` |
 | `frmEditaNomeCircuitos` | Editar Nome de Circuitos | 424 x 475 | 16 | `frmEditaNomeCircuitos.cs` |
 | `frmEditaRevisaoCompleta` | Editar Revisão Completa | 684 x 462 | 18 | `frmEditaRevisaoCompleta.cs` |
 | `frmEditaDispositivosAvulsos` | Editor Terminais Disp. Avulsos | 354 x 461 | 17 | `frmEditaDispositivosAvulsos.cs` |
@@ -177,10 +177,10 @@ Arquivo do reverso: `frmRelatorio_DInterlig.cs` (designer nas linhas 1232-1763).
 | `` | Coluna (da rotina de carga) | dgRevisao | Revisão |  |  |  |  |  |
 | `Label3` | Label | GroupBox8 | Veias Reservas | 6 | 74 | 39 | 13 |  |
 | `GroupBox1` | GroupBox |  | Posição | 155 | 406 | 157 | 49 |  |
-| `rbFuncao` | RadioButton | GroupBoxTipoCruz | FuncaoVeia | 6 | 44 | 82 | 17 |  |
+| `rbFuncao` | RadioButton | GroupBoxTipoCruz | Função da Veia | 6 | 44 | 82 | 17 |  |
 | `rb2` | RadioButton | GroupBox1 | 2 | 60 | 19 | 40 | 17 |  |
 | `GroupBoxPaineisCima` | GroupBox |  | Painéis Cima | 12 | 535 | 137 | 143 |  |
-| `rbCruzCheg` | RadioButton | GroupBoxTipoCruz | Cruzado+Pt Chegada | 6 | 28 | 126 | 17 |  |
+| `rbCruzCheg` | RadioButton | GroupBoxTipoCruz | Cruzado + Pt Chegada | 6 | 28 | 126 | 17 |  |
 | `btVeias` | Button | GroupBox6 |  | 16 | 18 | 32 | 42 | Veias90 |
 | `btVerificar` | Button | GroupBox3 |  | 1 | 18 | 36 | 42 | Check |
 | `btMirrorJumper` | Button | GroupBox4 |  | 77 | 19 | 32 | 42 | JumperRebatido_32 |
@@ -229,7 +229,7 @@ Arquivo do reverso: `frmRelatorio_DistribuicaoPotencial.cs` (designer nas linhas
 | `` | Coluna (da rotina de carga) | dgTagInter | Indice |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgTagInter | Pg |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgEquipamentos | Equipamentos  Painéis |  |  |  |  |  |
-| `tbRevisãoI` | TextBox |  | Revisão Interligação | 297 | 110 | 120 | 13 |  |
+| `tbRevisãoI` | TextBox |  | Rev. Interligação | 297 | 110 | 120 | 13 |  |
 | `dgPotenciais` | DataGridView |  |  | 6 | 308 | 216 | 262 |  |
 | `tbRelatorio` | TextBox |  | Sequência dos Terminais | 235 | 155 | 181 | 13 |  |
 | `btInserir` | Button |  |  | 376 | 528 | 40 | 42 | OK_32 |
@@ -260,7 +260,7 @@ Arquivo do reverso: `frmRelatorio_Elektro.cs` (designer nas linhas 433-648). Cli
 | `` | Coluna (da rotina de carga) | dgDisp | Indice |  |  |  |  |  |
 | `tbModelo` | TextBox |  | {dgDisp.SelectedRows[0].Cells[1].Value} | 184 | 12 | 488 | 20 |  |
 | `btPesquisar` | Button |  |  | 538 | 357 | 40 | 42 | Pesquisar_32 |
-| `RBResumida` | RadioButton |  | Desc Resumida | 115 | 357 | 100 | 17 |  |
+| `RBResumida` | RadioButton |  | Descrição Resumida | 115 | 357 | 100 | 17 |  |
 | `` | Coluna (da rotina de carga) | dgRelatorio | {tbDescricao.Text} |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRelatorio | {tbPagina.Text} |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRelatorio | {tbOBS.Text} |  |  |  |  |  |
@@ -270,7 +270,7 @@ Arquivo do reverso: `frmRelatorio_Elektro.cs` (designer nas linhas 433-648). Cli
 | `tbOBS` | TextBox |  | OBS. | 584 | 38 | 88 | 20 |  |
 | `tbDescricao` | TextBox |  | Descrição | 356 | 38 | 156 | 20 |  |
 | `dgDisp` | DataGridView |  |  | 12 | 144 | 166 | 202 |  |
-| `RBCompleta` | RadioButton |  | Desc Completa | 115 | 377 | 97 | 17 |  |
+| `RBCompleta` | RadioButton |  | Descrição Completa | 115 | 377 | 97 | 17 |  |
 | `tbPagina` | TextBox |  | Página | 514 | 38 | 68 | 20 |  |
 | `dgEquip` | DataGridView |  |  | 12 | 12 | 166 | 122 |  |
 | `LbTipo` | Label |  | TIPO | 12 | 357 | 64 | 16 |  |
@@ -300,7 +300,7 @@ Arquivo do reverso: `frmRelatorio_Diferencial.cs` (designer nas linhas 315-514).
 | `` | Coluna (da rotina de carga) | dgFiacao | Dispositivo 2 |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgFiacao | Alternativo2 |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgFiacao | Terminal 2 |  |  |  |  |  |
-| `cbAlternativo` | CheckBox |  | _Nome Alternativo | 12 | 464 | 113 | 17 |  |
+| `cbAlternativo` | CheckBox |  | Nome Alternativo | 12 | 464 | 113 | 17 |  |
 | `dgRevisao2` | DataGridView |  |  | 12 | 341 | 90 | 94 |  |
 | `btExportaEXCEL` | Button |  |  | 229 | 484 | 40 | 42 | ExportaExcel_20 |
 | `dgDWG` | DataGridView |  |  | 12 | 12 | 259 | 175 |  |
@@ -310,7 +310,7 @@ Arquivo do reverso: `frmRelatorio_Diferencial.cs` (designer nas linhas 315-514).
 | `` | Coluna (da rotina de carga) | dgDWG | Arquivo |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRevisao1 | Revisão |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRevisao1 | DATA |  |  |  |  |  |
-| `cbExcluir` | CheckBox |  | _Excluir Mudança Layout e Tipo Borne | 12 | 441 | 210 | 17 |  |
+| `cbExcluir` | CheckBox |  | Excluir Mudanças Layout e Tipo Borne | 12 | 441 | 210 | 17 |  |
 | `btPesquisar` | Button |  |  | 108 | 484 | 40 | 42 | Pesquisar_32 |
 | `` | Coluna (da rotina de carga) | dgDWG | DWG |  |  |  |  |  |
 
@@ -441,11 +441,11 @@ Arquivo do reverso: `frmRelatorio_EstatisticaFiacao.cs` (designer nas linhas 682
 |---|---|---|---|---|---|---|---|---|
 | `Label1` | Label | GroupBox1 | Mesmo dispositivo | 6 | 33 | 39 | 13 |  |
 | `Label7` | Label | GroupBox1 | Entre chassi e borne | 6 | 189 | 39 | 13 |  |
-| `tbPC` | TextBox | GroupBox1 | 1" + numberDecimalSeparator + "5 | 140 | 134 | 71 | 21 |  |
+| `tbPC` | TextBox | GroupBox1 | 1,5 | 140 | 134 | 71 | 21 |  |
 | `Label2` | Label | GroupBox1 | Dispositivos na porta | 6 | 59 | 39 | 13 |  |
 | `dgFiacao` | DataGridView |  |  | 255 | 281 | 221 | 186 |  |
 | `btCopiar` | Button |  |  | 62 | 461 | 40 | 40 | Copy_32 |
-| `tbCB` | TextBox | GroupBox1 | 1" + numberDecimalSeparator + "5 | 140 | 186 | 71 | 21 |  |
+| `tbCB` | TextBox | GroupBox1 | 1,5 | 140 | 186 | 71 | 21 |  |
 | `Label6` | Label | GroupBox1 | Entre porta e borne | 6 | 163 | 39 | 13 |  |
 | `` | Coluna (da rotina de carga) | dgFiacao | Seção |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgEquip | Equipamentos  Painéis |  |  |  |  |  |
@@ -457,8 +457,8 @@ Arquivo do reverso: `frmRelatorio_EstatisticaFiacao.cs` (designer nas linhas 682
 | `` | Coluna (da rotina de carga) | dgRevisao | Revisão |  |  |  |  |  |
 | `dgDWG` | DataGridView |  |  | 12 | 12 | 234 | 175 |  |
 | `GroupBox1` | GroupBox |  | Comprimentos Médios | 255 | 12 | 221 | 215 |  |
-| `tbPB` | TextBox | GroupBox1 | 2" + numberDecimalSeparator + "0 | 140 | 160 | 71 | 21 |  |
-| `tbPP` | TextBox | GroupBox1 | 0" + numberDecimalSeparator + "5 | 140 | 56 | 71 | 21 |  |
+| `tbPB` | TextBox | GroupBox1 | 2,0 | 140 | 160 | 71 | 21 |  |
+| `tbPP` | TextBox | GroupBox1 | 0,5 | 140 | 56 | 71 | 21 |  |
 | `Label3` | Label | GroupBox1 | Dispositivos no chassi | 6 | 85 | 39 | 13 |  |
 | `btSalvar` | Button |  |  | 406 | 230 | 45 | 45 | Salvar_32 |
 | `Label8` | Label |  | Quantidade de Conexões: | 255 | 482 | 172 | 18 |  |
@@ -466,11 +466,11 @@ Arquivo do reverso: `frmRelatorio_EstatisticaFiacao.cs` (designer nas linhas 682
 | `dgEquip` | DataGridView |  |  | 108 | 193 | 138 | 307 |  |
 | `Label5` | Label | GroupBox1 | Entre porta e chassi | 6 | 137 | 39 | 13 |  |
 | `tbQCON` | TextBox |  |  | 433 | 479 | 43 | 21 |  |
-| `tbCC` | TextBox | GroupBox1 | 0" + numberDecimalSeparator + "5 | 140 | 82 | 71 | 21 |  |
+| `tbCC` | TextBox | GroupBox1 | 0,5 | 140 | 82 | 71 | 21 |  |
 | `Label4` | Label | GroupBox1 | Entre bornes | 6 | 111 | 39 | 13 |  |
 | `btPesquisar` | Button |  |  | 12 | 458 | 40 | 42 | Pesquisar_32 |
-| `tbDisp` | TextBox | GroupBox1 | 0" + numberDecimalSeparator + "05 | 140 | 30 | 71 | 21 |  |
-| `tbBB` | TextBox | GroupBox1 | 1" + numberDecimalSeparator + "5 | 140 | 108 | 71 | 21 |  |
+| `tbDisp` | TextBox | GroupBox1 | 0,05 | 140 | 30 | 71 | 21 |  |
+| `tbBB` | TextBox | GroupBox1 | 1,5 | 140 | 108 | 71 | 21 |  |
 
 ## frmRelatorio_FiacaoDWGCompacta - "Estrutura de Régua de Bornes"
 
@@ -482,25 +482,25 @@ Arquivo do reverso: `frmRelatorio_FiacaoDWGCompacta.cs` (designer nas linhas 841
 | `LBDistanciaEntreColunas` | Label | GBCores | Distância entre Colunas | 7 | 178 | 161 | 25 |  |
 | `TBNome` | TextBox | GroupBox2 |  | 11 | 20 | 84 | 20 |  |
 | `bt5` | Button | GroupBox2 | 5 | 187 | 46 | 35 | 23 |  |
-| `LabelStiloLinha` | Label | GBCores | Fonte | 7 | 232 | 79 | 23 |  |
+| `LabelStiloLinha` | Label | GBCores | Fonte do Texto | 7 | 232 | 79 | 23 |  |
 | `bt3` | Button | GroupBox2 | 3 | 99 | 46 | 35 | 23 |  |
 | `GroupBox2` | GroupBox |  | Memória | 13 | 330 | 238 | 75 |  |
 | `BTCancelar` | Button |  |  | 109 | 411 | 40 | 42 | Stop_32 |
 | `btCorDoJumper` | Button | GBCores |  | 176 | 81 | 47 | 25 |  |
 | `LabelPainel` | Label |  | Equipamento/Painel : {Dicionario.BuscaNomeDoPainel(iPnSel)} | 10 | 9 | 73 | 13 |  |
 | `bt2` | Button | GroupBox2 | 2 | 55 | 46 | 35 | 23 |  |
-| `LabelCorTexto` | Label | GBCores | Textos | 6 | 50 | 143 | 25 |  |
+| `LabelCorTexto` | Label | GBCores | Cor do Texto | 6 | 50 | 143 | 25 |  |
 | `bt4` | Button | GroupBox2 | 4 | 143 | 46 | 35 | 23 |  |
-| `LabelCorDoJumper` | Label | GBCores | Jumper | 6 | 81 | 143 | 25 |  |
+| `LabelCorDoJumper` | Label | GBCores | Cor do Jumper | 6 | 81 | 143 | 25 |  |
 | `LabelDistanciaDaRegua` | Label | GBCores | Distância da Régua Horizontal | 7 | 262 | 162 | 25 |  |
-| `LabelLinhas` | Label | GBCores | Linhas | 7 | 19 | 143 | 25 |  |
+| `LabelLinhas` | Label | GBCores | Cor da Linha | 7 | 19 | 143 | 25 |  |
 | `CBFonte` | ComboBox | GBCores | {array[9]} | 92 | 232 | 130 | 21 |  |
 | `btApagar` | Button |  |  | 24 | 411 | 40 | 42 | Delete_32 |
 | `CBColunas` | ComboBox | GBCores | 2 | 176 | 148 | 47 | 21 |  |
-| `LabelQuantColunas` | Label | GBCores | Quantidede de Colunas | 7 | 148 | 130 | 25 |  |
-| `LabelTamanhoFonte` | Label | GBCores | Tamanho do Fonte | 6 | 118 | 162 | 25 |  |
+| `LabelQuantColunas` | Label | GBCores | Quantidade de Colunas | 7 | 148 | 130 | 25 |  |
+| `LabelTamanhoFonte` | Label | GBCores | Altura do Fonte | 6 | 118 | 162 | 25 |  |
 | `TBAlturaDoBloco` | TextBox | GBCores | {7} | 176 | 204 | 47 | 20 |  |
-| `LBAlturaDoBloco` | Label | GBCores | Altura do Bloco | 6 | 204 | 162 | 25 |  |
+| `LBAlturaDoBloco` | Label | GBCores | Altura da Linha | 6 | 204 | 162 | 25 |  |
 | `TBDisteEntreColunas` | TextBox | GBCores | {6} | 176 | 178 | 47 | 20 |  |
 | `btCorTextoBloco` | Button | GBCores |  | 176 | 50 | 47 | 25 |  |
 | `bt1` | Button | GroupBox2 | 1 | 11 | 46 | 35 | 23 |  |
@@ -516,12 +516,12 @@ Arquivo do reverso: `frmRelatorio_Furnas.cs` (designer nas linhas 255-344). Clie
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `lPTFim` | Label |  | LBLargura | 9 | 59 | 56 | 13 |  |
+| `lPTFim` | Label |  | Ponto Final | 9 | 59 | 56 | 13 |  |
 | `tbLargura` | TextBox |  |  | 12 | 75 | 66 | 20 |  |
 | `BTX` | Button |  |  | 84 | 55 | 40 | 40 | Largura |
 | `btExporta` | Button |  |  | 166 | 9 | 40 | 42 | btExporta |
 | `tbOrdenadaY` | TextBox |  |  | 12 | 25 | 66 | 20 |  |
-| `lPTIni` | Label |  | LBY | 9 | 9 | 27 | 13 |  |
+| `lPTIni` | Label |  | Ponto Inicial | 9 | 9 | 27 | 13 |  |
 | `btApaga` | Button |  |  | 166 | 59 | 40 | 40 | Delete_32 |
 | `BTY` | Button |  |  | 84 | 9 | 40 | 40 | Altura |
 
@@ -538,7 +538,7 @@ Arquivo do reverso: `frmRelatorio_IndicedePaginas.cs` (designer nas linhas 1090-
 | `bt5` | Button | GroupBox2 | 5 | 134 | 46 | 25 | 20 |  |
 | `CBTitulo2` | CheckBox | GroupBox3 | Título 2 | 105 | 44 | 63 | 17 |  |
 | `bt1` | Button | GroupBox2 | 1 | 9 | 46 | 25 | 20 |  |
-| `LabelStiloLinha` | Label | GroupBox1 | Fonte | 7 | 176 | 79 | 23 |  |
+| `LabelStiloLinha` | Label | GroupBox1 | Fonte do Texto | 7 | 176 | 79 | 23 |  |
 | `CBRev` | CheckBox | GroupBox3 | Revisão | 12 | 88 | 65 | 17 |  |
 | `CBPagina` | CheckBox | GroupBox3 | Página | 12 | 21 | 59 | 17 |  |
 | `CBTitulo3` | CheckBox | GroupBox3 | Título 3 | 105 | 67 | 63 | 17 |  |
@@ -547,7 +547,7 @@ Arquivo do reverso: `frmRelatorio_IndicedePaginas.cs` (designer nas linhas 1090-
 | `bt2` | Button | GroupBox2 | 2 | 40 | 46 | 25 | 20 |  |
 | `CBTitulo4` | CheckBox | GroupBox3 | Título 4 | 105 | 90 | 63 | 17 |  |
 | `LBDistanciaEntreColunas` | Label | GroupBox1 | Distância entre Colunas | 7 | 116 | 175 | 25 |  |
-| `CBPaginaReserva` | CheckBox | GroupBox3 | Página | 12 | 111 | 59 | 17 |  |
+| `CBPaginaReserva` | CheckBox | GroupBox3 | Páginas Reservas | 12 | 111 | 59 | 17 |  |
 | `TBNome` | TextBox | GroupBox2 |  | 9 | 20 | 104 | 20 |  |
 | `bt4` | Button | GroupBox2 | 4 | 103 | 46 | 25 | 20 |  |
 | `BTCancelar` | Button |  |  | 368 | 241 | 40 | 42 | Stop_32 |
@@ -557,9 +557,9 @@ Arquivo do reverso: `frmRelatorio_IndicedePaginas.cs` (designer nas linhas 1090-
 | `CBUnidade` | CheckBox | GroupBox3 | Unidade | 12 | 65 | 66 | 17 |  |
 | `btApagar` | Button |  |  | 321 | 241 | 40 | 42 | Delete_32 |
 | `TBAlturaDoBloco` | TextBox | GroupBox1 | {7} | 176 | 145 | 47 | 20 |  |
-| `LabelTamanhoFonte` | Label | GroupBox1 | Tamanho do Fonte | 6 | 50 | 175 | 25 |  |
-| `LBAlturaDoBloco` | Label | GroupBox1 | Altura do Bloco | 6 | 145 | 162 | 25 |  |
-| `LabelQuantColunas` | Label | GroupBox1 | Quantidede de Colunas | 7 | 83 | 175 | 25 |  |
+| `LabelTamanhoFonte` | Label | GroupBox1 | Altura do Fonte | 6 | 50 | 175 | 25 |  |
+| `LBAlturaDoBloco` | Label | GroupBox1 | Altura da Linha | 6 | 145 | 162 | 25 |  |
+| `LabelQuantColunas` | Label | GroupBox1 | Quantidade de Colunas | 7 | 83 | 175 | 25 |  |
 | `GroupBox3` | GroupBox |  | Campos do Relatório | 258 | 12 | 174 | 137 |  |
 | `tbFonteBloco` | TextBox | GroupBox1 | 2 | 176 | 50 | 47 | 20 |  |
 | `TBPaginaReserva` | TextBox | GroupBox1 | RESERVA | 115 | 243 | 107 | 20 |  |
@@ -578,18 +578,18 @@ Arquivo do reverso: `frmRelatorio_FiacaoDWG.cs` (designer nas linhas 1064-1438).
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `TBDisp2` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 779].ToString().ToUpper()} | 171 | 70 | 47 | 20 |  |
+| `TBDisp2` | TextBox |  | DISPOSITIVO 2 | 171 | 70 | 47 | 20 |  |
 | `bt3` | Button | GroupBox2 | 3 | 99 | 46 | 35 | 23 |  |
 | `GroupBox2` | GroupBox |  | Memória | 12 | 304 | 238 | 75 |  |
 | `bt5` | Button | GroupBox2 | 5 | 187 | 46 | 35 | 23 |  |
-| `TBTerm1` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 778].ToString().ToUpper()} | 118 | 70 | 47 | 20 |  |
-| `LabelLinhas` | Label | GBCores | Linhas | 7 | 19 | 127 | 25 |  |
+| `TBTerm1` | TextBox |  | TERMINAL 1 | 118 | 70 | 47 | 20 |  |
+| `LabelLinhas` | Label | GBCores | Cor da Linha | 7 | 19 | 127 | 25 |  |
 | `btCorBloco` | Button | GBCores |  | 134 | 19 | 47 | 25 |  |
-| `TBDisp1` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 777].ToString().ToUpper()} | 65 | 70 | 47 | 20 |  |
-| `TBSecao` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 781].ToString().ToUpper() ... | 330 | 70 | 47 | 20 |  |
-| `LabelStiloLinha` | Label | GBCores | Fonte | 188 | 133 | 79 | 23 |  |
+| `TBDisp1` | TextBox |  | DISPOSITIVO 1 | 65 | 70 | 47 | 20 |  |
+| `TBSecao` | TextBox |  | SEÇÃO MM² | 330 | 70 | 47 | 20 |  |
+| `LabelStiloLinha` | Label | GBCores | Fonte do Texto | 188 | 133 | 79 | 23 |  |
 | `btSet` | Button | GroupBox2 | SET | 182 | 17 | 40 | 23 |  |
-| `LabelCorTexto` | Label | GBCores | Textos | 6 | 50 | 143 | 25 |  |
+| `LabelCorTexto` | Label | GBCores | Cor do Texto | 6 | 50 | 143 | 25 |  |
 | `LabelDistanciaDaRegua` | Label | GBCores | Distância da Régua Horizontal | 188 | 163 | 162 | 25 |  |
 | `btCorDoJumper` | Button | GBCores |  | 134 | 81 | 47 | 25 |  |
 | `bt2` | Button | GroupBox2 | 2 | 55 | 46 | 35 | 23 |  |
@@ -597,28 +597,28 @@ Arquivo do reverso: `frmRelatorio_FiacaoDWG.cs` (designer nas linhas 1064-1438).
 | `TBNome` | TextBox | GroupBox2 |  | 11 | 20 | 99 | 20 |  |
 | `LBDistanciaEntreColunas` | Label | GBCores | Distância entre Colunas | 188 | 79 | 161 | 25 |  |
 | `BTCancelar` | Button |  |  | 322 | 321 | 40 | 42 | Stop_32 |
-| `LabelCorDoJumper` | Label | GBCores | Jumper | 6 | 81 | 143 | 25 |  |
+| `LabelCorDoJumper` | Label | GBCores | Cor do Jumper | 6 | 81 | 143 | 25 |  |
 | `bt4` | Button | GroupBox2 | 4 | 143 | 46 | 35 | 23 |  |
 | `CBFonte` | ComboBox | GBCores | {array[num]} | 273 | 133 | 130 | 21 |  |
-| `tbTerminal` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 771].ToString().ToUpper()} | 12 | 70 | 47 | 20 |  |
-| `TBDestino1` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 432].ToString().ToUpper() ... | 65 | 44 | 100 | 20 |  |
+| `tbTerminal` | TextBox |  | TERMINAL | 12 | 70 | 47 | 20 |  |
+| `TBDestino1` | TextBox |  | DESTINO 1 | 65 | 44 | 100 | 20 |  |
 | `btApagar` | Button |  |  | 272 | 321 | 40 | 42 | Delete_32 |
-| `LabelTipoRelatorio` | Label |  | LabelTipo | 9 | 27 | 63 | 13 |  |
-| `TBTerm2` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 780].ToString().ToUpper()} | 224 | 70 | 47 | 20 |  |
-| `LabelTamanhoFonte` | Label | GBCores | Tamanho do Fonte | 187 | 19 | 162 | 25 |  |
+| `LabelTipoRelatorio` | Label |  | Relatório de Réguas de Bornes | 9 | 27 | 63 | 13 |  |
+| `TBTerm2` | TextBox |  | TERMINAL 2 | 224 | 70 | 47 | 20 |  |
+| `LabelTamanhoFonte` | Label | GBCores | Altura do Fonte | 187 | 19 | 162 | 25 |  |
 | `TBAlturaDoBloco` | TextBox | GBCores | {7} | 357 | 105 | 47 | 20 |  |
-| `LabelQuantColunas` | Label | GBCores | Quantidede de Colunas | 188 | 49 | 130 | 25 |  |
-| `LBAlturaDoBloco` | Label | GBCores | Altura do Bloco | 187 | 105 | 162 | 25 |  |
-| `TbDestino2` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 432].ToString().ToUpper() ... | 171 | 44 | 100 | 20 |  |
+| `LabelQuantColunas` | Label | GBCores | Quantidade de Colunas | 188 | 49 | 130 | 25 |  |
+| `LBAlturaDoBloco` | Label | GBCores | Altura da Linha | 187 | 105 | 162 | 25 |  |
+| `TbDestino2` | TextBox |  | DESTINO 2 | 171 | 44 | 100 | 20 |  |
 | `GBCores` | GroupBox |  | Cores | 12 | 96 | 418 | 202 |  |
 | `tbFonteBloco` | TextBox | GBCores | 2 | 357 | 19 | 47 | 20 |  |
 | `btCorTextoBloco` | Button | GBCores |  | 134 | 50 | 47 | 25 |  |
-| `TBcor` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 782].ToString().ToUpper()} | 277 | 70 | 47 | 20 |  |
+| `TBcor` | TextBox |  | COR | 277 | 70 | 47 | 20 |  |
 | `bt1` | Button | GroupBox2 | 1 | 11 | 46 | 35 | 23 |  |
 | `TBDisteEntreColunas` | TextBox | GBCores | {6} | 357 | 79 | 47 | 20 |  |
 | `CBColunas` | ComboBox | GBCores | 2 | 357 | 49 | 47 | 21 |  |
 | `btExporta` | Button |  |  | 373 | 321 | 40 | 42 | btExporta |
-| `TBPagina` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 783].ToString().ToUpper()} | 383 | 70 | 47 | 20 |  |
+| `TBPagina` | TextBox |  | PÁGINA | 383 | 70 | 47 | 20 |  |
 | `TBAlturaInicialRelatorio` | TextBox | GBCores | 25 | 356 | 163 | 47 | 20 |  |
 
 ## frmRelatorio_Fiacao - "Relatórios de Fiação"
@@ -696,31 +696,31 @@ Arquivo do reverso: `frmRelatorio_Fiacao_Excel.cs` (designer nas linhas 1124-153
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `lbNumDesenho` | Label | GroupBox_A_B_D | lbDesenho | 11 | 47 | 64 | 25 |  |
+| `lbNumDesenho` | Label | GroupBox_A_B_D | Desenho | 11 | 47 | 64 | 25 |  |
 | `tbPaginaInicio` | TextBox | GroupBox_A_B_D |  | 237 | 90 | 107 | 20 |  |
 | `btCEMIG_D` | Button |  |  | 15 | 86 | 110 | 50 | CEMIG_D |
-| `lbRev` | Label | GroupBox_A_B_D | lbsRev | 11 | 72 | 107 | 15 |  |
+| `lbRev` | Label | GroupBox_A_B_D | REV | 11 | 72 | 107 | 15 |  |
 | `tbLinhasPorPaginaFurnas` | TextBox | GroupBox_C | 60 | 166 | 148 | 91 | 20 |  |
 | `btFurnasAntigoC` | Button |  |  | 244 | 30 | 110 | 50 | EletrobrasFurnas |
 | `btFurnasNovoB` | Button |  |  | 131 | 30 | 110 | 50 | EletrobrasFurnasNovo |
 | `ckDestino` | RadioButton | GroupBox_C | Destino | 124 | 36 | 73 | 17 |  |
-| `rbCorBitola` | RadioButton | GroupBox1 | rbCor e Bitola | 6 | 30 | 88 | 17 |  |
-| `lbLinhas` | Label | GroupBox_A_B_D | lbLinhas por Página | 124 | 70 | 107 | 17 |  |
+| `rbCorBitola` | RadioButton | GroupBox1 | Seção + Cor | 6 | 30 | 88 | 17 |  |
+| `lbLinhas` | Label | GroupBox_A_B_D | Linhas/Página | 124 | 70 | 107 | 17 |  |
 | `tbLinhasPorPaginaNorte` | TextBox | GroupBox_E | 60 | 167 | 148 | 68 | 20 |  |
 | `btExportaExcelEletronorte` | Button | GroupBox_E |  | 300 | 130 | 40 | 43 | ExportaExcel_20 |
-| `Label1` | Label | GroupBox_C | lbLinhas por Página | 60 | 147 | 100 | 20 |  |
+| `Label1` | Label | GroupBox_C | Linhas/Página | 60 | 147 | 100 | 20 |  |
 | `tbCaminho` | TextBox | GroupBox_A_B_D | {DeclaracoesGeral.Conf.dirSimbologiaRelatorios}EletrosulR... | 14 | 131 | 205 | 51 |  |
 | `GroupBox_A_B_D` | GroupBox |  | GB0_A_B_D | 9 | 143 | 355 | 190 |  |
 | `GroupBox_E` | GroupBox |  | GB0E | 9 | 143 | 355 | 190 |  |
 | `lbAnilha` | Label | GroupBox_C | Anilha | 24 | 19 | 44 | 13 |  |
-| `lbPaginas` | Label | GroupBox_A_B_D | lbPáginas | 237 | 72 | 107 | 15 |  |
+| `lbPaginas` | Label | GroupBox_A_B_D | Página | 237 | 72 | 107 | 15 |  |
 | `tbLinhasPorPaginaSul` | TextBox | GroupBox_A_B_D | 60 | 124 | 90 | 107 | 20 |  |
 | `tbSeparador` | TextBox | GroupBox_C | : | 225 | 92 | 28 | 22 |  |
 | `ckOrigem` | RadioButton | GroupBox_C | Origem | 29 | 36 | 70 | 17 |  |
-| `lbImagem` | Label | GroupBox_A_B_D | Imagem | 14 | 113 | 231 | 15 |  |
+| `lbImagem` | Label | GroupBox_A_B_D | Figura do Rodapé | 14 | 113 | 231 | 15 |  |
 | `LabelPainel` | Label |  | Réguas de Bornes : {Dicionario.BuscaNomeDoPainel(iPnSel)} | 16 | 13 | 73 | 13 |  |
 | `GroupBox1` | GroupBox | GroupBox_A_B_D |  | 237 | 14 | 107 | 56 |  |
-| `rbDispositivos` | Label | GroupBox_C | lbDispositivo | 24 | 95 | 66 | 13 |  |
+| `rbDispositivos` | Label | GroupBox_C | Dispositivos | 24 | 95 | 66 | 13 |  |
 | `rbBitola` | RadioButton | GroupBox1 | Seção | 6 | 8 | 60 | 17 |  |
 | `btParar` | Button |  |  | 131 | 632 | 40 | 42 | Stop_32 |
 | `ckOrigemDestino` | RadioButton | GroupBox_C | Origem/Destino | 235 | 36 | 106 | 17 |  |
@@ -734,9 +734,9 @@ Arquivo do reverso: `frmRelatorio_Fiacao_Excel.cs` (designer nas linhas 1124-153
 | `btEletrosulA` | Button |  |  | 15 | 30 | 110 | 50 | EletroSul |
 | `lbDesc1` | Label | GroupBox_A_B_D | Descrição 1 | 11 | 19 | 64 | 25 |  |
 | `lbSeparador` | Label | GroupBox_C | Separador | 24 | 72 | 64 | 13 |  |
-| `Label9` | Label | GroupBox_E | lbLinhas por Página | 61 | 147 | 100 | 25 |  |
+| `Label9` | Label | GroupBox_E | Linhas/Página | 61 | 147 | 100 | 25 |  |
 | `btExportaExcelFurnas` | Button | GroupBox_C |  | 300 | 130 | 40 | 43 | ExportaExcel_20 |
-| `rbTerminal` | Label | GroupBox_C | lbTerminal | 155 | 95 | 55 | 13 |  |
+| `rbTerminal` | Label | GroupBox_C | Terminal | 155 | 95 | 55 | 13 |  |
 | `btEletronorteE` | Button |  |  | 131 | 86 | 110 | 50 | eletron |
 | `btExportaEXCELELETROSUL` | Button | GroupBox_A_B_D |  | 307 | 135 | 40 | 45 | ExportaExcel_20 |
 
@@ -747,7 +747,7 @@ Arquivo do reverso: `frmRelatorio_DICemig.cs` (designer nas linhas 954-1396). Cl
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `ProgressBar1` | ProgressBar |  |  | 155 | 334 | 252 | 11 |  |
-| `Label1` | Label |  | Equip. Esquerda | 12 | 434 | 85 | 13 |  |
+| `Label1` | Label |  | Equip.Esquerda | 12 | 434 | 85 | 13 |  |
 | `rb1` | RadioButton | GroupBox1 | 1 | 10 | 19 | 40 | 17 |  |
 | `btEsquerda` | Button | GroupBox5 |  | 4 | 18 | 40 | 42 | DI_Left |
 | `btApagarJumper` | Button | GroupBox4 |  | 37 | 20 | 40 | 42 | Delete_32 |
@@ -876,7 +876,7 @@ Arquivo do reverso: `frmMisturador.cs` (designer nas linhas 418-570). ClientSize
 | `` | Coluna (da rotina de carga) | dgDWG | Página |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgDWG | Caminho |  |  |  |  |  |
 | `tbinicio` | TextBox | GroupBox1 | {oyfFfMFhTy} | 59 | 18 | 52 | 20 |  |
-| `GroupBox1` | GroupBox |  | sFaixa de Paginas | 206 | 9 | 241 | 46 |  |
+| `GroupBox1` | GroupBox |  | Faixa de Páginas | 206 | 9 | 241 | 46 |  |
 | `dgDWG` | DataGridView |  |  | 10 | 64 | 622 | 202 |  |
 | `btBuscaBoudingBox` | Button |  |  | 471 | 12 | 40 | 40 | Selecao32 |
 | `lbFim` | Label | GroupBox1 | Fim | 130 | 20 | 36 | 13 |  |
@@ -892,7 +892,7 @@ Arquivo do reverso: `frmMudaPN.cs` (designer nas linhas 371-508). ClientSize: **
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `tbPainel` | TextBox | GroupBox1 |  | 66 | 103 | 116 | 20 |  |
-| `lbNome1` | Label | GroupBox1 | Nome1 | 7 | 20 | 41 | 13 |  |
+| `lbNome1` | Label | GroupBox1 | Nome 1 | 7 | 20 | 41 | 13 |  |
 | `BTSelecionaDisp` | Button | GroupBox1 |  | 186 | 45 | 40 | 40 | Select_32 |
 | `tbNome1` | TextBox | GroupBox1 |  | 66 | 19 | 116 | 20 |  |
 | `tbNome2` | TextBox | GroupBox1 |  | 66 | 45 | 116 | 20 |  |
@@ -902,9 +902,9 @@ Arquivo do reverso: `frmMudaPN.cs` (designer nas linhas 371-508). ClientSize: **
 | `lbPainel` | Label | GroupBox2 | Painel | 7 | 22 | 36 | 13 |  |
 | `lbAlternativo` | Label | GroupBox1 | Alternativo | 7 | 72 | 57 | 13 |  |
 | `cbPaineis` | ComboBox | GroupBox2 |  | 48 | 19 | 116 | 21 |  |
-| `lbNome2` | Label | GroupBox1 | Nome2 | 7 | 46 | 41 | 13 |  |
-| `GroupBox1` | GroupBox |  | PN Uso | 5 | 12 | 226 | 138 |  |
-| `GroupBox2` | GroupBox |  | Trocar para | 5 | 156 | 226 | 59 |  |
+| `lbNome2` | Label | GroupBox1 | Nome 2 | 7 | 46 | 41 | 13 |  |
+| `GroupBox1` | GroupBox |  | Selecionado  | 5 | 12 | 226 | 138 |  |
+| `GroupBox2` | GroupBox |  | Trocar Para  | 5 | 156 | 226 | 59 |  |
 
 ## frmNavegador - "Navegador Elétron"
 
@@ -917,8 +917,8 @@ Arquivo do reverso: `frmNavegador.cs` (designer nas linhas 436-649). ClientSize:
 | `Terminais` | Coluna (da rotina de carga) | dgBlocos | Terminais |  |  |  |  |  |
 | `Nome1` | Coluna (da rotina de carga) | dgBlocos | Nome1 |  |  |  |  |  |
 | `tbAlternativo` | TextBox |  |  | 468 | 388 | 129 | 20 |  |
-| `CKPrincipal` | CheckBox |  | Principal | 12 | 321 | 66 | 17 |  |
-| `CKMascaras` | CheckBox |  | Mascaras | 12 | 344 | 72 | 17 |  |
+| `CKPrincipal` | CheckBox |  | Dispositivo Principal | 12 | 321 | 66 | 17 |  |
+| `CKMascaras` | CheckBox |  | Máscara | 12 | 344 | 72 | 17 |  |
 | `PN` | Coluna (da rotina de carga) | dgBlocos | PN |  |  |  |  |  |
 | `Potencial` | Coluna (da rotina de carga) | dgBlocos | Potencial |  |  |  |  |  |
 | `X` | Coluna (da rotina de carga) | dgBlocos | X |  |  |  |  |  |
@@ -929,7 +929,7 @@ Arquivo do reverso: `frmNavegador.cs` (designer nas linhas 436-649). ClientSize:
 | `Bloco` | Coluna (da rotina de carga) | dgBlocos | Bloco |  |  |  |  |  |
 | `lbNome1` | Label |  | Nome 1 | 382 | 321 | 80 | 20 |  |
 | `tbNome2` | TextBox |  |  | 468 | 356 | 129 | 20 |  |
-| `CKAuxiliar` | CheckBox |  | Auxiliares | 160 | 320 | 70 | 17 |  |
+| `CKAuxiliar` | CheckBox |  | Contatos Auxiliares | 160 | 320 | 70 | 17 |  |
 | `BtApaga` | Button |  |  | 336 | 344 | 40 | 40 | Delete_32 |
 | `lbAlternativo` | Label |  | Alternativo | 382 | 387 | 80 | 20 |  |
 | `btPesquisa` | Button |  |  | 637 | 331 | 40 | 40 | Pesquisar_32 |
@@ -997,7 +997,7 @@ Arquivo do reverso: `frmRelatorio_AnilhasCabos.cs` (designer nas linhas 841-1279
 | `rb4` | RadioButton | GroupBox1 |  | 185 | 99 | 14 | 13 |  |
 | `GroupBox1` | GroupBox |  | Formato das Anilhas | 12 | 218 | 214 | 243 |  |
 | `rb7` | RadioButton | GroupBox1 |  | 185 | 153 | 14 | 13 |  |
-| `GroupBox2` | GroupBox |  | Veias Reserva | 13 | 464 | 153 | 41 |  |
+| `GroupBox2` | GroupBox |  | Veias Reservas | 13 | 464 | 153 | 41 |  |
 | `dgEquip` | DataGridView |  |  | 13 | 110 | 214 | 103 |  |
 | `btMoveDireita` | Button |  |  | 263 | 466 | 40 | 40 | AtribuirEsq_32 |
 | `PictureBox1` | PictureBox | GroupBox1 |  | 6 | 15 | 173 | 174 | PadraoAnilhasCabos |
@@ -1015,7 +1015,7 @@ Arquivo do reverso: `frmRelatorio_Aranha.cs` (designer nas linhas 970-1422). Cli
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `ProgressBar1` | ProgressBar |  |  | 155 | 338 | 252 | 11 |  |
-| `Label1` | Label |  | Equip. Esquerda | 12 | 434 | 85 | 13 |  |
+| `Label1` | Label |  | Equip.Esquerda | 12 | 434 | 85 | 13 |  |
 | `rb1` | RadioButton | GroupBox1 | 1 | 10 | 19 | 40 | 17 |  |
 | `btEsquerda` | Button | GroupBox5 |  | 4 | 18 | 40 | 42 | DI_Left |
 | `btApagarJumper` | Button | GroupBox4 |  | 37 | 20 | 40 | 42 | Delete_32 |
@@ -1066,107 +1066,100 @@ Arquivo do reverso: `frmRelatorio_Cabos.cs` (designer nas linhas 1079-1542). Cli
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 48].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 49].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1670].ToString().ToUpper()} |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Aplicação |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Percurso |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Cabo |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Comp |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | # |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1083].ToString().ToUpper()... |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | PARA |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | OBS. |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | DE |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1669].ToString().ToUpper()... |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1246].ToString().ToUpper()... |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1285].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1445].ToString().ToUpper()... |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1445].ToString().ToUpper()... |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1241].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1242].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1244].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Percurso |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Blindagem |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Comprimento |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Trajeto |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Aterrar |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Origem |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Destino |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | # |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Cabo |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Aplicação |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Usado |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgCabos | Livre |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Comp |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | BITOLA (mm²) |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | TOTAL CABO |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | OCUPADOS |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | PONTO DE PARTIDA |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | PONTO FINAL |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | COMPRIMENTO APROXIMADO (m) |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {"Nº " + DeclaracoesGeral.mMensagem[1, 1288].ToString().T... |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1669].ToString().ToUpper()... |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1246].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | TIPO |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | OBSERVAÇÕES |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | ORDEM |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | FINALIDADE |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | COMP. (m) |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Nº FUNCIONAL |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | FOLHA |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1800].ToString().ToUpper()... |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1802].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1803].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | OBS. |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | ETAPA / AMPL. |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | NÚMERO DO CABO |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Aterrar (Origem) |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Aterrar (Destino) |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | REV |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgCabos | Função |  |  |  |  |  |
-| `Label12` | Label | GroupBox5 | lData | 53 | 13 | 32 | 13 |  |
-| `Label13` | Label | GroupBox5 | lExec. | 140 | 13 | 36 | 13 |  |
-| `btPrimeiro` | Button |  |  | 251 | 576 | 23 | 23 | Primeiro_16 |
-| `GroupBox3` | GroupBox |  | Configuração | 6 | 395 | 212 | 55 |  |
-| `GroupBox4` | GroupBox |  | Configuração | 6 | 454 | 212 | 101 |  |
-| `btExportaDWG` | Button |  |  | 85 | 557 | 40 | 42 | btExportaDWG |
-| `BTY` | Button | GroupBox3 |  | 52 | 12 | 40 | 40 | Altura |
-| `tbTit1` | TextBox | GroupBox4 |  | 9 | 21 | 193 | 20 |  |
-| `CKApenasCabosUsados` | RadioButton | GroupBox6 | Cabos Usados | 12 | 37 | 141 | 17 |  |
-| `dgEquip` | DataGridView |  |  | 224 | 12 | 206 | 554 |  |
-| `btUltimo` | Button |  |  | 369 | 576 | 23 | 23 | Ultimo_16 |
-| `tbData` | TextBox | GroupBox5 |  | 56 | 29 | 81 | 20 |  |
-| `cbTrajeto` | CheckBox | GroupBox2 | Trajeto | 111 | 10 | 71 | 17 |  |
-| `GroupBox1` | GroupBox |  | Padrão | 12 | 305 | 206 | 52 |  |
-| `GroupBox6` | GroupBox |  | gbMostrar | 12 | 243 | 206 | 60 |  |
-| `CKApenasTodosCabos` | RadioButton | GroupBox6 | Todos os Cabos | 12 | 17 | 135 | 17 |  |
-| `tbRev` | TextBox | GroupBox5 |  | 6 | 29 | 44 | 20 |  |
-| `dgRevisao` | DataGridView |  |  | 12 | 12 | 206 | 227 |  |
-| `dgCabos` | DataGridView |  |  | 436 | 12 | 436 | 574 |  |
-| `GroupBox2` | GroupBox |  |  | 12 | 359 | 206 | 31 |  |
-| `btApagar` | Button |  |  | 159 | 557 | 40 | 42 | Delete_32 |
-| `tbTamanhoFonte` | TextBox | GroupBox3 | {1.9} | 110 | 29 | 62 | 20 |  |
-| `btBaixo` | Button |  |  | 330 | 576 | 23 | 23 | Baixo_16 |
-| `Label14` | Label | GroupBox5 | lDesc | 3 | 54 | 34 | 13 |  |
-| `btPesquisar` | Button |  |  | 16 | 557 | 40 | 42 | Pesquisar_32 |
-| `btCima` | Button |  |  | 290 | 576 | 23 | 23 | Cima_16 |
-| `` | Coluna (da rotina de carga) | dgRevisao | Revisão |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgRevisao | Criador |  |  |  |  |  |
-| `Label2` | Label | GroupBox3 | Altura do Fonte | 110 | 10 | 39 | 13 |  |
-| `tbInicioY` | TextBox | GroupBox3 | {RH.Pti.Y - 5.0} | 9 | 29 | 45 | 20 |  |
-| `tbDesc` | TextBox | GroupBox5 |  | 6 | 73 | 199 | 20 |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Aterrar |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Formação |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgEquip | ORDEM |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgCabos | Tag |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgCabos | Formação |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgRevisao | Data |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Origem |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Trajeto |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Usado |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Comprimento |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Destino |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Blindagem |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1445].ToString().ToUpper()... |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | COMPRIMENTO APROXIMADO (m) |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | BITOLA (mm²) |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | PONTO FINAL |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | FINALIDADE |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | PONTO DE PARTIDA |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | TOTAL CABO |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | {"Nº " + DeclaracoesGeral.mMensagem[1, 1288].ToString().T... |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1669].ToString().ToUpper()... |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | ORDEM |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | OCUPADOS |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | TIPO |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | NÚMERO DO CABO |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | OBSERVAÇÕES |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | COMP. (m) |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | BLINDADO |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1445].ToString().ToUpper()... |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | {DeclaracoesGeral.mMensagem[1, 1800].ToString().ToUpper()... |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Nº FUNCIONAL |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | REV |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | ETAPA / AMPL. |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Aterrar (Destino) |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | FOLHA |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgCabos | Aterrar (Origem) |  |  |  |  |  |
+| `btExportaDWG` | Button |  |  | 85 | 557 | 40 | 42 | btExportaDWG |
+| `Label12` | Label | GroupBox5 | Data | 53 | 13 | 32 | 13 |  |
+| `GroupBox4` | GroupBox |  | Títulos | 6 | 454 | 212 | 101 |  |
+| `cbTrajeto` | CheckBox | GroupBox2 | Trajeto | 111 | 10 | 71 | 17 |  |
+| `GroupBox3` | GroupBox |  | Configuração | 6 | 395 | 212 | 55 |  |
+| `Label13` | Label | GroupBox5 | Aprovador | 140 | 13 | 36 | 13 |  |
+| `tbData` | TextBox | GroupBox5 |  | 56 | 29 | 81 | 20 |  |
+| `BTY` | Button | GroupBox3 |  | 52 | 12 | 40 | 40 | Altura |
+| `btUltimo` | Button |  |  | 369 | 576 | 23 | 23 | Ultimo_16 |
+| `btPrimeiro` | Button |  |  | 251 | 576 | 23 | 23 | Primeiro_16 |
+| `dgEquip` | DataGridView |  |  | 224 | 12 | 206 | 554 |  |
+| `tbTamanhoFonte` | TextBox | GroupBox3 | {1.9} | 110 | 29 | 62 | 20 |  |
+| `GroupBox1` | GroupBox |  | Padrão | 12 | 305 | 206 | 52 |  |
+| `GroupBox6` | GroupBox |  |  Mostrar | 12 | 243 | 206 | 60 |  |
+| `dgCabos` | DataGridView |  |  | 436 | 12 | 436 | 574 |  |
+| `tbRev` | TextBox | GroupBox5 |  | 6 | 29 | 44 | 20 |  |
+| `dgRevisao` | DataGridView |  |  | 12 | 12 | 206 | 227 |  |
+| `CKApenasTodosCabos` | RadioButton | GroupBox6 | Todos os Cabos | 12 | 17 | 135 | 17 |  |
+| `GroupBox2` | GroupBox |  |  | 12 | 359 | 206 | 31 |  |
+| `btApagar` | Button |  |  | 159 | 557 | 40 | 42 | Delete_32 |
+| `btPesquisar` | Button |  |  | 16 | 557 | 40 | 42 | Pesquisar_32 |
+| `btBaixo` | Button |  |  | 330 | 576 | 23 | 23 | Baixo_16 |
+| `Label14` | Label | GroupBox5 | Descrição | 3 | 54 | 34 | 13 |  |
+| `tbTit1` | TextBox | GroupBox4 |  | 9 | 21 | 193 | 20 |  |
+| `tbInicioY` | TextBox | GroupBox3 | {RH.Pti.Y - 5.0} | 9 | 29 | 45 | 20 |  |
+| `tbDesc` | TextBox | GroupBox5 |  | 6 | 73 | 199 | 20 |  |
+| `Label2` | Label | GroupBox3 | Altura do Fonte | 110 | 10 | 39 | 13 |  |
+| `Label1` | Label |  | {Conversions.ToString(num) + " "}Cabos | 755 | 589 | 117 | 20 |  |
+| `tbExec` | TextBox | GroupBox5 |  | 143 | 29 | 62 | 20 |  |
+| `btCima` | Button |  |  | 290 | 576 | 23 | 23 | Cima_16 |
 | `` | Coluna (da rotina de carga) | dgEquip | Indice |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgEquip | Equipamentos  Painéis |  |  |  |  |  |
-| `tbExec` | TextBox | GroupBox5 |  | 143 | 29 | 62 | 20 |  |
-| `GroupBox5` | GroupBox |  | Configuração | 237 | 455 | 212 | 101 |  |
-| `cbComprimento` | CheckBox | GroupBox2 | Comprimento | 6 | 10 | 99 | 17 |  |
-| `CKRepeteOsCabos` | RadioButton | GroupBox7 | Sim | 18 | 29 | 42 | 17 |  |
-| `cbTipoRel` | ComboBox | GroupBox1 |  | 12 | 19 | 183 | 21 |  |
-| `Label11` | Label | GroupBox5 | lRev | 6 | 13 | 29 | 13 |  |
-| `tbTit2` | TextBox | GroupBox4 |  | 9 | 47 | 193 | 20 |  |
-| `CKNaoRepeteOsCabos` | RadioButton | GroupBox7 | Não | 18 | 62 | 45 | 17 |  |
+| `` | Coluna (da rotina de carga) | dgRevisao | Data |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgRevisao | Revisão |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgRevisao | Criador |  |  |  |  |  |
 | `btExportaEXCEL` | Button |  |  | 159 | 557 | 40 | 42 | ExportaExcel_20 |
-| `Label1` | Label |  | Total | 755 | 589 | 117 | 20 |  |
-| `GroupBox7` | GroupBox |  | Repetir Cabos em Equipamentos | 474 | 455 | 212 | 101 |  |
-| `tbTit3` | TextBox | GroupBox4 | LISTA DE CABOS | 9 | 73 | 193 | 20 |  |
+| `tbTit2` | TextBox | GroupBox4 |  | 9 | 47 | 193 | 20 |  |
+| `GroupBox5` | GroupBox |  | Configuração | 237 | 455 | 212 | 101 |  |
+| `Label11` | Label | GroupBox5 | REV | 6 | 13 | 29 | 13 |  |
+| `CKApenasCabosUsados` | RadioButton | GroupBox6 | Cabos Usados | 12 | 37 | 141 | 17 |  |
+| `cbTipoRel` | ComboBox | GroupBox1 |  | 12 | 19 | 183 | 21 |  |
+| `cbComprimento` | CheckBox | GroupBox2 | Comprimento | 6 | 10 | 99 | 17 |  |
 | `btModeloEletrosul` | Button |  |  | 85 | 557 | 40 | 42 | ModeloExcel_32 |
+| `CKNaoRepeteOsCabos` | RadioButton | GroupBox7 | Não | 18 | 62 | 45 | 17 |  |
+| `tbTit3` | TextBox | GroupBox4 | LISTA DE CABOS | 9 | 73 | 193 | 20 |  |
+| `CKRepeteOsCabos` | RadioButton | GroupBox7 | Sim | 18 | 29 | 42 | 17 |  |
+| `GroupBox7` | GroupBox |  | Repetir Cabos em Equipamentos | 474 | 455 | 212 | 101 |  |
 
 ## frmRelatorio_Anilhas - "Relatório de Anilhas"
 
@@ -1213,7 +1206,7 @@ Arquivo do reverso: `frmRelatorio_Anilhas.cs` (designer nas linhas 793-1207). Cl
 | `dgEquip` | DataGridView |  |  | 108 | 129 | 135 | 105 |  |
 | `cbSecaoCor` | CheckBox |  | Seção e Cor | 10 | 596 | 85 | 17 |  |
 | `rbV` | RadioButton | GroupBox1 | Vazio | 6 | 19 | 41 | 17 |  |
-| `cbJumper` | CheckBox |  | Jumper | 10 | 552 | 60 | 17 |  |
+| `cbJumper` | CheckBox |  | Jumpers | 10 | 552 | 60 | 17 |  |
 | `GroupBox3` | GroupBox |  | Delimitadores | 12 | 467 | 231 | 57 |  |
 | `rb2` | RadioButton | GroupBox2 |  | 199 | 91 | 14 | 13 |  |
 | `dgFiacao` | DataGridView |  |  | 249 | 12 | 573 | 617 |  |
@@ -1226,7 +1219,8 @@ Arquivo do reverso: `frmPlaquetas.cs` (designer nas linhas 732-1056). ClientSize
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `TBStatus` | TextBox |  | Modelo:\r\nELÉTRON ASC: 1, 2, 3, A ,B, C... |  ELÉTRON DE... | 256 | 546 | 667 | 40 |  |
+| `TBStatus` | TextBox |  | Modelo:
+ELÉTRON ASC: 1, 2, 3, A ,B, C... |  ELÉTRON DESC... | 256 | 546 | 667 | 40 |  |
 | `btInserirAlternativo` | Button |  |  | 118 | 544 | 40 | 42 | btInserirAlternativo |
 | `lbPara` | Label | GroupBox3 | PARA | 6 | 55 | 71 | 17 |  |
 | `` | Coluna (da rotina de carga) | dgEquip | Equipamentos/Painéis |  |  |  |  |  |
@@ -1249,7 +1243,7 @@ Arquivo do reverso: `frmPlaquetas.cs` (designer nas linhas 732-1056). ClientSize
 | `tbValorAdd` | TextBox | GroupBox2 |  | 4 | 23 | 70 | 20 |  |
 | `lbDe` | Label | GroupBox3 | DE | 6 | 10 | 71 | 17 |  |
 | `btPesquisar` | Button |  |  | 204 | 333 | 40 | 42 | Pesquisar_32 |
-| `GroupBox5` | GroupBox |  | {DeclaracoesGeral.mMensagem[1, 1890].ToString().ToUpper()} | 134 | 384 | 116 | 55 |  |
+| `GroupBox5` | GroupBox |  | EXTRA | 134 | 384 | 116 | 55 |  |
 | `GroupBox2` | GroupBox |  | Adicionar Texto | 12 | 384 | 116 | 55 |  |
 | `dgPlaquetas` | DataGridView |  |  | 256 | 12 | 667 | 529 |  |
 | `btSalvar` | Button |  |  | 205 | 543 | 45 | 43 | btSalvar |
@@ -1274,8 +1268,8 @@ Arquivo do reverso: `frmPortas.cs` (designer nas linhas 578-810). ClientSize: **
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `dgBlocos` | DataGridView |  |  | 228 | 171 | 247 | 222 |  |
-| `CKNomeVisivel` | CheckBox |  | CKNomeVisível | 75 | 430 | 100 | 17 |  |
-| `LBDistancia` | Label | GroupBox1 | LBDistância | 75 | 42 | 100 | 17 |  |
+| `CKNomeVisivel` | CheckBox |  | Nome Visível | 75 | 430 | 100 | 17 |  |
+| `LBDistancia` | Label | GroupBox1 | Distância | 75 | 42 | 100 | 17 |  |
 | `btInserir` | Button |  |  | 426 | 430 | 40 | 40 | OK_32 |
 | `iDWG` | PictureBox |  |  | 228 | 13 | 247 | 129 |  |
 | `tbDy` | TextBox | GroupBox1 | 0 | 138 | 63 | 37 | 20 |  |
@@ -1288,10 +1282,10 @@ Arquivo do reverso: `frmPortas.cs` (designer nas linhas 578-810). ClientSize: **
 | `Label2` | Label | GroupBox1 | Y | 121 | 67 | 14 | 13 |  |
 | `TBPesquisa` | TextBox |  |  | 93 | 9 | 129 | 20 |  |
 | `tbDx` | TextBox | GroupBox1 | 40 | 75 | 63 | 37 | 20 |  |
-| `LbQuantidade` | Label | GroupBox1 | LbInserir | 2 | 42 | 63 | 17 |  |
+| `LbQuantidade` | Label | GroupBox1 | Quantidade | 2 | 42 | 63 | 17 |  |
 | `TBPesquisaBlocos` | TextBox |  |  | 315 | 145 | 160 | 20 |  |
 | `dgMascaras` | DataGridView |  |  | 6 | 39 | 216 | 354 |  |
-| `GroupBox1` | GroupBox |  | Inserção Múltipla | 228 | 399 | 181 | 93 |  |
+| `GroupBox1` | GroupBox |  | Múltipla Inserção | 228 | 399 | 181 | 93 |  |
 | `CKAlternativo` | CheckBox |  | Alternativo Visível | 75 | 454 | 90 | 17 |  |
 
 ## frmPositivoInterno - "Positivo Interno"
@@ -1357,7 +1351,7 @@ Arquivo do reverso: `frmRelatorio_Interligacao.cs` (designer nas linhas 782-1141
 | `dgRevisao` | DataGridView |  |  | 12 | 12 | 336 | 133 |  |
 | `BTSalvarOrdem` | Button |  |  | 328 | 151 | 20 | 20 | Salvar_16 |
 | `rbGrafico` | RadioButton | GroupBox1 | Gráfico | 14 | 19 | 68 | 17 |  |
-| `cbReserva` | CheckBox | GBOpcionais | cbVReserva | 6 | 96 | 85 | 17 |  |
+| `cbReserva` | CheckBox | GBOpcionais | Veias Reservas | 6 | 96 | 85 | 17 |  |
 | `GroupBox1` | GroupBox |  | Jumper Externo | 12 | 518 | 152 | 73 |  |
 | `dgInterlig` | DataGridView |  |  | 354 | 12 | 656 | 583 |  |
 | `tbPesquisa` | TextBox |  |  | 12 | 151 | 155 | 20 |  |
@@ -1393,21 +1387,21 @@ Arquivo do reverso: `frmTextoLP.cs` (designer nas linhas 1245-1674). ClientSize:
 | `C_XMin` | Label | GBColuna | X Min | 3 | 51 | 44 | 13 |  |
 | `C_TBFonte` | TextBox | GBColuna | {DeclaracoesGeral.Conf.FonteCircuito} | 6 | 26 | 133 | 20 |  |
 | `GBVertical` | GroupBox |  |  | 373 | 11 | 190 | 190 |  |
-| `RBColuna` | RadioButton | GBGeral | rbListaColuna | 6 | 136 | 89 | 17 |  |
+| `RBColuna` | RadioButton | GBGeral | Coluna | 6 | 136 | 89 | 17 |  |
 | `H_BTY` | Button | GBHorizontal |  | 144 | 95 | 40 | 40 | Altura |
-| `C_LBFonte` | Label | GBColuna | LBFonte | 6 | 10 | 47 | 13 |  |
+| `C_LBFonte` | Label | GBColuna | Altura Fonte | 6 | 10 | 47 | 13 |  |
 | `V_BTSelecionaPortas` | Button | GBVertical |  | 52 | 147 | 40 | 40 | AtribuirPortas_32 |
 | `H_tbFonte` | TextBox | GBHorizontal | {dTexto} | 78 | 26 | 61 | 20 |  |
-| `CB_3_MultiLinhas` | CheckBox | GBGeral | cbMulti Linhas | 28 | 162 | 94 | 17 |  |
-| `H_LBDistLinha` | Label | GBHorizontal | LBDistLinha | 3 | 10 | 64 | 13 |  |
+| `CB_3_MultiLinhas` | CheckBox | GBGeral | Multitexto | 28 | 162 | 94 | 17 |  |
+| `H_LBDistLinha` | Label | GBHorizontal | Dist. Linha | 3 | 10 | 64 | 13 |  |
 | `RBVertical` | RadioButton | GBGeral | Vertical | 6 | 82 | 75 | 17 |  |
 | `TB_V_Min` | TextBox | GBVertical |  | 6 | 106 | 132 | 20 |  |
 | `C_XMax` | Label | GBColuna | X Max | 3 | 90 | 47 | 13 |  |
-| `V_LBFonte` | Label | GBVertical | LBFonte | 6 | 10 | 47 | 13 |  |
+| `V_LBFonte` | Label | GBVertical | Altura Fonte | 6 | 10 | 47 | 13 |  |
 | `H_LBLargura` | Label | GBHorizontal | Largura | 3 | 51 | 70 | 13 |  |
 | `C_BTYMax` | Button | GBColuna |  | 144 | 95 | 40 | 40 | LarguraMax |
 | `V_BTSelecionaDefinicoes` | Button | GBVertical |  | 6 | 147 | 40 | 40 | AtribuirDefinicao_32 |
-| `H_LBFonte` | Label | GBHorizontal | LBFonte | 75 | 10 | 47 | 13 |  |
+| `H_LBFonte` | Label | GBHorizontal | Altura Fonte | 75 | 10 | 47 | 13 |  |
 | `H_BTApaga` | Button | GBHorizontal |  | 98 | 147 | 40 | 40 | Delete_32 |
 | `H_tbDistLinha` | TextBox | GBHorizontal | {dLinha} | 6 | 26 | 61 | 20 |  |
 | `V_YMin` | Label | GBVertical | Y Min | 3 | 90 | 44 | 13 |  |
@@ -1418,11 +1412,11 @@ Arquivo do reverso: `frmTextoLP.cs` (designer nas linhas 1245-1674). ClientSize:
 | `C_BTYMin` | Button | GBColuna |  | 144 | 56 | 40 | 40 | Largura |
 | `V_TBFonte` | TextBox | GBVertical | {DeclaracoesGeral.Conf.FonteCircuito} | 6 | 26 | 133 | 20 |  |
 | `Y_BTYMax` | Button | GBVertical |  | 144 | 52 | 40 | 40 | AlturaMax |
-| `CB_2_MultiLinhas` | CheckBox | GBGeral | cbMulti Linhas | 28 | 106 | 94 | 17 |  |
+| `CB_2_MultiLinhas` | CheckBox | GBGeral | Multitexto | 28 | 106 | 94 | 17 |  |
 | `TB_C_XMin` | TextBox | GBColuna |  | 6 | 67 | 132 | 20 |  |
 | `H_tbOrdenada` | TextBox | GBHorizontal |  | 6 | 106 | 132 | 20 |  |
 | `H_BTInserir` | Button | GBHorizontal |  | 144 | 147 | 40 | 40 | Adiciona_32 |
-| `CB_1_Linhas` | CheckBox | GBGeral | cbAdiciona Linhas | 28 | 52 | 113 | 17 |  |
+| `CB_1_Linhas` | CheckBox | GBGeral | Inserir Linha | 28 | 52 | 113 | 17 |  |
 | `C_BTInserir` | Button | GBColuna |  | 144 | 147 | 40 | 40 | Adiciona_32 |
 | `V_BTApaga` | Button | GBVertical |  | 98 | 147 | 40 | 40 | Delete_32 |
 | `GBHorizontal` | GroupBox |  |  | 177 | 11 | 190 | 190 |  |
@@ -1447,7 +1441,7 @@ Arquivo do reverso: `frmTopografico.cs` (designer nas linhas 1403-2070). ClientS
 | `dgBornes` | DataGridView |  |  | 436 | 473 | 88 | 131 |  |
 | `DGDisp` | DataGridView |  |  | 241 | 193 | 189 | 411 |  |
 | `cbSecao` | ComboBox | GroupBox7 |  | 10 | 28 | 78 | 21 |  |
-| `GroupBox8` | GroupBox |  | _Borne Duplo | 436 | 344 | 88 | 123 |  |
+| `GroupBox8` | GroupBox |  | Borne Duplo | 436 | 344 | 88 | 123 |  |
 | `GroupBox7` | GroupBox |  | Seção + Cor | 12 | 542 | 172 | 62 |  |
 | `PictureBox5` | PictureBox | GroupBox3 |  | 28 | 20 | 186 | 30 | FormatoAnilhas |
 | `GroupBox2` | GroupBox |  | Tipo de Cruzamento | 12 | 111 | 223 | 205 |  |
@@ -1526,7 +1520,7 @@ Arquivo do reverso: `frmSequenciadorJumper.cs` (designer nas linhas 331-532). Cl
 | `` | Coluna (da rotina de carga) | dgSeq | Terminal |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgSeq | Tag |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgSeq | Réguas |  |  |  |  |  |
-| `cbNumConexoes` | CheckBox |  | CheckBox1 | 188 | 372 | 81 | 17 |  |
+| `cbNumConexoes` | CheckBox |  | 3 ou mais terminais | 188 | 372 | 81 | 17 |  |
 | `lblCor` | Label |  | lblCor | 495 | 358 | 47 | 18 |  |
 | `dgSeq` | DataGridView |  |  | 480 | 12 | 242 | 318 |  |
 | `dgEquip` | DataGridView |  |  | 12 | 80 | 155 | 309 |  |
@@ -1566,7 +1560,7 @@ Arquivo do reverso: `frmRelatorio_VeiasCopel.cs` (designer nas linhas 467-709). 
 | `tbOrdenadaY` | TextBox |  | {25} | 154 | 581 | 47 | 20 |  |
 | `dgVeias` | DataGridView |  |  | 255 | 12 | 617 | 642 |  |
 | `CBComprimento` | CheckBox | GroupBox1 | Comprimento | 7 | 36 | 101 | 17 |  |
-| `GroupBox1` | GroupBox |  | gbMostrar | 12 | 510 | 175 | 59 |  |
+| `GroupBox1` | GroupBox |  |  Mostrar | 12 | 510 | 175 | 59 |  |
 | `dgEquip` | DataGridView |  |  | 12 | 181 | 237 | 185 |  |
 | `dgTag` | DataGridView |  |  | 12 | 372 | 237 | 132 |  |
 | `lPTIni` | Label |  | Ponto inicial do Relatório | 12 | 584 | 124 | 13 |  |
@@ -1599,7 +1593,7 @@ Arquivo do reverso: `frmRevisaoAutomatica.cs` (designer nas linhas 585-804). Cli
 | `dgRevisoes` | DataGridView | GroupBox2 |  | 6 | 13 | 102 | 167 |  |
 | `tbRaio` | TextBox | GroupBox3 | 5 | 8 | 29 | 90 | 20 |  |
 | `lbRevisao` | Label | GroupBox1 | Revisão | 5 | 7 | 65 | 19 |  |
-| `ckEditaRevSimp` | CheckBox |  | ckPreencher Revisão | 6 | 169 | 129 | 17 |  |
+| `ckEditaRevSimp` | CheckBox |  | Editar Revisão Simplificada | 6 | 169 | 129 | 17 |  |
 | `lbRaio` | Label | GroupBox3 | Raio | 5 | 7 | 40 | 19 |  |
 | `GroupBox1` | GroupBox |  |  | 6 | 7 | 200 | 70 |  |
 | `btCorBloco` | Button | GroupBox1 |  | 76 | 29 | 26 | 25 |  |
@@ -1627,8 +1621,8 @@ Arquivo do reverso: `frmSequenciador.cs` (designer nas linhas 489-737). ClientSi
 | `dgRevisao` | DataGridView |  |  | 12 | 12 | 355 | 175 |  |
 | `dgDisp` | DataGridView |  |  | 173 | 193 | 194 | 347 |  |
 | `dgSeq` | DataGridView |  |  | 480 | 12 | 314 | 500 |  |
-| `cbNumConexoes` | CheckBox |  | CheckBox1 | 188 | 554 | 81 | 17 |  |
-| `CKMulti` | CheckBox |  | CheckBox1 | 480 | 517 | 81 | 17 |  |
+| `cbNumConexoes` | CheckBox |  | 3 ou mais terminais | 188 | 554 | 81 | 17 |  |
+| `CKMulti` | CheckBox |  | Multiseleção | 480 | 517 | 81 | 17 |  |
 | `dgEquip` | DataGridView |  |  | 12 | 193 | 155 | 378 |  |
 | `btPrimeiro` | Button |  |  | 801 | 202 | 23 | 23 | Primeiro_16 |
 | `lblCor` | Label |  | lblCor | 495 | 555 | 47 | 18 |  |
@@ -1752,7 +1746,7 @@ Arquivo do reverso: `frmVerificadorProjetoFiacao.cs` (designer nas linhas 1492-2
 | `GroupBox13` | GroupBox |  | Modelos de Réguas com erros | 370 | 403 | 83 | 47 |  |
 | `bt12AMao` | Button |  | Cópia feita à mão | 297 | 116 | 115 | 23 |  |
 | `bt10BornesLM` | Button |  | Bornes sem LM | 179 | 90 | 115 | 23 |  |
-| `bt14PortasDiscrepantes` | Button |  | bt14Discrepantes | 415 | 90 | 115 | 23 |  |
+| `bt14PortasDiscrepantes` | Button |  | Portas Discrepantes | 415 | 90 | 115 | 23 |  |
 | `bt4Auxiliar` | Button |  | Contatos Auxiliares | 179 | 38 | 115 | 23 |  |
 | `GroupBox14` | GroupBox |  | Portas Discrepantes | 458 | 242 | 83 | 85 |  |
 | `dgTerminais` | DataGridView | GroupBox5 |  | 3 | 18 | 77 | 18 |  |
@@ -1760,7 +1754,7 @@ Arquivo do reverso: `frmVerificadorProjetoFiacao.cs` (designer nas linhas 1492-2
 | `bt13ReguaMascara` | Button |  | Modelos de Réguas | 297 | 64 | 115 | 23 |  |
 | `TreeView1` | TreeView | GroupBox1 |  | 3 | 19 | 138 | 243 |  |
 | `dgReguasSemUso` | DataGridView | GroupBox6 |  | 3 | 18 | 77 | 19 |  |
-| `bt1Fiacao` | Button |  | 1Fiação | 179 | 12 | 115 | 23 |  |
+| `bt1Fiacao` | Button |  | Fiação | 179 | 12 | 115 | 23 |  |
 | `bt6Portas` | Button |  | Bornes de Máscara | 415 | 38 | 115 | 23 |  |
 | `btMostraErroFiação` | Button | GroupBoxFiacao |  | 6 | 18 | 40 | 40 | Liga_32 |
 | `bt2Orfao` | Button |  | Derivações Orfãs | 297 | 12 | 115 | 23 |  |
@@ -1791,11 +1785,11 @@ Arquivo do reverso: `frmVerificadorProjetoInterligacao.cs` (designer nas linhas 
 | `BT14CabosFaltantes` | Button |  | Cabos Apagados | 245 | 90 | 115 | 23 |  |
 | `dgBornes` | DataGridView | GroupBox8 |  | 3 | 18 | 74 | 13 |  |
 | `dgTerminais` | DataGridView | GroupBox5 |  | 3 | 18 | 74 | 13 |  |
-| `LBPNDes` | Label | GroupBox13 | Equip. de Desenho | 85 | 15 | 112 | 15 |  |
+| `LBPNDes` | Label | GroupBox13 | Equip. DWG | 85 | 15 | 112 | 15 |  |
 | `bt5Terminais` | Button |  | Terminais | 127 | 12 | 115 | 23 |  |
 | `GroupBox5` | GroupBox |  | Terminais | 424 | 123 | 80 | 37 |  |
 | `ERRO` | Coluna (da rotina de carga) | dgAMao | Cópia feita à mão |  |  |  |  |  |
-| `BTCorrigirDiscrepante` | Button | GroupBox13 | Corrigir | 115 | 33 | 116 | 35 |  |
+| `BTCorrigirDiscrepante` | Button | GroupBox13 | Corrigir DWG | 115 | 33 | 116 | 35 |  |
 | `bt12AMao` | Button |  | Cópia feita à mão | 9 | 90 | 115 | 23 |  |
 | `btOcultaErroJumper` | Button | GroupBoxJumper |  | 46 | 18 | 40 | 40 | Desliga_32 |
 | `CABO` | Coluna (da rotina de carga) | DGCabosDoBanco | Cabos |  |  |  |  |  |
@@ -1830,12 +1824,12 @@ Arquivo do reverso: `frmVerificadorProjetoInterligacao.cs` (designer nas linhas 
 | `GBEX` | GroupBox |  | GBEX | 11 | 123 | 349 | 338 |  |
 | `TreeView1` | TreeView | GB1Interligacao |  | 6 | 19 | 334 | 248 |  |
 | `btCarrega` | Button | GBAtualiza | 0 | 16 | 16 | 40 | 40 | Pesquisar_32 |
-| `LBPNCadastro` | Label | GroupBox13 | Equip. de Cadastro | 212 | 15 | 111 | 15 |  |
+| `LBPNCadastro` | Label | GroupBox13 | Equip. BD Projeto | 212 | 15 | 111 | 15 |  |
 | `dgReguasSemUso` | DataGridView | GroupBox6 |  | 3 | 18 | 74 | 13 |  |
 | `bt15ReguaMascara` | Button |  | Modelos de Réguas | 127 | 38 | 115 | 23 |  |
 | `bt11Paineis` | Button |  | Equip.Apagados | 245 | 64 | 115 | 23 |  |
 | `GroupBox14` | GroupBox |  | Cabos no DWG mas apagados do BD | 594 | 198 | 124 | 80 |  |
-| `bt1Interligacao` | Button |  | bt1Interlig | 9 | 12 | 115 | 23 |  |
+| `bt1Interligacao` | Button |  | Veias e Jumpers | 9 | 12 | 115 | 23 |  |
 | `bt9Discrepantes` | Button |  | Bornes Inválidos | 127 | 64 | 115 | 23 |  |
 | `btCorDoErroJ` | Button | GroupBoxJumper |  | 92 | 28 | 23 | 20 |  |
 | `DGDiscrepantes` | DataGridView | GroupBox13 |  | 4 | 17 | 343 | 11 |  |
@@ -1843,11 +1837,11 @@ Arquivo do reverso: `frmVerificadorProjetoInterligacao.cs` (designer nas linhas 
 | `TreeViewBornesLM` | TreeView | GroupBox10 |  | 3 | 18 | 74 | 13 |  |
 | `GroupBox15` | GroupBox |  | Modelos de Réguas com erros | 426 | 237 | 80 | 37 |  |
 | `dgAMao` | DataGridView | GroupBox12 |  | 4 | 17 | 74 | 13 |  |
-| `GB1Interligacao` | GroupBox |  | GBInter | 12 | 188 | 347 | 273 |  |
+| `GB1Interligacao` | GroupBox |  | Interligação | 12 | 188 | 347 | 273 |  |
 | `GroupBox13` | GroupBox |  | Cabos Discrepantes | 419 | 272 | 349 | 76 |  |
 | `dgReguaMascara` | DataGridView | GroupBox15 |  | 3 | 17 | 74 | 13 |  |
-| `GroupBoxJumper` | GroupBox |  | Jumper | 12 | 125 | 131 | 64 |  |
-| `BTCorrigeCabos` | Button | GroupBox14 | Corrigir | 4 | 38 | 116 | 35 |  |
+| `GroupBoxJumper` | GroupBox |  | Jumper Externo | 12 | 125 | 131 | 64 |  |
+| `BTCorrigeCabos` | Button | GroupBox14 | Corrigir DWG | 4 | 38 | 116 | 35 |  |
 | `GroupBox6` | GroupBox |  | Réguas não Usadas | 425 | 162 | 80 | 37 |  |
 | `TreeViewBornes` | TreeView | GroupBox7 |  | 3 | 18 | 74 | 13 |  |
 | `GroupBox7` | GroupBox |  | Espaços e Indefinidos | 425 | 200 | 80 | 37 |  |
@@ -1892,7 +1886,7 @@ Arquivo do reverso: `FrmTrocaUsuario.cs` (designer nas linhas 217-313). ClientSi
 | `tbData` | TextBox | GroupBox1 |  | 74 | 41 | 197 | 20 |  |
 | `tbUser` | TextBox | GroupBox1 |  | 74 | 15 | 197 | 20 |  |
 | `GroupBox2` | GroupBox |  |  | 8 | 104 | 279 | 40 |  |
-| `CKBanco` | CheckBox | GroupBox2 | Banco de Dados | 6 | 13 | 106 | 17 |  |
+| `CKBanco` | CheckBox | GroupBox2 | Trocar no Banco do Projeto | 6 | 13 | 106 | 17 |  |
 | `btMudaUserData` | Button |  |  | 129 | 150 | 36 | 36 | Restaura_32 |
 | `GroupBox1` | GroupBox |  | Trocar no desenho | 8 | 20 | 279 | 72 |  |
 
@@ -1903,7 +1897,7 @@ Arquivo do reverso: `frmTrocaEditaBlocos.cs` (designer nas linhas 335-457). Clie
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `tbBloco` | TextBox |  |  | 12 | 94 | 288 | 65 |  |
-| `rbSubstituir` | RadioButton |  | rbSubstituir Blocos | 188 | 12 | 112 | 17 |  |
+| `rbSubstituir` | RadioButton |  | Substituir Blocos | 188 | 12 | 112 | 17 |  |
 | `ckTodos` | CheckBox |  | Todos os Blocos | 188 | 60 | 68 | 17 |  |
 | `Handle` | Coluna (da rotina de carga) | dgBlocos |  |  |  |  |  |  |
 | `Nome` | Coluna (da rotina de carga) | dgBlocos |  |  |  |  |  |  |
@@ -1911,7 +1905,7 @@ Arquivo do reverso: `frmTrocaEditaBlocos.cs` (designer nas linhas 335-457). Clie
 | `btSelecionaDWG` | Button |  |  | 306 | 24 | 40 | 40 | Select_32 |
 | `ckSelecionado` | CheckBox |  | Blocos Selecionados | 15 | 60 | 97 | 17 |  |
 | `tbDesenho` | TextBox |  |  | 12 | 35 | 288 | 20 |  |
-| `rbTrocar` | RadioButton |  | rbTrocar Blocos | 12 | 12 | 100 | 17 |  |
+| `rbTrocar` | RadioButton |  | Trocar Blocos | 12 | 12 | 100 | 17 |  |
 | `dgBlocos` | DataGridView |  |  | 12 | 35 | 288 | 124 |  |
 | `btSelecionaSimbologia` | Button |  |  | 306 | 119 | 40 | 40 | DWG |
 | `btTrocaosPaineis` | Button |  |  | 157 | 165 | 40 | 40 | Update_32 |
@@ -1933,7 +1927,7 @@ Arquivo do reverso: `frmTrocaPaineis.cs` (designer nas linhas 279-412). ClientSi
 | `dgOutrosPaineis` | DataGridView |  |  | 508 | 37 | 264 | 301 |  |
 | `BTAdicionaParaTroca` | Button |  |  | 462 | 119 | 40 | 40 | AtribuirDir_32 |
 | `btInserir` | Button |  |  | 733 | 0 | 39 | 40 | Adiciona_32 |
-| `LabelPN` | Label |  | LB Novo Painel | 508 | 9 | 119 | 22 |  |
+| `LabelPN` | Label |  | Adiciona Painel | 508 | 9 | 119 | 22 |  |
 | `btTrocaosPaineis` | Button |  |  | 462 | 298 | 40 | 40 | Sincroniza_32 |
 
 ## frmTrocarChave - "Troca Chave Primária"
@@ -1954,22 +1948,22 @@ Arquivo do reverso: `frmRelatorio_Veias.cs` (designer nas linhas 430-663). Clien
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `` | Coluna (da rotina de carga) | dgVeias | {DeclaracoesGeral.mMensagem[1, 176].ToString().ToUpper()} |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgVeias | TAG |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgEquip | Equipamentos  Painéis |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgVeias | {DeclaracoesGeral.mMensagem[1, 1430].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgVeias | {DeclaracoesGeral.mMensagem[1, 1285].ToString().ToUpper()} |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgVeias | FUNÇÃO |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgVeias | FORMAÇÃO |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRevisao | Criador |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRevisao | Revisão |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgEquip | Indice |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRevisao | Data |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgVeias | {DeclaracoesGeral.mMensagem[1, 253].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgVeias | {DeclaracoesGeral.mMensagem[1, 1243].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgVeias | {DeclaracoesGeral.mMensagem[1, 1246].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgVeias | {DeclaracoesGeral.mMensagem[1, 9].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgVeias | {DeclaracoesGeral.mMensagem[1, 1081].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgVeias | {DeclaracoesGeral.mMensagem[1, 1239].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgVeias | {DeclaracoesGeral.mMensagem[1, 1429].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | dgVeias | {DeclaracoesGeral.mMensagem[1, 518].ToString().ToUpper()} |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgVeias | DOCUMENTO FUNCIONAL |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgVeias | ATERRAR |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgVeias | COMPRIMENTO |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgVeias | PÁGINA |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgVeias | PAINEL |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgVeias | VEIAS |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgVeias | BORNE |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | dgVeias | DISPOSITIVOS |  |  |  |  |  |
 | `CBComprimento` | CheckBox | GroupBox3 | Comprimento | 6 | 37 | 101 | 17 |  |
 | `GroupBox1` | GroupBox |  |  | 12 | 409 | 206 | 75 |  |
 | `qTotal` | Label |  | Tot | 174 | 576 | 44 | 22 |  |
@@ -1979,8 +1973,8 @@ Arquivo do reverso: `frmRelatorio_Veias.cs` (designer nas linhas 430-663). Clien
 | `btExportaEXCEL` | Button |  |  | 81 | 556 | 40 | 42 | ExportaExcel_20 |
 | `RBSheetDiferente` | RadioButton | GroupBox1 | Worksheet Diferente | 22 | 50 | 111 | 17 |  |
 | `dgRevisao` | DataGridView |  |  | 12 | 12 | 206 | 162 |  |
-| `GroupBox2` | GroupBox |  | GB2Mostrar | 12 | 486 | 206 | 64 |  |
-| `GroupBox3` | GroupBox |  | gbMostrar | 12 | 349 | 206 | 60 |  |
+| `GroupBox2` | GroupBox |  |  Mostrar | 12 | 486 | 206 | 64 |  |
+| `GroupBox3` | GroupBox |  |  Mostrar | 12 | 349 | 206 | 60 |  |
 | `btPesquisar` | Button |  |  | 12 | 556 | 40 | 42 | Pesquisar_32 |
 | `CKBlindagem` | CheckBox | GroupBox3 | Blindagem de Cabo | 7 | 16 | 89 | 17 |  |
 | `RBFuncaoVeia` | RadioButton | GroupBox2 |  Função da Veia  | 22 | 34 | 97 | 17 |  |
@@ -1994,14 +1988,14 @@ Arquivo do reverso: `frmRelatorio_JumpersDWG.cs` (designer nas linhas 599-794). 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `CBFonte` | ComboBox | GroupBoxxxxxxxxxxxxxxxxxxx |  | 93 | 200 | 130 | 21 |  |
-| `LBAlturaDoBloco` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Altura do Bloco | 7 | 172 | 162 | 25 |  |
+| `LBAlturaDoBloco` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Altura da Linha | 7 | 172 | 162 | 25 |  |
 | `tbFonteBloco` | TextBox | GroupBoxxxxxxxxxxxxxxxxxxx | 2 | 177 | 86 | 47 | 20 |  |
-| `LabelLinhas` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Linhas | 7 | 19 | 143 | 25 |  |
+| `LabelLinhas` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Cor da Linha | 7 | 19 | 143 | 25 |  |
 | `BTCancelar` | Button |  |  | 104 | 427 | 40 | 42 | Stop_32 |
-| `LabelQuantColunas` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Quantidede de Colunas | 8 | 116 | 130 | 25 |  |
+| `LabelQuantColunas` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Quantidade de Colunas | 8 | 116 | 130 | 25 |  |
 | `btExporta` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 135 | 261 | 40 | 42 | btExporta |
 | `TBDisteEntreColunas` | TextBox | GroupBoxxxxxxxxxxxxxxxxxxx | {6} | 177 | 146 | 47 | 20 |  |
-| `LabelTamanhoFonte` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Tamanho do Fonte | 7 | 86 | 162 | 25 |  |
+| `LabelTamanhoFonte` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Altura do Fonte | 7 | 86 | 162 | 25 |  |
 | `btApagar` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 53 | 261 | 40 | 42 | Delete_32 |
 | `LabelDistanciaDaRegua` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Distância da Régua Horizontal | 8 | 230 | 162 | 25 |  |
 | `GroupBoxxxxxxxxxxxxxxxxxxx` | GroupBox |  |  | 12 | 25 | 238 | 312 |  |
@@ -2010,8 +2004,8 @@ Arquivo do reverso: `frmRelatorio_JumpersDWG.cs` (designer nas linhas 599-794). 
 | `LBDistanciaEntreColunas` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Distância entre Colunas | 8 | 146 | 161 | 25 |  |
 | `LabelPainel` | Label |  | Equipamento/Painel : {Dicionario.BuscaNomeDoPainel(iPnSel)} | 9 | 9 | 73 | 13 |  |
 | `CBColunas` | ComboBox | GroupBoxxxxxxxxxxxxxxxxxxx | 2 | 177 | 116 | 47 | 21 |  |
-| `LabelCorTexto` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Textos | 6 | 50 | 143 | 25 |  |
-| `LabelStiloLinha` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Fonte | 8 | 200 | 79 | 23 |  |
+| `LabelCorTexto` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Cor do Texto | 6 | 50 | 143 | 25 |  |
+| `LabelStiloLinha` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Fonte do Texto | 8 | 200 | 79 | 23 |  |
 | `btCorBloco` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 176 | 19 | 47 | 25 |  |
 | `btCorTextoBloco` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 176 | 50 | 47 | 25 |  |
 
@@ -2029,11 +2023,11 @@ Arquivo do reverso: `frmRelatorio_Materiais.cs` (designer nas linhas 1189-1629).
 | `FAB` | Coluna (da rotina de carga) | dgListaMateriais | {tbFab.Text} |  |  |  |  |  |
 | `TAG` | Coluna (da rotina de carga) | dgListaMateriais | {tbTag.Text} |  |  |  |  |  |
 | `DESC` | Coluna (da rotina de carga) | dgListaMateriais | {tbDesc.Text} |  |  |  |  |  |
-| `tbIndice` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 915].ToString()} | 385 | 309 | 50 | 20 |  |
-| `CBMultiselecao` | CheckBox | GroupBox3 | CheckBox1 | 7 | 12 | 81 | 17 |  |
+| `tbIndice` | TextBox |  | Índice | 385 | 309 | 50 | 20 |  |
+| `CBMultiselecao` | CheckBox | GroupBox3 | Multiseleção | 7 | 12 | 81 | 17 |  |
 | `btExportaEXCEL` | Button |  |  | 833 | 358 | 40 | 42 | Excel_32 |
 | `RBCompleta` | RadioButton | GroupBox2 | Descrição Completa | 11 | 18 | 84 | 17 |  |
-| `tbDesc` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 64].ToString()} | 593 | 309 | 70 | 20 |  |
+| `tbDesc` | TextBox |  | Descrição | 593 | 309 | 70 | 20 |  |
 | `dgEquipamentos` | DataGridView |  |  | 5 | 5 | 144 | 370 |  |
 | `dgOrdem` | DataGridView |  |  | 155 | 5 | 192 | 265 |  |
 | `btApagarDWG` | Button |  |  | 949 | 358 | 40 | 42 | Delete_32 |
@@ -2058,12 +2052,12 @@ Arquivo do reverso: `frmRelatorio_Materiais.cs` (designer nas linhas 1189-1629).
 | `GroupBox3` | GroupBox |  |  | 155 | 272 | 192 | 103 |  |
 | `lPTIni` | Label | GroupBox4 | Ponto inicial do Relatório | 7 | 17 | 124 | 13 |  |
 | `dgListaMateriais` | DataGridView |  |  | 382 | 5 | 612 | 281 |  |
-| `lbMultiplicador` | Label | GroupBox1 | lbFator de Multiplicação | 6 | 21 | 150 | 22 |  |
+| `lbMultiplicador` | Label | GroupBox1 | Fator de Multiplicação | 6 | 21 | 150 | 22 |  |
 | `btPrimeiro` | Button |  |  | 353 | 95 | 23 | 23 | Primeiro_16 |
 | `btExportaDWG` | Button |  |  | 891 | 358 | 40 | 42 | btExportaDWG |
-| `tbFab` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 1169].ToString()} | 745 | 309 | 70 | 20 |  |
+| `tbFab` | TextBox |  | Fabricante | 745 | 309 | 70 | 20 |  |
 | `ckDWG2` | RadioButton | GroupBox5 | DWG | 221 | 19 | 52 | 17 |  |
-| `GroupBox1` | GroupBox |  | gbMultiplicador de Típicos | 458 | 105 | 238 | 49 |  |
+| `GroupBox1` | GroupBox |  | Multiplicador de Típicos | 458 | 105 | 238 | 49 |  |
 | `btUltimo` | Button |  |  | 353 | 182 | 23 | 23 | Ultimo_16 |
 | `ckMesclarModelo` | CheckBox | GroupBox2 | Mesclar Modelo na Descrição | 160 | 19 | 110 | 17 |  |
 | `btPesquisar` | Button |  |  | 775 | 358 | 40 | 42 | Pesquisar_32 |
@@ -2073,14 +2067,14 @@ Arquivo do reverso: `frmRelatorio_Materiais.cs` (designer nas linhas 1189-1629).
 | `ckExcel2` | RadioButton | GroupBox5 | Excel | 279 | 19 | 51 | 17 |  |
 | `btDesagrupar` | Button | GroupBox3 | Desagrupar | 5 | 44 | 109 | 23 |  |
 | `GroupBox2` | GroupBox |  |  | 382 | 335 | 370 | 87 |  |
-| `tbMod` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 654].ToString()} | 669 | 309 | 70 | 20 |  |
+| `tbMod` | TextBox |  | Modelo | 669 | 309 | 70 | 20 |  |
 | `RBResumida` | RadioButton | GroupBox2 | Descrição Resumida | 11 | 41 | 87 | 17 |  |
-| `ckCodCli` | CheckBox | GroupBox2 | ckCodigoCli | 160 | 64 | 82 | 17 |  |
-| `tbQuant` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 1218].ToString()} | 441 | 309 | 70 | 20 |  |
+| `ckCodCli` | CheckBox | GroupBox2 | Código do Cliente | 160 | 64 | 82 | 17 |  |
+| `tbQuant` | TextBox |  | Quant | 441 | 309 | 70 | 20 |  |
 | `tbOrdenadaY` | TextBox | GroupBox4 | 20 | 48 | 53 | 61 | 20 |  |
 | `btSalvaOrdem` | Button | GroupBox3 |  | 140 | 48 | 40 | 42 | Salvar_ |
-| `lbTitulos` | Label |  | {DeclaracoesGeral.mMensagem[1, 1219].ToString()} | 387 | 289 | 124 | 17 |  |
-| `tbTag` | TextBox |  | {DeclaracoesGeral.mMensagem[1, 176].ToString()} | 517 | 309 | 70 | 20 |  |
+| `lbTitulos` | Label |  | Titulos dos Relatórios | 387 | 289 | 124 | 17 |  |
+| `tbTag` | TextBox |  | Tag | 517 | 309 | 70 | 20 |  |
 | `tbMultiplicador` | TextBox | GroupBox1 | {1} | 162 | 19 | 57 | 20 |  |
 | `ckMesclarFabricante` | CheckBox | GroupBox2 | Mesclar Fabricante na Descrição | 160 | 42 | 125 | 17 |  |
 | `btLayout` | Button | GroupBox3 | Ordem Layout | 5 | 72 | 109 | 23 |  |
@@ -2101,16 +2095,16 @@ Arquivo do reverso: `frmRelatorio_MateriaisDWG.cs` (designer nas linhas 1243-163
 | `tbNum4` | TextBox | GroupBox1 | 0 | 127 | 110 | 51 | 20 |  |
 | `btCorBloco` | Button | GroupBox |  | 176 | 20 | 47 | 25 |  |
 | `bt1` | Button | GroupBox2 | 1 | 20 | 46 | 35 | 20 |  |
-| `LabelLinhas` | Label | GroupBox | Linhas | 7 | 20 | 143 | 25 |  |
-| `LabelStiloLinha` | Label | GroupBox | Fonte | 7 | 200 | 83 | 23 |  |
+| `LabelLinhas` | Label | GroupBox | Cor da Linha | 7 | 20 | 143 | 25 |  |
+| `LabelStiloLinha` | Label | GroupBox | Fonte do Texto | 7 | 200 | 83 | 23 |  |
 | `GroupBox` | GroupBox |  | Parâmetros | 8 | 8 | 241 | 260 |  |
 | `Label7` | Label | GroupBox1 | Cliente | 10 | 200 | 114 | 25 |  |
-| `LabelCorTexto` | Label | GroupBox | Textos | 6 | 50 | 143 | 25 |  |
+| `LabelCorTexto` | Label | GroupBox | Cor do Texto | 6 | 50 | 143 | 25 |  |
 | `tbNum1` | TextBox | GroupBox1 | {Math.Round(p5hpNNoVOPm * 0.05, 1)} | 127 | 20 | 51 | 20 |  |
 | `bt2` | Button | GroupBox2 | 2 | 62 | 46 | 35 | 20 |  |
 | `tbNum5` | TextBox | GroupBox1 | 0 | 127 | 140 | 51 | 20 |  |
 | `LabelDistanciaDaRegua` | Label | GroupBox | Distância da Régua Horizontal | 7 | 230 | 162 | 25 |  |
-| `GroupBox2` | GroupBox |  | GroupBox3 | 8 | 278 | 241 | 76 |  |
+| `GroupBox2` | GroupBox |  | Memória | 8 | 278 | 241 | 76 |  |
 | `LBDistanciaEntreColunas` | Label | GroupBox | Distância entre Colunas | 7 | 140 | 161 | 25 |  |
 | `tbNum3` | TextBox | GroupBox1 | {Math.Round(p5hpNNoVOPm * 0.2, 1)} | 127 | 80 | 51 | 20 |  |
 | `bt4` | Button | GroupBox2 | 4 | 144 | 46 | 35 | 20 |  |
@@ -2121,11 +2115,11 @@ Arquivo do reverso: `frmRelatorio_MateriaisDWG.cs` (designer nas linhas 1243-163
 | `tbNum2` | TextBox | GroupBox1 | {Math.Round(p5hpNNoVOPm * 0.05, 1)} | 127 | 50 | 51 | 20 |  |
 | `btApagar` | Button | GroupBox3 |  | 70 | 17 | 40 | 42 | Delete_32 |
 | `Label4` | Label | GroupBox1 | Descrição | 10 | 110 | 114 | 25 |  |
-| `LabelQuantColunas` | Label | GroupBox | Quantidede de Colunas | 7 | 110 | 130 | 25 |  |
+| `LabelQuantColunas` | Label | GroupBox | Quantidade de Colunas | 7 | 110 | 130 | 25 |  |
 | `Label3` | Label | GroupBox1 | Tag | 10 | 80 | 114 | 25 |  |
-| `LabelTamanhoFonte` | Label | GroupBox | Tamanho do Fonte | 6 | 80 | 162 | 25 |  |
+| `LabelTamanhoFonte` | Label | GroupBox | Altura do Fonte | 6 | 80 | 162 | 25 |  |
 | `LbTotal` | Label | GroupBox1 | Total | 46 | 231 | 132 | 25 |  |
-| `LBAlturaDoBloco` | Label | GroupBox | Altura do Bloco | 6 | 170 | 162 | 25 |  |
+| `LBAlturaDoBloco` | Label | GroupBox | Altura da Linha | 6 | 170 | 162 | 25 |  |
 | `TBAlturaDoBloco` | TextBox | GroupBox | {7} | 176 | 170 | 47 | 20 |  |
 | `Label1` | Label | GroupBox1 | Indice | 10 | 20 | 114 | 25 |  |
 | `Label2` | Label | GroupBox1 | Quantidade | 10 | 50 | 114 | 25 |  |
@@ -2179,7 +2173,7 @@ Arquivo do reverso: `frmRelatorio_InterligacaoEletrosul.cs` (designer nas linhas
 | `` | Coluna (da rotina de carga) | dgRegua | Tipo |  |  |  |  |  |
 | `cbTrajeto` | CheckBox | GBOpcionais | Trajeto | 6 | 85 | 71 | 17 |  |
 | `cbVazio` | CheckBox | GBOpcionais | Vazio | 6 | 107 | 64 | 17 |  |
-| `GBOpcionais` | GroupBox |  | GroupBox3 | 173 | 407 | 175 | 195 |  |
+| `GBOpcionais` | GroupBox |  | Opcional | 173 | 407 | 175 | 195 |  |
 | `` | Coluna (da rotina de carga) | dgRevisao | Criador |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRevisao | Revisão |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRegua | Réguas |  |  |  |  |  |
@@ -2209,14 +2203,14 @@ Arquivo do reverso: `frmRelatorio_InterligacaoEletrosul.cs` (designer nas linhas
 | `tbOpcional` | TextBox | GBOpcionais |  | 105 | 103 | 60 | 20 |  |
 | `btExportaEXCEL` | Button |  |  | 280 | 606 | 40 | 43 | ExportaExcel_20 |
 | `cbFuncao` | CheckBox | GBOpcionais | Função | 6 | 63 | 74 | 17 |  |
-| `cbFormacao` | CheckBox | GBOpcionais | cbFormação | 6 | 19 | 85 | 17 |  |
+| `cbFormacao` | CheckBox | GBOpcionais | Formação | 6 | 19 | 85 | 17 |  |
 | `rbCrescente` | RadioButton | GroupBox2 | Crescente | 14 | 22 | 82 | 17 |  |
 | `dgEquip` | DataGridView |  |  | 12 | 177 | 155 | 313 |  |
 | `GroupBox2` | GroupBox |  | Ordem Bornes Máscara | 12 | 499 | 152 | 76 |  |
 | `cbVeiasReserva` | CheckBox | GBOpcionais | Veias Reservas | 6 | 145 | 104 | 17 |  |
 | `rbCadastro` | RadioButton | GroupBox2 | Cadastro | 14 | 46 | 76 | 17 |  |
 
-## frmRelatorio_InterligacaoEletroSul_Excel - "INDICE"
+## frmRelatorio_InterligacaoEletroSul_Excel - "Relatório de Interligação Eletrosul"
 
 Arquivo do reverso: `frmRelatorio_InterligacaoEletroSul_Excel.cs` (designer nas linhas 475-625). ClientSize: **290 x 246**.
 
@@ -2225,19 +2219,19 @@ Arquivo do reverso: `frmRelatorio_InterligacaoEletroSul_Excel.cs` (designer nas 
 | `lbNumDesenho` | Label |  | Desenho | 12 | 45 | 64 | 25 |  |
 | `tbRev` | TextBox |  |  | 16 | 88 | 80 | 20 |  |
 | `tbPaginaInicio` | TextBox |  | 1 | 188 | 88 | 80 | 20 |  |
-| `lbImagem` | Label |  | Imagem | 15 | 111 | 231 | 15 |  |
+| `lbImagem` | Label |  | Figura do Rodapé | 15 | 111 | 231 | 15 |  |
 | `btParar` | Button |  |  | 121 | 189 | 40 | 42 | Stop_32 |
 | `tbCaminho` | TextBox |  | {DeclaracoesGeral.Conf.dirSimbologiaRelatorios}EletrosulR... | 15 | 129 | 228 | 51 |  |
 | `tbLinhasPorPaginaSul` | TextBox |  |  | 102 | 88 | 80 | 20 |  |
 | `tbDesc1` | TextBox |  |  | 76 | 18 | 196 | 20 |  |
-| `lbDesc1` | Label |  | Descição 1 | 12 | 18 | 64 | 25 |  |
+| `lbDesc1` | Label |  | Descrição 1 | 12 | 18 | 64 | 25 |  |
 | `tbNumDesenho` | TextBox |  |  | 76 | 45 | 196 | 20 |  |
-| `lbLinhas` | Label |  | Linhas por Página | 82 | 68 | 117 | 17 |  |
-| `lbRev` | Label |  | sRev | 31 | 70 | 54 | 15 |  |
+| `lbLinhas` | Label |  | Linhas/Página | 82 | 68 | 117 | 17 |  |
+| `lbRev` | Label |  | REV | 31 | 70 | 54 | 15 |  |
 | `btModeloExcel` | Button |  |  | 34 | 188 | 40 | 42 | ModeloExcel_32 |
 | `btExportaEXCELELETROSUL` | Button |  |  | 217 | 189 | 40 | 43 | ExportaExcel_20 |
 | `btSelecionaImagem` | Button |  |  | 249 | 144 | 23 | 23 | Pesquisar_16 |
-| `lbPaginas` | Label |  | Páginas | 205 | 70 | 52 | 15 |  |
+| `lbPaginas` | Label |  | Página | 205 | 70 | 52 | 15 |  |
 
 ## frmRelatorio_InterligacaoGIGA - "Interligação GIGA"
 
@@ -2245,7 +2239,7 @@ Arquivo do reverso: `frmRelatorio_InterligacaoGIGA.cs` (designer nas linhas 526-
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `LbFiltro1` | Label |  | lbFiltro | 187 | 184 | 70 | 20 |  |
+| `LbFiltro1` | Label |  | Filtro | 187 | 184 | 70 | 20 |  |
 | `dgRevisao` | DataGridView |  |  | 12 | 12 | 191 | 162 |  |
 | `` | Coluna (da rotina de carga) | dgVeias | Dispositivos |  |  |  |  |  |
 | `BTApagaCor` | Button |  |  | 312 | 76 | 40 | 40 | Delete_32 |
@@ -2258,14 +2252,14 @@ Arquivo do reverso: `frmRelatorio_InterligacaoGIGA.cs` (designer nas linhas 526-
 | `` | Coluna (da rotina de carga) | dgVeias | Página |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRevisao | Revisão |  |  |  |  |  |
 | `dgEquip2` | DataGridView |  |  | 187 | 207 | 167 | 172 |  |
-| `lbCabo` | Label |  | lb Inicio do Cabo  | 12 | 387 | 95 | 20 |  |
+| `lbCabo` | Label |  | Inicio do Cabo  | 12 | 387 | 95 | 20 |  |
 | `dgVeias` | DataGridView |  |  | 360 | 12 | 412 | 367 |  |
 | `dgEquip` | DataGridView |  |  | 12 | 207 | 167 | 172 |  |
 | `btColar` | Button |  |  | 312 | 122 | 40 | 40 | Paste_32 |
 | `TBPesquisa` | TextBox |  |  | 87 | 184 | 92 | 20 |  |
 | `dgCor` | DataGridView |  |  | 209 | 38 | 99 | 136 |  |
 | `TBPesquisa2` | TextBox |  |  | 262 | 184 | 92 | 20 |  |
-| `qTotal` | Label |  | Tot | 550 | 385 | 222 | 22 |  |
+| `qTotal` | Label |  | Quantidade de Cabos:  {num3} | 550 | 385 | 222 | 22 |  |
 | `tbNumCabo` | TextBox |  | {1} | 113 | 387 | 40 | 20 |  |
 | `tbCor` | TextBox |  |  | 209 | 12 | 99 | 20 |  |
 | `BTAdicionaCor` | Button |  |  | 312 | 1 | 40 | 40 | Adiciona_32 |
@@ -2299,24 +2293,24 @@ Arquivo do reverso: `frmRelatorio_Rev.cs` (designer nas linhas 1241-1664). Clien
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `lbDescicao2` | Label | GroupBox1 | lbDescrição | 6 | 74 | 63 | 13 |  |
-| `LabelStiloLinha` | Label | GroupBox2 | Fonte | 9 | 121 | 104 | 23 |  |
+| `lbDescicao2` | Label | GroupBox1 | DESCRIÇÃO | 6 | 74 | 63 | 13 |  |
+| `LabelStiloLinha` | Label | GroupBox2 | Fonte do Texto | 9 | 121 | 104 | 23 |  |
 | `CBColunas` | ComboBox | GroupBox2 | 2 | 177 | 42 | 47 | 21 |  |
 | `bt3` | Button | GroupBox3 | 3 | 71 | 46 | 25 | 20 |  |
 | `cbRev` | ComboBox |  |  | 8 | 278 | 73 | 21 |  |
-| `lbPaginas2` | Label | GroupBox1 | lbPáginas | 7 | 21 | 53 | 13 |  |
+| `lbPaginas2` | Label | GroupBox1 | FOLHA | 7 | 21 | 53 | 13 |  |
 | `CBFonte` | ComboBox | GroupBox2 | {array[8]} | 119 | 122 | 105 | 21 |  |
 | `btCorBloco` | Button | GroupBox2 |  | 177 | 149 | 47 | 25 |  |
-| `LabelLinhas` | Label | GroupBox2 | Linhas | 8 | 151 | 143 | 25 |  |
+| `LabelLinhas` | Label | GroupBox2 | Cor da Linha | 8 | 151 | 143 | 25 |  |
 | `bt4` | Button | GroupBox3 | 4 | 103 | 46 | 25 | 20 |  |
-| `TextBox1` | TextBox | GroupBox1 | {Conversions.ToString(breNLB1qkH) + "%"} | 106 | 18 | 32 | 20 |  |
+| `TextBox1` | TextBox | GroupBox1 | {breNLB1qkH}% | 106 | 18 | 32 | 20 |  |
 | `bt3D` | Button | GroupBox1 |  | 86 | 70 | 20 | 20 | Subtrai |
-| `lbRev` | Label |  | lbRevisão | 8 | 258 | 54 | 13 |  |
+| `lbRev` | Label |  | REV | 8 | 258 | 54 | 13 |  |
 | `LabelDistanciaDaRegua` | Label | GroupBox2 | Distância da Régua Horizontal | 8 | 211 | 162 | 25 |  |
-| `LabelCorTexto` | Label | GroupBox2 | Textos | 7 | 180 | 143 | 25 |  |
+| `LabelCorTexto` | Label | GroupBox2 | Cor do Texto | 7 | 180 | 143 | 25 |  |
 | `bt2` | Button | GroupBox3 | 2 | 40 | 46 | 25 | 20 |  |
 | `tbPaginas` | TextBox |  |  | 87 | 279 | 349 | 20 |  |
-| `lbDescicao` | Label |  | lbDescrição | 8 | 303 | 63 | 13 |  |
+| `lbDescicao` | Label |  | DESCRIÇÃO | 8 | 303 | 63 | 13 |  |
 | `bt5` | Button | GroupBox3 | 5 | 134 | 46 | 25 | 20 |  |
 | `GroupBox2` | GroupBox |  |  | 14 | 7 | 238 | 248 |  |
 | `btSet` | Button | GroupBox3 | SET | 119 | 19 | 40 | 20 |  |
@@ -2324,21 +2318,21 @@ Arquivo do reverso: `frmRelatorio_Rev.cs` (designer nas linhas 1241-1664). Clien
 | `LBDistanciaEntreColunas` | Label | GroupBox2 | Distância entre Colunas | 8 | 68 | 161 | 25 |  |
 | `bt1` | Button | GroupBox3 | 1 | 9 | 46 | 25 | 20 |  |
 | `bt2A` | Button | GroupBox1 |  | 140 | 44 | 20 | 20 | Soma |
-| `lbRev2` | Label | GroupBox1 | lbRevisão | 6 | 48 | 54 | 13 |  |
-| `TextBox2` | TextBox | GroupBox1 | {Conversions.ToString(gi3NwfJWI7) + "%"} | 106 | 44 | 32 | 20 |  |
+| `lbRev2` | Label | GroupBox1 | REV | 6 | 48 | 54 | 13 |  |
+| `TextBox2` | TextBox | GroupBox1 | {gi3NwfJWI7}% | 106 | 44 | 32 | 20 |  |
 | `btApagar` | Button |  |  | 282 | 206 | 40 | 42 | Delete_32 |
 | `bt1A` | Button | GroupBox1 |  | 140 | 18 | 20 | 20 | Soma |
 | `GroupBox1` | GroupBox |  |  | 257 | 7 | 175 | 101 |  |
 | `TBAlturaDoBloco` | TextBox | GroupBox2 | {7} | 177 | 95 | 47 | 20 |  |
-| `LabelTamanhoFonte` | Label | GroupBox2 | Tamanho do Fonte | 7 | 16 | 162 | 25 |  |
-| `LBAlturaDoBloco` | Label | GroupBox2 | Altura do Bloco | 7 | 94 | 162 | 25 |  |
-| `LabelQuantColunas` | Label | GroupBox2 | Quantidede de Colunas | 8 | 42 | 130 | 25 |  |
-| `TextBox3` | TextBox | GroupBox1 | {Conversions.ToString(KHBNxVwRLv) + "%"} | 106 | 70 | 32 | 20 |  |
+| `LabelTamanhoFonte` | Label | GroupBox2 | Altura do Fonte | 7 | 16 | 162 | 25 |  |
+| `LBAlturaDoBloco` | Label | GroupBox2 | Altura da Linha | 7 | 94 | 162 | 25 |  |
+| `LabelQuantColunas` | Label | GroupBox2 | Quantidade de Colunas | 8 | 42 | 130 | 25 |  |
+| `TextBox3` | TextBox | GroupBox1 | {KHBNxVwRLv}% | 106 | 70 | 32 | 20 |  |
 | `tbDescicao` | TextBox |  |  | 8 | 323 | 428 | 20 |  |
 | `TBAlturaInicialRelatorio` | TextBox | GroupBox2 | 25 | 177 | 211 | 47 | 20 |  |
-| `lbPaginas` | Label |  | lbPáginas | 87 | 259 | 53 | 13 |  |
+| `lbPaginas` | Label |  | FOLHA | 87 | 259 | 53 | 13 |  |
 | `tbFonteBloco` | TextBox | GroupBox2 | 2 | 177 | 16 | 47 | 20 |  |
-| `CKAgrupaPaginas` | CheckBox |  | _CKAgrupaPaginas | 160 | 259 | 118 | 17 |  |
+| `CKAgrupaPaginas` | CheckBox |  | Agrupar Páginas | 160 | 259 | 118 | 17 |  |
 | `btCorTextoBloco` | Button | GroupBox2 |  | 177 | 180 | 47 | 25 |  |
 | `GroupBox3` | GroupBox |  | Memória | 258 | 114 | 174 | 76 |  |
 | `TBDisteEntreColunas` | TextBox | GroupBox2 | {6} | 177 | 69 | 47 | 20 |  |
@@ -2369,7 +2363,7 @@ Arquivo do reverso: `frmRelatorio_Rev_Matricial.cs` (designer nas linhas 800-103
 | `R6` | TextBox | GroupBox4 |  | 299 | 15 | 30 | 22 |  |
 | `R15` | TextBox | GroupBox4 |  | 578 | 15 | 30 | 22 |  |
 | `tbTitulo2` | TextBox | GroupBox4 | FOLHA Nº | 6 | 43 | 101 | 22 |  |
-| `cbPreservar` | CheckBox | GroupBox4 | _cbPreservar | 29 | 71 | 89 | 17 |  |
+| `cbPreservar` | CheckBox | GroupBox4 | Preservar Revisões Antigas | 29 | 71 | 89 | 17 |  |
 | `R3` | TextBox | GroupBox4 |  | 206 | 15 | 30 | 22 |  |
 | `R13` | TextBox | GroupBox4 |  | 516 | 15 | 30 | 22 |  |
 | `R0` | TextBox | GroupBox4 |  | 113 | 15 | 30 | 22 |  |
@@ -2423,10 +2417,10 @@ Arquivo do reverso: `frmRelatorio_PotenciaisSiemens.cs` (designer nas linhas 354
 | `` | Coluna (da rotina de carga) | _5_dgFiacao | EQUIP2 |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | _5_dgFiacao | Dir. |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | _5_dgFiacao | ROUTING |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | _5_dgFiacao | {DeclaracoesGeral.mMensagem[1, 771].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | _5_dgFiacao | {DeclaracoesGeral.mMensagem[1, 984].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | _5_dgFiacao | {DeclaracoesGeral.mMensagem[1, 1169].ToString().ToUpper()} |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | _5_dgFiacao | {DeclaracoesGeral.mMensagem[1, 808].ToString().ToUpper()} |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | _5_dgFiacao | TERMINAL |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | _5_dgFiacao | RÉGUA |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | _5_dgFiacao | FABRICANTE |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | _5_dgFiacao | MODELO |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | _5_dgFiacao | POTENCIAL |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | _5_dgFiacao | PADRÃO |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | _5_dgFiacao | PÁGINA |  |  |  |  |  |
@@ -2443,7 +2437,7 @@ Arquivo do reverso: `frmRelatorio_PotenciaisSiemens.cs` (designer nas linhas 354
 | `btPesquisar` | Button | GroupBox4 |  | 162 | 17 | 40 | 42 | Pesquisar_32 |
 | `` | Coluna (da rotina de carga) | _3_dgEquip | Indice |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | _2_dgRevisao | Revisão |  |  |  |  |  |
-| `` | Coluna (da rotina de carga) | _4_dgReguas | {DeclaracoesGeral.mMensagem[1, 984].ToString()} |  |  |  |  |  |
+| `` | Coluna (da rotina de carga) | _4_dgReguas | Régua |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | _3_dgEquip | Equipamentos  Painéis |  |  |  |  |  |
 | `_3_dgEquip` | DataGridView |  |  | 12 | 328 | 150 | 131 |  |
 | `RB_Dispositivos` | RadioButton | GroupBox4 | rbDispositivos | 13 | 19 | 90 | 17 |  |
@@ -2458,17 +2452,17 @@ Arquivo do reverso: `frmRelatorio_PlaquetasDWG.cs` (designer nas linhas 1062-141
 |---|---|---|---|---|---|---|---|---|
 | `GroupBox2` | GroupBox |  |  | 8 | 45 | 238 | 175 |  |
 | `bt3` | Button | GroupBox3 | 3 | 71 | 46 | 25 | 20 |  |
-| `RB_CBA` | RadioButton | GroupBox2 | Ordem B, A | 7 | 156 | 79 | 17 |  |
+| `RB_CBA` | RadioButton | GroupBox2 | Ordem  Decrescente | 7 | 156 | 79 | 17 |  |
 | `bt5` | Button | GroupBox3 | 5 | 134 | 46 | 25 | 20 |  |
 | `blOrdemSel` | Label |  | Textos | 8 | 224 | 238 | 25 |  |
 | `btEletronorte` | Button |  | Eletronorte | 106 | 12 | 97 | 27 |  |
 | `btCorBloco` | Button | GroupBox1 |  | 182 | 14 | 47 | 25 |  |
-| `LabelStiloLinha` | Label | GroupBox2 | Fonte | 8 | 109 | 79 | 23 |  |
+| `LabelStiloLinha` | Label | GroupBox2 | Fonte do Texto | 8 | 109 | 79 | 23 |  |
 | `btCHESF` | Button |  | Chesf | 302 | 12 | 97 | 27 |  |
 | `btSet` | Button | GroupBox3 | SET | 119 | 19 | 40 | 20 |  |
-| `LabelCorTexto` | Label | GroupBox1 | Textos | 6 | 44 | 143 | 25 |  |
+| `LabelCorTexto` | Label | GroupBox1 | Cor do Texto | 6 | 44 | 143 | 25 |  |
 | `bt2` | Button | GroupBox3 | 2 | 40 | 46 | 25 | 20 |  |
-| `RB_ABC` | RadioButton | GroupBox2 | Ordem A, B | 7 | 136 | 79 | 17 |  |
+| `RB_ABC` | RadioButton | GroupBox2 | Ordem  Crescente | 7 | 136 | 79 | 17 |  |
 | `LabelDistanciaDaRegua` | Label | GroupBox1 | Distância da Régua Horizontal | 7 | 77 | 162 | 25 |  |
 | `TBNome` | TextBox | GroupBox3 |  | 9 | 20 | 104 | 20 |  |
 | `LBDistanciaEntreColunas` | Label | GroupBox2 | Distância entre Colunas | 8 | 63 | 161 | 25 |  |
@@ -2476,15 +2470,15 @@ Arquivo do reverso: `frmRelatorio_PlaquetasDWG.cs` (designer nas linhas 1062-141
 | `bt4` | Button | GroupBox3 | 4 | 103 | 46 | 25 | 20 |  |
 | `bt1` | Button | GroupBox3 | 1 | 9 | 46 | 25 | 20 |  |
 | `GroupBox1` | GroupBox |  | Cores | 252 | 45 | 241 | 111 |  |
-| `LabelQuantColunas` | Label | GroupBox2 | Quantidede de Colunas | 8 | 39 | 130 | 25 |  |
+| `LabelQuantColunas` | Label | GroupBox2 | Quantidade de Colunas | 8 | 39 | 130 | 25 |  |
 | `TBAlturaDoBloco` | TextBox | GroupBox2 | {7} | 177 | 87 | 52 | 20 |  |
 | `CBFonte` | ComboBox | GroupBox2 | {array[8]} | 93 | 110 | 135 | 21 |  |
-| `LBAlturaDoBloco` | Label | GroupBox2 | Altura do Bloco | 7 | 86 | 162 | 25 |  |
-| `LabelTamanhoFonte` | Label | GroupBox2 | Tamanho do Fonte | 7 | 16 | 162 | 25 |  |
+| `LBAlturaDoBloco` | Label | GroupBox2 | Altura da Linha | 7 | 86 | 162 | 25 |  |
+| `LabelTamanhoFonte` | Label | GroupBox2 | Altura do Fonte | 7 | 16 | 162 | 25 |  |
 | `btEletron` | Button |  |  | 8 | 12 | 97 | 27 | eletron |
 | `btEletrosul` | Button |  | Eletrosul | 204 | 12 | 97 | 27 |  |
-| `RB_Customizada` | RadioButton | GroupBox2 | Ordem Customizada | 7 | 176 | 119 | 17 |  |
-| `LabelLinhas` | Label | GroupBox1 | Linhas | 7 | 16 | 143 | 25 |  |
+| `RB_Customizada` | RadioButton | GroupBox2 | Ordem Modelos: 5; 2; ESPECIAL; 00 | 7 | 176 | 119 | 17 |  |
+| `LabelLinhas` | Label | GroupBox1 | Cor da Linha | 7 | 16 | 143 | 25 |  |
 | `TBAlturaInicialRelatorio` | TextBox | GroupBox1 | 25 | 182 | 77 | 47 | 20 |  |
 | `btCorTextoBloco` | Button | GroupBox1 |  | 182 | 44 | 47 | 25 |  |
 | `tbFonteBloco` | TextBox | GroupBox2 | 2 | 177 | 16 | 52 | 20 |  |
@@ -2528,14 +2522,14 @@ Arquivo do reverso: `frmRelatorio_PotenciaisDWG.cs` (designer nas linhas 599-794
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `CBFonte` | ComboBox | GroupBoxxxxxxxxxxxxxxxxxxx |  | 92 | 195 | 130 | 21 |  |
-| `LBAlturaDoBloco` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Altura do Bloco | 6 | 167 | 162 | 25 |  |
+| `LBAlturaDoBloco` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Altura da Linha | 6 | 167 | 162 | 25 |  |
 | `tbFonteBloco` | TextBox | GroupBoxxxxxxxxxxxxxxxxxxx | 2 | 176 | 81 | 47 | 20 |  |
-| `LabelLinhas` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Linhas | 7 | 19 | 143 | 25 |  |
+| `LabelLinhas` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Cor da Linha | 7 | 19 | 143 | 25 |  |
 | `BTCancelar` | Button |  |  | 104 | 427 | 40 | 42 | Stop_32 |
-| `LabelQuantColunas` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Quantidede de Colunas | 7 | 111 | 130 | 25 |  |
+| `LabelQuantColunas` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Quantidade de Colunas | 7 | 111 | 130 | 25 |  |
 | `btExporta` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 134 | 256 | 40 | 42 | btExporta |
 | `TBDisteEntreColunas` | TextBox | GroupBoxxxxxxxxxxxxxxxxxxx | {6} | 176 | 141 | 47 | 20 |  |
-| `LabelTamanhoFonte` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Tamanho do Fonte | 6 | 81 | 162 | 25 |  |
+| `LabelTamanhoFonte` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Altura do Fonte | 6 | 81 | 162 | 25 |  |
 | `btApagar` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 52 | 256 | 40 | 42 | Delete_32 |
 | `LabelDistanciaDaRegua` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Distância da Régua Horizontal | 7 | 225 | 162 | 25 |  |
 | `GroupBoxxxxxxxxxxxxxxxxxxx` | GroupBox |  |  | 12 | 25 | 238 | 305 |  |
@@ -2544,8 +2538,8 @@ Arquivo do reverso: `frmRelatorio_PotenciaisDWG.cs` (designer nas linhas 599-794
 | `LBDistanciaEntreColunas` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Distância entre Colunas | 7 | 141 | 161 | 25 |  |
 | `LabelPainel` | Label |  | Equipamento/Painel : {Dicionario.BuscaNomeDoPainel(iPnSel)} | 9 | 9 | 73 | 13 |  |
 | `CBColunas` | ComboBox | GroupBoxxxxxxxxxxxxxxxxxxx | 2 | 176 | 111 | 47 | 21 |  |
-| `LabelCorTexto` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Textos | 6 | 50 | 143 | 25 |  |
-| `LabelStiloLinha` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Fonte | 7 | 195 | 79 | 23 |  |
+| `LabelCorTexto` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Cor do Texto | 6 | 50 | 143 | 25 |  |
+| `LabelStiloLinha` | Label | GroupBoxxxxxxxxxxxxxxxxxxx | Fonte do Texto | 7 | 195 | 79 | 23 |  |
 | `btCorBloco` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 176 | 19 | 47 | 25 |  |
 | `btCorTextoBloco` | Button | GroupBoxxxxxxxxxxxxxxxxxxx |  | 176 | 50 | 47 | 25 |  |
 
@@ -2598,7 +2592,7 @@ Arquivo do reverso: `frmCriarReguas.cs` (designer nas linhas 463-630). ClientSiz
 | `lbAlternativo` | Label | GroupBox2 | Alternativo | 93 | 16 | 71 | 17 |  |
 | `TBPesquisa` | TextBox |  |  | 90 | 30 | 98 | 20 |  |
 | `BtApagaRegua` | Button | GroupBox2 |  | 96 | 71 | 40 | 40 | Delete_32 |
-| `LabelQuantidade` | Label |  | Label1 | 3 | 5 | 147 | 19 |  |
+| `LabelQuantidade` | Label |  | {Conversions.ToString(dgPaineis.Rows.Count) + " "}Painel | 3 | 5 | 147 | 19 |  |
 | `BtAdicionaRegua` | Button | GroupBox2 |  | 4 | 71 | 40 | 40 | Adiciona_32 |
 | `dgPaineis` | DataGridView |  |  | 3 | 53 | 185 | 301 |  |
 
@@ -2608,7 +2602,7 @@ Arquivo do reverso: `frmDadosOpcionaisVeias.cs` (designer nas linhas 680-901). C
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `lbComplementares` | Label | GroupBox2 | lbCampos Complementares | 12 | 100 | 134 | 13 |  |
+| `lbComplementares` | Label | GroupBox2 | Caracteres Opcionais | 12 | 100 | 134 | 13 |  |
 | `lbFormação` | Label | GroupBox2 | Formação | 295 | 16 | 62 | 13 |  |
 | `btSeparador` | Button | GroupBox2 | / | 91 | 116 | 32 | 23 |  |
 | `RBHorizontal` | RadioButton | GroupBox2 | Texto na Horizontal | 298 | 61 | 87 | 17 |  |
@@ -2623,7 +2617,7 @@ Arquivo do reverso: `frmDadosOpcionaisVeias.cs` (designer nas linhas 680-901). C
 | `RBVertical` | RadioButton | GroupBox2 | Texto na Vertical | 298 | 77 | 75 | 17 |  |
 | `tbTexto` | TextBox | GroupBox2 |  | 14 | 146 | 373 | 20 |  |
 | `btCabo` | Button | GroupBox2 |  | 15 | 32 | 89 | 23 |  |
-| `btEspaco` | Button | GroupBox2 | btEspaço | 167 | 116 | 88 | 23 |  |
+| `btEspaco` | Button | GroupBox2 | Espaço | 167 | 116 | 88 | 23 |  |
 | `lbCabo` | Label | GroupBox2 | Cabo | 12 | 16 | 40 | 13 |  |
 | `GroupBox2` | GroupBox |  |  | 8 | 3 | 400 | 176 |  |
 | `btFuncao` | Button | GroupBox2 |  | 14 | 74 | 279 | 23 |  |
@@ -2631,7 +2625,7 @@ Arquivo do reverso: `frmDadosOpcionaisVeias.cs` (designer nas linhas 680-901). C
 | `btAbrePar` | Button | GroupBox2 | ( | 15 | 116 | 32 | 23 |  |
 | `btTrocar` | Button |  |  | 359 | 102 | 40 | 40 | OK_32 |
 | `btLimpar` | Button |  |  | 267 | 102 | 40 | 40 | Apagador_32 |
-| `lbFuncao` | Label | GroupBox2 | lbFunção | 12 | 58 | 51 | 13 |  |
+| `lbFuncao` | Label | GroupBox2 | Função da Veia | 12 | 58 | 51 | 13 |  |
 
 ## frmDefinicao - "Atribuir Definição"
 
@@ -2640,19 +2634,19 @@ Arquivo do reverso: `frmDefinicao.cs` (designer nas linhas 494-691). ClientSize:
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `btSeleciona` | Button |  |  | 9 | 393 | 40 | 40 | Select_32 |
-| `RB3` | RadioButton | GroupBox2 | _Definição | 16 | 59 | 76 | 17 |  |
+| `RB3` | RadioButton | GroupBox2 | Definições selecionadas da Lista  | 16 | 59 | 76 | 17 |  |
 | `dgPortas` | DataGridView |  |  | 265 | 8 | 507 | 334 |  |
 | `LBFiltro` | Label |  | Filtro | 55 | 405 | 81 | 20 |  |
 | `BTLimpaDefinicoes` | Button | GroupBox2 |  | 246 | 27 | 40 | 40 | Apagador_32 |
 | `BTAtribuiDefAPaginaCorrente` | Button | GroupBox1 |  | 98 | 28 | 40 | 40 | AtribuirDefinicaoPG_32 |
 | `TBPesquisa` | TextBox |  |  | 142 | 405 | 117 | 20 |  |
 | `BtAtribuiMDefinicoes` | Button | GroupBox1 |  | 52 | 28 | 40 | 40 | AtribuirDefinicao_32 |
-| `GroupBox2` | GroupBox |  | _Indefinir | 422 | 348 | 301 | 85 |  |
+| `GroupBox2` | GroupBox |  | Indefinir | 422 | 348 | 301 | 85 |  |
 | `BtAtribuiMPortas` | Button | GroupBox1 |  | 6 | 28 | 40 | 40 | AtribuirPortas_32 |
-| `RB2` | RadioButton | GroupBox2 | _Porta Selecionada | 16 | 39 | 118 | 17 |  |
-| `RB1` | RadioButton | GroupBox2 | _por seleção | 16 | 19 | 86 | 17 |  |
+| `RB2` | RadioButton | GroupBox2 | Portas selecionadas da Lista  | 16 | 39 | 118 | 17 |  |
+| `RB1` | RadioButton | GroupBox2 | Selecionando no desenho | 16 | 19 | 86 | 17 |  |
 | `BTConstroiLink` | Button |  |  | 732 | 375 | 40 | 40 | Restaura_32 |
-| `GroupBox1` | GroupBox |  | _Atribuir | 265 | 348 | 151 | 85 |  |
+| `GroupBox1` | GroupBox |  | Atribuir | 265 | 348 | 151 | 85 |  |
 | `dgMascaras` | DataGridView |  |  | 9 | 12 | 250 | 375 |  |
 
 ## frmCopiarObjetos - "Copiar Objetos"
@@ -2668,7 +2662,7 @@ Arquivo do reverso: `frmCopiarObjetos.cs` (designer nas linhas 410-566). ClientS
 | `` | Coluna (da rotina de carga) | dg | Página |  |  |  |  |  |
 | `tbDy` | TextBox | GroupBox1 | 0 | 26 | 45 | 38 | 20 |  |
 | `dg` | DataGridView |  |  | 11 | 58 | 152 | 301 |  |
-| `cbRevisoes` | CheckBox | GroupBox2 | cbRevisões | 6 | 47 | 82 | 17 |  |
+| `cbRevisoes` | CheckBox | GroupBox2 | Revisão | 6 | 47 | 82 | 17 |  |
 | `tbDx` | TextBox | GroupBox1 | 0 | 26 | 19 | 38 | 20 |  |
 | `Label1` | Label | GroupBox1 | X | 6 | 23 | 14 | 13 |  |
 | `btColar` | Button |  |  | 118 | 388 | 40 | 40 | Paste_32 |
@@ -2705,7 +2699,7 @@ Arquivo do reverso: `frmConfiguracaoLP.cs` (designer nas linhas 758-1059). Clien
 | `cbUnidade` | ComboBox | GroupBox1 |  | 9 | 99 | 100 | 21 |  |
 | `SelLP` | Button | GroupBox4 |  | 285 | 19 | 36 | 36 | SelLP |
 | `btSalvar` | Button |  |  | 151 | 475 | 45 | 45 | btSalvar |
-| `LabelFuncao` | Label | GroupBox1 | lbFunção da Porta | 112 | 120 | 100 | 30 |  |
+| `LabelFuncao` | Label | GroupBox1 | Função da Porta | 112 | 120 | 100 | 30 |  |
 | `cbEFC` | ComboBox | GroupBox1 |  | 221 | 45 | 100 | 21 |  |
 | `Label3` | Label | GroupBox1 | Tag | 112 | 12 | 100 | 30 |  |
 | `cbPosicaoFuncional` | ComboBox | GroupBox2 |  | 9 | 99 | 150 | 21 |  |
@@ -2718,7 +2712,7 @@ Arquivo do reverso: `frmConfiguracaoLP.cs` (designer nas linhas 758-1059). Clien
 | `Label14` | Label | GroupBox2 | Posição Funcional | 6 | 66 | 150 | 28 |  |
 | `cbDocumentoLogico` | ComboBox | GroupBox2 |  | 165 | 45 | 150 | 21 |  |
 
-## frmContatosAux - "ANSI"
+## frmContatosAux - "Contatos Auxiliares"
 
 Arquivo do reverso: `frmContatosAux.cs` (designer nas linhas 368-520). ClientSize: **488 x 524**.
 
@@ -2727,7 +2721,7 @@ Arquivo do reverso: `frmContatosAux.cs` (designer nas linhas 368-520). ClientSiz
 | `btSeleciona` | Button |  |  | 317 | 474 | 40 | 40 | Select_32 |
 | `btInserir` | Button |  |  | 388 | 474 | 40 | 40 | OK_32 |
 | `CKAlternativo` | CheckBox |  | Alternativo Visível | 16 | 497 | 90 | 17 |  |
-| `CKNomeVisivel` | CheckBox |  | CKNomeVisível | 16 | 474 | 100 | 17 |  |
+| `CKNomeVisivel` | CheckBox |  | Nome Visível | 16 | 474 | 100 | 17 |  |
 | `dgDisp` | DataGridView |  |  | 12 | 52 | 210 | 406 |  |
 | `dgContatos` | DataGridView |  |  | 228 | 306 | 248 | 152 |  |
 | `Label1` | Label |  |  Painéis e Equipamentos | 13 | 9 | 39 | 13 |  |
@@ -2771,7 +2765,7 @@ Arquivo do reverso: `frmDispPrincipal.cs` (designer nas linhas 1311-1773). Clien
 | `tbFabricante2` | TextBox | GroupBox4 |  | 333 | 61 | 100 | 20 |  |
 | `btSeleciona` | Button |  |  | 250 | 387 | 40 | 40 | Select_32 |
 | `BTAtualizaModelo` | Button | GroupBox2 |  | 215 | 14 | 22 | 22 | Salvar_16 |
-| `CKNome` | CheckBox | GBVisualizacao | CKNomesVisiveis | 6 | 19 | 108 | 17 |  |
+| `CKNome` | CheckBox | GBVisualizacao | Nome Visível | 6 | 19 | 108 | 17 |  |
 | `TBPesquisa` | TextBox |  |  | 99 | 144 | 123 | 20 |  |
 | `lbDesc` | Label | GroupBox4 | Descrição Resumida | 87 | 16 | 197 | 16 |  |
 | `lbFabricante` | Label | GroupBox4 | Fabricante | 345 | 17 | 111 | 16 |  |
@@ -2780,17 +2774,17 @@ Arquivo do reverso: `frmDispPrincipal.cs` (designer nas linhas 1311-1773). Clien
 | `tbFabricante1` | TextBox | GroupBox4 |  | 333 | 35 | 100 | 20 |  |
 | `Label1` | Label | GroupBox4 | Modelo | 227 | 16 | 111 | 16 |  |
 | `tbDistancia` | TextBox | GroupBox2 | 1 | 186 | 16 | 28 | 20 |  |
-| `lbCodigo` | Label | GroupBox4 | Codigo | 6 | 16 | 75 | 16 |  |
-| `GBVisualizacao` | GroupBox |  | GBVisualização | 238 | 180 | 237 | 89 |  |
+| `lbCodigo` | Label | GroupBox4 | Código | 6 | 16 | 75 | 16 |  |
+| `GBVisualizacao` | GroupBox |  | Visualização | 238 | 180 | 237 | 89 |  |
 | `btInserir` | Button |  |  | 432 | 387 | 40 | 40 | OK_32 |
 | `cbModelos` | ComboBox |  |  | 238 | 101 | 156 | 21 |  |
 | `CBModeloVisualizar` | ComboBox | GBVisualizacao | Na Bobina e no Contato (Eletrosul) | 9 | 62 | 222 | 21 |  |
 | `tbModelo2` | TextBox | GroupBox4 |  | 227 | 61 | 100 | 20 |  |
 | `iDWG` | PictureBox |  |  | 12 | 12 | 210 | 128 |  |
 | `tbBlocoTopografico` | TextBox | GroupBox1 |  | 9 | 32 | 185 | 20 |  |
-| `LBAlternativo` | Label |  | LBNomeAlternativo | 400 | 46 | 98 | 13 |  |
+| `LBAlternativo` | Label |  | Alternativo | 400 | 46 | 98 | 13 |  |
 | `tbCodigo2` | TextBox | GroupBox4 | {0} | 8 | 61 | 73 | 20 |  |
-| `lbModelosReles` | Label | GBVisualizacao | Modelos Relés | 9 | 43 | 77 | 13 |  |
+| `lbModelosReles` | Label | GBVisualizacao | Visualização Modelos Reles | 9 | 43 | 77 | 13 |  |
 | `tbBlocoLayout` | TextBox | GroupBox1 |  | 9 | 76 | 185 | 20 |  |
 | `GroupBox1` | GroupBox |  | Simbologia | 241 | 273 | 234 | 108 |  |
 | `btSelecionaBlocoLayout` | Button | GroupBox1 |  | 200 | 74 | 22 | 22 | Pesquisar_16 |
@@ -2803,12 +2797,12 @@ Arquivo do reverso: `frmDispPrincipal.cs` (designer nas linhas 1311-1773). Clien
 | `tbDescricaoResum2` | TextBox | GroupBox4 |  | 87 | 61 | 134 | 20 |  |
 | `tbNome2` | TextBox |  |  | 319 | 62 | 75 | 20 |  |
 | `GroupBox4` | GroupBox |  | Materiais | 11 | 442 | 464 | 89 |  |
-| `CKAlternativo` | CheckBox | GBVisualizacao | CKNomeAlternativo | 120 | 18 | 118 | 17 |  |
+| `CKAlternativo` | CheckBox | GBVisualizacao | Alternativo Visível | 120 | 18 | 118 | 17 |  |
 | `LBFiltro` | Label |  | Filtro | 12 | 144 | 81 | 20 |  |
 | `LBNome2` | Label |  | Nome 2 | 319 | 46 | 54 | 13 |  |
-| `LBDistancia` | Label | GroupBox2 | LBDistancia entre terminais do Modelo | 3 | 19 | 188 | 13 |  |
+| `LBDistancia` | Label | GroupBox2 | Margem entre contatos do Modelo | 3 | 19 | 188 | 13 |  |
 
-## frmEditaFuncaoBobina - "ANSI"
+## frmEditaFuncaoBobina - "Editor de Funções"
 
 Arquivo do reverso: `frmEditaFuncaoBobina.cs` (designer nas linhas 210-305). ClientSize: **434 x 371**.
 
@@ -2858,14 +2852,14 @@ Arquivo do reverso: `frmEditaRevisaoCompleta.cs` (designer nas linhas 327-416). 
 | `` | Coluna (da rotina de carga) | dg | Aprovador |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dg | Data |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dg | Elaborador |  |  |  |  |  |
-| `DeToolStripTextBox` | ToolStripTextBox |  | de |  |  | 100 | 23 |  |
+| `DeToolStripTextBox` | ToolStripTextBox |  | DE |  |  | 100 | 23 |  |
 | `LimparStripMenuItem` | ToolStripMenuItem |  | Limpar |  |  | 160 | 22 | Limpar |
-| `EditarToolStripMenuItem` | ToolStripMenuItem |  | Editar |  |  | 160 | 22 | DWG1 |
+| `EditarToolStripMenuItem` | ToolStripMenuItem |  | Editar DWG |  |  | 160 | 22 | DWG1 |
 | `CopiarToolStripMenuItem` | ToolStripMenuItem |  | Copiar |  |  | 160 | 22 | Copiar |
 | `ToolStripSeparator2` | ToolStripSeparator |  |  |  |  | 157 | 6 |  |
 | `ToolStripSeparator1` | ToolStripSeparator |  |  |  |  | 157 | 6 |  |
 | `dg` | DataGridView |  |  | 12 | 12 | 660 | 438 |  |
-| `ParaToolStripTextBox` | ToolStripTextBox |  | para |  |  | 100 | 23 |  |
+| `ParaToolStripTextBox` | ToolStripTextBox |  | PARA |  |  | 100 | 23 |  |
 | `ColarToolStripMenuItem` | ToolStripMenuItem |  | Colar |  |  | 160 | 22 | Colar |
 
 ## frmEditaDispositivosAvulsos - "Editor Terminais Disp. Avulsos"
@@ -2898,10 +2892,10 @@ Arquivo do reverso: `frmDuplicarCaderno.cs` (designer nas linhas 184-241). Clien
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `lbNomeNovoDWG` | Label |  | lbNome Do Caderno DWG | 12 | 16 | 133 | 13 |  |
+| `lbNomeNovoDWG` | Label |  | Novo Arquivo DWG | 12 | 16 | 133 | 13 |  |
 | `btCriar` | Button |  |  | 332 | 42 | 40 | 50 | NovoDWG_32 |
 | `tbNomeNovoArquivo` | TextBox |  |  | 15 | 34 | 299 | 20 |  |
-| `lbNomeDoCaderno` | Label |  | lbNome Do Caderno | 15 | 63 | 103 | 13 |  |
+| `lbNomeDoCaderno` | Label |  | Novo Nome do Caderno na Configuração | 15 | 63 | 103 | 13 |  |
 | `tbCaderno` | TextBox |  |  | 15 | 81 | 299 | 20 |  |
 
 ## frmEditaBornesSelecao - "Editor de Bornes"
@@ -2921,7 +2915,7 @@ Arquivo do reverso: `frmEditaBornesSelecao.cs` (designer nas linhas 404-561). Cl
 | `btLigarBornes` | Button |  |  | 86 | 452 | 40 | 40 | Liga_32 |
 | `btOcultarBornes` | Button |  |  | 38 | 452 | 40 | 40 | Desliga_32 |
 | `dgBornesReserva` | DataGridView |  |  | 167 | 29 | 149 | 324 |  |
-| `GroupBox1` | GroupBox |  | Ordem | 12 | 359 | 304 | 87 |  |
+| `GroupBox1` | GroupBox |  | Ordem de Visualização | 12 | 359 | 304 | 87 |  |
 
 ## frmEditaConexao - "Editar Conexão"
 
@@ -2942,7 +2936,7 @@ Arquivo do reverso: `frmConfiguracaoGeral.cs` (designer nas linhas 2529-3565). C
 | `tbFonteCircuitos` | TextBox | GroupBox7 | {DeclaracoesGeral.Conf.FonteCircuito} | 150 | 13 | 35 | 20 |  |
 | `GroupBox2` | GroupBox | TabPage1 | Contatos Auxiliares | 116 | 6 | 116 | 74 |  |
 | `Label6` | Label | GroupBox6 | Terminal Indefinido | 24 | 17 | 120 | 17 |  |
-| `GroupBox4` | GroupBox | TabPage3 | Cores | 221 | 64 | 197 | 70 |  |
+| `GroupBox4` | GroupBox | TabPage3 | Cores - Fiação | 221 | 64 | 197 | 70 |  |
 | `Label17` | Label | GroupBox7 | Referência Cruzada | 6 | 40 | 138 | 19 |  |
 | `GroupBox14` | GroupBox | TabPage2 | Simbologia Relatórios | 6 | 216 | 415 | 66 |  |
 | `btSalvar` | Button |  |  | 205 | 615 | 45 | 45 | Salvar_32 |
@@ -2957,20 +2951,20 @@ Arquivo do reverso: `frmConfiguracaoGeral.cs` (designer nas linhas 2529-3565). C
 | `Label15` | Label | GroupBox13 | Prefixo | 29 | 21 | 112 | 18 |  |
 | `selDirSimbologiaLayout` | Button | GroupBox11 |  | 373 | 19 | 36 | 36 | Folder |
 | `rbIdioma2` | RadioButton | GroupBox1 | English | 19 | 47 | 59 | 17 |  |
-| `rbIncluirColuna5` | RadioButton | GroupBox5 | Alternativo  +  Coluna | 13 | 130 | 126 | 17 |  |
+| `rbIncluirColuna5` | RadioButton | GroupBox5 | Alternativo + HV [Metrô SP] | 13 | 130 | 126 | 17 |  |
 | `rbIdioma1` | RadioButton | GroupBox1 | Português | 19 | 24 | 73 | 17 |  |
 | `btConectarSQLServer` | Button | GBSql |  | 320 | 62 | 36 | 36 | SQLServer_32 |
-| `GroupBox18` | GroupBox | TabPage3 | _Representação Cabo/Veia | 6 | 495 | 200 | 67 |  |
-| `GroupBox4B` | GroupBox | TabPage3 | Cruzamento Interno | 220 | 137 | 199 | 98 |  |
+| `GroupBox18` | GroupBox | TabPage3 | Representação Cabo/Veia | 6 | 495 | 200 | 67 |  |
+| `GroupBox4B` | GroupBox | TabPage3 | Cores - Interligação | 220 | 137 | 199 | 98 |  |
 | `Label19` | Label | GroupBox6 | Separador Painel e Régua | 0 | 125 | 144 | 20 |  |
 | `cbEstilosLinha` | ComboBox | GroupBox4B |  | 44 | 69 | 105 | 21 |  |
 | `GroupBox15` | GroupBox | TabPage3 | Cruzamento Func Func | 221 | 310 | 199 | 70 |  |
 | `Label13` | Label | GroupBox12 | Prefixo | 29 | 24 | 112 | 18 |  |
-| `RBLayInter3` | RadioButton | GroupBox18 | _ENEL-SP | 110 | 46 | 76 | 17 |  |
-| `RBLayInter2` | RadioButton | GroupBox18 | _Elétron | 9 | 24 | 64 | 17 |  |
-| `RBBobinaContato2` | RadioButton | GroupBox17 | _Na Bobina e no Contato | 13 | 60 | 145 | 17 |  |
+| `RBLayInter3` | RadioButton | GroupBox18 | Enel-SP | 110 | 46 | 76 | 17 |  |
+| `RBLayInter2` | RadioButton | GroupBox18 | Elétron | 9 | 24 | 64 | 17 |  |
+| `RBBobinaContato2` | RadioButton | GroupBox17 | Na Bobina e no Contato | 13 | 60 | 145 | 17 |  |
 | `Label14` | Label | GroupBox12 | Sufixo | 29 | 49 | 112 | 18 |  |
-| `GroupBox17` | GroupBox | TabPage3 | _Visualização Modelos Reles | 220 | 458 | 200 | 105 |  |
+| `GroupBox17` | GroupBox | TabPage3 | Visualização Modelos Reles | 220 | 458 | 200 | 105 |  |
 | `btEletronorte` | Button | GroupBox16 | Eletronorte | 6 | 17 | 95 | 25 |  |
 | `btCorTextoInterligacao` | Button | GroupBox4B |  | 148 | 40 | 35 | 23 |  |
 | `rbANSI` | RadioButton | GroupBox2 | ANSI | 11 | 48 | 50 | 17 |  |
@@ -2980,15 +2974,15 @@ Arquivo do reverso: `frmConfiguracaoGeral.cs` (designer nas linhas 2529-3565). C
 | `SelProj` | Button | GBAccess |  | 373 | 25 | 36 | 36 | Database_32 |
 | `Label10` | Label | GroupBox7 | Circuitos | 6 | 14 | 138 | 19 |  |
 | `rbAccess` | RadioButton | GroupBox19 | Access | 19 | 24 | 60 | 17 |  |
-| `rbIncluirColuna4` | RadioButton | GroupBox5 | Coluna + Alternativo | 13 | 108 | 120 | 17 |  |
+| `rbIncluirColuna4` | RadioButton | GroupBox5 | Alternativo + VH [Coelba] | 13 | 108 | 120 | 17 |  |
 | `tbSeparadorCaboVeia` | TextBox | GroupBox6 | / | 150 | 42 | 35 | 20 |  |
 | `GroupBox1` | GroupBox | TabPage1 | Idioma | 6 | 6 | 104 | 74 |  |
 | `GroupBox10` | GroupBox | TabPage2 | Simbologia Topográfico | 6 | 77 | 415 | 66 |  |
 | `Label2` | Label | GroupBox4 | Conexão | 29 | 20 | 111 | 23 |  |
 | `GroupBox13` | GroupBox | TabPage3 | Cruzamento Interno | 221 | 237 | 199 | 70 |  |
-| `rbIncluirColuna0` | RadioButton | GroupBox5 | Página | 13 | 20 | 58 | 17 |  |
+| `rbIncluirColuna0` | RadioButton | GroupBox5 | Página [Eletronorte, Eletrosul] | 13 | 20 | 58 | 17 |  |
 | `rbSQLSVR` | RadioButton | GroupBox19 | SQL Server | 277 | 24 | 80 | 17 |  |
-| `rbIncluirColuna3` | RadioButton | GroupBox5 | Alternativo | 13 | 86 | 75 | 17 |  |
+| `rbIncluirColuna3` | RadioButton | GroupBox5 | Alternativo [CEEE] | 13 | 86 | 75 | 17 |  |
 | `lbDataSource` | Label | GBSql | DataSource | 6 | 22 | 64 | 13 |  |
 | `Label4` | Label | GroupBox4B | Interligação | 24 | 20 | 118 | 23 |  |
 | `tbSufixoCruzamentoExterno` | TextBox | GroupBox12 |  | 147 | 44 | 35 | 20 |  |
@@ -3010,7 +3004,7 @@ Arquivo do reverso: `frmConfiguracaoGeral.cs` (designer nas linhas 2529-3565). C
 | `rbIEC` | RadioButton | GroupBox2 | IEC | 11 | 25 | 42 | 17 |  |
 | `tbPrefixoCruzamentoInterno` | TextBox | GroupBox13 | ( | 147 | 16 | 35 | 20 |  |
 | `tbTerminalIndefinido` | TextBox | GroupBox6 | ? | 150 | 16 | 35 | 20 |  |
-| `RBBobinaContatoES3` | RadioButton | GroupBox17 | _Na Bobina e no Contato (Eletrosul) | 13 | 80 | 194 | 17 |  |
+| `RBBobinaContatoES3` | RadioButton | GroupBox17 | Na Bobina e no Contato (Eletrosul) | 13 | 80 | 194 | 17 |  |
 | `GroupBox12` | GroupBox | TabPage3 | Cruzamento Log Func | 221 | 383 | 200 | 70 |  |
 | `tbSufixoCruzamentoFF` | TextBox | GroupBox15 | ) | 147 | 40 | 35 | 20 |  |
 | `btCorInterligacao` | Button | GroupBox4B |  | 148 | 15 | 35 | 23 |  |
@@ -3019,23 +3013,23 @@ Arquivo do reverso: `frmConfiguracaoGeral.cs` (designer nas linhas 2529-3565). C
 | `tbFonteCabos` | TextBox | GroupBox7 | {DeclaracoesGeral.Conf.FonteCabos} | 150 | 65 | 35 | 20 |  |
 | `lbPassword` | Label | GBSql | Senha | 6 | 100 | 38 | 13 |  |
 | `TabPage1` | TabPage | TabControl1 | Banco de Dados | 4 | 22 | 427 | 571 |  |
-| `RBContato1` | RadioButton | GroupBox17 | _No Contato | 13 | 20 | 85 | 17 |  |
-| `RBBobina0` | RadioButton | GroupBox17 | _Na Bobina | 13 | 40 | 81 | 17 |  |
+| `RBContato1` | RadioButton | GroupBox17 | No Contato | 13 | 20 | 85 | 17 |  |
+| `RBBobina0` | RadioButton | GroupBox17 | Na Bobina | 13 | 40 | 81 | 17 |  |
 | `GroupBox11` | GroupBox | TabPage2 | Simbologia Layout | 6 | 148 | 415 | 66 |  |
 | `Label7` | Label | GroupBox6 | Separador Cabo Veia | 26 | 45 | 120 | 17 |  |
-| `lbUserName` | Label | GBSql | Nome doUsuário | 6 | 74 | 86 | 13 |  |
+| `lbUserName` | Label | GBSql | Nome do Usuário | 6 | 74 | 86 | 13 |  |
 | `tbPrefixoCruzamentoFF` | TextBox | GroupBox15 | ( | 147 | 15 | 35 | 20 |  |
 | `Label16` | Label | GroupBox6 | Separador Carimbo | 18 | 99 | 126 | 20 |  |
 | `tbSeparadorReguaBorne` | TextBox | GroupBox6 | / | 150 | 122 | 35 | 20 |  |
 | `tbSimbologiaLayout` | TextBox | GroupBox11 | {I8spBuIa499().SelectedPath}\ | 6 | 19 | 361 | 32 |  |
-| `rbIncluirColuna2` | RadioButton | GroupBox5 | Coluna + Página | 13 | 64 | 103 | 17 |  |
-| `RBLayInter1` | RadioButton | GroupBox18 | _Eletrosul | 110 | 24 | 71 | 17 |  |
+| `rbIncluirColuna2` | RadioButton | GroupBox5 | HV + Página [Chesf] | 13 | 64 | 103 | 17 |  |
+| `RBLayInter1` | RadioButton | GroupBox18 | Eletrosul | 110 | 24 | 71 | 17 |  |
 | `btChesf` | Button | GroupBox16 | Chesf | 214 | 17 | 95 | 25 |  |
-| `rbIncluirColuna6` | RadioButton | GroupBox5 | (Página) Alternativo | 13 | 152 | 117 | 17 |  |
+| `rbIncluirColuna6` | RadioButton | GroupBox5 | (Página) + Alternativo | 13 | 152 | 117 | 17 |  |
 | `tbSenha` | TextBox | GBSql |  | 116 | 97 | 128 | 20 |  |
-| `rbIncluirColuna1` | RadioButton | GroupBox5 | Página + Coluna | 13 | 42 | 103 | 17 |  |
+| `rbIncluirColuna1` | RadioButton | GroupBox5 | Página + HV | 13 | 42 | 103 | 17 |  |
 | `Label3` | Label | GroupBox4 | Texto Circuito | 29 | 45 | 111 | 23 |  |
-| `RBLayInter0` | RadioButton | GroupBox18 | _Eletronorte | 9 | 44 | 82 | 17 |  |
+| `RBLayInter0` | RadioButton | GroupBox18 | Eletronorte | 9 | 44 | 82 | 17 |  |
 | `tbSimbologiaTopografico` | TextBox | GroupBox10 | {I8spBuIa499().SelectedPath}\ | 6 | 19 | 361 | 32 |  |
 | `tbEstiloLinhaEscala` | TextBox | GroupBox4B | {structureEstiloInterligacao.LinetypeScale} | 152 | 69 | 30 | 20 |  |
 | `tbSeparadorCruzamento` | TextBox | GroupBox6 | / | 150 | 70 | 35 | 20 |  |
@@ -3065,7 +3059,7 @@ Arquivo do reverso: `frmCadastroDePaineis.cs` (designer nas linhas 532-727). Cli
 |---|---|---|---|---|---|---|---|---|
 | `TBNome` | TextBox | GroupBox1 |  | 12 | 27 | 119 | 20 |  |
 | `GroupBox1` | GroupBox |  |  | 9 | 288 | 417 | 65 |  |
-| `LabelQuantidade` | Label |  | Label1 | 10 | 5 | 292 | 17 |  |
+| `LabelQuantidade` | Label |  | {Conversions.ToString(dg.Rows.Count) + " "}Painel | 10 | 5 | 292 | 17 |  |
 | `btImportar` | Button | GroupBox1 |  | 217 | 15 | 30 | 38 | ImportaExcel_20 |
 | `btApagar` | Button | GroupBox1 |  | 330 | 17 | 38 | 38 | Delete_32 |
 | `dg` | DataGridView |  |  | 10 | 23 | 330 | 259 |  |
@@ -3078,7 +3072,7 @@ Arquivo do reverso: `frmCadastroDePaineis.cs` (designer nas linhas 532-727). Cli
 | `btInserir` | Button | GroupBox1 |  | 248 | 17 | 38 | 38 | Adiciona_32 |
 | `btModelosPN` | Button | GroupBox1 |  | 143 | 15 | 38 | 38 | Excel_32 |
 | `btEditar` | Button | GroupBox1 |  | 289 | 18 | 38 | 38 | Editar |
-| `LabelQuantidadeH` | Label |  | Label2 | 350 | 5 | 292 | 17 |  |
+| `LabelQuantidadeH` | Label |  | {Conversions.ToString(dgH.Rows.Count) + " "}Painel | 350 | 5 | 292 | 17 |  |
 
 ## frmCarregaEL - "Controle de Licença do Elétron"
 
@@ -3089,11 +3083,11 @@ Arquivo do reverso: `frmCarregaEL.cs` (designer nas linhas 258-351). ClientSize:
 | `btNuvemRemover` | Button |  |  | 278 | 63 | 19 | 19 | NuvemDel |
 | `btElecKey` | Button |  |  | 122 | 12 | 48 | 48 | Server |
 | `btRockey` | Button |  |  | 28 | 12 | 48 | 48 | Hardlock |
-| `cbNuvem` | CheckBox |  | CheckBox1 | 198 | 66 | 81 | 17 |  |
+| `cbNuvem` | CheckBox |  | Preservar | 198 | 66 | 81 | 17 |  |
 | `btTrial` | Button |  | Trial | 114 | 143 | 95 | 23 |  |
-| `cbRockey` | CheckBox |  | CheckBox1 | 12 | 66 | 81 | 17 |  |
+| `cbRockey` | CheckBox |  | Preservar | 12 | 66 | 81 | 17 |  |
 | `btNuvem` | Button |  |  | 231 | 12 | 48 | 48 | Nuvem |
-| `cbElecKey` | CheckBox |  | CheckBox1 | 105 | 66 | 81 | 17 |  |
+| `cbElecKey` | CheckBox |  | Preservar | 105 | 66 | 81 | 17 |  |
 
 ## frmBornes - "Inserir Bornes"
 
@@ -3102,13 +3096,13 @@ Arquivo do reverso: `frmBornes.cs` (designer nas linhas 1040-1429). ClientSize: 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `GroupBox2` | GroupBox |  | Inserir Linha | 148 | 366 | 195 | 105 |  |
-| `CKRegua` | CheckBox | GroupBox3 | CKApenasRegua | 120 | 39 | 108 | 17 |  |
+| `CKRegua` | CheckBox | GroupBox3 | Mostrar Régua | 120 | 39 | 108 | 17 |  |
 | `DGBlocos` | DataGridView |  |  | 368 | 146 | 229 | 211 |  |
 | `rbH` | RadioButton | GroupBox2 | H | 20 | 21 | 33 | 17 |  |
 | `btInserirBaixo` | Button | GroupBox1 |  | 97 | 13 | 40 | 40 | BornesBaixo_32 |
 | `tbDx` | TextBox | GroupBox3 | 0 | 66 | 78 | 37 | 20 |  |
 | `btInserirCima` | Button | GroupBox1 |  | 97 | 59 | 40 | 40 | BornesCima_32 |
-| `CKPainel` | CheckBox | GroupBox3 | CKNomeVisivel | 120 | 21 | 98 | 17 |  |
+| `CKPainel` | CheckBox | GroupBox3 | Mostrar Painel | 120 | 21 | 98 | 17 |  |
 | `LBM` | Label | GroupBox2 | Meio | 115 | 62 | 39 | 17 |  |
 | `TBI` | TextBox | GroupBox2 | 0.5 | 80 | 79 | 31 | 20 |  |
 | `btBorneLinhaH` | Button | GroupBox2 |  | 66 | 25 | 55 | 30 | BornesLinha_32 |
@@ -3117,25 +3111,25 @@ Arquivo do reverso: `frmBornes.cs` (designer nas linhas 1040-1429). ClientSize: 
 | `Label2` | Label | GroupBox3 | Y | 105 | 82 | 14 | 13 |  |
 | `Label1` | Label | GroupBox3 | X | 50 | 82 | 14 | 13 |  |
 | `BTSelecionaBornes` | Button | GroupBox3 |  | 162 | 58 | 40 | 40 | Select_32 |
-| `LBI` | Label | GroupBox2 | Incicio | 77 | 62 | 39 | 17 |  |
+| `LBI` | Label | GroupBox2 | Início | 77 | 62 | 39 | 17 |  |
 | `LBF` | Label | GroupBox2 | Fim | 152 | 62 | 39 | 17 |  |
 | `btBorneLinhaV` | Button | GroupBox2 |  | 80 | 14 | 30 | 49 | BornesLinhaV_32 |
-| `ckPrimeiro` | RadioButton | GroupBox3 | CKPrimeiro Visivel | 6 | 21 | 109 | 17 |  |
+| `ckPrimeiro` | RadioButton | GroupBox3 | Primeiro Visível | 6 | 21 | 109 | 17 |  |
 | `btInserir` | Button | GroupBox3 |  | 206 | 58 | 40 | 40 | OK_32 |
 | `Label4` | Label | GroupBox2 | Linetype Scale | 3 | 79 | 83 | 17 |  |
 | `IDWG` | PictureBox |  |  | 368 | 9 | 229 | 129 |  |
 | `RBDispositivos` | RadioButton | GroupBox1 | Dispositivos | 6 | 37 | 96 | 17 |  |
 | `TBInserir` | TextBox | GroupBox3 | 1 | 10 | 78 | 37 | 20 |  |
-| `LbQuantidade` | Label | GroupBox3 | LbInserir | 10 | 60 | 68 | 17 |  |
+| `LbQuantidade` | Label | GroupBox3 | Quantidade | 10 | 60 | 68 | 17 |  |
 | `rbV` | RadioButton | GroupBox2 | V | 20 | 39 | 32 | 17 |  |
 | `GroupBox1` | GroupBox |  | Alinhar | 6 | 366 | 139 | 105 |  |
 | `TBPesquisa` | TextBox |  |  | 93 | 9 | 266 | 20 |  |
-| `LBDistancia` | Label | GroupBox3 | LBDistância | 88 | 59 | 70 | 18 |  |
+| `LBDistancia` | Label | GroupBox3 | Distância | 88 | 59 | 70 | 18 |  |
 | `TBM` | TextBox | GroupBox2 | 1 | 118 | 79 | 31 | 20 |  |
 | `LbFiltro` | Label |  | Filtro | 6 | 9 | 81 | 20 |  |
 | `DGReguas` | DataGridView |  |  | 6 | 37 | 353 | 320 |  |
 | `btApagarLinhas` | Button | GroupBox2 |  | 134 | 16 | 40 | 40 | Delete_32 |
-| `CkTodos` | RadioButton | GroupBox3 | CKTodosVisiveis | 6 | 39 | 104 | 17 |  |
+| `CkTodos` | RadioButton | GroupBox3 | Todos Visíveis | 6 | 39 | 104 | 17 |  |
 | `GroupBox3` | GroupBox |  | Inserção Múltipla | 348 | 366 | 249 | 105 |  |
 | `RBBornes` | RadioButton | GroupBox1 | Bornes | 6 | 68 | 73 | 17 |  |
 
@@ -3155,10 +3149,10 @@ Arquivo do reverso: `frmAdicionaUmCabo.cs` (designer nas linhas 830-1101). Clien
 | `tbSecao` | TextBox | PNCabos |  | 442 | 36 | 63 | 20 |  |
 | `cbOrigem` | ComboBox | PNCabos |  | 14 | 36 | 130 | 21 |  |
 | `LbCabo` | Label | PNCabos | Nome do Cabo | 286 | 13 | 100 | 20 |  |
-| `gbPar` | GroupBox | PNCabos | BL | 522 | 62 | 67 | 78 |  |
+| `gbPar` | GroupBox | PNCabos | PAR | 522 | 62 | 67 | 78 |  |
 | `lbVeia` | Label | PNCabos | Veias | 392 | 13 | 44 | 20 |  |
 | `tbT3Var` | TextBox | gbTrio | T3 | 10 | 71 | 50 | 20 |  |
-| `gbTrio` | GroupBox | PNCabos | BL | 523 | 62 | 67 | 105 |  |
+| `gbTrio` | GroupBox | PNCabos | TRIO | 523 | 62 | 67 | 105 |  |
 | `tbP2Var` | TextBox | gbPar | P2 | 10 | 45 | 50 | 20 |  |
 | `cbDestino` | ComboBox | PNCabos |  | 150 | 36 | 130 | 21 |  |
 | `btAdicionaCabo` | Button | PNCabos |  | 475 | 118 | 40 | 40 | Adiciona_32 |
@@ -3168,7 +3162,7 @@ Arquivo do reverso: `frmAdicionaUmCabo.cs` (designer nas linhas 830-1101). Clien
 | `tbBLVar` | TextBox | gbBL | BL | 10 | 19 | 50 | 20 |  |
 | `PNCabos` | Panel |  |  | 7 | 12 | 600 | 174 |  |
 | `_6lbCabosED` | Label | PNCabos | Cabos | 80 | 62 | 40 | 20 |  |
-| `lbSecao` | Label | PNCabos | lbSeção | 442 | 13 | 63 | 20 |  |
+| `lbSecao` | Label | PNCabos | Seção | 442 | 13 | 63 | 20 |  |
 | `tbVeia` | TextBox | PNCabos |  | 392 | 36 | 44 | 20 |  |
 | `_10lbTrajeto` | Label | PNCabos | Trajeto | 102 | 113 | 364 | 20 |  |
 | `tbT2Var` | TextBox | gbTrio | T2 | 10 | 45 | 50 | 20 |  |
@@ -3237,7 +3231,7 @@ Arquivo do reverso: `frmatribuirVeias.cs` (designer nas linhas 310-444). ClientS
 | `Nome` | Coluna (da rotina de carga) | DGVeiasIndefinidas | 3Nome |  |  |  |  |  |
 | `Formacao` | Coluna (da rotina de carga) | DGCabos | Formação |  |  |  |  |  |
 | `BTSelecionarVeias` | Button |  |  | 384 | 217 | 40 | 40 | BTSelecionarVeias |
-| `GBFuncao` | GroupBox |  | GBFunção | 12 | 170 | 460 | 38 |  |
+| `GBFuncao` | GroupBox |  | Função do cabo  | 12 | 170 | 460 | 38 |  |
 | `BTAdicionarCabo` | Button |  |  | 338 | 217 | 40 | 40 | Adiciona_32 |
 | `DGVeiasIndefinidas` | DataGridView |  |  | 241 | 12 | 231 | 153 |  |
 | `LBFuncao` | Label | GBFuncao | função | 3 | 16 | 455 | 18 |  |
@@ -3245,7 +3239,7 @@ Arquivo do reverso: `frmatribuirVeias.cs` (designer nas linhas 310-444). ClientS
 | `Cabos` | Coluna (da rotina de carga) | DGCabos | Nome do Cabo |  |  |  |  |  |
 | `DGCabos` | DataGridView |  |  | 12 | 12 | 223 | 153 |  |
 | `BTAtribuiVeia` | Button |  |  | 429 | 217 | 40 | 40 | OK_32 |
-| `CKOrdemSelecao` | CheckBox |  | CkOrdem de Seleção | 15 | 236 | 127 | 17 |  |
+| `CKOrdemSelecao` | CheckBox |  | Ordem de Seleção | 15 | 236 | 127 | 17 |  |
 
 ## frmCircuito - "Circuitos"
 
@@ -3264,7 +3258,7 @@ Arquivo do reverso: `frmCircuito.cs` (designer nas linhas 510-690). ClientSize: 
 | `btEnderecamento` | Button | GroupBox1 |  | 13 | 7 | 40 | 40 | EditaDePara |
 | `cbReterPotencial` | CheckBox |  | Reter Potencial | 127 | 162 | 99 | 17 |  |
 | `btLiga` | Button | GroupBox1 |  | 88 | 53 | 40 | 40 | Liga_32 |
-| `Label1` | Label |  | Equipamentos/Painel | 12 | 9 | 108 | 13 |  |
+| `Label1` | Label |  | Equipamento/Painel | 12 | 9 | 108 | 13 |  |
 | `btCircuito` | Button |  |  | 185 | 109 | 40 | 40 | OK_32 |
 | `rbOrdemInsercao` | RadioButton | GroupBox2 | Inserção | 7 | 42 | 66 | 17 |  |
 | `btEditar` | Button | GroupBox1 |  | 88 | 7 | 40 | 40 | Editar |
@@ -3299,7 +3293,7 @@ Arquivo do reverso: `frmCompilarJumperExt.cs` (designer nas linhas 299-443). Cli
 |---|---|---|---|---|---|---|---|---|
 | `` | Coluna (da rotina de carga) | dgRevisao | Revisão |  |  |  |  |  |
 | `dgERROS` | DataGridView |  |  | 297 | 12 | 65 | 241 |  |
-| `cbPreservar` | CheckBox |  | CheckBox1 | 12 | 236 | 81 | 17 |  |
+| `cbPreservar` | CheckBox |  | Preservar ajustes da última revisão? | 12 | 236 | 81 | 17 |  |
 | `` | Coluna (da rotina de carga) | dgERROS | Erros |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRevisao | Data |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgRevisao | Criador |  |  |  |  |  |
@@ -3326,7 +3320,7 @@ Arquivo do reverso: `frmCompilarFiacao.cs` (designer nas linhas 373-565). Client
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `cbPreservar` | CheckBox |  | CheckBox1 | 363 | 355 | 81 | 17 |  |
+| `cbPreservar` | CheckBox |  | Preservar ajustes da última revisão? | 363 | 355 | 81 | 17 |  |
 | `` | Coluna (da rotina de carga) | dgEquip | Indice |  |  |  |  |  |
 | `tbRevisao` | TextBox |  |  | 402 | 378 | 42 | 20 |  |
 | `dgRevisao` | DataGridView |  |  | 249 | 12 | 246 | 252 |  |
@@ -3364,7 +3358,7 @@ Arquivo do reverso: `frmClonar.cs` (designer nas linhas 1203-1757). ClientSize: 
 | `TBNome` | TextBox | TabPage2 | {dgRelacaoPaineis.Rows[num2].Cells[1].Value} | 242 | 26 | 125 | 20 |  |
 | `dgPaineisOrigem` | DataGridView | TabPage1 |  | 199 | 6 | 211 | 399 |  |
 | `rbSelecao` | RadioButton | GroupBox1 | Seleção de Dispositivos | 6 | 128 | 138 | 17 |  |
-| `TabPage4` | TabPage | TabControl1 | TabPage4 | 4 | 22 | 418 | 411 |  |
+| `TabPage4` | TabPage | TabControl1 | Tags | 4 | 22 | 418 | 411 |  |
 | `ProgressBar1` | ProgressBar | TabPage6 |  | 6 | 382 | 406 | 23 |  |
 | `` | Coluna (da rotina de carga) | dgRelacaoPaineis | DE |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgTags | Nome 2 |  |  |  |  |  |
@@ -3384,25 +3378,25 @@ Arquivo do reverso: `frmClonar.cs` (designer nas linhas 1203-1757). ClientSize: 
 | `` | Coluna (da rotina de carga) | dgRelacaoPaginas | dx |  |  |  |  |  |
 | `btCopiarOrigem` | Button | GroupBox1 |  | 65 | 59 | 40 | 40 | Copy_32 |
 | `btAdicionarPaginas` | Button | GroupBox4 |  | 71 | 33 | 40 | 40 | PaginasCrescente_32 |
-| `TabPage5` | TabPage | TabControl1 | TabPage5 | 4 | 22 | 418 | 411 |  |
+| `TabPage5` | TabPage | TabControl1 | Réguas de Bornes | 4 | 22 | 418 | 411 |  |
 | `Label4` | Label | GroupBox3 | Incremento | 6 | 31 | 68 | 20 |  |
 | `tbDy` | TextBox | GroupBox5 | 0 | 27 | 45 | 38 | 20 |  |
 | `TabControl1` | TabControl |  |  | 12 | 12 | 426 | 437 |  |
-| `TabPage6` | TabPage | TabControl1 | TabPage6 | 4 | 22 | 418 | 411 |  |
+| `TabPage6` | TabPage | TabControl1 | Clonar | 4 | 22 | 418 | 411 |  |
 | `GroupBox3` | GroupBox | TabPage3 | Repetir Páginas de Origem | 6 | 6 | 117 | 82 |  |
 | `btInserir` | Button | TabPage2 |  | 373 | 6 | 39 | 40 | Adiciona_32 |
 | `btRepetirPaginas` | Button | GroupBox3 |  | 71 | 33 | 40 | 40 | Repetir_32 |
 | `Label3` | Label | GroupBox4 | Início | 10 | 30 | 40 | 20 |  |
-| `LabelPN` | Label | TabPage2 | LB Novo Painel | 242 | 6 | 125 | 17 |  |
+| `LabelPN` | Label | TabPage2 | Adiciona Painel | 242 | 6 | 125 | 17 |  |
 | `GroupBox1` | GroupBox | TabPage1 | Tipo de Clonagem | 6 | 6 | 187 | 199 |  |
 | `btRelacionarPaginas` | Button | TabPage3 |  | 347 | 3 | 40 | 40 | AtribuirDir_32 |
 | `dgReguas` | DataGridView | TabPage5 |  | 6 | 6 | 406 | 399 |  |
 | `dgRelacaoPaginas` | DataGridView | TabPage3 |  | 129 | 6 | 179 | 399 |  |
-| `TabPage1` | TabPage | TabControl1 | TabPage1 | 4 | 22 | 418 | 411 |  |
-| `cbTitulos` | CheckBox | TabPage6 | CopiarTítulos das Páginas | 139 | 64 | 150 | 17 |  |
+| `TabPage1` | TabPage | TabControl1 | Seleção | 4 | 22 | 418 | 411 |  |
+| `cbTitulos` | CheckBox | TabPage6 | Copiar Títulos das Páginas | 139 | 64 | 150 | 17 |  |
 | `tbIncremento` | TextBox | GroupBox3 | 0 | 13 | 53 | 40 | 20 |  |
 | `tbPaginaInicial` | TextBox | GroupBox4 | 2 | 13 | 53 | 40 | 20 |  |
-| `TabPage3` | TabPage | TabControl1 | TabPage3 | 4 | 22 | 418 | 411 |  |
+| `TabPage3` | TabPage | TabControl1 | Páginas | 4 | 22 | 418 | 411 |  |
 | `rbCompleto` | RadioButton | GroupBox1 | Equipamentos Completos | 6 | 36 | 144 | 17 |  |
 | `GroupBox5` | GroupBox | TabPage3 | Deslocamento | 6 | 182 | 117 | 75 |  |
 | `dgPaineisDestino` | DataGridView | TabPage2 |  | 242 | 52 | 170 | 353 |  |
@@ -3412,7 +3406,7 @@ Arquivo do reverso: `frmClonar.cs` (designer nas linhas 1203-1757). ClientSize: 
 | `dgPaginasDestino` | DataGridView | TabPage3 |  | 320 | 47 | 90 | 358 |  |
 | `Label2` | Label | GroupBox5 | Y | 7 | 48 | 14 | 13 |  |
 | `GroupBox4` | GroupBox | TabPage3 | Criar Páginas em Sequência | 6 | 94 | 117 | 82 |  |
-| `TabPage2` | TabPage | TabControl1 | TabPage2 | 4 | 22 | 418 | 411 |  |
+| `TabPage2` | TabPage | TabControl1 | Equipamentos | 4 | 22 | 418 | 411 |  |
 | `tbDx` | TextBox | GroupBox5 | 0 | 27 | 19 | 38 | 20 |  |
 
 ## frmClonarCabos - "Clonar Cabos"
@@ -3446,10 +3440,10 @@ Arquivo do reverso: `frmClonarEstruturaRegua.cs` (designer nas linhas 405-561). 
 | `BTAtualizarDestino` | Button |  |  | 397 | 31 | 36 | 36 | Update_32 |
 | `BTAtualizarOrigem` | Button |  |  | 178 | 31 | 36 | 36 | Update_32 |
 | `LbFiltro2` | Label |  | Filtro | 230 | 54 | 60 | 20 |  |
-| `LabelCadernoOrigem0` | Label |  | LabelPainel | 12 | 2 | 161 | 19 |  |
+| `LabelCadernoOrigem0` | Label |  | Origem | 12 | 2 | 161 | 19 |  |
 | `LabelCadernoOrigem` | Label |  | LabelPainel | 12 | 23 | 161 | 24 |  |
 | `BTColar` | Button |  |  | 310 | 359 | 40 | 40 | Paste_32 |
-| `LabelCadernoDestino0` | Label |  | lbBornesReserva | 230 | 1 | 161 | 20 |  |
+| `LabelCadernoDestino0` | Label |  | Destino | 230 | 1 | 161 | 20 |  |
 | `TBPesquisaDestino` | TextBox |  |  | 296 | 54 | 95 | 20 |  |
 | `LbFiltro` | Label |  | Filtro | 12 | 53 | 60 | 20 |  |
 
@@ -3466,7 +3460,7 @@ Arquivo do reverso: `frmEditaRevisaoSimplificada.cs` (designer nas linhas 234-30
 | `dg` | DataGridView |  |  | 12 | 12 | 190 | 438 |  |
 | `LimparStripMenuItem` | ToolStripMenuItem |  | Limpar |  |  | 111 | 22 | Limpar |
 | `ToolStripSeparator1` | ToolStripSeparator |  |  |  |  | 108 | 6 |  |
-| `EditarToolStripMenuItem` | ToolStripMenuItem |  | Editar |  |  | 111 | 22 | DWG1 |
+| `EditarToolStripMenuItem` | ToolStripMenuItem |  | Editar DWG |  |  | 111 | 22 | DWG1 |
 | `CopiarToolStripMenuItem` | ToolStripMenuItem |  | Copiar |  |  | 111 | 22 | Copiar |
 
 ## frmImportarModelosDeContatos - "Importar Modelos de Contatos"
@@ -3476,7 +3470,7 @@ Arquivo do reverso: `frmImportarModelosDeContatos.cs` (designer nas linhas 754-1
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `DGModelosDWG_Caderno` | DataGridView | Groupbox2 |  | 5 | 15 | 587 | 222 |  |
-| `Groupbox2` | GroupBox |  | gbDWGCorrente | 14 | 345 | 600 | 247 |  |
+| `Groupbox2` | GroupBox |  | Caderno - Modelos de Contatos Auxiliares | 14 | 345 | 600 | 247 |  |
 | `GroupBoxContatosDestino` | GroupBox |  | Caderno - Contatos | 625 | 345 | 324 | 247 |  |
 | `TBTerminais` | TextBox | Groupbox3 | {DGModelosEXT_Importar.Rows[i].Cells[9].Value} | 356 | 194 | 96 | 20 |  |
 | `btPesquisaLM1` | Button | Groupbox3 |  | 239 | 192 | 22 | 22 | Pesquisar_16 |
@@ -3489,7 +3483,7 @@ Arquivo do reverso: `frmImportarModelosDeContatos.cs` (designer nas linhas 754-1
 | `tbModelo` | TextBox | Groupbox3 |  | 40 | 194 | 144 | 20 |  |
 | `DGModelosEXT_Importar` | DataGridView | Groupbox3 |  | 5 | 15 | 587 | 150 |  |
 | `btPesquisaLM2` | Button | Groupbox3 |  | 318 | 192 | 22 | 22 | Pesquisar_16 |
-| `lbOrientacao` | Label | Groupbox3 | lbOrientação | 455 | 177 | 67 | 13 |  |
+| `lbOrientacao` | Label | Groupbox3 | Orientação | 455 | 177 | 67 | 13 |  |
 | `tbBlocoLayout` | TextBox | Groupbox3 |  | 299 | 242 | 283 | 20 |  |
 | `lbLayout` | Label | Groupbox3 | Bloco de Layout | 299 | 224 | 107 | 13 |  |
 | `GroupBoxContatosOrigem` | GroupBox |  | Importar - Contatos | 623 | 14 | 324 | 324 |  |
@@ -3503,7 +3497,7 @@ Arquivo do reverso: `frmImportarModelosDeContatos.cs` (designer nas linhas 754-1
 | `lbMateriais` | Label | Groupbox3 | Lista de Materiais | 190 | 176 | 73 | 13 |  |
 | `tbBlocoTopografico` | TextBox | Groupbox3 |  | 6 | 242 | 282 | 20 |  |
 | `tbLM2` | TextBox | Groupbox3 |  | 269 | 194 | 46 | 20 |  |
-| `Groupbox3` | GroupBox |  | gbDWGImportar | 12 | 68 | 600 | 270 |  |
+| `Groupbox3` | GroupBox |  | Importar - Modelos de Contatos Auxiliares | 12 | 68 | 600 | 270 |  |
 
 ## frmImportarModelosDeMascaras - "Importar Modelos de Máscara"
 
@@ -3518,13 +3512,13 @@ Arquivo do reverso: `frmImportarModelosDeMascaras.cs` (designer nas linhas 676-9
 | `btPesquisaLM2` | Button | GroupBox3 |  | 326 | 192 | 22 | 22 | Pesquisar_16 |
 | `DGModelosEXT_Importar` | DataGridView | GroupBox3 |  | 5 | 15 | 587 | 150 |  |
 | `lbIndex` | Label | GroupBox3 | lb# | 6 | 176 | 28 | 13 |  |
-| `GroupBox3` | GroupBox |  | gbDWGImportar | 12 | 66 | 600 | 270 |  |
+| `GroupBox3` | GroupBox |  | Importar - Modelos de Máscara | 12 | 66 | 600 | 270 |  |
 | `dgPortasDWG_Caderno` | DataGridView | GroupBoxPortaDestino |  | 5 | 15 | 312 | 269 |  |
 | `btPesquisaLM1` | Button | GroupBox3 |  | 237 | 192 | 22 | 22 | Pesquisar_16 |
 | `lbMateriais` | Label | GroupBox3 | Lista de Materiais | 186 | 176 | 73 | 13 |  |
 | `lbTopografico` | Label | GroupBox3 | Bloco Topográfico | 5 | 222 | 112 | 13 |  |
 | `GroupBoxPortaOrigem` | GroupBox |  | Importar - Componentes da Máscara | 623 | 14 | 324 | 324 |  |
-| `GroupBox2` | GroupBox |  | gbDWGCorrente | 14 | 345 | 600 | 294 |  |
+| `GroupBox2` | GroupBox |  | Caderno - Modelos de Máscara | 14 | 345 | 600 | 294 |  |
 | `DGModelosDWG_Caderno` | DataGridView | GroupBox2 |  | 5 | 15 | 587 | 269 |  |
 | `tbIndice` | TextBox | GroupBox3 | {DGModelosEXT_Importar.Rows[i].Cells[0].Value} | 6 | 194 | 27 | 20 |  |
 | `tbBlocoTopografico` | TextBox | GroupBox3 |  | 5 | 240 | 283 | 20 |  |
@@ -3548,11 +3542,11 @@ Arquivo do reverso: `frmImportarProjetos.cs` (designer nas linhas 659-936). Clie
 | `dgDWGNovo` | DataGridView |  |  | 307 | 211 | 240 | 296 |  |
 | `lbDestino` | Label |  | Diretório para Cópia | 148 | 94 | 51 | 13 |  |
 | `lbSufixoNome` | Label |  | Sufixo | 17 | 94 | 72 | 13 |  |
-| `CKCabosDWG` | CheckBox | GBOpcoes | ckCabos do DWG | 301 | 19 | 113 | 17 |  |
+| `CKCabosDWG` | CheckBox | GBOpcoes | Cabos | 301 | 19 | 113 | 17 |  |
 | `ProgressBar1` | ProgressBar |  |  | 20 | 522 | 710 | 24 |  |
 | `tbBancoCorrente` | TextBox |  |  | 17 | 32 | 754 | 20 |  |
-| `GBOpcoes` | GroupBox |  | GroupBox1 | 20 | 141 | 751 | 51 |  |
-| `RBNaoImportarMateriais` | RadioButton | GBOpcoes | Importar Materiais e alterar códigos LM | 462 | 10 | 207 | 17 |  |
+| `GBOpcoes` | GroupBox |  | Importar | 20 | 141 | 751 | 51 |  |
+| `RBNaoImportarMateriais` | RadioButton | GBOpcoes | Não importar Materiais e preservar códigos LM | 462 | 10 | 207 | 17 |  |
 | `btSelDirNovosDocumentos` | Button |  |  | 735 | 100 | 36 | 36 | Folder |
 | `tbCaminho` | TextBox |  |  | 151 | 110 | 578 | 20 |  |
 | `tbComplementoNome` | TextBox |  | -ORI | 20 | 110 | 125 | 20 |  |
@@ -3564,8 +3558,8 @@ Arquivo do reverso: `frmImportarProjetos.cs` (designer nas linhas 659-936). Clie
 | `Label3` | Label |  | Equipamento/Painel | 552 | 195 | 39 | 13 |  |
 | `Label2` | Label |  | Cadernos para Importação | 304 | 195 | 39 | 13 |  |
 | `btSelNovoBanco` | Button |  |  | 735 | 58 | 36 | 36 | Database_32 |
-| `RBImportarMateriais` | RadioButton | GBOpcoes | Não importar Materiais e preservar códigos LM | 462 | 29 | 244 | 17 |  |
-| `CKFiacao` | CheckBox | GBOpcoes | ckFiacao Compilada | 6 | 19 | 122 | 17 |  |
+| `RBImportarMateriais` | RadioButton | GBOpcoes | Importar Materiais e alterar códigos LM | 462 | 29 | 244 | 17 |  |
+| `CKFiacao` | CheckBox | GBOpcoes | Fiação compilada | 6 | 19 | 122 | 17 |  |
 | `tbBancoImportado` | TextBox |  |  | 19 | 71 | 711 | 20 |  |
 | `CKPlaquetas` | CheckBox | GBOpcoes | Plaquetas | 176 | 19 | 85 | 17 |  |
 
@@ -3576,13 +3570,13 @@ Arquivo do reverso: `frmImportarInterligExcel.cs` (designer nas linhas 645-886).
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `btInsereJumpers` | Button | GroupBox3 |  | 251 | 13 | 32 | 32 | JumperExt_32 |
-| `GroupBox3` | GroupBox |  | gbInserir | 5 | 414 | 345 | 52 |  |
+| `GroupBox3` | GroupBox |  | Inserir | 5 | 414 | 345 | 52 |  |
 | `` | Coluna (da rotina de carga) | DgErros | Função |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | DgErros | Cabo |  |  |  |  |  |
 | `tbDistancia` | TextBox | GroupBox2 | 60 | 273 | 31 | 54 | 20 |  |
 | `dgReguas` | DataGridView |  |  | 5 | 173 | 345 | 196 |  |
 | `ckRegua` | RadioButton | GroupBox2 | Réguas | 179 | 32 | 69 | 17 |  |
-| `LbReguas` | Label |  | btReguas Os Bornes Reservas serão adicionadas nas Réguas ... | 48 | 372 | 227 | 29 |  |
+| `LbReguas` | Label |  | Os Bornes Reservas serão adicionadas nas Réguas marcadas ... | 48 | 372 | 227 | 29 |  |
 | `` | Coluna (da rotina de carga) | DgErros | Nome |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | DgErros | Régua |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | DgErros | iIndice |  |  |  |  |  |
@@ -3597,15 +3591,15 @@ Arquivo do reverso: `frmImportarInterligExcel.cs` (designer nas linhas 645-886).
 | `Ponto2` | Button |  | Button2 | 1250 | 456 | 14 | 8 |  |
 | `btInsereBornes` | Button | GroupBox3 |  | 37 | 13 | 32 | 32 | Bornes_32 |
 | `btColar` | Button | GroupBox1 |  | 104 | 16 | 42 | 42 | Paste_32 |
-| `lbReservaPossivel` | Label |  | LBDistância | 5 | 149 | 137 | 17 |  |
-| `GroupBox2` | GroupBox |  | gbVisualizar | 5 | 78 | 347 | 65 |  |
+| `lbReservaPossivel` | Label |  | Réguas | 5 | 149 | 137 | 17 |  |
+| `GroupBox2` | GroupBox |  | Visualização | 5 | 78 | 347 | 65 |  |
 | `btAdiciona` | Button |  |  | 297 | 373 | 25 | 25 | Verifica_Duplo_32 |
-| `CKPainel` | RadioButton | GroupBox2 | ckPainel-Regua | 6 | 32 | 101 | 17 |  |
+| `CKPainel` | RadioButton | GroupBox2 | Equipamento/Painel+Réguas | 6 | 32 | 101 | 17 |  |
 | `btInsereVeias` | Button | GroupBox3 |  | 144 | 13 | 32 | 32 | ConexaoTT_32 |
 | `btApagarImportado` | Button |  |  | 289 | 21 | 42 | 42 | Delete_32 |
-| `GroupBox1` | GroupBox |  | gbColar | 5 | 5 | 248 | 70 |  |
+| `GroupBox1` | GroupBox |  | Colar | 5 | 5 | 248 | 70 |  |
 | `BTExportaEXCEL` | Button | GroupBox1 |  | 9 | 16 | 42 | 42 | ModeloExcel_32 |
-| `LBDistancia` | Label | GroupBox2 | LBDistância | 270 | 11 | 64 | 17 |  |
+| `LBDistancia` | Label | GroupBox2 | Distância | 270 | 11 | 64 | 17 |  |
 | `Ponto1` | Button |  | Button1 | 374 | 456 | 14 | 8 |  |
 
 ## frmGerenciadorMatIndep - "Dispositivos Independentes e Avulsos"
@@ -3633,7 +3627,7 @@ Arquivo do reverso: `frmGerenciadorMatIndep.cs` (designer nas linhas 508-729). C
 | `tbFabricante1` | TextBox | GroupBox4 |  | 407 | 36 | 111 | 20 |  |
 | `tbModelo1` | TextBox | GroupBox4 |  | 290 | 36 | 111 | 20 |  |
 | `btPesquisaLM1` | Button | GroupBox4 |  | 524 | 33 | 22 | 24 | Pesquisar_16 |
-| `LbTag` | Label |  | lbDisp | 12 | 169 | 64 | 16 |  |
+| `LbTag` | Label |  | Dispositivo | 12 | 169 | 64 | 16 |  |
 | `dgDisp` | DataGridView |  |  | 203 | 10 | 545 | 156 |  |
 | `tbCodigo1` | TextBox | GroupBox4 | 0 | 8 | 36 | 73 | 20 |  |
 | `lbDesc` | Label | GroupBox4 | Descrição Resumida | 87 | 16 | 197 | 16 |  |
@@ -3641,7 +3635,7 @@ Arquivo do reverso: `frmGerenciadorMatIndep.cs` (designer nas linhas 508-729). C
 | `BTEditaLM` | Button |  |  | 660 | 209 | 40 | 40 | Editar |
 | `tbDescricaoResum1` | TextBox | GroupBox4 |  | 87 | 36 | 197 | 20 |  |
 | `TBTag` | TextBox |  |  | 12 | 183 | 64 | 20 |  |
-| `lbCodigo` | Label | GroupBox4 | Codigo | 6 | 16 | 75 | 16 |  |
+| `lbCodigo` | Label | GroupBox4 | Código | 6 | 16 | 75 | 16 |  |
 | `BTAdicionaLM` | Button |  |  | 691 | 172 | 40 | 40 | Adiciona_32 |
 | `lbModelo` | Label | GroupBox4 | Modelo | 290 | 16 | 111 | 16 |  |
 | `lbQuantidade` | Label |  | Quantidade | 12 | 211 | 82 | 15 |  |
@@ -3655,10 +3649,10 @@ Arquivo do reverso: `frmGerenciadorReguasBornes.cs` (designer nas linhas 1797-24
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
 | `lbDesc` | Label | GroupBox1 | Descrição Resumida | 87 | 14 | 197 | 16 |  |
-| `GroupBox10` | GroupBox |  | Extra: POSTE,TAMPAS... | 502 | 302 | 235 | 50 |  |
+| `GroupBox10` | GroupBox |  | Acessórios: POSTE, TAMPAS... | 502 | 302 | 235 | 50 |  |
 | `lbModelo` | Label | GroupBox1 | Modelo | 6 | 55 | 111 | 16 |  |
 | `ckSul` | CheckBox | GroupBox8 | Sul | 5 | 37 | 53 | 17 |  |
-| `RB_PG_POT_LC` | RadioButton | GroupBox5 | PG, Potencial ( Linha e Coluna ) | 13 | 89 | 176 | 17 |  |
+| `RB_PG_POT_LC` | RadioButton | GroupBox5 | Página, Potencial (Linha e Coluna) | 13 | 89 | 176 | 17 |  |
 | `RB_POT_LC` | RadioButton |  | Potencial ( Linha e Coluna ) | 805 | 510 | 155 | 17 |  |
 | `GroupBox2` | GroupBox |  | Migrar Bornes | 502 | 203 | 235 | 50 |  |
 | `btBaixoChassi` | Button | GroupBox11 |  | 10 | 76 | 23 | 23 | Baixo_16 |
@@ -3685,27 +3679,27 @@ Arquivo do reverso: `frmGerenciadorReguasBornes.cs` (designer nas linhas 1797-24
 | `btRomoveReservas` | Button | GroupBox3 |  | 11 | 163 | 85 | 37 | RemoveBornes |
 | `dgBornesExtra` | DataGridView |  |  | 209 | 563 | 285 | 100 |  |
 | `btBorneSimples` | Button | GroupBox3 |  | 12 | 12 | 40 | 40 | BornesS_32 |
-| `lbCodigo` | Label | GroupBox1 | Codigo | 6 | 14 | 75 | 16 |  |
+| `lbCodigo` | Label | GroupBox1 | Código | 6 | 14 | 75 | 16 |  |
 | `tbDescricaoResum1` | TextBox | GroupBox1 |  | 87 | 33 | 197 | 20 |  |
 | `tbFabricante1` | TextBox | GroupBox1 |  | 123 | 76 | 161 | 20 |  |
 | `dgReguas` | DataGridView |  |  | 12 | 38 | 191 | 625 |  |
 | `tbCodigo1` | TextBox | GroupBox1 | 0 | 8 | 33 | 73 | 20 |  |
 | `tbModelo1` | TextBox | GroupBox1 |  | 6 | 76 | 111 | 20 |  |
-| `RB_PG_POT_CL` | RadioButton | GroupBox5 | PG, Potencial ( Coluna e Linha ) | 13 | 66 | 176 | 17 |  |
+| `RB_PG_POT_CL` | RadioButton | GroupBox5 | Página, Potencial (Coluna e Linha) | 13 | 66 | 176 | 17 |  |
 | `GroupBox5` | GroupBox |  | Critério | 552 | 469 | 295 | 145 |  |
-| `GroupBox9` | GroupBox |  | cbLayout | 502 | 141 | 235 | 59 |  |
+| `GroupBox9` | GroupBox |  | Layout Mecânico | 502 | 141 | 235 | 59 |  |
 | `CKEdicaoMultiplas` | CheckBox |  | Multi Seleção | 502 | 12 | 114 | 17 |  |
 | `LbFiltro` | Label |  | Filtro | 12 | 12 | 81 | 20 |  |
 | `TBExtras` | TextBox | GroupBox10 | TAMPA | 10 | 19 | 164 | 20 |  |
 | `btAtribuiOrientacao` | Button | GroupBox8 |  | 75 | 21 | 21 | 26 | Editar_16 |
 | `GroupBox6` | GroupBox |  | Incrementar / Decrementar Numeração | 502 | 252 | 235 | 50 |  |
-| `RB_IndefinidosFinal` | RadioButton | GroupBox4 | rbIndefinidos a partir do ultimo borne | 89 | 19 | 195 | 17 |  |
+| `RB_IndefinidosFinal` | RadioButton | GroupBox4 | Os Indefinidos a partir do ultimo | 89 | 19 | 195 | 17 |  |
 | `btDiminuiRecuo` | Button | GroupBox6 |  | 161 | 12 | 65 | 30 | Bornes_32Menos |
 | `btAumentaRecuo` | Button | GroupBox6 |  | 76 | 12 | 65 | 30 | Bornes_32Mais |
 | `GroupBox11` | GroupBox |  |  | 502 | 467 | 44 | 147 |  |
 | `BtIndefinirBornesSel` | Button | GroupBox3 |  | 41 | 61 | 40 | 40 | Apagador_32 |
 | `Button1` | Button | GroupBox9 |  | 205 | 20 | 21 | 21 | Editar_16 |
-| `RB_Todos` | RadioButton | GroupBox4 | rbTodos | 13 | 19 | 64 | 17 |  |
+| `RB_Todos` | RadioButton | GroupBox4 | Todos | 13 | 19 | 64 | 17 |  |
 | `RB_PLC` | RadioButton | GroupBox5 | Página, Linha e Coluna | 13 | 43 | 135 | 17 |  |
 | `BTImportaEXCEL` | Button | GroupBox7 |  | 99 | 9 | 25 | 42 | ImportaExcel_20 |
 | `CBMigraRegua` | ComboBox | GroupBox2 |  | 10 | 20 | 148 | 21 |  |
@@ -3728,10 +3722,10 @@ Arquivo do reverso: `FrmImportarCabosExcel.cs` (designer nas linhas 285-391). Cl
 | `tbP2Var` | TextBox | GroupBox2 | P2 | 66 | 19 | 50 | 20 |  |
 | `tbP1Var` | TextBox | GroupBox2 | P1 | 10 | 19 | 50 | 20 |  |
 | `btModelo` | Button |  |  | 210 | 27 | 43 | 42 | ModeloExcel_32 |
-| `GroupBox3` | GroupBox |  | BL | 12 | 82 | 192 | 49 |  |
+| `GroupBox3` | GroupBox |  | TRIO | 12 | 82 | 192 | 49 |  |
 | `tbBLVar` | TextBox | GroupBox1 | BL | 17 | 19 | 33 | 20 |  |
 | `tbT3Var` | TextBox | GroupBox3 | T3 | 129 | 19 | 50 | 20 |  |
-| `GroupBox2` | GroupBox |  | BL | 75 | 27 | 129 | 49 |  |
+| `GroupBox2` | GroupBox |  | PAR | 75 | 27 | 129 | 49 |  |
 | `tbT2Var` | TextBox | GroupBox3 | T2 | 73 | 19 | 50 | 20 |  |
 | `btImportar` | Button |  |  | 213 | 90 | 40 | 40 | ImportaExcel_20 |
 | `tbT1Var` | TextBox | GroupBox3 | T1 | 17 | 19 | 50 | 20 |  |
@@ -3743,12 +3737,12 @@ Arquivo do reverso: `frmImprimir.cs` (designer nas linhas 200-291). ClientSize: 
 
 | controle | tipo | pai | texto | x | y | l | a | icone |
 |---|---|---|---|---|---|---|---|---|
-| `OpDecrescente` | RadioButton | GroupBox2 | Decrescente | 19 | 45 | 86 | 17 |  |
-| `OpCrescente` | RadioButton | GroupBox2 | Crescente | 19 | 20 | 73 | 17 |  |
+| `OpDecrescente` | RadioButton | GroupBox2 |  Decrescente | 19 | 45 | 86 | 17 |  |
+| `OpCrescente` | RadioButton | GroupBox2 |  Crescente | 19 | 20 | 73 | 17 |  |
 | `` | Coluna (da rotina de carga) | dg | REV |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dg | Página |  |  |  |  |  |
 | `BTCancelar` | Button |  |  | 88 | 354 | 40 | 42 | Stop_32 |
-| `GroupBox2` | GroupBox |  | Ordem de Impressão | 13 | 283 | 147 | 70 |  |
+| `GroupBox2` | GroupBox |  |  Ordem de Impressão | 13 | 283 | 147 | 70 |  |
 | `Plotar` | Button |  |  | 32 | 354 | 40 | 42 | Imprimir_32 |
 | `dg` | DataGridView |  |  | 11 | 12 | 149 | 265 |  |
 | `ProgressBar1` | ProgressBar |  |  | 18 | 402 | 142 | 18 |  |
@@ -3796,8 +3790,8 @@ Arquivo do reverso: `frmMascara.cs` (designer nas linhas 727-982). ClientSize: *
 | `Nome2` | Coluna (da rotina de carga) | dg | Nome 2 |  |  |  |  |  |
 | `btCorDoBlocoDaMascara` | Button |  |  | 211 | 372 | 37 | 37 |  |
 | `tbDescricao` | TextBox | GBModelo |  | 10 | 104 | 236 | 20 |  |
-| `CKAlternativo` | CheckBox | GBPaineis | CKNomeAlternativo | 127 | 107 | 118 | 17 |  |
-| `RBIndefinirPortas` | RadioButton | GroupBox1 | RB Indefinir Portas | 6 | 19 | 113 | 17 |  |
+| `CKAlternativo` | CheckBox | GBPaineis | Alternativo Visível | 127 | 107 | 118 | 17 |  |
+| `RBIndefinirPortas` | RadioButton | GroupBox1 | Indefinir Portas | 6 | 19 | 113 | 17 |  |
 | `CKPreservarAtributos` | CheckBox | GBPaineis | Preservar Visualização | 127 | 126 | 126 | 17 |  |
 | `BTAtribuiModelo` | Button |  |  | 79 | 372 | 40 | 40 | AtribuirMascara_32 |
 | `LBAlternativo` | Label | GBPaineis | Alternativo | 6 | 105 | 70 | 13 |  |
@@ -3805,12 +3799,12 @@ Arquivo do reverso: `frmMascara.cs` (designer nas linhas 727-982). ClientSize: *
 | `CBModelo` | ComboBox | GBModelo |  | 6 | 19 | 240 | 21 |  |
 | `LbFabricante` | Label | GBModelo | Fabricante | 6 | 50 | 69 | 13 |  |
 | `LBNome2` | Label | GBPaineis | Nome 2 | 124 | 66 | 54 | 13 |  |
-| `lbDescricao` | Label | GBModelo | lbDescrição | 7 | 88 | 63 | 13 |  |
+| `lbDescricao` | Label | GBModelo | Descrição | 7 | 88 | 63 | 13 |  |
 | `GBPaineis` | GroupBox |  |  | 12 | 12 | 257 | 155 |  |
 | `LBPainel` | Label | GBPaineis | Equipamento/Painel | 6 | 16 | 49 | 13 |  |
 | `BTAdiciona` | Button |  |  | 139 | 369 | 40 | 40 | OK_32 |
 | `btEditar` | Button |  |  | 18 | 372 | 40 | 40 | Editar |
-| `RBAtualizarPortas` | RadioButton | GroupBox1 | RB Atualizar Portas | 123 | 19 | 116 | 17 |  |
+| `RBAtualizarPortas` | RadioButton | GroupBox1 | Atualizar Portas | 123 | 19 | 116 | 17 |  |
 
 ## frmMigraBornes - "Migrar Bornes e Conexões"
 
@@ -3822,7 +3816,7 @@ Arquivo do reverso: `frmMigraBornes.cs` (designer nas linhas 231-331). ClientSiz
 | `LabelPainel` | Label |  | Painel{DeclaracoesGeral.Conf.SeparadorPainelRegua}Régua | 12 | 9 | 191 | 17 |  |
 | `dgBornesSelecionados` | DataGridView |  |  | 12 | 29 | 191 | 378 |  |
 | `dgNovaRegua` | DataGridView |  |  | 209 | 29 | 191 | 378 |  |
-| `LabelPainel2` | Label |  | Label1 | 210 | 9 | 191 | 17 |  |
+| `LabelPainel2` | Label |  | Painel{DeclaracoesGeral.Conf.SeparadorPainelRegua}Régua | 210 | 9 | 191 | 17 |  |
 | `btMigrar` | Button |  |  | 255 | 418 | 65 | 30 | BorneMigra |
 
 ## frmLink - "Jumper Interno (Link)"
@@ -3865,7 +3859,7 @@ Arquivo do reverso: `frmJumper.cs` (designer nas linhas 564-762). ClientSize: **
 | `tbPotencial` | TextBox |  | 0 | 12 | 76 | 67 | 20 |  |
 | `cbReterPotencial` | CheckBox |  | Reter Potencial | 127 | 76 | 99 | 17 |  |
 | `rbOrdemInsercao` | RadioButton | GroupBox2 | Inserção | 7 | 42 | 66 | 17 |  |
-| `Label1` | Label |  | Equipamentos/Painel | 12 | 9 | 108 | 13 |  |
+| `Label1` | Label |  | Equipamento/Painel | 12 | 9 | 108 | 13 |  |
 | `btJumperU` | Button |  |  | 168 | 99 | 40 | 40 | JumperU_32 |
 | `btJumper` | Button |  |  | 212 | 192 | 40 | 40 | Jumper_32 |
 | `btEditar` | Button | GroupBox1 |  | 72 | 7 | 40 | 40 | Editar |
@@ -3889,9 +3883,9 @@ Arquivo do reverso: `frmLayoutMec.cs` (designer nas linhas 1166-1676). ClientSiz
 | `rbReguas` | RadioButton | GroupBox1 | Réguas de Bornes | 6 | 35 | 113 | 17 |  |
 | `dgBornes` | DataGridView |  |  | 463 | 391 | 161 | 141 |  |
 | `rbOrdemLayout` | RadioButton | GroupBox7 | Ordem Layout | 6 | 29 | 97 | 17 |  |
-| `LBMargem` | Label | GroupBox6 | margem | 54 | 60 | 102 | 19 |  |
+| `LBMargem` | Label | GroupBox6 | Margem | 54 | 60 | 102 | 19 |  |
 | `dgDisp` | DataGridView |  |  | 296 | 12 | 161 | 540 |  |
-| `CKIncluirRetangulo` | CheckBox | GroupBox6 | Contornar Plaquetas | 6 | 82 | 122 | 17 |  |
+| `CKIncluirRetangulo` | CheckBox | GroupBox6 | Contornar | 6 | 82 | 122 | 17 |  |
 | `rbOrdemLM` | RadioButton | GroupBox7 | OrdemLM | 6 | 9 | 80 | 17 |  |
 | `rbVertical` | RadioButton | GroupBox3 |  | 16 | 27 | 14 | 13 |  |
 | `` | Coluna (da rotina de carga) | dgBornes | BlocoLayout |  |  |  |  |  |
@@ -3915,15 +3909,15 @@ Arquivo do reverso: `frmLayoutMec.cs` (designer nas linhas 1166-1676). ClientSiz
 | `btInserir` | Button |  |  | 575 | 562 | 42 | 42 | btInserir |
 | `rbDispositivos` | RadioButton | GroupBox1 | Dispositivos | 6 | 15 | 81 | 17 |  |
 | `rbOrdemPlaquetas` | RadioButton | GroupBox7 | Ordem Plaquetas | 6 | 49 | 112 | 17 |  |
-| `cbDireitaOuCima` | CheckBox | GroupBox3 | Direita | 6 | 65 | 56 | 17 |  |
+| `cbDireitaOuCima` | CheckBox | GroupBox3 | À Direita | 6 | 65 | 56 | 17 |  |
 | `GroupBox3` | GroupBox |  | Mostrar Quantidade | 463 | 274 | 161 | 111 |  |
 | `PictureBox2` | PictureBox | GroupBox3 |  | 33 | 22 | 24 | 24 |  |
 | `BTAtualizar` | Button | GroupBox6 |  | 124 | 18 | 30 | 30 | Sincroniza_32 |
 | `dgRevisao` | DataGridView |  |  | 11 | 231 | 280 | 102 |  |
 | `GroupBox1` | GroupBox |  |  | 463 | 7 | 161 | 55 |  |
-| `CKNumero` | CheckBox | GroupBox6 | Incluir Numero | 6 | 54 | 94 | 17 |  |
+| `CKNumero` | CheckBox | GroupBox6 | Incluir Item LM | 6 | 54 | 94 | 17 |  |
 | `TBFonte` | TextBox | GroupBox3 | 2 | 128 | 78 | 27 | 18 |  |
-| `CKNomeVisivel` | CheckBox | GroupBox6 | Nome Visivel | 6 | 12 | 87 | 17 |  |
+| `CKNomeVisivel` | CheckBox | GroupBox6 | Nome Visível | 6 | 12 | 87 | 17 |  |
 | `TBTamanho` | TextBox | GroupBox6 | 0.0 | 129 | 80 | 27 | 18 |  |
 | `BTApagaRegua` | Button |  |  | 531 | 548 | 40 | 40 | Delete_32 |
 | `btSalvar` | Button | GroupBox4 |  | 417 | 17 | 22 | 22 | btSalvar |
@@ -3936,9 +3930,9 @@ Arquivo do reverso: `frmLayoutMec.cs` (designer nas linhas 1166-1676). ClientSiz
 | `PictureBox1` | PictureBox | GroupBox3 |  | 105 | 22 | 24 | 24 |  |
 | `dgDWG` | DataGridView |  |  | 11 | 12 | 280 | 216 |  |
 | `dgEquip` | DataGridView |  |  | 12 | 339 | 279 | 213 |  |
-| `LBTotal` | Label |  | Total | 463 | 534 | 161 | 19 |  |
+| `LBTotal` | Label |  | Selecionados: {num2} | 463 | 534 | 161 | 19 |  |
 | `cbAlternativo` | CheckBox | GroupBox2 | Alternativo | 6 | 9 | 76 | 17 |  |
-| `cbEsquerdaOuBaixo` | CheckBox | GroupBox3 | Esquerda | 6 | 85 | 71 | 17 |  |
+| `cbEsquerdaOuBaixo` | CheckBox | GroupBox3 | À Esquerda | 6 | 85 | 71 | 17 |  |
 | `GroupBox4` | GroupBox |  | Bloco | 11 | 557 | 446 | 49 |  |
 | `CKPlaquetas` | CheckBox | GroupBox6 | Incluir Plaquetas | 6 | 34 | 104 | 17 |  |
 | `BTCriaListaNomes` | Button |  |  | 479 | 562 | 42 | 42 | ListaLayout_32 |
@@ -4021,8 +4015,8 @@ Arquivo do reverso: `frmEditorCabos.cs` (designer nas linhas 1333-1783). ClientS
 | `LbCabo` | Label | PNCabos | Nome do Cabo | 374 | 58 | 131 | 20 |  |
 | `tbP2Var` | TextBox | GroupBox2 | P2 | 10 | 45 | 68 | 20 |  |
 | `btApagarCabos` | Button | PNCabos |  | 714 | 60 | 40 | 40 | Delete_32 |
-| `cbCabos` | CheckBox | PNCabos | cbOrdem Cabos | 734 | 8 | 102 | 17 |  |
-| `GroupBox2` | GroupBox |  | BL | 907 | 55 | 85 | 78 |  |
+| `cbCabos` | CheckBox | PNCabos | Ordem Cabos | 734 | 8 | 102 | 17 |  |
+| `GroupBox2` | GroupBox |  | PAR | 907 | 55 | 85 | 78 |  |
 | `_7lbAterrarED` | Label | PNEditar | Aterrar | 115 | 3 | 58 | 20 |  |
 | `_6tbCabosED` | TextBox | PNEditar |  | 71 | 26 | 40 | 20 |  |
 | `tbP1Var` | TextBox | GroupBox2 | P1 | 10 | 19 | 68 | 20 |  |
@@ -4058,21 +4052,21 @@ Arquivo do reverso: `frmEditorCabos.cs` (designer nas linhas 1333-1783). ClientS
 | `PNEditar` | Panel |  |  | 12 | 332 | 891 | 53 |  |
 | `_6lbCabosED` | Label | PNEditar | Cabos | 69 | 3 | 40 | 20 |  |
 | `BtEditar1Cabo` | Button | PNCabos |  | 758 | 60 | 40 | 40 | Select_32 |
-| `lbSecao` | Label | PNCabos | lbSeção | 580 | 58 | 85 | 20 |  |
+| `lbSecao` | Label | PNCabos | Seção | 580 | 58 | 85 | 20 |  |
 | `_5cbBlinED` | ComboBox | PNEditar | Não | 3 | 25 | 60 | 21 |  |
 | `btImportar` | Button |  |  | 955 | 282 | 40 | 40 | ImportaExcel_20 |
 | `tbBLVar` | TextBox | GroupBox1 | BL | 10 | 19 | 68 | 20 |  |
 | `_10lbTrajeto` | Label | PNEditar | Trajeto | 502 | 3 | 386 | 20 |  |
 | `btPesquisa` | Button | PNCabos |  | 670 | 60 | 40 | 40 | Pesquisar_32 |
 | `_1cbDestino` | ComboBox | PNCabos |  | 189 | 81 | 172 | 21 |  |
-| `cbPainel` | CheckBox | PNCabos | cbOrdem Paineis | 734 | 23 | 106 | 17 |  |
+| `cbPainel` | CheckBox | PNCabos | Ordem Painéis | 734 | 23 | 106 | 17 |  |
 | `_8lbFuncao` | Label | PNEditar | Função | 179 | 3 | 229 | 20 |  |
 | `ProgressBar1` | ProgressBar |  |  | 9 | 379 | 987 | 8 |  |
 | `qTotal` | Label |  | Total | 907 | 244 | 85 | 30 |  |
-| `rbTodosEdicao` | RadioButton | PNCabos | Cabos Função, Comprimento, Trajeto | 3 | 31 | 200 | 17 |  |
+| `rbTodosEdicao` | RadioButton | PNCabos | Função, Comprimento, Trajeto, Classe de Isolação | 3 | 31 | 200 | 17 |  |
 | `_9tbComprimento` | TextBox | PNEditar |  | 414 | 25 | 82 | 20 |  |
 | `_2tbCabo` | TextBox | PNCabos |  | 374 | 81 | 131 | 20 |  |
-| `GroupBox3` | GroupBox |  | BL | 907 | 132 | 85 | 105 |  |
+| `GroupBox3` | GroupBox |  | TRIO | 907 | 132 | 85 | 105 |  |
 | `_7cbAterrarED` | ComboBox | PNEditar | Não | 115 | 25 | 58 | 21 |  |
 
 ## frmEstatisticaDeBornes - "Estatística de Bornes"
@@ -4110,10 +4104,10 @@ Arquivo do reverso: `frmEstatisticaDeCabos.cs` (designer nas linhas 221-316). Cl
 | `` | Coluna (da rotina de carga) | dg | Comprimento |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dg | Formação |  |  |  |  |  |
 | `GroupBox18` | GroupBox |  |  | 12 | 209 | 474 | 42 |  |
-| `RBFuncao` | RadioButton | GroupBox18 | _Funcao | 189 | 17 | 67 | 17 |  |
-| `RBFormacao` | RadioButton | GroupBox18 | _Formacao | 6 | 17 | 78 | 17 |  |
+| `RBFuncao` | RadioButton | GroupBox18 | Função | 189 | 17 | 67 | 17 |  |
+| `RBFormacao` | RadioButton | GroupBox18 | Formação | 6 | 17 | 78 | 17 |  |
 | `btExportaEXCEL` | Button |  |  | 492 | 209 | 40 | 42 | ExportaExcel_20 |
-| `RBTrajeto` | RadioButton | GroupBox18 | _Trajeto | 361 | 17 | 64 | 17 |  |
+| `RBTrajeto` | RadioButton | GroupBox18 | Trajeto | 361 | 17 | 64 | 17 |  |
 | `dg` | DataGridView |  |  | 12 | 12 | 520 | 191 |  |
 
 ## frmEditaVariosDispositivos - "Editor Dispositivos e Máscaras"
@@ -4162,9 +4156,9 @@ Arquivo do reverso: `frmEditarNomesFuncoesVeias.cs` (designer nas linhas 357-505
 | `rbCaderno` | RadioButton |  | Cabos do Caderno | 283 | 12 | 74 | 17 |  |
 | `tbCabos` | TextBox |  |  | 5 | 25 | 125 | 20 |  |
 | `btImportar` | Button |  |  | 328 | 439 | 40 | 42 | ImportaExcel_20 |
-| `rbNaoUsados` | RadioButton |  | tbNão Usados | 283 | 30 | 93 | 17 |  |
+| `rbNaoUsados` | RadioButton |  | Cabos não Usados | 283 | 30 | 93 | 17 |  |
 | `dgCabos` | DataGridView |  |  | 5 | 58 | 188 | 426 |  |
-| `lbFormacao` | Label |  | lbFormação | 133 | 9 | 62 | 13 |  |
+| `lbFormacao` | Label |  | Formação | 133 | 9 | 62 | 13 |  |
 
 ## frmEditaTitulos - "Editar os Títulos"
 
@@ -4185,14 +4179,14 @@ Arquivo do reverso: `frmEditaTitulos.cs` (designer nas linhas 421-530). ClientSi
 | `ToolStripSeparator3` | ToolStripSeparator |  |  |  |  | 157 | 6 |  |
 | `LimparStripMenuItem` | ToolStripMenuItem |  | Limpar |  |  | 160 | 22 | Limpar |
 | `ToolStripSeparator2` | ToolStripSeparator |  |  |  |  | 157 | 6 |  |
-| `DeToolStripTextBox` | ToolStripTextBox |  | de |  |  | 100 | 25 |  |
-| `EditarToolStripMenuItem` | ToolStripMenuItem |  | Editar |  |  | 160 | 22 | DWG1 |
+| `DeToolStripTextBox` | ToolStripTextBox |  | DE |  |  | 100 | 25 |  |
+| `EditarToolStripMenuItem` | ToolStripMenuItem |  | Editar DWG |  |  | 160 | 22 | DWG1 |
 | `CopiarToolStripMenuItem` | ToolStripMenuItem |  | Copiar |  |  | 160 | 22 | Copiar |
 | `ColarToolStripMenuItem` | ToolStripMenuItem |  | Colar |  |  | 160 | 22 | Colar |
 | `ToolStripSeparator1` | ToolStripSeparator |  |  |  |  | 157 | 6 |  |
 | `SubstituirToolStripMenuItem` | ToolStripMenuItem |  | Substituir |  |  | 160 | 22 | Substituir |
 | `ExportarStripMenuItem` | ToolStripMenuItem |  | Exportar |  |  | 160 | 22 | ExportarStripMenuItem |
-| `ParaToolStripTextBox` | ToolStripTextBox |  | para |  |  | 100 | 25 |  |
+| `ParaToolStripTextBox` | ToolStripTextBox |  | PARA |  |  | 100 | 25 |  |
 
 ## frmEditaTitulosTextos - "Editar Títulos e Textos"
 
@@ -4208,7 +4202,7 @@ Arquivo do reverso: `frmEditaTitulosTextos.cs` (designer nas linhas 321-459). Cl
 | `lbPara` | Label | GroupBox2 | PARA | 112 | 16 | 71 | 17 |  |
 | `cbTitulo2` | CheckBox | GroupBox2 | Título 2 | 10 | 102 | 70 | 17 |  |
 | `tbDe` | TextBox | GroupBox2 |  | 6 | 36 | 100 | 20 |  |
-| `cbMText` | CheckBox | GroupBox2 | cb MText | 10 | 218 | 71 | 17 |  |
+| `cbMText` | CheckBox | GroupBox2 | Multitextos Autocad | 10 | 218 | 71 | 17 |  |
 | `GroupBox2` | GroupBox |  |  | 148 | 12 | 225 | 254 |  |
 | `tbPara` | TextBox | GroupBox2 |  | 112 | 36 | 100 | 20 |  |
 | `lbDe` | Label | GroupBox2 | DE | 6 | 16 | 71 | 17 |  |
@@ -4235,7 +4229,7 @@ Arquivo do reverso: `frmGerenciadorContatos.cs` (designer nas linhas 1384-1927).
 |---|---|---|---|---|---|---|---|---|
 | `BTEditaModelo` | Button | GroupBox2 |  | 331 | 18 | 40 | 40 | Editar |
 | `BTImportaEX` | Button |  |  | 532 | 214 | 22 | 42 | ImportaExcel_20 |
-| `lbTerminaisModelo` | Label | GroupBox2 | lbTerminais | 101 | 18 | 60 | 13 |  |
+| `lbTerminaisModelo` | Label | GroupBox2 | Terminais ; | 101 | 18 | 60 | 13 |  |
 | `BTAdicionaContato` | Button | GroupBoxContatos |  | 336 | 252 | 40 | 40 | Adiciona_32 |
 | `BTApagaModelo` | Button | GroupBox2 |  | 377 | 18 | 40 | 40 | Delete_32 |
 | `TBT3` | TextBox | GroupBoxContatos |  | 85 | 272 | 35 | 20 |  |
@@ -4269,14 +4263,14 @@ Arquivo do reverso: `frmGerenciadorContatos.cs` (designer nas linhas 1384-1927).
 | `TBT1` | TextBox | GroupBoxContatos |  | 5 | 272 | 35 | 20 |  |
 | `tbCodigo1` | TextBox | GroupBox4 | {0} | 8 | 36 | 73 | 20 |  |
 | `tbBlocoTopografico` | TextBox | GroupBox3 |  | 13 | 39 | 220 | 20 |  |
-| `lbCodigo` | Label | GroupBox4 | Codigo | 6 | 16 | 75 | 16 |  |
+| `lbCodigo` | Label | GroupBox4 | Código | 6 | 16 | 75 | 16 |  |
 | `BTEditaContato` | Button | GroupBoxContatos |  | 376 | 252 | 40 | 40 | Editar |
 | `tbModelo2` | TextBox | GroupBox4 |  | 290 | 61 | 111 | 20 |  |
 | `GroupBox3` | GroupBox |  | Simbologia | 8 | 274 | 552 | 71 |  |
 | `btApagaModelosSemUso` | Button | GroupBox2 |  | 423 | 18 | 40 | 40 | Apagador_32 |
 | `btSelecionaBlocoLayout` | Button | GroupBox3 |  | 524 | 37 | 22 | 22 | Pesquisar_16 |
 | `tbCodigo2` | TextBox | GroupBox4 | {0} | 8 | 61 | 73 | 20 |  |
-| `lbOrientacaoTerm` | Label | GroupBoxContatos | ORIENTAÇÃO | 124 | 252 | 81 | 17 |  |
+| `lbOrientacaoTerm` | Label | GroupBoxContatos | Orientação ; | 124 | 252 | 81 | 17 |  |
 | `DGModelo` | DataGridView | GroupBoxModelos |  | 5 | 15 | 543 | 171 |  |
 | `btPesquisaLM1` | Button | GroupBox4 |  | 524 | 36 | 22 | 24 | Pesquisar_16 |
 | `GroupBox1` | GroupBox |  |  | 566 | 305 | 466 | 135 |  |
@@ -4296,7 +4290,7 @@ Arquivo do reverso: `frmGerenciadorContatos.cs` (designer nas linhas 1384-1927).
 | `TBT2` | TextBox | GroupBoxContatos |  | 45 | 272 | 35 | 20 |  |
 | `tbDescricaoResum2` | TextBox | GroupBox4 |  | 87 | 61 | 197 | 20 |  |
 | `lbLayout` | Label | GroupBox3 | Bloco de Layout | 281 | 20 | 112 | 16 |  |
-| `lbNomeModelo` | Label | GroupBox2 | lbNome | 5 | 19 | 43 | 13 |  |
+| `lbNomeModelo` | Label | GroupBox2 | Nome | 5 | 19 | 43 | 13 |  |
 
 ## frmGerenciadorDWG - "Gerenciador de DWGs do Projeto"
 
@@ -4355,12 +4349,12 @@ Arquivo do reverso: `frmGerenciadorMascaras.cs` (designer nas linhas 1336-1848).
 | `btPesquisaLM1` | Button | GroupBox4 |  | 513 | 36 | 22 | 22 | Pesquisar_16 |
 | `BTApagaMascara` | Button | GroupBox2 |  | 222 | 13 | 40 | 40 | Delete_32 |
 | `BTApagaPorta` | Button | GroupBoxPorta |  | 663 | 352 | 40 | 40 | Delete_32 |
-| `lbCodigo` | Label | GroupBox4 | Codigo | 6 | 16 | 75 | 16 |  |
+| `lbCodigo` | Label | GroupBox4 | Código | 6 | 16 | 75 | 16 |  |
 | `tbDescricaoResum2` | TextBox | GroupBox4 |  | 87 | 61 | 184 | 20 |  |
 | `tbCodigo2` | TextBox | GroupBox4 | {0} | 8 | 61 | 73 | 20 |  |
 | `tbFabricante1` | TextBox | GroupBox4 |  | 393 | 36 | 111 | 20 |  |
 | `TBBornes` | TextBox | GroupBoxPorta |  | 431 | 371 | 130 | 20 |  |
-| `lbOrientacao` | Label | GroupBoxPorta | lbOrientação | 220 | 354 | 78 | 17 |  |
+| `lbOrientacao` | Label | GroupBoxPorta | Orientação; | 220 | 354 | 78 | 17 |  |
 | `LbModelo` | Label | GroupBox2 | Modelo | 6 | 13 | 124 | 17 |  |
 | `Label1` | Label | GroupBox4 | Modelo | 276 | 16 | 111 | 16 |  |
 | `GroupBox4` | GroupBox |  | Materiais | 6 | 316 | 543 | 89 |  |
@@ -4409,7 +4403,7 @@ Arquivo do reverso: `frmExportarDWGs.cs` (designer nas linhas 623-873). ClientSi
 | `rbPagina` | RadioButton | GroupBox2 | Página | 27 | 75 | 58 | 17 |  |
 | `LBQuantCaracter` | Label | GroupBox2 | # de caracteres | 148 | 86 | 82 | 13 |  |
 | `BTCancelar` | Button |  |  | 170 | 272 | 40 | 42 | Stop_32 |
-| `ckExplodir` | CheckBox |  | Explodir | 21 | 245 | 63 | 17 |  |
+| `ckExplodir` | CheckBox |  | Explodir Blocos | 21 | 245 | 63 | 17 |  |
 | `TBZeros` | TextBox | GroupBox2 | 0 | 117 | 81 | 26 | 24 |  |
 | `GroupBox2` | GroupBox |  | Formação do Nome | 12 | 83 | 240 | 156 |  |
 
@@ -4454,11 +4448,11 @@ Arquivo do reverso: `frmExportarImportarTextos.cs` (designer nas linhas 291-404)
 | `` | Coluna (da rotina de carga) | dgPaginas | Handle |  |  |  |  |  |
 | `` | Coluna (da rotina de carga) | dgPaginas | Você deve selecionar uma caixa preta! |  |  |  |  |  |
 | `tbQuant` | TextBox | GroupBox2 | 0 | 232 | 28 | 32 | 20 |  |
-| `lbQuantidadeCaracter` | Label | GroupBox2 | Inserir textos com mais de 1 caracter  | 270 | 31 | 182 | 13 |  |
+| `lbQuantidadeCaracter` | Label | GroupBox2 | Inserir textos com mais de {tbQuant.Text} caracteres. | 270 | 31 | 182 | 13 |  |
 | `BTImportaEX` | Button | GroupBox2 |  | 627 | 16 | 22 | 40 | ImportaExcel_20 |
 | `GroupBox2` | GroupBox |  |  | 12 | 327 | 724 | 65 |  |
 | `BTExportaEX` | Button | GroupBox2 |  | 599 | 16 | 22 | 40 | ExportaExcel_20 |
 | `BtEditar` | Button | GroupBox2 |  | 665 | 16 | 40 | 40 | Editar |
 | `btPesquisar` | Button | GroupBox2 |  | 543 | 16 | 40 | 40 | Pesquisar_32 |
-| `CBAddNum` | CheckBox | GroupBox2 | Inserir Numeros na Busca | 16 | 30 | 147 | 17 |  |
+| `CBAddNum` | CheckBox | GroupBox2 | Incluir Números | 16 | 30 | 147 | 17 |  |
 

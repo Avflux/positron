@@ -75,10 +75,12 @@ namespace Positron.Plugin.Interface.Telas
 
             PreencherGradesEListas(tela, controles);
 
+            // Uma vez por recipiente: o `TabPages.Add` (e o `Items.Add` da barra) repetido duplica.
             Ligar(janela, string.Empty, tela, controles, itens);
+            HashSet<string> ligados = new HashSet<string>(StringComparer.Ordinal);
             foreach (Campo campo in tela.Campos)
             {
-                if (!string.IsNullOrEmpty(campo.Pai))
+                if (!string.IsNullOrEmpty(campo.Pai) && ligados.Add(campo.Pai))
                 {
                     Ligar(janela, campo.Pai, tela, controles, itens);
                 }
@@ -226,7 +228,7 @@ namespace Positron.Plugin.Interface.Telas
                     novo.Name = campo.Nome;
                 }
 
-                novo.Text = campo.Texto ?? string.Empty;
+                novo.Text = TextoDoControle(novo, campo.Texto);
                 if (campo.TemLocal)
                 {
                     // sem clamp: o designer do original tem controle em coordenada negativa
@@ -256,6 +258,23 @@ namespace Positron.Plugin.Interface.Telas
             }
 
             return novo;
+        }
+
+        /// <summary>
+        /// O texto do designer, menos num caso: o campo de entrada cujo valor inteiro só existe em
+        /// execução (`{DeclaracoesGeral.Conf.AlturaFonte}`) abre vazio — a expressão crua no lugar
+        /// do número não é o que o original mostra. Rótulo e título continuam com a expressão.
+        /// </summary>
+        private static string TextoDoControle(Control controle, string texto)
+        {
+            texto = texto ?? string.Empty;
+            bool soExecucao = texto.Length > 1 && texto[0] == '{' && texto[texto.Length - 1] == '}';
+            if (soExecucao && (controle is TextBoxBase || controle is ComboBox || controle is UpDownBase))
+            {
+                return string.Empty;
+            }
+
+            return texto;
         }
 
         private static ToolStripItem CriarItem(Campo campo)
@@ -341,17 +360,19 @@ namespace Positron.Plugin.Interface.Telas
         /// <summary>As colunas das grades e os itens das listas que o original cria nas rotinas de carga.</summary>
         private static void PreencherGradesEListas(Tela tela, Dictionary<string, Control> controles)
         {
-            foreach (Campo campo in tela.Campos)
+            // Pelos filhos de cada controle (na ordem do original), nao pela lista crua dos campos.
+            foreach (KeyValuePair<string, Control> par in controles)
             {
-                if (string.IsNullOrEmpty(campo.Pai) || !controles.ContainsKey(campo.Pai))
+                DataGridView grade = par.Value as DataGridView;
+                ComboBox lista = par.Value as ComboBox;
+                if (grade == null && lista == null)
                 {
                     continue;
                 }
 
-                if (campo.EhColuna)
+                foreach (Campo campo in tela.Filhos(par.Key))
                 {
-                    DataGridView grade = controles[campo.Pai] as DataGridView;
-                    if (grade != null)
+                    if (campo.EhColuna && grade != null)
                     {
                         DataGridViewColumn coluna = new DataGridViewTextBoxColumn();
                         coluna.HeaderText = campo.Texto ?? string.Empty;
@@ -360,16 +381,11 @@ namespace Positron.Plugin.Interface.Telas
                             coluna.Name = campo.Nome;
                         }
 
+                        // a largura (do designer ou a que a rotina de carga calcula) e o Visible
+                        Aplicar(coluna, campo.Propriedades, null);
                         grade.Columns.Add(coluna);
                     }
-
-                    continue;
-                }
-
-                if (campo.EhItem)
-                {
-                    ComboBox lista = controles[campo.Pai] as ComboBox;
-                    if (lista != null)
+                    else if (campo.EhItem && lista != null)
                     {
                         lista.Items.Add(campo.Texto ?? string.Empty);
                     }
@@ -510,7 +526,23 @@ namespace Positron.Plugin.Interface.Telas
                 return;
             }
 
-            PropertyInfo destino = alvo.GetType().GetProperty(par.Nome, BindingFlags.Public | BindingFlags.Instance);
+            // `ColumnHeadersDefaultCellStyle.Font`: o estilo de celula do designer, sub-propriedade
+            // por sub-propriedade sobre o objeto que o controle ja tem
+            string nome = par.Nome;
+            int ponto = nome.IndexOf('.');
+            if (ponto > 0)
+            {
+                PropertyInfo dono = alvo.GetType().GetProperty(nome.Substring(0, ponto), BindingFlags.Public | BindingFlags.Instance);
+                alvo = dono == null ? null : dono.GetValue(alvo, null);
+                if (alvo == null)
+                {
+                    return;
+                }
+
+                nome = nome.Substring(ponto + 1);
+            }
+
+            PropertyInfo destino = alvo.GetType().GetProperty(nome, BindingFlags.Public | BindingFlags.Instance);
             if (destino == null || !destino.CanWrite)
             {
                 return;
