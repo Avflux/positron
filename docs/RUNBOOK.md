@@ -968,6 +968,52 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 152 — o ramo do desenho do `Edita` do `ATINDEP`: o `EditaLMDoDispositivo`.** A linha da
+grade que veio **do desenho** (tem `Handle`) agora sai do clique nas duas metades do original: o
+`IndiceMaterial` da linha na `ListaMateriais` e o bloco — o `iLM1` no XData `Dispositivo` (só quando
+difere, com `1071`) e os atributos `MODELO` (vazio), `PAINEL` (o nome do cadastro, `"???"` fora dele)
+e `FABRICANTE` (o do material), gravados sempre. Regra em `DispositivoDaListaEdicao`, I/O em
+`DispositivoDaListaDoDesenho`.
+
+**Por que a primeira passada não passou:** o `TrocarUmValor` contava a partir do valor **depois** do
+app name, mas o índice (`IndiceDoLmNoXData` = 21) conta o `1001` como 0, como o resto do leitor. A
+troca caía no `array[22]` e o `iLM1` não mudava — e a tela contava "1 lm(s) regravado(s)". Com o
+contador começando em 1 o dump confere. Reproduzido nos dois sentidos no ZWCAD 2026: sem a correção o
+`bTL` segue `lm1=463`; com ela, `461`.
+
+**Como medir** (ZWCAD 2026; o banco é o do `cad-projeto-e2e.ps1 -Banco <repo>\.tmp-smoke\r152.db`):
+
+```bash
+R=$PWD/.tmp-smoke
+export POSITRON_XDATA="$(cygpath -m $R)/dump.txt" POSITRON_XDATA_SUFIXO=.depois POSITRON_XDATA_DISPOSITIVOS=1
+export POSITRON_LIM_PAINEL=503 POSITRON_LIM_ITEM="55;bTL;1;461" POSITRON_LIM_ACAO=editar
+# 1) o dispositivo real (linha 55, bTL, 5A3E): o antes no load, o depois no pz-dump
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Dwg 63 -Revisao R0   -Comandos "ELET,pzTelas,pz-dump" -Fixture scripts/cad-dump-xdata.lsp   -Desenho "cad-plugin/reverso/Teste_projeto_real/Funcional.dwg" -Banco "$(cygpath -w $R/r152.db)"
+# 2) os atributos: a fixture estraga o MODELO do 5A3E e insere o ZQLIM (handle 4DE81) com os
+#    quatro tags; a linha do ZQLIM entra na ListaMateriais a mao (Indice 105, Handle 4DE81, material 0)
+export POSITRON_DUMP_LSP="$(cygpath -m $PWD/scripts/cad-dump-xdata.lsp)" POSITRON_LIM_ITEM="105;ZQLIM;1;461"
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 ... -Fixture scripts/cad-fixture-atindep-lim.lsp ...
+```
+
+```text
+ATINDEP: painel 503 escolhido pelo POSITRON_LIM_PAINEL (91 item(ns)).
+ATINDEP: 0 item(ns) da tela regravado(s) com o material 461 (1 linha(s) do desenho com o material gravado na lista). o desenho: 1 dispositivo(s) — 1 lm(s) regravado(s) no XData (0 já com o material), 0 atributo(s) — 1 já iguais, 2 tag(s) fora do bloco.
+ATINDEP: ... o desenho: 1 dispositivo(s) — 1 lm(s) regravado(s) no XData (0 já com o material), 3 atributo(s) — 0 já iguais, 0 tag(s) fora do bloco.
+```
+
+| dispositivo | antes | depois |
+|---|---|---|
+| `bTL` 5A3E (real) | `lm1=463`, `MODELO=MODELO DO REAL` (estragado) | `lm1=461`, `MODELO=` — o dump difere **só** nisso |
+| `ZQLIM` 4DE81 (fixture) | `lm1=0`, `MODELO ANTIGO`/`PAINEL ANTIGO`/`FABRICANTE ANTIGO` | `lm1=461`, `MODELO=`, `PAINEL=PNL-GGE`, `FABRICANTE=SIEMENS` |
+
+O `bTL` do desenho real só tem o `MODELO` (por isso os "2 tag(s) fora do bloco"); o `PAINEL` e o
+`FABRICANTE` só aparecem no bloco da fixture. A linha 105 da lista ficou com `IndiceMaterial` 461.
+
+**Na mesma rodada:** o `ELETCFG` gravava zeradas as 14 chaves que a tela não mostra (`fonteCabos=0`,
+`passoPagina=0`, `estiloLinha=` …) — o `Coletar` agora parte do `ConfiguracaoPositron.Copiar()`. E o
+`extrair-formularios-do-reverso.ps1` normaliza o fim de linha ao ler: num checkout em LF ele devolvia
+**0 telas** sem erro; agora dá 127/3431 e o mapa sai igual ao commitado.
+
 **Rodada 151 — a escrita da lista de materiais: o item avulso do `ATINDEP`.** O segundo item que a
 rodada 148 devolveu para a fila do `PLANO.md` era a **escrita da lista** — o `AdicionaUmItemMaterialAvulso`,
 o `EditaUmItemMaterialAvulso` e o `RemoveMaterialAvulso` do `cDadosAccessMateriais`, com o corpo do

@@ -34,6 +34,30 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void Copiar_preserva_as_chaves_que_a_tela_nao_edita()
+        {
+            ConfiguracaoPositron atual = ConfiguracaoPositron.Padrao();
+            atual.FonteCabos = 2.5;
+            atual.PassoPagina = 2;
+            atual.CorInterligacao = 3;
+            atual.EstiloLinha = "DASHED";
+            atual.Relatorio = @"C:\rel";
+
+            ConfiguracaoPositron editada = atual.Copiar();
+            editada.IncluirColuna = 4;
+
+            ConfiguracaoPositron lida = ConfiguracaoPositron.Ler(editada.Texto(), null);
+
+            Assert.Equal(4, lida.IncluirColuna);
+            Assert.Equal(2.5, lida.FonteCabos);
+            Assert.Equal(2, lida.PassoPagina);
+            Assert.Equal(3, lida.CorInterligacao);
+            Assert.Equal("DASHED", lida.EstiloLinha);
+            Assert.Equal(@"C:\rel", lida.Relatorio);
+            Assert.Equal(0, atual.IncluirColuna);
+        }
+
+        [Fact]
         public void Arquivo_sobrevive_ao_round_trip()
         {
             ConfiguracaoPositron original = new ConfiguracaoPositron

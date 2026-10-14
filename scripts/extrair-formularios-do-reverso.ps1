@@ -152,7 +152,8 @@ function Resolver([string]$expr) {
 
 # ---------------------------------------------------------------- disseca um frm
 function Ler-Formulario([string]$caminho) {
-  $txt = [System.IO.File]::ReadAllText($caminho)
+  # o checkout pode vir em LF (core.autocrlf); as buscas abaixo esperam CRLF
+  $txt = [System.IO.File]::ReadAllText($caminho) -replace "`r?`n", "`r`n"
   $linhas = $txt -split "`r?`n"
 
   # o metodo do designer: o ultimo `void X()` antes do SuspendLayout

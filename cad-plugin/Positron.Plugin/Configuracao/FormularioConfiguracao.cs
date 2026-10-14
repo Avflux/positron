@@ -97,16 +97,15 @@ namespace Positron.Plugin.Configuracao
         {
             int numero;
 
-            Resultado = new ConfiguracaoPositron
-            {
-                Banco = Texto(_banco),
-                Dwg = int.TryParse(_dwg.Text.Trim(), out numero) ? numero : atual.Dwg,
-                Revisao = Texto(_revisao),
-                Local = Texto(_local),
-                Log = Texto(_log),
-                IncluirColuna = int.TryParse(_incluirColuna.Text.Trim(), out numero) ? numero : atual.IncluirColuna,
-                SeparadorCruzamento = Texto(_separador),
-            };
+            // A tela edita só sete chaves; as demais saem do atual, senão o Salvar as gravaria zeradas.
+            Resultado = atual.Copiar();
+            Resultado.Banco = Texto(_banco);
+            Resultado.Dwg = int.TryParse(_dwg.Text.Trim(), out numero) ? numero : atual.Dwg;
+            Resultado.Revisao = Texto(_revisao);
+            Resultado.Local = Texto(_local);
+            Resultado.Log = Texto(_log);
+            Resultado.IncluirColuna = int.TryParse(_incluirColuna.Text.Trim(), out numero) ? numero : atual.IncluirColuna;
+            Resultado.SeparadorCruzamento = Texto(_separador);
         }
 
         private static string Texto(TextBox caixa)

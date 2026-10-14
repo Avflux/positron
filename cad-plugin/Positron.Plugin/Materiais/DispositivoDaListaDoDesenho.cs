@@ -336,7 +336,9 @@ namespace Positron.Plugin.Materiais
 
                 saida.Add(valores[i]);
                 i++;
-                int k = 0;
+                // O `indice` conta o 1001 como 0 (o `valores[indice]` do leitor); o `k`, os valores
+                // depois dele — por isso começa em 1.
+                int k = 1;
                 while (i < valores.Count && valores[i].Codigo != 1001)
                 {
                     if (k == indice)

@@ -152,6 +152,15 @@ namespace Positron.Data.Configuracao
         /// <summary>Escala do estilo de linha (o <c>Conf.EstiloLinhaEscala</c>, padrão 1.0).</summary>
         public double EstiloLinhaEscala { get; set; }
 
+        /// <summary>
+        /// Cópia independente — quem edita parte das chaves (a tela do <c>ELETCFG</c>)
+        /// parte dela para não gravar as demais zeradas.
+        /// </summary>
+        public ConfiguracaoPositron Copiar()
+        {
+            return (ConfiguracaoPositron)MemberwiseClone();
+        }
+
         /// <summary>Arquivo padrão: <c>%APPDATA%\Positron\positron.ini</c> (ou o TEMP).</summary>
         public static string ArquivoPadrao
         {
