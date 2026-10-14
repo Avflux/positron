@@ -968,6 +968,27 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 160 — a tela `frmEstimativaVeiasLivres` (`ESTVL`) ligada à regra: a estimativa de veias livres.**
+Com a fila do `PLANO.md` vazia, a menor tela que era só casca (267 linhas). Ela é uma grade (`DE`, `PARA`, `# VEIAS`) com o par de painéis e quantas veias **indefinidas** (`NumVeia == -1000`) o ligam, mais o botão Copiar. Toda a regra vem do desenho; do banco, só o nome dos painéis.
+- regra pura `Positron.Data/Interligacao/EstimativaDeVeiasLivres.cs`: o `carregaApenasAsVeiasIndefinidasDoCaderno` (pula a ponta que só tem o painel 2 fora do tipo 3; no tipo 2 completa o painel pelo `Painel2` da polyline apontada pelo handle do XData; ordena por painel 1 decrescente e painel 2 crescente) seguido do `clsInterligacao.Estimativa` (pula painel zero, par em ordem, conta na ordem da primeira aparição); nomes pelo cadastro `Paineis` (`"???"` fora dele); o texto do Copiar com TAB e CRLF;
+- `InterligacaoDoDesenho`: uma varredura só (`Varrer`) para o `Ler` e o novo `LerComHandles`;
+- `LigacaoDoFrmEstimativaVeiasLivres`: as colunas do `formataDGVeias`, a grade e o `btCopiar`; `LigacoesDasTelas` com **13 de 127**;
+- +5 testes (`EstimativaDeVeiasLivresTests`).
+
+O `Funcional.dwg` não tem veia indefinida (o `ESTVL` dá 0 pares). Para a prova com linhas, cópias do desenho e do banco, com o `Cabos` da cópia reduzido a um cabo que o desenho não usa — o `INDCABO` então indefine os 20 trechos:
+
+```text
+# ZWCAD 2026, cópias do Funcional.dwg e do r154.db (Cabos só com 7SA6000)
+powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Desenho <copia>\Funcional159.dwg -Banco <copia>\r159.db -Comandos "ESTVL,INDCABO,ESTVL"
+
+ESTVL: 0 par(es) de painéis com veia indefinida.
+ESTVL: "Estimativa Veias Faltantes" (frmEstimativaVeiasLivres) aberta no CAD — 5 controle(s).
+INDCABO: 20 de 20 trecho(s) de interligação indefinido(s); 24 de 24 rótulo(s) do cabo com o caracter indefinido (catálogo: 1 cabo(s)).
+ESTVL: 2 par(es) de painéis com veia indefinida: PNL-GGE -> 400G1 (10); PNL-GGE -> 400G2 (10).
+```
+
+`JANELAS`: 127 de 127 montadas, **13** com regra. `plugin:test` **783** (+5), as duas builds **0 avisos**.
+
 **Rodada 159 — o `IMPBD` (`frmImportarProjetos`): o último comando do reverso que abre janela ligado.**
 Com a fila do `PLANO.md` toda ✅, o painel da rodada 158 deixava um único comando de janela sem nada no plugin. No original o `IMPBD` só abre a tela; o `else` da guarda `Conf.Banco == "SV"` mostra o `mMensagem[1, 1969]` ("Esta função não é suportada para o SQL Server."). O extrator via esse `MsgBox` como trabalho e o deixava de fora.
 - `scripts/extrair-comandos-do-reverso.ps1`: o `MsgBox(RuntimeHelpers.GetObjectValue(DeclaracoesGeral.mMensagem[...]))` conta como relato da guarda (o único corpo que muda é o do `IMPBD`); o recoder não tem SQL Server, então a guarda nunca barra;

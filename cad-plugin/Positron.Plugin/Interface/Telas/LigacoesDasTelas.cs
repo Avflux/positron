@@ -41,6 +41,7 @@ namespace Positron.Plugin.Interface.Telas
             new LigacaoDoFrmEditaRevisaoSimplificada(),
             new LigacaoDoFrmEditaRevisaoCompleta(),
             new LigacaoDoFrmSplash(),
+            new LigacaoDoFrmEstimativaVeiasLivres(),
         };
 
         /// <summary>As telas ligadas hoje (para o diagnóstico e os testes não lerem a lista).</summary>

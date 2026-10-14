@@ -41,6 +41,8 @@ A rodada 159 ligou o último: o `IMPBD` (`frmImportarProjetos`) só tinha, além
 `Conf.Banco == "SV"` — o recoder não tem SQL Server, então ele virou o **115º gerado**: **50** sem nada
 (todos de regra pura), **108** telas alcançadas e a barra com **124** cobertos e **117** abrindo janela
 (nenhum item de janela sem comando). A tela é casca: a importação (`clsImportarProjetos`) segue na frente 9.
+A rodada 160 ligou a tela `frmEstimativaVeiasLivres` (`ESTVL`) à regra nova `EstimativaDeVeiasLivres`:
+o painel passa a dizer **13** telas com a ligação na tela (eram 12).
 
 **O reverso mora no repo desde a rodada 134** (`cad-plugin/reverso/Eletron4_ZWcad`, com o
 `decompiled/`, o `decompiled-cleaned/`, o `cleaned/` e o `DLL/`), e o painel agora **imprime de onde

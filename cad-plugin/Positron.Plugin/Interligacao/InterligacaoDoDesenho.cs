@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
@@ -40,11 +41,39 @@ namespace Positron.Plugin.Interligacao
         public static IReadOnlyList<PontoInterligacao> Ler(bool incluirVeiaIndefinida = false)
         {
             List<PontoInterligacao> pontos = new List<PontoInterligacao>();
+            Varrer((linha, ilig) =>
+            {
+                if (!incluirVeiaIndefinida && ilig.NumVeia == InterligacaoXData.NumVeiaIndefinido)
+                {
+                    return;
+                }
 
+                PontoInterligacao ponto = PontoInterligacao.DeInterligacao(ilig, linha.Layer);
+                MarcarGeometria(ponto, linha, ilig);
+                pontos.Add(ponto);
+            });
+
+            return pontos;
+        }
+
+        /// <summary>
+        /// Todo XData válido do ModelSpace com o **handle da própria polyline** (o
+        /// <c>pl.Handle</c> do original), na ordem do ModelSpace — o que precisa quem segue o
+        /// handle gravado no XData até a polyline vizinha (a estimativa de veias livres).
+        /// </summary>
+        public static IReadOnlyList<KeyValuePair<string, InterligacaoXData>> LerComHandles()
+        {
+            List<KeyValuePair<string, InterligacaoXData>> trechos = new List<KeyValuePair<string, InterligacaoXData>>();
+            Varrer((linha, ilig) => trechos.Add(new KeyValuePair<string, InterligacaoXData>(linha.Handle.ToString(), ilig)));
+            return trechos;
+        }
+
+        private static void Varrer(Action<Polyline, InterligacaoXData> visitar)
+        {
             Document documento = Application.DocumentManager.MdiActiveDocument;
             if (documento == null)
             {
-                return pontos;
+                return;
             }
 
             Database banco = documento.Database;
@@ -58,8 +87,7 @@ namespace Positron.Plugin.Interligacao
 
                 foreach (ObjectId id in espaco)
                 {
-                    Entity entidade = transacao.GetObject(id, OpenMode.ForRead) as Entity;
-                    Polyline linha = entidade as Polyline;
+                    Polyline linha = transacao.GetObject(id, OpenMode.ForRead) as Polyline;
                     if (linha == null)
                     {
                         continue;
@@ -78,20 +106,11 @@ namespace Positron.Plugin.Interligacao
                         continue;
                     }
 
-                    if (!incluirVeiaIndefinida && ilig.NumVeia == InterligacaoXData.NumVeiaIndefinido)
-                    {
-                        continue;
-                    }
-
-                    PontoInterligacao ponto = PontoInterligacao.DeInterligacao(ilig, entidade.Layer);
-                    MarcarGeometria(ponto, linha, ilig);
-                    pontos.Add(ponto);
+                    visitar(linha, ilig);
                 }
 
                 transacao.Commit();
             }
-
-            return pontos;
         }
 
         /// <summary>
