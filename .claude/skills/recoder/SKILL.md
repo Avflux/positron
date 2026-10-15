@@ -92,6 +92,8 @@ Se algo não pôde ser medido (CAD indisponível etc.), escreva **"não medido: 
 5. **Commit** único da rodada: `tipo(area): resumo curto (rodada NNN)` — ex.:
    `feat(paginas): cadeia do CAD completa com TrocaColunas (rodada 175)`. Inclui código, testes e docs.
    Commit só se o usuário pediu commits nesta sessão ou no fluxo do projeto; senão, deixe pronto e avise.
+   O hash ainda não existe ao escrever: use `*(este)*` na rodada e no `ESTADO.md`, e a **rodada
+   seguinte** troca pelo hash real (sem commit extra só para isso).
 
 ## 6. Resposta ao usuário
 
