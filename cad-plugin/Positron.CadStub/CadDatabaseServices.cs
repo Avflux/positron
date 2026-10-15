@@ -676,9 +676,37 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         {
         }
 
+        /// <summary>
+        /// As referências que usam esta definição (o `GetBlockReferenceIds` da API real — o
+        /// `attsync` do `verificaCriaBlocoRevisao`). Sem desenho de verdade não há referência.
+        /// </summary>
+        public ObjectIdCollection GetBlockReferenceIds(bool directOnly, bool forceValidity)
+        {
+            return new ObjectIdCollection();
+        }
+
         public IEnumerator GetEnumerator()
         {
             return new List<ObjectId>().GetEnumerator();
+        }
+    }
+
+    /// <summary>
+    /// Coleção de <see cref="ObjectId"/> (o `ObjectIdCollection` da API real, devolvida pelo
+    /// `GetBlockReferenceIds`). O stub só precisa da enumeração, como o original a percorre.
+    /// </summary>
+    public class ObjectIdCollection : IEnumerable
+    {
+        private readonly List<ObjectId> _ids = new List<ObjectId>();
+
+        public int Count
+        {
+            get { return _ids.Count; }
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            return _ids.GetEnumerator();
         }
     }
 

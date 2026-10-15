@@ -131,6 +131,7 @@ namespace Positron.Plugin.Interface.Telas
                         + gravacao.Deslocados + " deslocada(s)), " + gravacao.Apagados + " apagada(s)"
                         + (gravacao.Estourou ? "; houve deslocamento por falta de posição" : "")
                         + (gravacao.Definicoes > 0 ? "; " + gravacao.Definicoes + " definição(ões) Revisao_Capa/Corpo (re)criada(s)" : "")
+                        + (gravacao.Referencias > 0 ? "; " + gravacao.Referencias + " referência(s) ressincronizada(s)" : "")
                         + (gravacao.SemDefinicao > 0 ? "; " + gravacao.SemDefinicao + " sem bloco de formato (Revisao_Capa/Corpo)" : "")
                         + (gravacao.SemFormato > 0 ? "; " + gravacao.SemFormato + " página(s) sem posições no formato" : "")
                         + ".");

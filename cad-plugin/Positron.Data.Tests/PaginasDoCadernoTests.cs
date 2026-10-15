@@ -82,5 +82,23 @@ namespace Positron.Data.Tests
             // Sem querer vazio, o alternativo vazio devolve a própria página.
             Assert.Equal("2", PaginasDoCaderno.Alternativo(paginas, "2", false));
         }
+
+        [Fact]
+        public void A_proxima_valida_sobre_os_nomes_crus()
+        {
+            // O NOVAPAGINA usa esta sobre a lista de nomes que o PaginasDoDesenho devolve.
+            List<string> paginas = new List<string> { "1", "2", "6", "10", "1000" };
+
+            Assert.Equal("2", PaginasDoCaderno.ProximaValida(paginas, "1"));
+            Assert.Equal("6", PaginasDoCaderno.ProximaValida(paginas, "2"));
+
+            // Sem caixa, como as comparações do original.
+            Assert.Equal("10", PaginasDoCaderno.ProximaValida(paginas, "6"));
+
+            // A última (e o que não está) devolve vazio — o "fim" do calculaNovaPagina.
+            Assert.Equal("", PaginasDoCaderno.ProximaValida(paginas, "1000"));
+            Assert.Equal("", PaginasDoCaderno.ProximaValida(paginas, "99"));
+            Assert.Equal("", PaginasDoCaderno.ProximaValida((IReadOnlyList<string>)null, "1"));
+        }
     }
 }

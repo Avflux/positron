@@ -207,6 +207,29 @@ namespace Positron.Data.Paginas
         }
 
         /// <summary>
+        /// A **próxima** página da lista de nomes (o mesmo <c>BuscaProximaPaginaValida</c>, sobre os
+        /// nomes crus que o <c>PaginasDoDesenho</c> devolve) — vazio quando a página não está ou é a
+        /// última.
+        /// </summary>
+        public static string ProximaValida(IReadOnlyList<string> paginas, string pagina)
+        {
+            if (paginas == null)
+            {
+                return string.Empty;
+            }
+
+            for (int i = 0; i < paginas.Count - 1; i++)
+            {
+                if (string.Equals(paginas[i] ?? string.Empty, pagina ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+                {
+                    return paginas[i + 1] ?? string.Empty;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
         /// O **alternativo** da página (o <c>BuscaAlternativo</c>); com
         /// <paramref name="retornaVazio"/> falso e o alternativo vazio, devolve a própria página.
         /// </summary>

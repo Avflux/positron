@@ -298,7 +298,10 @@ namespace Positron.Plugin.Paginas
                 {
                     List<AtributoDeFormato> atributosDoFormato = FormatoDoDesenho.Atributos(transacao, tabela, formato);
                     posicoes = DefinicoesDeRevisao.Contar(ParaTags(atributosDoFormato), capaLayer);
-                    resultado.Definicoes = CriarDefinicoes(transacao, tabela, atributosDoFormato, capaLayer, posicoes);
+                    int referencias;
+                    resultado.Definicoes = CriarDefinicoes(
+                        transacao, tabela, atributosDoFormato, capaLayer, posicoes, out referencias);
+                    resultado.Referencias = referencias;
                 }
 
                 // 3) aplica o plano de cada página editada.
@@ -622,23 +625,29 @@ namespace Positron.Plugin.Paginas
             BlockTable tabela,
             List<AtributoDeFormato> atributosDoFormato,
             string capaLayer,
-            PosicoesDoFormato posicoes)
+            PosicoesDoFormato posicoes,
+            out int referencias)
         {
             int criadas = 0;
+            referencias = 0;
             for (int i = 0; i < posicoes.Capa; i++)
             {
-                if (VerificaCriaDefinicao(transacao, tabela, atributosDoFormato, capaLayer, i.ToString()))
+                int sincronizadas;
+                if (VerificaCriaDefinicao(transacao, tabela, atributosDoFormato, capaLayer, i.ToString(), out sincronizadas))
                 {
                     criadas++;
                 }
+                referencias += sincronizadas;
             }
 
             for (int j = 0; j < posicoes.Corpo; j++)
             {
-                if (VerificaCriaDefinicao(transacao, tabela, atributosDoFormato, PaginaAtiva.LayerDoFormatoDoCorpo, j.ToString()))
+                int sincronizadas;
+                if (VerificaCriaDefinicao(transacao, tabela, atributosDoFormato, PaginaAtiva.LayerDoFormatoDoCorpo, j.ToString(), out sincronizadas))
                 {
                     criadas++;
                 }
+                referencias += sincronizadas;
             }
 
             return criadas;
@@ -655,8 +664,10 @@ namespace Positron.Plugin.Paginas
             BlockTable tabela,
             List<AtributoDeFormato> atributosDoFormato,
             string layer,
-            string tipo)
+            string tipo,
+            out int referencias)
         {
+            referencias = 0;
             string nome = DefinicoesDeRevisao.Nome(layer, tipo);
             if (string.IsNullOrEmpty(nome))
             {
@@ -717,7 +728,134 @@ namespace Positron.Plugin.Paginas
                 transacao.AddNewlyCreatedDBObject(copia, true);
             }
 
+            // O `attsync` que o original dispara por referência (o comando do CAD): aqui a parte
+            // **estrutural** — acrescenta os atributos que faltam e tira os que sobraram, sem
+            // rebobinar os valores.
+            referencias = Attsync(transacao, alvo);
             return true;
+        }
+
+        /// <summary>
+        /// Sincroniza as referências que já existem da definição com os atributos dela (o
+        /// <c>attsync</c> do <c>verificaCriaBlocoRevisao</c>): cada referência ganha os atributos
+        /// que faltam e perde os que sobraram. Devolve quantas referências mudaram.
+        /// </summary>
+        private static int Attsync(Transaction transacao, BlockTableRecord definicao)
+        {
+            if (definicao == null)
+            {
+                return 0;
+            }
+
+            // As tags da definição (o "certo" do ATTSYNC) e o id de cada uma, para a cópia.
+            List<string> tagsDaDefinicao = new List<string>();
+            Dictionary<string, ObjectId> definicaoPorTag =
+                new Dictionary<string, ObjectId>(StringComparer.OrdinalIgnoreCase);
+            foreach (ObjectId id in definicao)
+            {
+                AttributeDefinition atributo = transacao.GetObject(id, OpenMode.ForRead) as AttributeDefinition;
+                if (atributo == null || string.IsNullOrEmpty(atributo.Tag))
+                {
+                    continue;
+                }
+
+                tagsDaDefinicao.Add(atributo.Tag);
+                definicaoPorTag[atributo.Tag] = id;
+            }
+
+            int sincronizadas = 0;
+            ObjectIdCollection referencias = definicao.GetBlockReferenceIds(false, true);
+            if (referencias == null)
+            {
+                return 0;
+            }
+
+            foreach (object item in referencias)
+            {
+                if (!(item is ObjectId))
+                {
+                    continue;
+                }
+
+                BlockReference bloco = transacao.GetObject((ObjectId)item, OpenMode.ForRead) as BlockReference;
+                if (bloco == null)
+                {
+                    continue;
+                }
+
+                List<ObjectId> atributos = new List<ObjectId>();
+                List<string> tagsDaReferencia = new List<string>();
+                foreach (ObjectId idAtributo in bloco.AttributeCollection)
+                {
+                    atributos.Add(idAtributo);
+                    AttributeReference atributo = transacao.GetObject(idAtributo, OpenMode.ForRead) as AttributeReference;
+                    if (atributo != null && !string.IsNullOrEmpty(atributo.Tag))
+                    {
+                        tagsDaReferencia.Add(atributo.Tag);
+                    }
+                }
+
+                PlanoDeSincronizacao plano = SincronizacaoDeAtributos.Calcular(tagsDaDefinicao, tagsDaReferencia);
+                if (plano.Vazio)
+                {
+                    continue;
+                }
+
+                bloco.UpgradeOpen();
+
+                foreach (ObjectId idAtributo in atributos)
+                {
+                    AttributeReference atributo = transacao.GetObject(idAtributo, OpenMode.ForRead) as AttributeReference;
+                    if (atributo == null || string.IsNullOrEmpty(atributo.Tag) || !EstaNaLista(plano.Remover, atributo.Tag))
+                    {
+                        continue;
+                    }
+
+                    AttributeReference paraApagar = transacao.GetObject(idAtributo, OpenMode.ForWrite) as AttributeReference;
+                    if (paraApagar != null)
+                    {
+                        paraApagar.Erase();
+                    }
+                }
+
+                foreach (string tag in plano.Acrescentar)
+                {
+                    ObjectId idDefinicao;
+                    if (!definicaoPorTag.TryGetValue(tag, out idDefinicao))
+                    {
+                        continue;
+                    }
+
+                    AttributeDefinition atributoDef = transacao.GetObject(idDefinicao, OpenMode.ForRead) as AttributeDefinition;
+                    if (atributoDef == null)
+                    {
+                        continue;
+                    }
+
+                    AttributeReference novo = new AttributeReference();
+                    novo.SetAttributeFromBlock(atributoDef, bloco.BlockTransform);
+                    bloco.AttributeCollection.AppendAttribute(novo);
+                    transacao.AddNewlyCreatedDBObject(novo, true);
+                }
+
+                sincronizadas++;
+            }
+
+            return sincronizadas;
+        }
+
+        /// <summary>A tag está na lista? (sem caixa — as listas do plano preservam a grafia.)</summary>
+        private static bool EstaNaLista(IReadOnlyList<string> tags, string tag)
+        {
+            foreach (string item in tags)
+            {
+                if (string.Equals(item ?? string.Empty, tag ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static RevisaoCompletaDaPagina Copiar(RevisaoCompletaDaPagina origem)
@@ -769,6 +907,9 @@ namespace Positron.Plugin.Paginas
 
             /// <summary>Definições <c>Revisao_Capa{n}</c>/<c>Revisao_Corpo{n}</c> criadas/refeitas.</summary>
             internal int Definicoes { get; set; }
+
+            /// <summary>Referências antigas ressincronizadas com a definição (o <c>attsync</c>).</summary>
+            internal int Referencias { get; set; }
 
             internal bool Estourou { get; set; }
         }

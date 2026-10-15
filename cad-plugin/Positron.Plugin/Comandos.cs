@@ -1198,31 +1198,47 @@ namespace Positron.Plugin
                     return "NOVAPAGINA: nenhuma página do caderno no desenho (os layers que o LayerValido aceita).";
                 }
 
-                string ultima = paginas[paginas.Count - 1];
-                PaginaCalculada nova = NovaPaginaEntre.Calcular(ultima, NovaPaginaEntre.Fim, config.PassoPagina);
+                // A página **ativa** do desenho (o `DeclaracoesGeral.ativo.Pagina` do
+                // `criarUmaNovaPagina`); `POSITRON_PAGINA` a sobrepõe (o recorte de teste, como no
+                // `ATIVAPAGINA`) e, sem ela (ou fora do caderno), a última.
+                string ativa = System.Environment.GetEnvironmentVariable("POSITRON_PAGINA");
+                if (string.IsNullOrEmpty(ativa))
+                {
+                    ativa = Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ler();
+                }
+
+                if (!EstaNoCaderno(paginas, ativa))
+                {
+                    ativa = paginas[paginas.Count - 1];
+                }
+
+                // A nova entra **depois da ativa**, como o original: a posterior é a próxima válida
+                // (e o fim quando a ativa é a última), para a página caber no meio.
+                string proxima = PaginasDoCaderno.ProximaValida(paginas, ativa);
+                PaginaCalculada nova = NovaPaginaEntre.Calcular(ativa, proxima, config.PassoPagina);
                 if (!NovaPaginaEntre.Cabe(nova))
                 {
-                    return "NOVAPAGINA: não cabe página depois de \"" + ultima + "\" — nada criado.";
+                    return "NOVAPAGINA: não cabe página depois de \"" + ativa + "\" — nada criado.";
                 }
 
                 // Unidade/alternativo vazios, como o `criarUmaNovaPagina` do original (ele zera os
                 // dois antes do `CriarLayer`; quem os edita é a fatia 5).
                 Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Resultado resultado =
                     Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Executar(
-                        nova.Pagina, config.LarguraFixaPaginas, string.Empty, string.Empty, ultima);
+                        nova.Pagina, config.LarguraFixaPaginas, string.Empty, string.Empty, ativa);
 
                 if (resultado.JaExistia)
                 {
                     return "NOVAPAGINA: o layer \"" + resultado.Nome + "\" já existe — página não criada (depois de \""
-                        + ultima + "\" a nova seria \"" + nova.Pagina + "\", passo " + config.PassoPagina + ").";
+                        + ativa + "\" a nova seria \"" + nova.Pagina + "\", passo " + config.PassoPagina + ").";
                 }
 
-                return "NOVAPAGINA: página \"" + resultado.Nome + "\" criada depois de \"" + ultima + "\" — layer"
+                return "NOVAPAGINA: página \"" + resultado.Nome + "\" criada depois de \"" + ativa + "\" — layer"
                     + (resultado.TemFormato
                         ? " + " + resultado.CamposCopiados + " campo(s) do formato copiado(s)"
                         : " (o desenho não tem bloco de formato: nenhum campo copiado)")
                     + (resultado.TitulosCopiados > 0
-                        ? " + " + resultado.TitulosCopiados + " título(s) herdado(s) de \"" + ultima + "\"."
+                        ? " + " + resultado.TitulosCopiados + " título(s) herdado(s) de \"" + ativa + "\"."
                         : ".");
             }
             catch (System.Exception erro)
@@ -1231,7 +1247,24 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>A página está na lista do caderno? (sem caixa, como as comparações do original.)</summary>
+        private static bool EstaNoCaderno(IReadOnlyList<string> paginas, string pagina)
+        {
+            if (string.IsNullOrEmpty(pagina))
+            {
+                return false;
+            }
 
+            foreach (string nome in paginas)
+            {
+                if (string.Equals(nome ?? string.Empty, pagina, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>A correção da interligação e a linha de resumo. Nunca lança.</summary>
         internal static string ExecutarCorrecaoDaInterligacao()

@@ -23,6 +23,103 @@ namespace Positron.Data.Paginas
     }
 
     /// <summary>
+    /// O que o <c>ATTSYNC</c> faz numa referência em relação à definição do bloco: o que **falta**
+    /// (tags da definição que a referência não tem — acrescentar) e o que **sobra** (tags da
+    /// referência que a definição não tem — remover). A comparação é sem caixa.
+    /// </summary>
+    public sealed class PlanoDeSincronizacao
+    {
+        internal PlanoDeSincronizacao(List<string> acrescentar, List<string> remover)
+        {
+            Acrescentar = acrescentar;
+            Remover = remover;
+        }
+
+        /// <summary>Tags da definição que a referência não tem (entram com o padrão da definição).</summary>
+        public IReadOnlyList<string> Acrescentar { get; private set; }
+
+        /// <summary>Tags da referência que a definição não tem (saem).</summary>
+        public IReadOnlyList<string> Remover { get; private set; }
+
+        /// <summary>A referência já casa com a definição.</summary>
+        public bool Vazio
+        {
+            get { return Acrescentar.Count == 0 && Remover.Count == 0; }
+        }
+    }
+
+    /// <summary>
+    /// A sincronização dos atributos de uma referência com a definição do bloco — a parte
+    /// **estrutural** do <c>ATTSYNC</c> que o <c>verificaCriaBlocoRevisao</c> dispara por referência
+    /// depois de refazer a definição: acrescenta os atributos que faltam e tira os que sobraram.
+    ///
+    /// **Divergência deliberada:** o <c>ATTSYNC</c> do CAD é um comando e o recoder reproduz só a
+    /// estrutura (as tags), **preservando os valores já gravados** — rebobinar os valores para o
+    /// padrão da definição (que nas cópias é vazio) apagaria a revisão das páginas não editadas.
+    /// </summary>
+    public static class SincronizacaoDeAtributos
+    {
+        public static PlanoDeSincronizacao Calcular(
+            IReadOnlyList<string> tagsDaDefinicao,
+            IReadOnlyList<string> tagsDaReferencia)
+        {
+            List<string> definicao = Normalizar(tagsDaDefinicao);
+            List<string> referencia = Normalizar(tagsDaReferencia);
+
+            List<string> acrescentar = new List<string>();
+            List<string> remover = new List<string>();
+
+            // O que a definição tem e a referência não (conserva a ordem/grafia da definição).
+            if (tagsDaDefinicao != null)
+            {
+                foreach (string tag in tagsDaDefinicao)
+                {
+                    string texto = (tag ?? string.Empty).Trim();
+                    if (texto.Length > 0 && !referencia.Contains(texto.ToLowerInvariant()))
+                    {
+                        acrescentar.Add(texto);
+                    }
+                }
+            }
+
+            // O que a referência tem e a definição não (conserva a ordem/grafia da referência).
+            if (tagsDaReferencia != null)
+            {
+                foreach (string tag in tagsDaReferencia)
+                {
+                    string texto = (tag ?? string.Empty).Trim();
+                    if (texto.Length > 0 && !definicao.Contains(texto.ToLowerInvariant()) && !remover.Contains(texto))
+                    {
+                        remover.Add(texto);
+                    }
+                }
+            }
+
+            return new PlanoDeSincronizacao(acrescentar, remover);
+        }
+
+        private static List<string> Normalizar(IReadOnlyList<string> tags)
+        {
+            List<string> normalizadas = new List<string>();
+            if (tags == null)
+            {
+                return normalizadas;
+            }
+
+            foreach (string tag in tags)
+            {
+                string texto = (tag ?? string.Empty).Trim();
+                if (texto.Length > 0)
+                {
+                    normalizadas.Add(texto.ToLowerInvariant());
+                }
+            }
+
+            return normalizadas;
+        }
+    }
+
+    /// <summary>
     /// A criação das **definições** dos blocos de revisão completa — o <c>verificaCriaBlocoRevisao</c>
     /// do <c>Revisao.cs</c> do reverso: para cada posição que o formato admite, o original garante uma
     /// definição <c>Revisao_Capa{pos-1}</c> ou <c>Revisao_Corpo{pos-1}</c>, vazia e (re)preenchida com
