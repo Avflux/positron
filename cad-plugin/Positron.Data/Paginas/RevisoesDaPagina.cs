@@ -84,6 +84,16 @@ namespace Positron.Data.Paginas
     public static class OperacoesDeRevisao
     {
         /// <summary>
+        /// A revisão completa mais nova de uma página, como o <c>capturaRevisoesCompletas</c> do
+        /// original: a posição **estritamente maior** que a já guardada (que começa em 0). Uma
+        /// revisão de posição 0 nunca entra.
+        /// </summary>
+        public static bool AceitaRevisaoCompleta(int posicaoAtual, int posicaoNova)
+        {
+            return posicaoNova > posicaoAtual;
+        }
+
+        /// <summary>
         /// Substitui uma ocorrência de texto em uma célula, como o <c>Substituir</c> do original.
         /// </summary>
         public static string Substituir(string texto, string de, string para)

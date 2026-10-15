@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Positron.Data;
-using Positron.Data.Configuracao;
 using Positron.Data.Paginas;
 using Positron.Plugin.Bornes;
 #if AUTOCAD
@@ -57,11 +56,7 @@ namespace Positron.Plugin.Paginas
                         continue;
                     }
 
-                    if (revisaoPorPagina.ContainsKey(texto.Layer))
-                    {
-                        continue;
-                    }
-
+                    // Como o original, o último campo REV lido na página é o que fica.
                     int indice;
                     string valor;
                     if (IndiceDoTitulo(texto, out indice, out valor) && indice == 8)
@@ -73,16 +68,13 @@ namespace Positron.Plugin.Paginas
                 transacao.Commit();
             }
 
-            // Fallback para a revisão de projeto se a página não tiver campo de formato
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
-            string revisaoPadrao = config.Revisao ?? string.Empty;
-
+            // Sem campo REV a revisão fica vazia, como no original (não há fallback para o projeto).
             foreach (string pagina in paginas)
             {
                 string rev;
                 if (!revisaoPorPagina.TryGetValue(pagina, out rev))
                 {
-                    rev = revisaoPadrao;
+                    rev = string.Empty;
                 }
                 resultado.Add(new RevisaoSimplificadaDaPagina(pagina, rev));
             }
@@ -205,8 +197,10 @@ namespace Positron.Plugin.Paginas
 
                     rev.Pagina = bloco.Layer;
 
+                    // Como o capturaRevisoesCompletas: a posição nova tem de ser maior que a guardada (0 no início).
                     RevisaoCompletaDaPagina existente;
-                    if (!revPorPagina.TryGetValue(bloco.Layer, out existente) || rev.Posicao > existente.Posicao)
+                    int posicaoGuardada = revPorPagina.TryGetValue(bloco.Layer, out existente) ? existente.Posicao : 0;
+                    if (OperacoesDeRevisao.AceitaRevisaoCompleta(posicaoGuardada, rev.Posicao))
                     {
                         revPorPagina[bloco.Layer] = rev;
                     }
@@ -215,15 +209,12 @@ namespace Positron.Plugin.Paginas
                 transacao.Commit();
             }
 
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
-            string revisaoPadrao = config.Revisao ?? string.Empty;
-
             foreach (string pagina in paginas)
             {
                 RevisaoCompletaDaPagina rev;
                 if (!revPorPagina.TryGetValue(pagina, out rev))
                 {
-                    rev = new RevisaoCompletaDaPagina(pagina, revisaoPadrao, string.Empty, string.Empty,
+                    rev = new RevisaoCompletaDaPagina(pagina, string.Empty, string.Empty, string.Empty,
                         string.Empty, string.Empty, string.Empty);
                 }
                 resultado.Add(rev);

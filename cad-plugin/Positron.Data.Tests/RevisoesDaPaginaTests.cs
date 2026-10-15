@@ -78,6 +78,16 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void Revisao_completa_so_entra_com_posicao_maior_que_a_guardada()
+        {
+            // O original parte de Posicao 0: a posição 0 nunca entra, e a posição nova precisa ser maior.
+            Assert.False(OperacoesDeRevisao.AceitaRevisaoCompleta(0, 0));
+            Assert.True(OperacoesDeRevisao.AceitaRevisaoCompleta(0, 1));
+            Assert.True(OperacoesDeRevisao.AceitaRevisaoCompleta(1, 2));
+            Assert.False(OperacoesDeRevisao.AceitaRevisaoCompleta(2, 1));
+        }
+
+        [Fact]
         public void Construtor_de_revisao_simplificada_normaliza_nulos()
         {
             RevisaoSimplificadaDaPagina rev = new RevisaoSimplificadaDaPagina(null, null);
