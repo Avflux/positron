@@ -32,6 +32,18 @@ namespace Positron.Plugin
             return lista;
         }
 
+        /// <summary>O inverso do <see cref="Para(ResultBuffer)"/>: a forma neutra de volta para gravar no CAD.</summary>
+        internal static ResultBuffer ParaResultBuffer(IReadOnlyList<TypedXData> valores)
+        {
+            TypedValue[] array = new TypedValue[valores.Count];
+            for (int i = 0; i < valores.Count; i++)
+            {
+                array[i] = new TypedValue(valores[i].Codigo, valores[i].Valor);
+            }
+
+            return new ResultBuffer(array);
+        }
+
         /// <summary>
         /// Lê o conteúdo de um <c>Xrecord</c> do dicionário nomeado.
         ///

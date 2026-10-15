@@ -4,6 +4,10 @@
 > [tabela de registro](#5-registro-de-execução), com o commit e a evidência.
 > Contexto de arquitetura: `POSITRON.md`. Como rodar/verificar: `RUNBOOK.md`.
 
+> **A partir da rodada 176 o registro mudou de lugar:** estado e fila em `docs/recoder/ESTADO.md`,
+> uma rodada por arquivo em `docs/recoder/rodadas/`, fatos do reverso em `docs/recoder/conhecimento/`
+> (fluxo: skill `recoder`). Este plano e as rodadas do `RUNBOOK.md` viram **histórico** — não acrescente.
+
 > ## ⏸ Onde paramos (2026-10-15, depois da rodada 175)
 >
 > **Este quadro é só o estado e a fila.** A narrativa de cada rodada mora em **dois lugares e só

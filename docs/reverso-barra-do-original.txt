@@ -39,7 +39,7 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
 | 2 | Caderno | 109 | 13 | 0 | 10 | `sqNp1kxf3Uh` | 158 |
 | 3 | Dispositivos | 110 | 24 | 0 | 18 | `Xcxp1ds9OPI` | 319 |
 | 4 | Bornes | 540 | 9 | 0 | 7 | `fJdp1fB9M7a` | 654 |
-| 5 | Fiação | 559 | 16 | 11 | 21 | `RuZp1DKCh0P` | 812 |
+| 5 | Fiação | 559 | 16 | 11 | 22 | `RuZp1DKCh0P` | 812 |
 | 6 | Construtivo | 1549 | 8 | 2 | 8 | `qGpp1vUUxZV` | 1185 |
 | 7 | Cabos e Veias | 560 | 30 | 26 | 44 | `HEpp169Agfo` | 1321 |
 | 8 | Utilitários | 112 | 18 | 0 | 16 | `E74p1tC6alM` | 1872 |
@@ -177,7 +177,7 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
   - (quebra de linha)
   - Botao/Icone `INSM` icone InsereCor_16/InsereCor_16_Dark coberto, abre janela - Inserir Marcador da Conexão (linha 1011)
   - (separador, largura 3)
-  - Botao/Icone `EDCON` icone EditaSelecao_16/EditaSelecao_16_Dark nao coberto - Editar Conexões por Seleção (linha 1021)
+  - Botao/Icone `EDCON` icone EditaSelecao_16/EditaSelecao_16_Dark coberto - Editar Conexões por Seleção (linha 1021)
   - (separador, largura 3)
   - Botao/Icone `APL` icone Aplicacao2_16/Aplicacao2_16_Dark coberto, abre janela - Aplicação da Fiação (linha 1051)
   - (separador, largura 3)
@@ -382,5 +382,5 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
 
 - Paineis: **9**.
 - Botoes: **121**; menus: **5** com **39** itens; liga/desliga: **1**.
-- Acionaveis (botao, item de menu, liga/desliga): **161** - o recoder responde a **125**, dos quais **117** abrem janela.
+- Acionaveis (botao, item de menu, liga/desliga): **161** - o recoder responde a **126**, dos quais **117** abrem janela.
 

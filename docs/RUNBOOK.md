@@ -843,6 +843,21 @@ script é assíncrono e a `pz-dump` seguinte roda no desenho antigo. Para abrir 
 DWG como desenho ativo, passe o **arquivo na linha de comando** do ZWCAD
 (`ZWCAD.exe <desenho> /nologo /b <script>`).
 
+### Comando com prompts (`GetKeywords`/`GetSelection`/`GetString`) pelo harness
+
+O `-Comandos` do `cad-zwcad-smoke.ps1` vira **uma linha do `.scr` por item** e descarta item vazio,
+então não dá para mandar o Enter que fecha uma seleção como item próprio, e uma vírgula no valor
+(`2,5`) parte o item. A saída é a regra do script do CAD: **espaço vale Enter**. Uma linha só
+responde a todos os prompts, inclusive o Enter duplo que fecha a seleção (medido no ZWCAD 2026, rodada 176):
+
+```
+-Comandos "EDCON A _ALL  4 VM"   # EDCON, modo A, seleção _ALL, Enter (fim da seleção), Seção=4, Cor=VM
+```
+
+Prompt de `GetString` com `AllowSpaces = false` termina no espaço, como no teclado. Um
+`(expressão LISP)` também pode ser item do `-Comandos` (é assim que o fixture
+`cad-fixture-edcon.lsp` despeja o resultado **depois** do comando).
+
 ### Relatório de verificação em arquivo (`ELETREL`)
 
 A grid de erros das telas `frmCompilar*` do original virou **relatório em arquivo**,
@@ -980,7 +995,7 @@ desenho real, das corroborações cruzadas, dos quirks medidos e do que ficou fo
 motivo — ele **não** é reescrito a cada rodada. A **contagem viva** de cobertura (comandos × telas ×
 regra) é a **§0 do `AUDITORIA.md`**, que se reproduz com `scripts/cobertura-do-reverso.ps1`; o estado
 do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o detalhe rodada a rodada
-(mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
+(mais novo primeiro) **até a rodada 175**; da 176 em diante cada rodada é um arquivo em `docs/recoder/rodadas/` — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
 **Rodada 175 — Cadeia do CAD completa: `TrocaColunas`, `AtualizaRevSimplificada` e `attsync` por referência, medidos no ZWCAD 2026.**

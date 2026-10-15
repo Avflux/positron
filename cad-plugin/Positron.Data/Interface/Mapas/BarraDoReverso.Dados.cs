@@ -154,7 +154,7 @@ namespace Positron.Data.Interface.Mapas
                             new ItemDaBarra(TipoDoItemDaBarra.QuebraDeLinha, "", "", "", "", "", "", 0, false, 1135, false, false),
                             new ItemDaBarra(TipoDoItemDaBarra.Botao, "Icone", "", "INSM", "InsereCor_16", "InsereCor_16_Dark", "Inserir Marcador da Conexão", 0, false, 1011, true, true),
                             new ItemDaBarra(TipoDoItemDaBarra.Separador, "", "", "", "", "", "", 3, false, 1002, false, false),
-                            new ItemDaBarra(TipoDoItemDaBarra.Botao, "Icone", "", "EDCON", "EditaSelecao_16", "EditaSelecao_16_Dark", "Editar Conexões por Seleção", 0, false, 1021, false, false),
+                            new ItemDaBarra(TipoDoItemDaBarra.Botao, "Icone", "", "EDCON", "EditaSelecao_16", "EditaSelecao_16_Dark", "Editar Conexões por Seleção", 0, false, 1021, true, false),
                             new ItemDaBarra(TipoDoItemDaBarra.Separador, "", "", "", "", "", "", 3, false, 1002, false, false),
                             new ItemDaBarra(TipoDoItemDaBarra.Botao, "Icone", "", "APL", "Aplicacao2_16", "Aplicacao2_16_Dark", "Aplicação da Fiação", 0, false, 1051, true, true),
                             new ItemDaBarra(TipoDoItemDaBarra.Separador, "", "", "", "", "", "", 3, false, 1002, false, false),

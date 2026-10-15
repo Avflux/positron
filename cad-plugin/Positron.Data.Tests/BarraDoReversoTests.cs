@@ -225,7 +225,7 @@ namespace Positron.Data.Tests
         [Fact]
         public void OsCobertosEOsQueAbremJanelaSomamOCruzamentoMedido()
         {
-            Assert.Equal(125, BarraDoReverso.QuantosCobertos());
+            Assert.Equal(126, BarraDoReverso.QuantosCobertos()); // +EDCON na rodada 176
             Assert.Equal(117, BarraDoReverso.QuantosAbremJanela());
         }
 

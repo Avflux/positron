@@ -904,6 +904,33 @@ namespace Positron.Plugin
         }
 
         /// <summary>
+        /// <c>EDCON</c> — o comando do original (<c>Comandos.cs:579</c>, <c>clsConexao.editarSecaoCor</c>):
+        /// pergunta <c>Seção, Cor ou Ambas</c>, pede a seleção das conexões e troca a seção e/ou a cor
+        /// de **todos os condutores dos potenciais selecionados**, reescrevendo os textos auxiliares
+        /// (<c>AUXCONEXAO</c> tipos 4/5/6). A variante por página é a tela do <c>EDCONP</c>
+        /// (<c>frmEditaConexao</c>). A regra está em <see cref="SecaoECorDasConexoes"/>.
+        /// </summary>
+        [CommandMethod("EDCON")]
+        public void EditarSecaoECor()
+        {
+            try
+            {
+                ModoSecaoECor? modo = SecaoECorDasConexoesDoDesenho.PerguntarModo();
+                if (!modo.HasValue)
+                {
+                    Plugin.Escrever("EDCON: cancelado — nada foi alterado.");
+                    return;
+                }
+
+                Plugin.Escrever(SecaoECorDasConexoesDoDesenho.Executar(modo.Value, null).Resumo("EDCON"));
+            }
+            catch (System.Exception erro)
+            {
+                Plugin.Escrever("EDCON: falhou — " + DescreverErro(erro) + ".");
+            }
+        }
+
+        /// <summary>
         /// <c>EncontraHandle</c> — o comando do original (<c>clsUtilitarios.cs:950</c>, o último item
         /// de regra da frente 2): acha a entidade pelo **handle**, **ativa a página** dela (o
         /// <c>AtivaPagina(entidade.Layer)</c>, sem guarda de nome, como lá) e dá **zoom** nela com a

@@ -120,6 +120,47 @@ namespace Positron.Data.Fiacao
             return true;
         }
 
+        /// <summary>
+        /// Os valores do XData como o <c>XDataConexao.GravarXDataConexao</c> do original os grava:
+        /// os 25 valores na ordem e com os códigos da <see cref="Ler"/>, a partir **deste** objeto.
+        /// Os reservados não são preservados — o original os regrava fixos (<c>0</c>, <c>""</c>,
+        /// <c>1</c>, <c>0.0</c>) — e usuário/data vêm do chamador (o original recarimba com
+        /// <c>Environment.UserName</c> e <c>DateTime.Now.ToString()</c> antes de gravar).
+        /// Os tipos seguem os do original: <c>short</c> no Tipo/Painel, <c>int</c> na Aplicação e
+        /// <c>-1</c>/<c>0</c> nos <c>Disp</c>.
+        /// </summary>
+        public IReadOnlyList<TypedXData> ParaValores(string usuario, string data)
+        {
+            return new List<TypedXData>
+            {
+                new TypedXData(1001, AppName),
+                new TypedXData(1070, Tipo),
+                new TypedXData(1071, Potencial),
+                new TypedXData(1000, Handle ?? string.Empty),
+                new TypedXData(1070, Painel),
+                new TypedXData(1070, Aplicacao),
+                new TypedXData(1070, 0),
+                new TypedXData(1000, Nome ?? string.Empty),
+                new TypedXData(1000, Funcao ?? string.Empty),
+                new TypedXData(1000, Tensao ?? string.Empty),
+                new TypedXData(1000, Secao ?? string.Empty),
+                new TypedXData(1000, Cor ?? string.Empty),
+                new TypedXData(1000, string.Empty),
+                new TypedXData(1040, 0.0),
+                new TypedXData(1070, Disp1 ? -1 : 0),
+                new TypedXData(1070, Disp2 ? -1 : 0),
+                new TypedXData(1000, Jumper ?? string.Empty),
+                new TypedXData(1000, string.Empty),
+                new TypedXData(1071, Enderecamento),
+                new TypedXData(1071, 1),
+                new TypedXData(1000, usuario ?? string.Empty),
+                new TypedXData(1000, data ?? string.Empty),
+                new TypedXData(1071, 1),
+                new TypedXData(1040, 0.0),
+                new TypedXData(1000, string.Empty),
+            };
+        }
+
         // O original guarda os inteiros como short/int/double conforme o código
         // DXF e usa Conversions.* do VB. Aqui a conversão tolera nulo e tipo
         // inesperado em vez de estourar.
