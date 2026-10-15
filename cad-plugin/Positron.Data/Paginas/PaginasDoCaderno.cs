@@ -256,5 +256,28 @@ namespace Positron.Data.Paginas
 
             return alternativo;
         }
+
+        /// <summary>
+        /// Encontra a próxima página na lista (o <c>EncontraProximaPagina</c> do reverso, linha 2742):
+        /// se a página for encontrada e não for a última, devolve a seguinte; se for a última (ou não encontrada),
+        /// devolve a última da lista ou a primeira ("1") como fallback.
+        /// </summary>
+        public static string EncontraProximaPagina(IReadOnlyList<string> paginas, string pagina)
+        {
+            if (paginas == null || paginas.Count == 0)
+            {
+                return "1";
+            }
+
+            for (int i = 0; i < paginas.Count - 1; i++)
+            {
+                if (string.Equals(paginas[i] ?? string.Empty, pagina ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+                {
+                    return paginas[i + 1] ?? string.Empty;
+                }
+            }
+
+            return paginas[paginas.Count - 1] ?? "1";
+        }
     }
 }

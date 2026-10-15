@@ -1329,14 +1329,115 @@ namespace Positron.Plugin
                     return "APAGAPAGINA: nada apagado — " + string.Join("; ", recusadas.ToArray()) + ".";
                 }
 
+                string ativaAntes = Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ler();
+                bool ativaApagada = false;
+                foreach (string apagada in apagadas)
+                {
+                    if (string.Equals(apagada, ativaAntes, StringComparison.OrdinalIgnoreCase))
+                    {
+                        ativaApagada = true;
+                        break;
+                    }
+                }
+
+                string msgAtivacao = string.Empty;
+                if (ativaApagada)
+                {
+                    List<string> restantes = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
+                    string proximaAtiva = PaginasDoCaderno.EncontraProximaPagina(restantes, ativaAntes);
+                    Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ativar(proximaAtiva);
+                    msgAtivacao = "; página ativa passou para \"" + proximaAtiva + "\"";
+                }
+
                 return "APAGAPAGINA: " + apagadas.Count + " página(s) apagada(s) ("
                     + string.Join(", ", apagadas.ToArray()) + ") — " + entidades + " entidade(s) do ModelSpace e "
-                    + layers + " layer(s)."
+                    + layers + " layer(s)" + msgAtivacao + "."
                     + (recusadas.Count > 0 ? " Recusadas: " + string.Join("; ", recusadas.ToArray()) + "." : string.Empty);
             }
             catch (System.Exception erro)
             {
                 return "APAGAPAGINA: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+        /// <summary>
+        /// <c>INSPAG</c> / <c>INSEREPAGINA</c> — insere uma página calculada entre a página anterior
+        /// (<c>POSITRON_PAGINA_ANTERIOR</c> ou a ativa) e a posterior (<c>POSITRON_PAGINA_POSTERIOR</c> ou a próxima válida).
+        /// </summary>
+        [CommandMethod("INSPAG")]
+        public void ComandoInsPag()
+        {
+            Plugin.Escrever(ExecutarInserirPagina());
+        }
+
+        [CommandMethod("INSEREPAGINA")]
+        public void ComandoInserePagina()
+        {
+            Plugin.Escrever(ExecutarInserirPagina());
+        }
+
+        /// <summary>A inserção de página entre duas páginas e o resumo. Nunca lança.</summary>
+        internal static string ExecutarInserirPagina()
+        {
+            try
+            {
+                ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
+                List<string> paginas = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
+                if (paginas.Count == 0)
+                {
+                    return "INSPAG: nenhuma página do caderno no desenho.";
+                }
+
+                string anterior = System.Environment.GetEnvironmentVariable("POSITRON_PAGINA_ANTERIOR");
+                if (string.IsNullOrEmpty(anterior))
+                {
+                    anterior = System.Environment.GetEnvironmentVariable("POSITRON_PAGINA");
+                }
+                if (string.IsNullOrEmpty(anterior))
+                {
+                    anterior = Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ler();
+                }
+                if (!EstaNoCaderno(paginas, anterior))
+                {
+                    anterior = paginas[paginas.Count - 1];
+                }
+
+                string posterior = System.Environment.GetEnvironmentVariable("POSITRON_PAGINA_POSTERIOR");
+                if (string.IsNullOrEmpty(posterior))
+                {
+                    posterior = PaginasDoCaderno.ProximaValida(paginas, anterior);
+                }
+
+                PaginaCalculada nova = NovaPaginaEntre.Calcular(anterior, posterior, config.PassoPagina);
+                if (!NovaPaginaEntre.Cabe(nova))
+                {
+                    return "INSPAG: não cabe página entre \"" + anterior + "\" e \"" + (posterior ?? "") + "\" — nada criado.";
+                }
+
+                Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Resultado resultado =
+                    Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Executar(
+                        nova.Pagina, config.LarguraFixaPaginas, string.Empty, string.Empty, anterior);
+
+                if (resultado.JaExistia)
+                {
+                    return "INSPAG: o layer \"" + resultado.Nome + "\" já existe — página não criada.";
+                }
+
+                return "INSPAG: página \"" + resultado.Nome + "\" inserida entre \"" + anterior + "\" e \""
+                    + (string.IsNullOrEmpty(posterior) ? "fim" : posterior) + "\" — layer"
+                    + (resultado.TemFormato
+                        ? " + " + resultado.CamposCopiados + " campo(s) do formato"
+                        : " (desenho sem bloco de formato)")
+                    + (resultado.TitulosCopiados > 0
+                        ? " + " + resultado.TitulosCopiados + " título(s) herdado(s) de \"" + anterior + "\""
+                        : string.Empty)
+                    + (resultado.ContTotFlAtualizados > 0
+                        ? " + " + resultado.ContTotFlAtualizados + " CONT/FL/TOT recalculado(s)."
+                        : ".");
+            }
+            catch (System.Exception erro)
+            {
+                return "INSPAG: falhou — " + DescreverErro(erro) + ".";
             }
         }
 
@@ -1393,7 +1494,10 @@ namespace Positron.Plugin
                         ? " + " + resultado.CamposCopiados + " campo(s) do formato copiado(s)"
                         : " (o desenho não tem bloco de formato: nenhum campo copiado)")
                     + (resultado.TitulosCopiados > 0
-                        ? " + " + resultado.TitulosCopiados + " título(s) herdado(s) de \"" + ativa + "\"."
+                        ? " + " + resultado.TitulosCopiados + " título(s) herdado(s) de \"" + ativa + "\""
+                        : string.Empty)
+                    + (resultado.ContTotFlAtualizados > 0
+                        ? " + " + resultado.ContTotFlAtualizados + " CONT/FL/TOT recalculado(s)."
                         : ".");
             }
             catch (System.Exception erro)

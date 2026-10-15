@@ -257,10 +257,35 @@ namespace Positron.Plugin.Paginas
         }
 
         /// <summary>
+        /// O <c>AtualizaContTotFl</c> do reverso: relê as páginas do caderno e atualiza os campos
+        /// CONT, FL, TOT e ALTERNATIVO em todas as páginas do desenho.
+        /// </summary>
+        internal static int AtualizarContTotFl(Database banco)
+        {
+            if (banco == null)
+            {
+                return 0;
+            }
+
+            int incluirColuna = 1;
+            try
+            {
+                incluirColuna = ConfiguracaoEfetiva.Carregar().IncluirColuna;
+            }
+            catch (Exception)
+            {
+                incluirColuna = 1;
+            }
+
+            List<PaginaDoCaderno> paginas = LerPaginas(banco);
+            return AtualizarContTotFl(banco, paginas, incluirColuna);
+        }
+
+        /// <summary>
         /// O <c>AtualizaContTotFl</c>: percorre os textos com o XData do título e ajusta os índices
         /// 5/6/7/9 (<see cref="CamposDoFormato.TextoDoContTotFl"/>). O <c>REV</c> e os títulos ficam.
         /// </summary>
-        private static int AtualizarContTotFl(
+        internal static int AtualizarContTotFl(
             Database banco,
             IReadOnlyList<PaginaDoCaderno> paginas,
             int incluirColuna)
@@ -304,7 +329,7 @@ namespace Positron.Plugin.Paginas
         }
 
         /// <summary>As páginas do desenho (LayerTable + XData de unidade/alternativo), na ordem das páginas.</summary>
-        private static List<PaginaDoCaderno> LerPaginas(Database banco)
+        internal static List<PaginaDoCaderno> LerPaginas(Database banco)
         {
             List<PaginaDoCaderno> paginas = new List<PaginaDoCaderno>();
             using (Transaction transacao = banco.TransactionManager.StartTransaction())

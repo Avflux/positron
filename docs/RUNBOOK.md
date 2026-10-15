@@ -983,6 +983,30 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 174 — Páginas: inserir e excluir com AtualizaContTotFl e ativação segura, medidos no ZWCAD 2026.**
+O reverso executa o recálculo dos marcadores de sequência (`AtualizaContTotFl()`) e a ativação segura de página tanto na criação/inserção quanto na exclusão de páginas. A rodada fecha essas pontas no plugin:
+
+- **Regra pura** (`Positron.Data/Paginas/PaginasDoCaderno.cs`): `EncontraProximaPagina(IReadOnlyList<string> paginas, string pagina)` — reproduz o algoritmo do `Pagina.cs:2742` do reverso (`EncontraProximaPagina`): dada a lista ordenada de páginas e a página que está sendo apagada, localiza a página restante imediatamente posterior ou, se a apagada for a última, seleciona a última restante.
+- **Inserção de páginas** (`Positron.Plugin/Paginas/CriacaoDePaginaDoDesenho.cs`, `Comandos.cs`, `FolhasControle.cs`):
+  - `CriarPagina`: após criar o layer, copiar os campos do formato e os títulos da página anterior, agora invoca `RestauracaoDoFormatoDoDesenho.AtualizarContTotFl(banco)` e ativa a nova página (`PaginaAtivaDoDesenho.Ativar(resultado.Nome)`), espelhando `Pagina.cs:2710-2711`.
+  - Novos comandos `INSPAG` e `INSEREPAGINA` (`ExecutarInserirPagina`): inserem página entre páginas especificadas via `POSITRON_PAGINA_ANTERIOR` e `POSITRON_PAGINA_POSTERIOR` (ou entre a página ativa e a próxima válida) recalculando `CONT/FL/TOT`.
+- **Exclusão de páginas** (`Positron.Plugin/Paginas/ExclusaoDePaginaDoDesenho.cs`, `Comandos.cs`):
+  - Guarda de layer corrente: se o layer a ser apagado for o `Clayer` ativo do banco, altera `banco.Clayer` para o layer `"0"` antes de apagar a camada (`layer.Erase()`), reproduzindo `Pagina.cs:2225` e evitando erro de layer em uso (`eCannotRenameOrDeleteCurrentLayer`) no AutoCAD/ZWCAD.
+  - Recálculo de sequência: executa `RestauracaoDoFormatoDoDesenho.AtualizarContTotFl(banco)` após o commit da transação de exclusão.
+  - Ativação segura no comando `APAGAPAGINA`: quando a página apagada é a ativa, seleciona e ativa a próxima página restante via `PaginasDoCaderno.EncontraProximaPagina`.
+
+**Verificação:** `plugin:test` **855** (+6 testes em `PaginasDoCadernoTests`), as duas builds (ZWCAD e AutoCAD) **0 erros, 0 avisos**; **medido no ZWCAD 2026**:
+- Criação e inserção (`NOVAPAGINA` / `INSPAG`):
+  ```
+  NOVAPAGINA: página "4" criada depois de "3" — layer + 5 campo(s) do formato copiado(s) + 3 título(s) herdado(s) de "3" + 2 CONT/FL/TOT recalculado(s).
+  INSPAG: página "5" inserida entre "4" e "fim" — layer + 5 campo(s) do formato + 3 título(s) herdado(s) de "4" + 4 CONT/FL/TOT recalculado(s).
+  ```
+- Exclusão com layer ativo (`APAGAPAGINA`):
+  ```
+  APAGAPAGINA: 1 página(s) apagada(s) (4) — 5 entidade(s) do ModelSpace e 1 layer(s).
+  ```
+  O CAD chaveou `Clayer` com segurança para `"0"`, apagou as 5 entidades e o layer sem colisão, e recalculou os campos `CONT/FL/TOT` restantes.
+
 **Rodada 173 — a cadeia pós-troca do formato (o `CAD`, o resto do `Caderno.CriaCaderno`), medida no AutoCAD 2020.**
 A rodada 170 entregou a **troca em si** e deixou a **cadeia que o original roda depois de inserir o bloco** fora, com o motivo (o XML doc do `TrocaDeFormatoDoDesenho`). É o que entra agora:
 

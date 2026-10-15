@@ -31,6 +31,9 @@ namespace Positron.Plugin.Paginas
 
             /// <summary>O layer da página foi apagado.</summary>
             internal bool LayerApagado { get; set; }
+
+            /// <summary>Campos CONT/FL/TOT/ALTERNATIVO recalculados após a exclusão da página.</summary>
+            internal int ContTotFlAtualizados { get; set; }
         }
 
         internal static Resultado Executar(string pagina)
@@ -73,6 +76,13 @@ namespace Positron.Plugin.Paginas
                 LayerTable camadas = (LayerTable)transacao.GetObject(banco.LayerTableId, OpenMode.ForRead);
                 if (camadas.Has(pagina))
                 {
+                    // Como no Pagina.RemoveLayer do original (linha 2225): se o layer a apagar for a camada
+                    // corrente (Clayer), mudar para o layer "0" antes de apagar, evitando exceção no CAD.
+                    if (banco.Clayer == camadas[pagina])
+                    {
+                        banco.Clayer = camadas["0"];
+                    }
+
                     camadas.UpgradeOpen();
                     LayerTableRecord layer = (LayerTableRecord)transacao.GetObject(camadas[pagina], OpenMode.ForWrite);
                     layer.Erase();
@@ -81,6 +91,9 @@ namespace Positron.Plugin.Paginas
 
                 transacao.Commit();
             }
+
+            // Recalcula CONT, FL, TOT e ALTERNATIVO do caderno remanescente (o Pagina.AtualizaContTotFl do original).
+            resultado.ContTotFlAtualizados = RestauracaoDoFormatoDoDesenho.AtualizarContTotFl(banco);
 
             return resultado;
         }

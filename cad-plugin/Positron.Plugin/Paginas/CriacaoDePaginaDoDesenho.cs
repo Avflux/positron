@@ -58,6 +58,9 @@ namespace Positron.Plugin.Paginas
 
             /// <summary>Títulos herdados da página de referência (o `AtualizaTitulosDeUmaPagina`).</summary>
             internal int TitulosCopiados { get; set; }
+
+            /// <summary>Campos CONT/FL/TOT/ALTERNATIVO recalculados após a criação da página.</summary>
+            internal int ContTotFlAtualizados { get; set; }
         }
 
         internal static Resultado Executar(
@@ -130,6 +133,11 @@ namespace Positron.Plugin.Paginas
                 resultado.TitulosCopiados = TitulosDaPaginaDoDesenho.Gravar(
                     resultado.Nome, TitulosDaPaginaDoDesenho.Ler(referencia));
             }
+
+            // O original chama AtualizaContTotFl() e AtivaPagina() logo após criar a página
+            // (Pagina.cs linhas 2710-2711: AtualizaContTotFl(); AtivaPagina(text)).
+            resultado.ContTotFlAtualizados = RestauracaoDoFormatoDoDesenho.AtualizarContTotFl(banco);
+            PaginaAtivaDoDesenho.Ativar(resultado.Nome);
 
             return resultado;
         }

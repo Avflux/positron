@@ -319,6 +319,9 @@ namespace Positron.Plugin.Interface.Folhas
                     ? "layer criado" + (resultado.TemFormato
                         ? " + " + resultado.CamposCopiados + " campo(s) do formato copiado(s)"
                         : " (o desenho não tem bloco de formato)")
+                        + (resultado.ContTotFlAtualizados > 0
+                            ? " + " + resultado.ContTotFlAtualizados + " CONT/FL/TOT recalculado(s)"
+                            : string.Empty)
                     : (resultado.JaExistia ? "o layer já existia" : "não criada")) + ".";
             return UltimaMensagem;
         }

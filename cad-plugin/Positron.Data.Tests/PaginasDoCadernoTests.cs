@@ -100,5 +100,17 @@ namespace Positron.Data.Tests
             Assert.Equal("", PaginasDoCaderno.ProximaValida(paginas, "99"));
             Assert.Equal("", PaginasDoCaderno.ProximaValida((IReadOnlyList<string>)null, "1"));
         }
+
+        [Fact]
+        public void EncontraProximaPagina_acha_a_seguinte_ou_a_ultima()
+        {
+            List<string> paginas = new List<string> { "1", "2", "3", "4" };
+            Assert.Equal("3", PaginasDoCaderno.EncontraProximaPagina(paginas, "2"));
+            Assert.Equal("4", PaginasDoCaderno.EncontraProximaPagina(paginas, "3"));
+            Assert.Equal("4", PaginasDoCaderno.EncontraProximaPagina(paginas, "4"));
+            Assert.Equal("4", PaginasDoCaderno.EncontraProximaPagina(paginas, "99"));
+            Assert.Equal("1", PaginasDoCaderno.EncontraProximaPagina(new List<string>(), "2"));
+            Assert.Equal("1", PaginasDoCaderno.EncontraProximaPagina((IReadOnlyList<string>)null, "2"));
+        }
     }
 }
