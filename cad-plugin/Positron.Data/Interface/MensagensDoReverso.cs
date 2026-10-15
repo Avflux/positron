@@ -17,6 +17,9 @@ namespace Positron.Data.Interface
     public static class MensagensDoReverso
     {
         /// <summary>Páginas — o título da paleta (o `_pspag` do reverso).</summary>
+        /// <summary>mMensagem 328: o banco do projeto não está configurado no desenho (<c>clsAuxiliar.BancoValido</c>).</summary>
+        public const string BancoNaoConfigurado = "Banco do Projeto não configurado!";
+
         public const string Paginas = "Páginas";
 
         public const string Pagina = "Página";

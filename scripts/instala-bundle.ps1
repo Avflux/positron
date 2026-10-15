@@ -101,5 +101,5 @@ if (-not (Test-Path (Join-Path $Destino $dll))) { throw "a copia nao levou a '$d
 
 Write-Host ("Positron: autoload do {0} instalado em '{1}'." -f $Cad, $Destino)
 Get-ChildItem $Destino -Recurse -File | ForEach-Object { "  " + $_.FullName.Substring($Destino.Length + 1) }
-Write-Host ("  confira na ABERTURA do {0} (o plugin escreve 'Positron carregado'; com POSITRON_LOG, no arquivo)." -f $Cad)
+Write-Host ("  confira na ABERTURA do {0} (com POSITRON_LOG, o plugin escreve 'Positron carregado' no arquivo; a linha de comando fica muda, como no original)." -f $Cad)
 Write-Host "  (o accoreconsole NAO faz autoload - no headless a DLL entra por NETLOAD.)"

@@ -42,6 +42,7 @@ namespace Positron.Plugin.Interface.Telas
             janela.AutoScaleDimensions = new SizeF(6F, 13F);
             janela.AutoScaleMode = AutoScaleMode.Font;
             janela.ClientSize = new Size(tela.Largura, tela.Altura);
+            janela.Name = tela.Nome;
             janela.Text = string.IsNullOrEmpty(tela.Titulo) ? tela.Nome : tela.Titulo;
             Aplicar(janela, tela.Propriedades, null);
 

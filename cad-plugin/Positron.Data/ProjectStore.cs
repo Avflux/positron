@@ -1013,6 +1013,27 @@ namespace Positron.Data
         }
 
         /// <summary>
+        /// O <c>cDadosAccessDWG.AtualizaValores</c> do original (<c>cDadosAccessDWG.cs:297</c>), que a
+        /// <c>frmConfiguracaoBDProjeto</c> chama ao ligar o desenho a este banco:
+        /// <c>UPDATE DWG SET Caminho=@caminho, Editor=@editor, Data=@data WHERE Indice=@indice</c>.
+        /// Só atualiza um DWG **já cadastrado** (quem cadastra é o Gerenciador de DWGs). Devolve as
+        /// linhas alteradas.
+        /// </summary>
+        public int AtualizarDwg(int indice, string caminho, string editor, DateTime data)
+        {
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText = "UPDATE DWG SET Caminho=@caminho, Editor=@editor, Data=@data WHERE Indice=@indice";
+                comando.Parameters.AddWithValue("@caminho", (object)caminho ?? DBNull.Value);
+                comando.Parameters.AddWithValue("@editor", (object)editor ?? DBNull.Value);
+                comando.Parameters.Add("@data", System.Data.DbType.DateTime).Value = data;
+                comando.Parameters.AddWithValue("@indice", indice);
+                return comando.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
         /// As **revisões do DWG** que já têm compilação gravada — as tabelas dos três pipelines
         /// (<c>Fiacao</c>, <c>Interligacao4</c>, <c>Jumper4</c>), unidas e ordenadas.
         ///

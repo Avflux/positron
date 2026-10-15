@@ -26,11 +26,25 @@ namespace Positron.Plugin
     {
         public void Initialize()
         {
-            Escrever("Positron carregado. Digite ELET para começar — ELET abre a paleta de folhas (FOLHAS também).");
-            Escrever("Positron: " + BuildCarregado());
+            // O original não escreve nada ao carregar: estas linhas vão só para o log do harness, que
+            // as usa para saber que o plugin subiu e qual build está no ar.
+            RegistrarEmArquivo("Positron carregado.");
+            RegistrarEmArquivo("Positron: " + BuildCarregado());
             Positron.Data.Recursos.RecursosDoProduto.GarantirTodosOsRecursos();
-            Escrever("Recursos: 4 template(s) DWG garantido(s) (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao).");
-            Escrever(Interface.Barra.BarraDeFerramentas.Criar());
+            RegistrarEmArquivo("Recursos: 4 template(s) DWG garantido(s) (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao).");
+            RegistrarEmArquivo(Interface.Barra.BarraDeFerramentas.Criar());
+
+            // O `Initialize` do original liga o `DocumentActivated` e roda o `IniciarDWG` para o desenho
+            // já aberto (`myEletron.cs:202-233`).
+            try
+            {
+                InicioDoDesenho.Ligar();
+                InicioDoDesenho.Iniciar();
+            }
+            catch (System.Exception erro)
+            {
+                Interface.Aviso.MsgBox(erro.Message, "Elétron");
+            }
         }
 
         /// <summary>
@@ -77,7 +91,8 @@ namespace Positron.Plugin
         {
             try
             {
-                Escrever(Interface.Barra.BarraDeFerramentas.Remover());
+                InicioDoDesenho.Desligar();
+                RegistrarEmArquivo(Interface.Barra.BarraDeFerramentas.Remover());
             }
             catch (System.Exception erro)
             {
@@ -102,14 +117,14 @@ namespace Positron.Plugin
         }
 
         /// <summary>
-        /// Anexa a mensagem no log configurado (variável <c>POSITRON_LOG</c> ou a
-        /// chave <c>log</c> do arquivo de configuração). A linha de comando do CAD
-        /// não tem stdout: rodando por script (<c>ZWCAD.exe /b passo.scr</c>), este
-        /// arquivo é a evidência de que o plugin carregou e o que cada comando gravou.
+        /// Anexa a mensagem no log do harness (variável <c>POSITRON_LOG</c>). A linha de comando do
+        /// CAD não tem stdout: rodando por script (<c>ZWCAD.exe /b passo.scr</c>), este arquivo é a
+        /// evidência de que o plugin carregou e o que cada comando gravou. Sem a variável (o uso
+        /// real), não há log — o original não tem.
         /// </summary>
         private static void RegistrarEmArquivo(string mensagem)
         {
-            string caminho = Positron.Data.Configuracao.ConfiguracaoPositron.Carregar().Log;
+            string caminho = Environment.GetEnvironmentVariable(Positron.Data.Configuracao.ConfiguracaoPositron.VariavelLog);
             if (string.IsNullOrEmpty(caminho))
             {
                 return;

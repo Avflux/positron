@@ -311,7 +311,7 @@ namespace Positron.Plugin.Interface.Telas
 
             if (config == null || string.IsNullOrEmpty(config.Banco))
             {
-                return "GERLM: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
+                return "GERLM: " + Positron.Data.Interface.MensagensDoReverso.BancoNaoConfigurado;
             }
 
             List<OperacaoNoCatalogo> plano =

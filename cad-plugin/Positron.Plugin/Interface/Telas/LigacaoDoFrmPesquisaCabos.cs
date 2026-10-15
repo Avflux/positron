@@ -32,18 +32,18 @@ namespace Positron.Plugin.Interface.Telas
                 return;
             }
 
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
-            if (config == null || string.IsNullOrEmpty(config.Banco))
+            // O construtor do original: `clsAuxiliar.BancoValido()` (MsgBox 328/329) e, sem o DWG
+            // cadastrado (`arqAtivo.Indice == 0`), a mMensagem 331. Nos dois casos a tela não abre.
+            if (!InicioDoDesenho.BancoValido(true))
             {
-                Plugin.Escrever("PESQCAB: sem banco do projeto — a tela não abre.");
                 janela.Dispose();
                 return;
             }
 
-            // O `arqAtivo.Indice == 0` do original: mMensagem 331, e a tela não abre.
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             if (config.Dwg == 0)
             {
-                Plugin.Escrever("PESQCAB: Este arquivo ainda não foi cadastrado no banco do projeto!");
+                Aviso.MsgBox("Este arquivo ainda não foi cadastrado no banco do projeto!", string.Empty);
                 janela.Dispose();
                 return;
             }
@@ -105,7 +105,7 @@ namespace Positron.Plugin.Interface.Telas
             // O `UBound(LeCabosVeiasTodos) == 0`: mMensagem 1284, e a tela fecha.
             if (catalogo.Count == 0)
             {
-                Plugin.Escrever("PESQCAB: O Projeto não possui Cabos");
+                Aviso.MsgBox("O Projeto não possui Cabos", string.Empty);
                 janela.Dispose();
                 return;
             }

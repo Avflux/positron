@@ -59,8 +59,62 @@ namespace Positron.Plugin.Configuracao
             }
         }
 
+        /// <summary>
+        /// O que o <c>IniciarDWG</c> do original deixa no <c>Conf</c>: o XData do desenho ou, sem ele, os
+        /// padrões (o <c>else</c> do <c>LerXDataConfiguracao</c>, <c>XDataGeral.cs:291-300</c>) e as pastas
+        /// do projeto vazias (o <c>else</c> do <c>LerXDataConfiguracao2</c>, <c>:563-571</c>). Os dois apps
+        /// são lidos **independentes**, como lá. Nunca <c>null</c> com documento ativo.
+        /// </summary>
+        internal static ConfiguracaoDoCaderno LerOuPadrao()
+        {
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            if (documento == null)
+            {
+                return null;
+            }
+
+            Database banco = documento.Database;
+            using (Transaction transacao = banco.TransactionManager.StartTransaction())
+            {
+                BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForRead);
+                ConfiguracaoDoCaderno caderno = ConfiguracaoDoCaderno.Ler(
+                    XDataNeutro.Para(((DBObject)espaco).GetXDataForApplication(ConfiguracaoDoCaderno.AppNameConfig)))
+                    ?? ConfiguracaoDoCaderno.Padrao();
+                caderno.DirProjeto = string.Empty;
+                caderno.DirSimbologiaEletrica = string.Empty;
+                caderno.DirSimbologiaRelatorios = string.Empty;
+                caderno.DirSimbologiaTopografico = string.Empty;
+                caderno.DirSimbologiaLayout = string.Empty;
+                ConfiguracaoDoCaderno comProjeto = ConfiguracaoDoCaderno.LerProjeto(
+                    XDataNeutro.Para(((DBObject)espaco).GetXDataForApplication(ConfiguracaoDoCaderno.AppNameProjeto)),
+                    caderno);
+                transacao.Commit();
+                return comProjeto ?? caderno;
+            }
+        }
+
         /// <summary>Grava os dois buffers no XData do ModelSpace (sem apagar os de terceiros).</summary>
         internal static bool Gravar(ConfiguracaoDoCaderno caderno)
+        {
+            return Gravar(caderno, true, true);
+        }
+
+        /// <summary>Grava só o buffer <c>Eletron</c>/<c>Config</c> — o <c>GravarXDataConfiguracao</c> do original.</summary>
+        internal static bool GravarConfig(ConfiguracaoDoCaderno caderno)
+        {
+            return Gravar(caderno, true, false);
+        }
+
+        /// <summary>
+        /// Grava só o buffer <c>EletronProj</c>/<c>Projeto</c> — o <c>GravarXDataConfiguracao2</c> do
+        /// original (<c>XDataGeral.cs:592</c>), que a <c>frmConfiguracaoBDProjeto</c> chama.
+        /// </summary>
+        internal static bool GravarProjeto(ConfiguracaoDoCaderno caderno)
+        {
+            return Gravar(caderno, false, true);
+        }
+
+        private static bool Gravar(ConfiguracaoDoCaderno caderno, bool comConfig, bool comProjeto)
         {
             if (caderno == null)
             {
@@ -73,12 +127,22 @@ namespace Positron.Plugin.Configuracao
                 return false;
             }
 
+            // Trava como o original (`GravarXDataConfiguracao2` abre `LockDocument`): quem chama pode ser
+            // uma janela não modal.
             Database banco = documento.Database;
+            using (documento.LockDocument())
             using (Transaction transacao = banco.TransactionManager.StartTransaction())
             {
                 BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForWrite);
-                Bornes.BornesDaCorrecao.GarantirAppName(transacao, banco, ConfiguracaoDoCaderno.AppNameConfig);
-                Bornes.BornesDaCorrecao.GarantirAppName(transacao, banco, ConfiguracaoDoCaderno.AppNameProjeto);
+                if (comConfig)
+                {
+                    Bornes.BornesDaCorrecao.GarantirAppName(transacao, banco, ConfiguracaoDoCaderno.AppNameConfig);
+                }
+
+                if (comProjeto)
+                {
+                    Bornes.BornesDaCorrecao.GarantirAppName(transacao, banco, ConfiguracaoDoCaderno.AppNameProjeto);
+                }
 
                 List<TypedValue> buffer = new List<TypedValue>();
                 ResultBuffer atual = ((DBObject)espaco).XData;
@@ -90,10 +154,17 @@ namespace Positron.Plugin.Configuracao
                     }
                 }
 
-                RemoverApp(buffer, ConfiguracaoDoCaderno.AppNameConfig);
-                RemoverApp(buffer, ConfiguracaoDoCaderno.AppNameProjeto);
-                Acrescentar(buffer, caderno.ParaValores());
-                Acrescentar(buffer, caderno.ParaValoresProjeto());
+                if (comConfig)
+                {
+                    RemoverApp(buffer, ConfiguracaoDoCaderno.AppNameConfig);
+                    Acrescentar(buffer, caderno.ParaValores());
+                }
+
+                if (comProjeto)
+                {
+                    RemoverApp(buffer, ConfiguracaoDoCaderno.AppNameProjeto);
+                    Acrescentar(buffer, caderno.ParaValoresProjeto());
+                }
 
                 ((DBObject)espaco).XData = new ResultBuffer(buffer.ToArray());
                 transacao.Commit();

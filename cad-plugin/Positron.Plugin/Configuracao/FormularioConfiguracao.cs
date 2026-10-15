@@ -42,9 +42,6 @@ namespace Positron.Plugin.Configuracao
         private readonly RadioButton _tipoSqlite = new RadioButton();
         private readonly RadioButton _tipoSqlServer = new RadioButton();
         private readonly TextBox _banco = new TextBox();
-        private readonly TextBox _dwg = new TextBox();
-        private readonly TextBox _revisao = new TextBox();
-        private readonly TextBox _log = new TextBox();
 
         // Bibliotecas
         private readonly TextBox _simbologiaEletrica = new TextBox();
@@ -136,14 +133,6 @@ namespace Positron.Plugin.Configuracao
             Caixa(projeto, _banco, 12, 30, 360);
             Button procurarBanco = Botao(projeto, "...", 380, 28);
             procurarBanco.Click += (origem, evento) => ProcurarArquivoDb();
-
-            GroupBox extras = Grupo(aba, "Projeto", 8, 254, 426, 110);
-            Rotulo(extras, "DWG (índice)", 12, 25, 130);
-            Caixa(extras, _dwg, 150, 22, 100);
-            Rotulo(extras, "Revisão", 12, 53, 130);
-            Caixa(extras, _revisao, 150, 50, 260);
-            Rotulo(extras, "Log", 12, 81, 130);
-            Caixa(extras, _log, 150, 78, 260);
         }
 
         private void ConstruirBibliotecas(Control aba)
@@ -294,9 +283,6 @@ namespace Positron.Plugin.Configuracao
             _tipoAccess.Checked = !_tipoSqlite.Checked && !_tipoSqlServer.Checked;
 
             _banco.Text = atual.Banco ?? string.Empty;
-            _dwg.Text = atual.Dwg.ToString(CultureInfo.InvariantCulture);
-            _revisao.Text = atual.Revisao ?? string.Empty;
-            _log.Text = atual.Log ?? string.Empty;
 
             _simbologiaEletrica.Text = atual.SimbologiaEletrica ?? string.Empty;
             _simbologiaTopografico.Text = atual.SimbologiaTopografico ?? string.Empty;
@@ -343,9 +329,6 @@ namespace Positron.Plugin.Configuracao
             Resultado.Local = Texto(_nomeCaderno);
             Resultado.TipoBanco = _tipoSqlite.Checked ? "SQLite" : _tipoSqlServer.Checked ? "SQL Server" : "Access";
             Resultado.Banco = Texto(_banco);
-            Resultado.Dwg = Inteiro(_dwg, atual.Dwg);
-            Resultado.Revisao = Texto(_revisao);
-            Resultado.Log = Texto(_log);
 
             Resultado.SimbologiaEletrica = Texto(_simbologiaEletrica);
             Resultado.SimbologiaTopografico = Texto(_simbologiaTopografico);

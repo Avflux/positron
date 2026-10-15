@@ -53,8 +53,7 @@ namespace Positron.Plugin.Interface.Telas
             ConfiguracaoPositron config = Configuracao();
             if (config == null || string.IsNullOrEmpty(config.Banco))
             {
-                Plugin.Escrever("EXPLM: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db) "
-                    + "para a Lista de Materiais; a tela abre vazia.");
+                Plugin.Escrever("EXPLM: " + Positron.Data.Interface.MensagensDoReverso.BancoNaoConfigurado);
                 return;
             }
 

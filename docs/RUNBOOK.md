@@ -603,6 +603,16 @@ Ao rodar `npm run build:desktop` (ou `npm run build:all`), os arquivos finais s�
 
 ## Troubleshooting
 
+### O harness passa e o usuário real vê outra coisa (rodada 180)
+
+Por padrão o `cad-zwcad-smoke.ps1` define `POSITRON_DB_PATH`, `POSITRON_DWG`, `POSITRON_REVISAO` e
+`POSITRON_LOCAL`. Elas vencem o desenho, então o projeto ativo do usuário real (o XData `EletronProj` do
+desenho, o DWG pelo nome do arquivo) nunca é exercitado. Para provar o caminho real, use **`-SemProjeto`**,
+que só define o log. Um desenho novo do Elétron sem banco se monta com
+`-Fixture scripts/cad-fixture-projeto.lsp` e `POSITRON_PROJ_MARCAR=1`; `POSITRON_BDPROJETO=<.db>` faz o que o
+clique no `SelProj` da tela Banco de Dados do Projeto faria; `(pz-proj:dump)` com `POSITRON_PROJ_SAIDA` despeja o
+XData. Com `POSITRON_LOG` definido, o `MsgBox` do plugin (`Interface/Aviso.cs`) só escreve na linha de comando.
+
 ### `RuntimeError: Proactor event loop does not implement add_reader family of methods required for zmq`
 
 O erro clássico no Windows. O loop padrão é o `ProactorEventLoop`, e o

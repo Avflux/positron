@@ -84,7 +84,7 @@ namespace Positron.Plugin.Interface.Telas
 
         private static IReadOnlyDictionary<int, string> LerNomesDePaineis()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             if (config == null || string.IsNullOrEmpty(config.Banco))
             {
                 return new Dictionary<int, string>();

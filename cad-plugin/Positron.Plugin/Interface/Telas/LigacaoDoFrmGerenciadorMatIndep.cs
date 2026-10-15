@@ -488,7 +488,7 @@ namespace Positron.Plugin.Interface.Telas
 
             if (config == null || string.IsNullOrEmpty(config.Banco))
             {
-                return "ATINDEP: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
+                return "ATINDEP: " + Positron.Data.Interface.MensagensDoReverso.BancoNaoConfigurado;
             }
 
             if (estado.Painel == 0)
@@ -543,7 +543,7 @@ namespace Positron.Plugin.Interface.Telas
 
             if (config == null || string.IsNullOrEmpty(config.Banco))
             {
-                return "ATINDEP: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
+                return "ATINDEP: " + Positron.Data.Interface.MensagensDoReverso.BancoNaoConfigurado;
             }
 
             int codigoEscolhido = ListaMateriaisEdicao.CodigoDoTexto(LerCaixa(janela, "tbCodigo1"));
@@ -671,7 +671,7 @@ namespace Positron.Plugin.Interface.Telas
 
             if (config == null || string.IsNullOrEmpty(config.Banco))
             {
-                return "ATINDEP: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).";
+                return "ATINDEP: " + Positron.Data.Interface.MensagensDoReverso.BancoNaoConfigurado;
             }
 
             int apagadas = 0;

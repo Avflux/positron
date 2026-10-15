@@ -31,11 +31,18 @@ namespace Positron.Plugin.Interface.Telas
                 return;
             }
 
-            // O `arqAtivo.Indice == 0` do original: mMensagem 331, e a tela não abre.
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
-            if (config != null && config.Dwg == 0)
+            // O construtor do original: `clsAuxiliar.BancoValido()` (MsgBox 328/329) e, sem o DWG
+            // cadastrado (`arqAtivo.Indice == 0`), a mMensagem 331. Nos dois casos a tela não abre.
+            if (!InicioDoDesenho.BancoValido(true))
             {
-                Plugin.Escrever("PESQC: Este arquivo ainda não foi cadastrado no banco do projeto!");
+                janela.Dispose();
+                return;
+            }
+
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
+            if (config.Dwg == 0)
+            {
+                Aviso.MsgBox("Este arquivo ainda não foi cadastrado no banco do projeto!", string.Empty);
                 janela.Dispose();
                 return;
             }
@@ -113,7 +120,7 @@ namespace Positron.Plugin.Interface.Telas
 
         private static IReadOnlyDictionary<int, string> LerNomesDePaineis()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             if (config == null || string.IsNullOrEmpty(config.Banco))
             {
                 return new Dictionary<int, string>();

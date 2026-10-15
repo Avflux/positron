@@ -1,27 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Text;
 
 namespace Positron.Data.Configuracao
 {
     /// <summary>
-    /// Configuração do plugin — o que o produto original guardava nas telas
-    /// (<c>frmCompilar*</c>) e o recoder, até aqui, só aceitava por variável de
-    /// ambiente (<c>POSITRON_*</c>).
+    /// A configuração que os comandos do plugin leem — o <c>DeclaracoesGeral.Conf</c> do original.
     ///
-    /// **Precedência: padrão &lt; arquivo &lt; desenho &lt; ambiente.** A variável de ambiente
-    /// vence porque é o caminho da automação (o harness do ZWCAD e os testes montam o
-    /// cenário por variável); o arquivo é o caminho do usuário, gravado pela tela de
-    /// configuração; e o **desenho** (o XData <c>Eletron</c>/<c>Config</c>, ver
-    /// <see cref="ConfiguracaoDoCaderno"/>) vence o arquivo porque no original a
-    /// configuração geral é do desenho — o <c>IniciarDWG</c> relê o XData ao abrir. Assim
-    /// a UI acrescenta persistência sem quebrar nada do que já funciona.
+    /// **Vem do desenho**, como no original: o <c>IniciarDWG</c> lê o XData do ModelSpace
+    /// (<c>Eletron</c>/<c>Config</c> e <c>EletronProj</c>/<c>Projeto</c>) a cada desenho ativado e,
+    /// sem ele, volta aos padrões (<c>XDataGeral.cs:291-300</c>, <c>:563-571</c>) — ver
+    /// <see cref="Carregar"/>. **Não há arquivo de configuração da máquina:** até a rodada 179 havia um
+    /// <c>%APPDATA%\Positron\positron.ini</c> que vazava o banco, o DWG e a revisão de um projeto
+    /// para o desenho seguinte; ele não existe no original e saiu na rodada 180.
     ///
-    /// O arquivo é um <c>.ini</c> simples (<c>chave=valor</c>, uma por linha), lido e
-    /// escrito sem dependência externa. Linha malformada é ignorada e valor inválido
-    /// mantém o anterior — dado de terceiro não derruba o comando.
+    /// As variáveis <c>POSITRON_*</c> vencem o desenho, mas existem **só para o harness** montar o
+    /// cenário sem clique (decisão do dono, 2026-10-15).
     /// </summary>
     public sealed class ConfiguracaoPositron
     {
@@ -109,8 +103,6 @@ namespace Positron.Data.Configuracao
         public const string ChavePrefixoCruzLogFunc = "prefixoCruzLogFunc";
         public const string ChaveSufixoCruzLogFunc = "sufixoCruzLogFunc";
         public const string ChaveVisualizacaoModelosRele = "visualizacaoModelosRele";
-
-        private static ConfiguracaoPositron _cache;
 
         public string Banco { get; set; }
 
@@ -234,21 +226,6 @@ namespace Positron.Data.Configuracao
             return (ConfiguracaoPositron)MemberwiseClone();
         }
 
-        /// <summary>Arquivo padrão: <c>%APPDATA%\Positron\positron.ini</c> (ou o TEMP).</summary>
-        public static string ArquivoPadrao
-        {
-            get
-            {
-                string baseDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                if (string.IsNullOrEmpty(baseDir))
-                {
-                    baseDir = Path.GetTempPath();
-                }
-
-                return Path.Combine(Path.Combine(baseDir, "Positron"), "positron.ini");
-            }
-        }
-
         public static ConfiguracaoPositron Padrao()
         {
             return new ConfiguracaoPositron
@@ -293,173 +270,19 @@ namespace Positron.Data.Configuracao
         }
 
         /// <summary>
-        /// Configuração efetiva: o arquivo padrão por baixo e o ambiente por cima.
-        /// O resultado fica em cache (o comando lê uma vez por execução).
+        /// A configuração **efetiva** do desenho, como o <c>IniciarDWG</c> do original a monta: os
+        /// valores do XData do desenho (<see cref="ConfiguracaoDoCaderno"/>, o <c>LerXDataConfiguracao</c> e
+        /// o <c>LerXDataConfiguracao2</c>) e, **sem** o XData, os padrões do ramo <c>else</c> do original
+        /// (<see cref="ConfiguracaoDoCaderno.Padrao"/>: banco vazio, <c>Local = "???"</c>…) — nunca o que
+        /// ficou de outro projeto. O <paramref name="ambiente"/> (<c>POSITRON_*</c>) vem por cima e
+        /// existe **só para o harness** (decisão do dono, 2026-10-15): nada daqui é gravado em arquivo.
         /// </summary>
-        public static ConfiguracaoPositron Carregar()
-        {
-            if (_cache == null)
-            {
-                _cache = Carregar(ArquivoPadrao, VariaveisDeAmbiente());
-            }
-
-            return _cache;
-        }
-
-        /// <summary>Carrega do arquivo indicado (se existir) e aplica o ambiente por cima.</summary>
-        public static ConfiguracaoPositron Carregar(string arquivo, IDictionary<string, string> ambiente)
-        {
-            return Carregar(arquivo, ambiente, null);
-        }
-
-        /// <summary>
-        /// A leitura efetiva do recoder: **padrão &lt; arquivo &lt; desenho &lt; ambiente**.
-        ///
-        /// O <paramref name="desenho"/> é o que o desenho carrega no XData
-        /// (<see cref="ConfiguracaoDoCaderno"/> — o app <c>Eletron</c>/<c>Config</c> que o
-        /// <c>IniciarDWG</c> do reverso relê ao abrir): ele vence o arquivo porque a
-        /// configuração do original é **do desenho**, e o ambiente vence os dois porque é o
-        /// caminho da automação (o harness monta o cenário por <c>POSITRON_*</c>). Só os campos
-        /// que o desenho traz entram — o resto do arquivo fica.
-        /// </summary>
-        public static ConfiguracaoPositron Carregar(string arquivo, IDictionary<string, string> ambiente, ConfiguracaoDoCaderno desenho)
-        {
-            string conteudo = null;
-            if (!string.IsNullOrEmpty(arquivo) && File.Exists(arquivo))
-            {
-                try
-                {
-                    conteudo = File.ReadAllText(arquivo);
-                }
-                catch (IOException)
-                {
-                    // Arquivo ilegível não impede o comando: segue com o padrão.
-                }
-            }
-
-            return Ler(conteudo, ambiente, desenho);
-        }
-
-        /// <summary>Zera o cache (usado depois de gravar a configuração).</summary>
-        public static void InvalidarCache()
-        {
-            _cache = null;
-        }
-
-        /// <summary>Grava no arquivo padrão (criando a pasta) e invalida o cache.</summary>
-        public void Salvar()
-        {
-            Salvar(ArquivoPadrao);
-        }
-
-        public void Salvar(string arquivo)
-        {
-            string pasta = Path.GetDirectoryName(arquivo);
-            if (!string.IsNullOrEmpty(pasta) && !Directory.Exists(pasta))
-            {
-                Directory.CreateDirectory(pasta);
-            }
-
-            File.WriteAllText(arquivo, Texto());
-            InvalidarCache();
-        }
-
-        /// <summary>O conteúdo do arquivo, no formato <c>chave=valor</c>.</summary>
-        public string Texto()
-        {
-            StringBuilder texto = new StringBuilder();
-            texto.AppendLine("# Configuracao do plugin Positron (o ambiente POSITRON_* tem prioridade)");
-            texto.AppendLine(ChaveBanco + "=" + (Banco ?? string.Empty));
-            texto.AppendLine(ChaveDwg + "=" + Dwg.ToString(CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveRevisao + "=" + (Revisao ?? string.Empty));
-            texto.AppendLine(ChaveLocal + "=" + (Local ?? string.Empty));
-            texto.AppendLine(ChaveLog + "=" + (Log ?? string.Empty));
-            texto.AppendLine(ChaveIncluirColuna + "=" + IncluirColuna.ToString(CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveSeparador + "=" + (SeparadorCruzamento ?? string.Empty));
-            texto.AppendLine(ChaveRelatorio + "=" + (Relatorio ?? string.Empty));
-            texto.AppendLine(ChaveOrdemListaBanco + "=" + (OrdemListaNoBanco ? "1" : "0"));
-            texto.AppendLine(ChaveCorTextoInterligacao + "=" + CorTextoInterligacao.ToString(CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveFonteCabos + "=" + FonteCabos.ToString(CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveSeparadorCaboVeia + "=" + (SeparadorCaboVeia ?? string.Empty));
-            texto.AppendLine(ChaveSeparadorPainelRegua + "=" + (SeparadorPainelRegua ?? string.Empty));
-            texto.AppendLine(ChavePrefixoCruzInterno + "=" + (PrefixoCruzInterno ?? string.Empty));
-            texto.AppendLine(ChavePassoPagina + "=" + PassoPagina.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveLarguraFixaPaginas + "=" + LarguraFixaPaginas.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveSufixoCruzInterno + "=" + (SufixoCruzInterno ?? string.Empty));
-            texto.AppendLine(ChaveInterligacaoLayout + "=" + InterligacaoLayout.ToString(CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveCorInterligacao + "=" + CorInterligacao.ToString(CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveEstiloLinha + "=" + (EstiloLinha ?? string.Empty));
-            texto.AppendLine(ChaveEstiloLinhaEscala + "=" + EstiloLinhaEscala.ToString(CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveIdioma + "=" + (Idioma ?? string.Empty));
-            texto.AppendLine(ChaveContatosAuxiliares + "=" + (ContatosAuxiliares ?? string.Empty));
-            texto.AppendLine(ChaveTipoBanco + "=" + (TipoBanco ?? string.Empty));
-            texto.AppendLine(ChaveSimbologiaEletrica + "=" + (SimbologiaEletrica ?? string.Empty));
-            texto.AppendLine(ChaveSimbologiaTopografico + "=" + (SimbologiaTopografico ?? string.Empty));
-            texto.AppendLine(ChaveSimbologiaLayout + "=" + (SimbologiaLayout ?? string.Empty));
-            texto.AppendLine(ChaveSimbologiaRelatorios + "=" + (SimbologiaRelatorios ?? string.Empty));
-            texto.AppendLine(ChaveRepresentacaoCaboVeia + "=" + (RepresentacaoCaboVeia ?? string.Empty));
-            texto.AppendLine(ChaveTerminalIndefinido + "=" + (TerminalIndefinido ?? string.Empty));
-            texto.AppendLine(ChaveSeparadorCarimbo + "=" + (SeparadorCarimbo ?? string.Empty));
-            texto.AppendLine(ChaveAlturaCircuitos + "=" + AlturaCircuitos.ToString(CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveAlturaReferenciaCruzada + "=" + AlturaReferenciaCruzada.ToString(CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveCorFiacaoConexao + "=" + CorFiacaoConexao.ToString(CultureInfo.InvariantCulture));
-            texto.AppendLine(ChaveCorFiacaoTextoCircuito + "=" + CorFiacaoTextoCircuito.ToString(CultureInfo.InvariantCulture));
-            texto.AppendLine(ChavePrefixoCruzFuncFunc + "=" + (PrefixoCruzFuncFunc ?? string.Empty));
-            texto.AppendLine(ChaveSufixoCruzFuncFunc + "=" + (SufixoCruzFuncFunc ?? string.Empty));
-            texto.AppendLine(ChavePrefixoCruzLogFunc + "=" + (PrefixoCruzLogFunc ?? string.Empty));
-            texto.AppendLine(ChaveSufixoCruzLogFunc + "=" + (SufixoCruzLogFunc ?? string.Empty));
-            texto.AppendLine(ChaveVisualizacaoModelosRele + "=" + VisualizacaoModelosRele.ToString(CultureInfo.InvariantCulture));
-            return texto.ToString();
-        }
-
-        /// <summary>Lê o conteúdo (mesmo formato do arquivo). Exposto para teste.</summary>
-        public static ConfiguracaoPositron Ler(string conteudo, IDictionary<string, string> ambiente)
-        {
-            return Ler(conteudo, ambiente, null);
-        }
-
-        /// <summary>
-        /// Lê o conteúdo com a precedência completa: **conteúdo &lt; desenho &lt; ambiente**.
-        /// Exposto para testar o <see cref="Carregar(string, IDictionary{string, string}, ConfiguracaoDoCaderno)"/> sem
-        /// arquivo.
-        /// </summary>
-        public static ConfiguracaoPositron Ler(string conteudo, IDictionary<string, string> ambiente, ConfiguracaoDoCaderno desenho)
+        public static ConfiguracaoPositron Carregar(IDictionary<string, string> ambiente, ConfiguracaoDoCaderno desenho)
         {
             ConfiguracaoPositron configuracao = Padrao();
-            if (!string.IsNullOrEmpty(conteudo))
-            {
-                Aplicar(configuracao, conteudo.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
-            }
-
-            if (desenho != null)
-            {
-                desenho.AplicarEm(configuracao);
-            }
-
+            (desenho ?? ConfiguracaoDoCaderno.Padrao()).AplicarEm(configuracao);
             AplicarAmbiente(configuracao, ambiente);
             return configuracao;
-        }
-
-        private static void Aplicar(ConfiguracaoPositron configuracao, IEnumerable<string> linhas)
-        {
-            foreach (string linha in linhas)
-            {
-                string limpa = linha.Trim();
-                if (limpa.Length == 0 || limpa.StartsWith("#", StringComparison.Ordinal) || limpa.StartsWith(";", StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                int igual = limpa.IndexOf('=');
-                if (igual <= 0)
-                {
-                    continue;
-                }
-
-                string chave = limpa.Substring(0, igual).Trim();
-                string valor = limpa.Substring(igual + 1).Trim();
-                Definir(configuracao, chave, valor);
-            }
         }
 
         private static void Definir(ConfiguracaoPositron configuracao, string chave, string valor)
@@ -526,8 +349,8 @@ namespace Positron.Data.Configuracao
         }
 
         /// <summary>
-        /// As variáveis <c>POSITRON_*</c> do processo, na forma que o <see cref="Carregar(string, IDictionary{string, string}, ConfiguracaoDoCaderno)"/>
-        /// aceita. Exposta para o plugin montar a leitura efetiva (arquivo + desenho + ambiente).
+        /// As variáveis <c>POSITRON_*</c> do processo, na forma que o <see cref="Carregar"/>
+        /// aceita: o caminho do harness por cima do desenho.
         /// </summary>
         public static IDictionary<string, string> VariaveisDeAmbiente()
         {

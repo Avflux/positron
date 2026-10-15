@@ -64,8 +64,7 @@ namespace Positron.Plugin.Interface.Telas
             ConfiguracaoPositron config = Configuracao();
             if (config == null || string.IsNullOrEmpty(config.Banco))
             {
-                Plugin.Escrever("LVEI: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db) "
-                    + "para a Lista de Veias; a tela abre vazia.");
+                Plugin.Escrever("LVEI: " + Positron.Data.Interface.MensagensDoReverso.BancoNaoConfigurado);
                 return;
             }
 

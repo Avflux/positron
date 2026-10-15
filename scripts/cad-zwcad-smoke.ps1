@@ -38,7 +38,10 @@ param(
     [string]   $Fixture,
     # Desenho de verdade para abrir no CAD (E2E com dados reais). O script copia
     # para o TEMP e abre a COPIA: o original nunca e tocado.
-    [string]   $Desenho
+    [string]   $Desenho,
+    # O caminho do usuario real: nao define POSITRON_DB_PATH/DWG/REVISAO/LOCAL (so o log). O
+    # projeto ativo vem so do desenho, como no original (rodada 180).
+    [switch]   $SemProjeto
 )
 
 $ErrorActionPreference = "Stop"
@@ -100,10 +103,14 @@ $linhas += $Comandos
 $linhas += "QUIT"
 Set-Content -Path $scr -Value $linhas -Encoding ASCII
 
-$env:POSITRON_DB_PATH  = $Banco
-$env:POSITRON_DWG      = "$Dwg"
-$env:POSITRON_REVISAO  = $Revisao
-$env:POSITRON_LOCAL    = $Local
+if ($SemProjeto) {
+    Remove-Item Env:POSITRON_DB_PATH, Env:POSITRON_DWG, Env:POSITRON_REVISAO, Env:POSITRON_LOCAL -ErrorAction SilentlyContinue
+} else {
+    $env:POSITRON_DB_PATH  = $Banco
+    $env:POSITRON_DWG      = "$Dwg"
+    $env:POSITRON_REVISAO  = $Revisao
+    $env:POSITRON_LOCAL    = $Local
+}
 $env:POSITRON_LOG      = $log
 
 # `/b` sem a extensao .scr: e assim que o ZWCAD acha o script.

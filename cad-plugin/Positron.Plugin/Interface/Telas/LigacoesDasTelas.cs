@@ -48,6 +48,7 @@ namespace Positron.Plugin.Interface.Telas
             new LigacaoDoFrmPesquisaVeiasIndefinidas(),
             new LigacaoDoFrmPesquisaCabos(),
             new LigacaoDoFrmEditaTitulosTextos(),
+            new LigacaoDoFrmConfiguracaoBDProjeto(),
         };
 
         /// <summary>As telas ligadas hoje (para o diagnóstico e os testes não lerem a lista).</summary>

@@ -98,7 +98,7 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 | `INDCABO` | **implementado** — a **ação** "Corrigir cabos" (`IndefineCabosNaoExistentes`) do verificador da interligação: o trecho cujo `Tag_Cabo` não está no catálogo (`Cabos`) perde o cabo e a veia no XData e o rótulo auxiliar (`AUXINTERLIG`) vira o caracter de terminal indefinido. Roda por script |
 | `EPLQ` | **implementado** — exporta as **plaquetas** do desenho para `Plaquetas4` (`clsDispositivoTacito.exportaPlaquetas`): lê o dicionário `CENG_PLAQUETA` do **próprio desenho** (um `Xrecord` por painel, registros de 7 valores) e resolve o **nome** de cada plaqueta pelo tipo — `P` = nome do painel (cadastro `Paineis`), `D` = `Nome1[/Nome2]` do bloco `M`/`P` pelo handle, `X` = primeira descrição não-vazia, `R` = nome da régua (`REGUAS/MODELOS2`). Entram só painéis **com fiação no desenho** e plaquetas com nome **e** descrição. Roda por script |
 | `COMPLM` | **implementado** — compila a **lista de material** do desenho para `ListaMateriais` (`clsLM.CompilaListaDeMateriais`): uma linha por LM da **máscara** (`M`) e do **dispositivo** (`P`), uma **agregada** por `(painel, régua, tipo, lm)` para cada **borne** (`B`) e as reservas das réguas somadas. A `OrdemLay` de cada linha é o **índice da tag** no `CENG_LAYOUT` do próprio desenho (10000 quando não está no layout) e a `Ordem` é renumerada 1..N por painel. Preserva os itens **avulsos** do app. Roda por script |
-| `ELETCFG` | **implementado** — abre a tela de configuração (WinForms), grava `%APPDATA%\Positron\positron.ini` **e o XData do desenho** (`Eletron`/`Config` + `EletronProj`/`Projeto`, como o `frmConfiguracaoGeral` do reverso, que **não** grava no banco). **Modal**: não rode dentro de script |
+| `ELETCFG` | tela de configuração **feita à mão** (será trocada pela `frmConfiguracaoGeral` fiel); grava só o XData do desenho (`Eletron`/`Config` + `EletronProj`/`Projeto`), como o original. **Modal**: não rode dentro de script |
 | `ELETREL` | **implementado** — grava o **relatório da verificação** em arquivo (a grid de erros das telas do original, sem tela). Roda por script |
 | `ELETCMP` | **implementado** — abre a **tela de compilação** (grid de erros) sobre o mesmo relatório do `ELETREL`, com botão Salvar. **Modal**: não rode dentro de script |
 | `ApagarTextosEmBranco` | **implementado** — frente 2 do §7.6, limpeza: apaga do ModelSpace os `DBText` cujo texto é só espaços **e** que **não** têm XData (`LimpezaDoDesenho.TextoEmBranco`). Roda por script |
@@ -146,11 +146,15 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 
 Lê as `LWPOLYLINE` do ModelSpace com XData **`CONEXAO`** (layout recuperado em
 `Positron.Data/Fiacao/ConexaoXData.cs`) e grava em `Fiacao` pelo INSERT canônico
-do original. Configuração por arquivo **ou** variável de ambiente:
+do original. A configuração e o banco do projeto vêm **do desenho ativo**, como no original (o XData
+`Eletron`/`Config` e `EletronProj`/`Projeto`; o índice do DWG pelo nome do arquivo na tabela `DWG`). Sem o
+XData, valem os padrões do original e não há banco (`Banco do Projeto não configurado!`); num desenho do
+Elétron, a tela **Banco de Dados do Projeto** abre sozinha para ligar o desenho a um banco. Não há arquivo de
+configuração da máquina (o `%APPDATA%\Positron\positron.ini` de antes da rodada 180 não é mais lido).
 
-**Precedência: padrão < arquivo < ambiente** — a automação (harness/E2E) sempre vence.
+As variáveis abaixo existem **só para o harness** (scripts de teste); vencem o desenho:
 
-| Variável | Chave do arquivo | Papel |
+| Variável | Chave antiga | Papel |
 |---|---|---|
 | `POSITRON_DB_PATH` | `banco` | caminho do `.db` do projeto (obrigatória) |
 | `POSITRON_DWG` | `dwg` | índice do desenho (`DWG`), padrão `0` |
@@ -161,9 +165,6 @@ do original. Configuração por arquivo **ou** variável de ambiente:
 | `POSITRON_SEPARADOR_CRUZAMENTO` | `separadorCruzamento` | separador do caso `6` de `POSITRON_INCLUIR_COLUNA`, padrão vazio |
 | `POSITRON_RELATORIO` | `relatorio` | arquivo do relatório do `ELETREL`; padrão: `positron-relatorio.txt` ao lado do banco |
 
-O arquivo (`%APPDATA%\Positron\positron.ini`, `chave=valor`) é gravado pelo comando
-`ELETCFG`; a leitura é tolerante (linha malformada ignorada, valor inválido mantém o
-anterior).
 
 **Bornes/terminais (fase 7).** O `FIA` varre os blocos de borne do desenho
 (XData `Dispositivo` tipo `"B"`) e as réguas do dicionário
@@ -178,9 +179,8 @@ o próprio layer) e `6` = `(layer)` + separador + alternativo. A **matriz de
 páginas** vem do desenho (`PaginaMatrix`/`PaginasDoDesenho`), montada da
 `LayerTable` como o `Pagina.CarregaPaginas`. A configuração vem do **desenho** (o
 XData `Eletron`/`Config` que a tela `ELETCFG` grava, como o `frmConfiguracaoGeral` do
-original), sobreposta pelo arquivo e pelo ambiente — `POSITRON_INCLUIR_COLUNA`
-(padrão `0`) e `POSITRON_SEPARADOR_CRUZAMENTO`; a leitura é o
-`ConfiguracaoEfetiva.Carregar()` (`padrão < arquivo < desenho < ambiente`).
+original), e o harness pode sobrepor por `POSITRON_INCLUIR_COLUNA` e `POSITRON_SEPARADOR_CRUZAMENTO`;
+a leitura é o `ConfiguracaoEfetiva.Carregar()` (`desenho < ambiente`).
 Vale para `Fiacao`, `Bornes4F`, `Dispositivos4F`, `Interligacao4` e `Bornes4I`.
 
 **Modelos (fases 8 e 9).** O `FIA` também gera **`Portas4F`**, **`Bornes4F`** e

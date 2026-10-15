@@ -4,15 +4,15 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-15, depois da rodada 179)
+## Estado (2026-10-15, depois da rodada 180)
 
 | | valor |
 |---|---|
-| última rodada | **179** |
+| última rodada | **180** |
 | comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
-| telas `frm*` do reverso | **127**; **19** com a ligação à regra; 19 que nenhum comando abre |
-| testes (`npm run plugin:test`) | **900** |
+| telas `frm*` do reverso | **127**; **20** com a ligação à regra; 19 que nenhum comando abre |
+| testes (`npm run plugin:test`) | **895** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
 | host CAD medido | ZWCAD 2026 (AutoCAD 2020 não instalado nesta máquina em 2026-10-15) |
@@ -28,7 +28,7 @@ Números de cobertura: `powershell -ExecutionPolicy Bypass -File scripts/cobertu
 | 3–9 — edição (réguas, dispositivos, fiação, cabos, materiais, exportação) | triadas (`PLANO.md` §7.6); portar comando a comando |
 | 10 — páginas e caderno | ✅ (cadeia do `CAD` fechada na 175) |
 | 11 — shell (arranque, paleta, barra, autoload) | ✅ |
-| 12 — as 127 telas | todas abrem; 19 com regra ligada |
+| 12 — as 127 telas | todas abrem; 20 com regra ligada |
 | relatórios (9b) · SQL Server (9c) | ⏳ decisão do dono |
 | **correção do básico** (projeto por desenho, folhas, configuração) | ⛔ prioridade — ver abaixo |
 
@@ -38,7 +38,7 @@ O dono testou o plugin em uso real em 2026-10-15, depois da rodada 179, e o bás
 diagnósticos abaixo foram conferidos no código. Uma rodada por item, nesta ordem, cada uma provada pelo
 caminho do usuário real (desenho novo, paleta, clique, troca de documento), não só pelo harness:
 
-1. **Projeto por desenho.** Hoje o banco, o DWG e a revisão vêm do `%APPDATA%\Positron\positron.ini`
+1. ✅ *(rodada 180; o que faltou está nos itens 1a–1c)* **Projeto por desenho.** Hoje o banco, o DWG e a revisão vêm do `%APPDATA%\Positron\positron.ini`
    global (`ConfiguracaoPositron.cs:14-20`, `ConfiguracaoEfetiva.cs:19-34`), e um desenho novo herda o
    projeto anterior. O original lê o banco do XData `EletronProj` do desenho e, sem ele, zera o banco
    (`XDataGeral.cs:532-571`). O índice do DWG vem do nome do arquivo na tabela `DWG`
@@ -46,6 +46,11 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    `EventosDOC.AtivaDocumento` → `Iniciar.IniciarDWG`, `Iniciar.cs:61-195`). Portar também a
    `frmConfiguracaoBDProjeto`, que liga o desenho ao banco e cadastra o DWG (decisão do dono: fiel).
    Parar de gravar banco, DWG e revisão no `.ini`; `POSITRON_*` fica só no harness (decisão do dono).
+   - 1a. **Banco Access:** o projeto real (`RCD.mdb`) é Access e o plugin só lê SQLite — **decisão do dono** (ver abaixo).
+   - 1b. **Resto do `IniciarDWG`** (`Iniciar.cs:61-195`): a barra ligada/desligada pelo tipo do desenho, as 5
+     correções automáticas (`XDataCorrecao`), o estilo `Romans`, o `ACorrecaoBD.CorrigeBD` e a página ativa ao abrir.
+   - 1c. Ganchos `POSITRON_*` restantes em comandos (`POSITRON_PAGINA`, `POSITRON_TITULO1..4`, `POSITRON_UNIDADE`,
+     `POSITRON_FORMATO_TROCAR`): no original esses comandos perguntam ao usuário. Entram com o item 2.
 2. **Folhas: adicionar e apagar pela paleta.** As gravações não usam `LockDocument` e o erro vai para
    `UltimaMensagem`, que ninguém lê. Ao apagar a página ativa, nenhuma página é reativada (`Comandos.cs:1369`).
    No original, "Inserir" insere colunas ELET1..5 (`uscPaginas.cs:2466-2565`) e "Nova Página" usa a
@@ -81,6 +86,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 ## Depende do dono (não começar sem decisão)
 
 - Relatórios tabulares restantes (9b, `PLANO.md` §7.3).
+- **Banco Access do projeto:** o original lê o `.mdb`/`.accdb` direto; o plugin só lê SQLite. Ler o Access (OleDb/ACE no plugin) ou exigir a conversão para `.db`?
 - Banco multiusuário / SQL Server (9c). A tela de configuração fiel mostra os campos do SQL Server, como
   o original; a conexão em si continua dependendo desta decisão.
 
@@ -88,6 +94,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
+| 180 | 2026-10-15 | *(este)* | projeto por desenho: sai o `positron.ini`; banco e DWG do desenho ativo; `DocumentActivated`; `frmConfiguracaoBDProjeto` ligada | `rodadas/180-projeto-por-desenho.md` |
 | 179 | 2026-10-15 | `86907aaf` | `TROCTT`: troca DE → PARA em títulos 1..4, textos e multitextos das páginas escolhidas | `rodadas/179-edita-titulos-textos.md` |
 | 178 | 2026-10-15 | `e3c69237` | `PESQCAB`: cabos do catálogo (deste DWG e de outros), veias com o `OrdenaVeias`, ir até a veia; `TCHAVE` fora (licença) | `rodadas/178-pesquisa-cabos.md` |
 | 177 | 2026-10-15 | `e4f19340` | `PESQC`: veias indefinidas na grade, ir até a veia (página, zoom, realce) | `rodadas/177-pesquisa-veias-indefinidas.md` |

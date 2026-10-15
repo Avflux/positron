@@ -26,3 +26,4 @@ fato que se mostrou errado é corrigido aqui, não empilhado.
 | `CONEXAO`/`AUXCONEXAO`, edição de seção e cor, `SetFocus` | `conexao.md` |
 | `INTERLIGACAO`: as duas cargas de veias indefinidas, a tela `PESQC` | `interligacao.md` |
 | Páginas: títulos (`TituloPagina`, `buscaTitulosExistentes`), o `LerXDataVazio`, a troca do `TROCTT` | `paginas.md` |
+| Projeto ativo: `EletronProj`/`Config` do desenho, `IniciarDWG`, `BancoValido`, índice do DWG, `frmConfiguracaoBDProjeto` | `projeto.md` |
