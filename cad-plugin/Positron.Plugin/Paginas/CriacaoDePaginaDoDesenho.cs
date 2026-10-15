@@ -33,12 +33,6 @@ namespace Positron.Plugin.Paginas
     /// </summary>
     internal static class CriacaoDePaginaDoDesenho
     {
-        /// <summary>App name do XData que marca o bloco de formato (e dos títulos).</summary>
-        internal const string AppNameDiagLog = "DiagLog";
-
-        /// <summary>A marca do bloco de formato dentro do XData <c>DiagLog</c>.</summary>
-        internal const string MarcaFormato = "Formato";
-
         /// <summary>App name do XData do layer (unidade/alternativo).</summary>
         internal const string AppNameEletron = "Eletron";
 
@@ -116,7 +110,7 @@ namespace Positron.Plugin.Paginas
                 resultado.Criado = true;
 
                 BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForWrite);
-                BlockReference formato = EncontrarFormato(transacao, espaco);
+                BlockReference formato = FormatoDoDesenho.Encontrar(transacao, espaco);
                 if (formato != null)
                 {
                     resultado.TemFormato = true;
@@ -137,34 +131,6 @@ namespace Positron.Plugin.Paginas
             }
 
             return resultado;
-        }
-
-        /// <summary>O bloco de formato do ModelSpace (o <c>PossuiXDataFormato</c>).</summary>
-        private static BlockReference EncontrarFormato(Transaction transacao, BlockTableRecord espaco)
-        {
-            foreach (ObjectId id in espaco)
-            {
-                BlockReference bloco = transacao.GetObject(id, OpenMode.ForRead) as BlockReference;
-                if (bloco == null)
-                {
-                    continue;
-                }
-
-                ResultBuffer xdata = bloco.GetXDataForApplication(AppNameDiagLog);
-                if (xdata == null)
-                {
-                    continue;
-                }
-
-                IReadOnlyList<TypedXData> valores = XDataNeutro.Para(xdata);
-                if (valores.Count > 1
-                    && string.Equals(Convert.ToString(valores[1].Valor), MarcaFormato, StringComparison.OrdinalIgnoreCase))
-                {
-                    return bloco;
-                }
-            }
-
-            return null;
         }
 
         /// <summary>Os oito campos do formato viram <c>DBText</c> no layer da página (o <c>criaCamposFormato</c>).</summary>

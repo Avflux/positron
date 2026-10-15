@@ -240,6 +240,16 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         public void DowngradeOpen()
         {
         }
+
+        /// <summary>
+        /// Cópia do objeto (o <c>DBObject.Clone()</c> da API real) — usado pelo
+        /// <c>verificaCriaBlocoRevisao</c>: a definição nova copia os <c>AttributeDefinition</c> do
+        /// bloco de formato. A API real devolve <c>object</c>.
+        /// </summary>
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 
     /// <summary>Modo vertical do texto (o <c>TextVerticalMode</c> da API real).</summary>

@@ -288,10 +288,18 @@ namespace Positron.Plugin.Paginas
                     lista.Add(new BlocoDeRevisao(id, rev));
                 }
 
-                // 2) as posições do formato (o maxCapa/maxCorpo do carregaConfiguracaoRevisao), medidas
-                // pelos blocos Revisao_Capa{n}/Revisao_Corpo{n} que o verificaCriaBlocoRevisao deixou.
-                int maxCapa = ContarDefinicoes(transacao, tabela, "Revisao_Capa");
-                int maxCorpo = ContarDefinicoes(transacao, tabela, "Revisao_Corpo");
+                // 2) as definições Revisao_Capa{n}/Revisao_Corpo{n} a partir do bloco de formato (o
+                //    verificaCriaBlocoRevisao, que o original chama no início do AtualizaRevCompleta)
+                //    e as posições que o formato admite (o maxCapa/maxCorpo do carregaConfiguracaoRevisao).
+                string capaLayer = LayerDaCapa(transacao, banco);
+                BlockReference formato = FormatoDoDesenho.Encontrar(transacao, espaco);
+                PosicoesDoFormato posicoes = new PosicoesDoFormato();
+                if (formato != null && capaLayer.Length > 0)
+                {
+                    List<AtributoDeFormato> atributosDoFormato = FormatoDoDesenho.Atributos(transacao, tabela, formato);
+                    posicoes = DefinicoesDeRevisao.Contar(ParaTags(atributosDoFormato), capaLayer);
+                    resultado.Definicoes = CriarDefinicoes(transacao, tabela, atributosDoFormato, capaLayer, posicoes);
+                }
 
                 // 3) aplica o plano de cada página editada.
                 foreach (RevisaoCompletaDaPagina recebida in revisoes)
@@ -313,19 +321,20 @@ namespace Positron.Plugin.Paginas
                     nova.RevisaoOriginal = atual != null ? atual.Revisao.Revisao : string.Empty;
 
                     bool capa = PaginaAtiva.ChecaCapa(recebida.Pagina);
-                    int posicoes = capa ? maxCapa : maxCorpo;
-                    if (posicoes == 0)
+                    int posicoesDaPagina = capa ? posicoes.Capa : posicoes.Corpo;
+                    if (posicoesDaPagina == 0)
                     {
-                        // Sem os blocos de formato: não há como saber quantas posições cabem. O recoder
-                        // não apaga nada por isso — a página aceita pelo menos uma posição a mais.
-                        posicoes = MaiorPosicao(existentes) + 1;
+                        // Sem as posições no formato (ou sem o bloco de formato): não há como saber
+                        // quantas cabem. O recoder não apaga nada por isso — a página aceita pelo menos
+                        // uma posição a mais.
+                        posicoesDaPagina = MaiorPosicao(existentes) + 1;
                         resultado.SemFormato++;
                     }
 
                     PlanoDaRevisaoCompleta plano = PosicionamentoDeRevisoes.Calcular(
                         nova,
                         Revisoes(existentes),
-                        posicoes);
+                        posicoesDaPagina);
 
                     if (plano.Vazio)
                     {
@@ -570,24 +579,145 @@ namespace Positron.Plugin.Paginas
             return maior == null ? 0 : maior.Revisao.Posicao;
         }
 
-        private static int ContarDefinicoes(Transaction transacao, BlockTable tabela, string prefixo)
+        /// <summary>O layer da capa do caderno — o primeiro layer da tabela que o <c>checaCapa</c> aceita.</summary>
+        private static string LayerDaCapa(Transaction transacao, Database banco)
         {
-            int total = 0;
-            foreach (ObjectId id in tabela)
+            LayerTable camadas = transacao.GetObject(banco.LayerTableId, OpenMode.ForRead) as LayerTable;
+            if (camadas == null)
             {
-                BlockTableRecord definicao = transacao.GetObject(id, OpenMode.ForRead) as BlockTableRecord;
-                if (definicao == null || string.IsNullOrEmpty(definicao.Name))
+                return string.Empty;
+            }
+
+            foreach (ObjectId id in camadas)
+            {
+                LayerTableRecord layer = transacao.GetObject(id, OpenMode.ForRead) as LayerTableRecord;
+                if (layer != null && PaginaAtiva.ChecaCapa(layer.Name))
+                {
+                    return layer.Name;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>As tags do formato na forma pura (o insumo do <c>DefinicoesDeRevisao.Contar</c>).</summary>
+        private static List<TagDeAtributo> ParaTags(List<AtributoDeFormato> atributos)
+        {
+            List<TagDeAtributo> tags = new List<TagDeAtributo>(atributos.Count);
+            foreach (AtributoDeFormato atributo in atributos)
+            {
+                tags.Add(new TagDeAtributo(atributo.Tag, atributo.Layer));
+            }
+
+            return tags;
+        }
+
+        /// <summary>
+        /// O <c>verificaCriaBlocoRevisao</c> do original: garante uma definição para **cada** posição
+        /// do formato (as da capa e as do corpo). A definição fica vazia e é repovoada com as cópias
+        /// dos atributos do formato que casam. Devolve quantas definições foram criadas/refeitas.
+        /// </summary>
+        private static int CriarDefinicoes(
+            Transaction transacao,
+            BlockTable tabela,
+            List<AtributoDeFormato> atributosDoFormato,
+            string capaLayer,
+            PosicoesDoFormato posicoes)
+        {
+            int criadas = 0;
+            for (int i = 0; i < posicoes.Capa; i++)
+            {
+                if (VerificaCriaDefinicao(transacao, tabela, atributosDoFormato, capaLayer, i.ToString()))
+                {
+                    criadas++;
+                }
+            }
+
+            for (int j = 0; j < posicoes.Corpo; j++)
+            {
+                if (VerificaCriaDefinicao(transacao, tabela, atributosDoFormato, PaginaAtiva.LayerDoFormatoDoCorpo, j.ToString()))
+                {
+                    criadas++;
+                }
+            }
+
+            return criadas;
+        }
+
+        /// <summary>
+        /// Cria (ou refaz) a definição de uma posição: esvazia a definição que já existe — o
+        /// <c>Erase</c> de cada entidade, como o original — e copia os atributos do formato que
+        /// casam com o layer e o dígito. O <c>attsync</c> que o original dispara por referência fica
+        /// **fora** (é comando do CAD; os blocos novos do recoder já nascem da definição atualizada).
+        /// </summary>
+        private static bool VerificaCriaDefinicao(
+            Transaction transacao,
+            BlockTable tabela,
+            List<AtributoDeFormato> atributosDoFormato,
+            string layer,
+            string tipo)
+        {
+            string nome = DefinicoesDeRevisao.Nome(layer, tipo);
+            if (string.IsNullOrEmpty(nome))
+            {
+                return false;
+            }
+
+            BlockTableRecord alvo;
+            if (!tabela.Has(nome))
+            {
+                tabela.UpgradeOpen();
+                alvo = new BlockTableRecord { Name = nome };
+                tabela.Add(alvo);
+                transacao.AddNewlyCreatedDBObject(alvo, true);
+            }
+            else
+            {
+                alvo = transacao.GetObject(tabela[nome], OpenMode.ForWrite) as BlockTableRecord;
+                if (alvo == null)
+                {
+                    return false;
+                }
+
+                // Esvazia antes de recopiar (o original apaga o que houver na definição).
+                List<ObjectId> filhos = new List<ObjectId>();
+                foreach (ObjectId id in alvo)
+                {
+                    filhos.Add(id);
+                }
+
+                foreach (ObjectId id in filhos)
+                {
+                    Entity entidade = transacao.GetObject(id, OpenMode.ForWrite) as Entity;
+                    if (entidade != null)
+                    {
+                        entidade.Erase();
+                    }
+                }
+            }
+
+            foreach (AtributoDeFormato atributo in atributosDoFormato)
+            {
+                if (!DefinicoesDeRevisao.Copiar(atributo.Layer, atributo.Tag, layer, tipo))
                 {
                     continue;
                 }
 
-                if (definicao.Name.StartsWith(prefixo, StringComparison.OrdinalIgnoreCase))
+                AttributeDefinition definicao = transacao.GetObject(atributo.Id, OpenMode.ForRead) as AttributeDefinition;
+                if (definicao == null)
                 {
-                    total++;
+                    continue;
                 }
+
+                AttributeDefinition copia = (AttributeDefinition)definicao.Clone();
+                copia.Layer = "0";
+                copia.Visible = true;
+                copia.TextString = string.Empty;
+                alvo.AppendEntity(copia);
+                transacao.AddNewlyCreatedDBObject(copia, true);
             }
 
-            return total;
+            return true;
         }
 
         private static RevisaoCompletaDaPagina Copiar(RevisaoCompletaDaPagina origem)
@@ -636,6 +766,9 @@ namespace Positron.Plugin.Paginas
             internal int SemDefinicao { get; set; }
 
             internal int SemFormato { get; set; }
+
+            /// <summary>Definições <c>Revisao_Capa{n}</c>/<c>Revisao_Corpo{n}</c> criadas/refeitas.</summary>
+            internal int Definicoes { get; set; }
 
             internal bool Estourou { get; set; }
         }
