@@ -87,6 +87,27 @@ namespace Positron.Data.Configuracao
         public const string VariavelEstiloLinha = "POSITRON_ESTILO_LINHA";
         public const string VariavelEstiloLinhaEscala = "POSITRON_ESTILO_LINHA_ESCALA";
 
+        // Chaves da tela "Configuração Geral" sem variável de ambiente (só ficam no arquivo).
+        public const string ChaveIdioma = "idioma";
+        public const string ChaveContatosAuxiliares = "contatosAuxiliares";
+        public const string ChaveTipoBanco = "tipoBanco";
+        public const string ChaveSimbologiaEletrica = "simbologiaEletrica";
+        public const string ChaveSimbologiaTopografico = "simbologiaTopografico";
+        public const string ChaveSimbologiaLayout = "simbologiaLayout";
+        public const string ChaveSimbologiaRelatorios = "simbologiaRelatorios";
+        public const string ChaveRepresentacaoCaboVeia = "representacaoCaboVeia";
+        public const string ChaveTerminalIndefinido = "terminalIndefinido";
+        public const string ChaveSeparadorCarimbo = "separadorCarimbo";
+        public const string ChaveAlturaCircuitos = "alturaCircuitos";
+        public const string ChaveAlturaReferenciaCruzada = "alturaReferenciaCruzada";
+        public const string ChaveCorFiacaoConexao = "corFiacaoConexao";
+        public const string ChaveCorFiacaoTextoCircuito = "corFiacaoTextoCircuito";
+        public const string ChavePrefixoCruzFuncFunc = "prefixoCruzFuncFunc";
+        public const string ChaveSufixoCruzFuncFunc = "sufixoCruzFuncFunc";
+        public const string ChavePrefixoCruzLogFunc = "prefixoCruzLogFunc";
+        public const string ChaveSufixoCruzLogFunc = "sufixoCruzLogFunc";
+        public const string ChaveVisualizacaoModelosRele = "visualizacaoModelosRele";
+
         private static ConfiguracaoPositron _cache;
 
         public string Banco { get; set; }
@@ -152,6 +173,56 @@ namespace Positron.Data.Configuracao
         /// <summary>Escala do estilo de linha (o <c>Conf.EstiloLinhaEscala</c>, padrão 1.0).</summary>
         public double EstiloLinhaEscala { get; set; }
 
+        /// <summary>Idioma da interface: <c>pt</c> (padrão) ou <c>en</c>.</summary>
+        public string Idioma { get; set; }
+
+        /// <summary>Contatos auxiliares: <c>IEC</c> (padrão) ou <c>ANSI</c>.</summary>
+        public string ContatosAuxiliares { get; set; }
+
+        /// <summary>Banco de dados: <c>Access</c> (padrão), <c>SQLite</c> ou <c>SQL Server</c>.</summary>
+        public string TipoBanco { get; set; }
+
+        /// <summary>Bibliotecas de simbologia (caminhos de arquivo/pasta).</summary>
+        public string SimbologiaEletrica { get; set; }
+
+        public string SimbologiaTopografico { get; set; }
+
+        public string SimbologiaLayout { get; set; }
+
+        public string SimbologiaRelatorios { get; set; }
+
+        /// <summary>Representação do cabo/veia: <c>Elétron</c>, <c>Eletrosul</c>, <c>Eletronorte</c> (padrão) ou <c>Enel-SP</c>.</summary>
+        public string RepresentacaoCaboVeia { get; set; }
+
+        /// <summary>Caracter do terminal indefinido (padrão <c>?</c>).</summary>
+        public string TerminalIndefinido { get; set; }
+
+        /// <summary>Separador do carimbo (padrão <c>-</c>).</summary>
+        public string SeparadorCarimbo { get; set; }
+
+        /// <summary>Altura do texto dos circuitos (padrão 1.5).</summary>
+        public double AlturaCircuitos { get; set; }
+
+        /// <summary>Altura do texto da referência cruzada (padrão 1.5).</summary>
+        public double AlturaReferenciaCruzada { get; set; }
+
+        /// <summary>Cor ACI da conexão da fiação (padrão 7).</summary>
+        public int CorFiacaoConexao { get; set; }
+
+        /// <summary>Cor ACI do texto do circuito da fiação (padrão 7).</summary>
+        public int CorFiacaoTextoCircuito { get; set; }
+
+        public string PrefixoCruzFuncFunc { get; set; }
+
+        public string SufixoCruzFuncFunc { get; set; }
+
+        public string PrefixoCruzLogFunc { get; set; }
+
+        public string SufixoCruzLogFunc { get; set; }
+
+        /// <summary>Visualização dos modelos de relés: 0 = no contato (padrão), 1 = na bobina, 2 = na bobina e no contato, 3 = na bobina e no contato (Eletrosul).</summary>
+        public int VisualizacaoModelosRele { get; set; }
+
         /// <summary>
         /// Cópia independente — quem edita parte das chaves (a tela do <c>ELETCFG</c>)
         /// parte dela para não gravar as demais zeradas.
@@ -201,6 +272,21 @@ namespace Positron.Data.Configuracao
                 CorInterligacao = 7,
                 EstiloLinha = "Continuous",
                 EstiloLinhaEscala = 1.0,
+                Idioma = "pt",
+                ContatosAuxiliares = "IEC",
+                TipoBanco = "Access",
+                RepresentacaoCaboVeia = "Eletronorte",
+                TerminalIndefinido = "?",
+                SeparadorCarimbo = "-",
+                AlturaCircuitos = 1.5,
+                AlturaReferenciaCruzada = 1.5,
+                CorFiacaoConexao = 7,
+                CorFiacaoTextoCircuito = 7,
+                PrefixoCruzFuncFunc = "(",
+                SufixoCruzFuncFunc = ")",
+                PrefixoCruzLogFunc = "[",
+                SufixoCruzLogFunc = "]",
+                VisualizacaoModelosRele = 0,
             };
         }
 
@@ -289,6 +375,25 @@ namespace Positron.Data.Configuracao
             texto.AppendLine(ChaveCorInterligacao + "=" + CorInterligacao.ToString(CultureInfo.InvariantCulture));
             texto.AppendLine(ChaveEstiloLinha + "=" + (EstiloLinha ?? string.Empty));
             texto.AppendLine(ChaveEstiloLinhaEscala + "=" + EstiloLinhaEscala.ToString(CultureInfo.InvariantCulture));
+            texto.AppendLine(ChaveIdioma + "=" + (Idioma ?? string.Empty));
+            texto.AppendLine(ChaveContatosAuxiliares + "=" + (ContatosAuxiliares ?? string.Empty));
+            texto.AppendLine(ChaveTipoBanco + "=" + (TipoBanco ?? string.Empty));
+            texto.AppendLine(ChaveSimbologiaEletrica + "=" + (SimbologiaEletrica ?? string.Empty));
+            texto.AppendLine(ChaveSimbologiaTopografico + "=" + (SimbologiaTopografico ?? string.Empty));
+            texto.AppendLine(ChaveSimbologiaLayout + "=" + (SimbologiaLayout ?? string.Empty));
+            texto.AppendLine(ChaveSimbologiaRelatorios + "=" + (SimbologiaRelatorios ?? string.Empty));
+            texto.AppendLine(ChaveRepresentacaoCaboVeia + "=" + (RepresentacaoCaboVeia ?? string.Empty));
+            texto.AppendLine(ChaveTerminalIndefinido + "=" + (TerminalIndefinido ?? string.Empty));
+            texto.AppendLine(ChaveSeparadorCarimbo + "=" + (SeparadorCarimbo ?? string.Empty));
+            texto.AppendLine(ChaveAlturaCircuitos + "=" + AlturaCircuitos.ToString(CultureInfo.InvariantCulture));
+            texto.AppendLine(ChaveAlturaReferenciaCruzada + "=" + AlturaReferenciaCruzada.ToString(CultureInfo.InvariantCulture));
+            texto.AppendLine(ChaveCorFiacaoConexao + "=" + CorFiacaoConexao.ToString(CultureInfo.InvariantCulture));
+            texto.AppendLine(ChaveCorFiacaoTextoCircuito + "=" + CorFiacaoTextoCircuito.ToString(CultureInfo.InvariantCulture));
+            texto.AppendLine(ChavePrefixoCruzFuncFunc + "=" + (PrefixoCruzFuncFunc ?? string.Empty));
+            texto.AppendLine(ChaveSufixoCruzFuncFunc + "=" + (SufixoCruzFuncFunc ?? string.Empty));
+            texto.AppendLine(ChavePrefixoCruzLogFunc + "=" + (PrefixoCruzLogFunc ?? string.Empty));
+            texto.AppendLine(ChaveSufixoCruzLogFunc + "=" + (SufixoCruzLogFunc ?? string.Empty));
+            texto.AppendLine(ChaveVisualizacaoModelosRele + "=" + VisualizacaoModelosRele.ToString(CultureInfo.InvariantCulture));
             return texto.ToString();
         }
 
@@ -349,7 +454,27 @@ namespace Positron.Data.Configuracao
             if (Mesma(chave, ChaveInterligacaoLayout, VariavelInterligacaoLayout)) { configuracao.InterligacaoLayout = Inteiro(valor, configuracao.InterligacaoLayout); return; }
             if (Mesma(chave, ChaveCorInterligacao, VariavelCorInterligacao)) { configuracao.CorInterligacao = Inteiro(valor, configuracao.CorInterligacao); return; }
             if (Mesma(chave, ChaveEstiloLinha, VariavelEstiloLinha)) { configuracao.EstiloLinha = Vazio(valor); return; }
-            if (Mesma(chave, ChaveEstiloLinhaEscala, VariavelEstiloLinhaEscala)) { configuracao.EstiloLinhaEscala = Real(valor, configuracao.EstiloLinhaEscala); }
+            if (Mesma(chave, ChaveEstiloLinhaEscala, VariavelEstiloLinhaEscala)) { configuracao.EstiloLinhaEscala = Real(valor, configuracao.EstiloLinhaEscala); return; }
+
+            if (Chave(chave, ChaveIdioma)) { configuracao.Idioma = Vazio(valor); return; }
+            if (Chave(chave, ChaveContatosAuxiliares)) { configuracao.ContatosAuxiliares = Vazio(valor); return; }
+            if (Chave(chave, ChaveTipoBanco)) { configuracao.TipoBanco = Vazio(valor); return; }
+            if (Chave(chave, ChaveSimbologiaEletrica)) { configuracao.SimbologiaEletrica = Vazio(valor); return; }
+            if (Chave(chave, ChaveSimbologiaTopografico)) { configuracao.SimbologiaTopografico = Vazio(valor); return; }
+            if (Chave(chave, ChaveSimbologiaLayout)) { configuracao.SimbologiaLayout = Vazio(valor); return; }
+            if (Chave(chave, ChaveSimbologiaRelatorios)) { configuracao.SimbologiaRelatorios = Vazio(valor); return; }
+            if (Chave(chave, ChaveRepresentacaoCaboVeia)) { configuracao.RepresentacaoCaboVeia = Vazio(valor); return; }
+            if (Chave(chave, ChaveTerminalIndefinido)) { configuracao.TerminalIndefinido = Vazio(valor); return; }
+            if (Chave(chave, ChaveSeparadorCarimbo)) { configuracao.SeparadorCarimbo = Vazio(valor); return; }
+            if (Chave(chave, ChaveAlturaCircuitos)) { configuracao.AlturaCircuitos = Real(valor, configuracao.AlturaCircuitos); return; }
+            if (Chave(chave, ChaveAlturaReferenciaCruzada)) { configuracao.AlturaReferenciaCruzada = Real(valor, configuracao.AlturaReferenciaCruzada); return; }
+            if (Chave(chave, ChaveCorFiacaoConexao)) { configuracao.CorFiacaoConexao = Inteiro(valor, configuracao.CorFiacaoConexao); return; }
+            if (Chave(chave, ChaveCorFiacaoTextoCircuito)) { configuracao.CorFiacaoTextoCircuito = Inteiro(valor, configuracao.CorFiacaoTextoCircuito); return; }
+            if (Chave(chave, ChavePrefixoCruzFuncFunc)) { configuracao.PrefixoCruzFuncFunc = Vazio(valor); return; }
+            if (Chave(chave, ChaveSufixoCruzFuncFunc)) { configuracao.SufixoCruzFuncFunc = Vazio(valor); return; }
+            if (Chave(chave, ChavePrefixoCruzLogFunc)) { configuracao.PrefixoCruzLogFunc = Vazio(valor); return; }
+            if (Chave(chave, ChaveSufixoCruzLogFunc)) { configuracao.SufixoCruzLogFunc = Vazio(valor); return; }
+            if (Chave(chave, ChaveVisualizacaoModelosRele)) { configuracao.VisualizacaoModelosRele = Inteiro(valor, configuracao.VisualizacaoModelosRele); }
         }
 
         private static void AplicarAmbiente(ConfiguracaoPositron configuracao, IDictionary<string, string> ambiente)
@@ -389,6 +514,11 @@ namespace Positron.Data.Configuracao
         {
             return string.Equals(chave, canonica, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(chave, variavel, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool Chave(string chave, string canonica)
+        {
+            return string.Equals(chave, canonica, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string Vazio(string valor)
