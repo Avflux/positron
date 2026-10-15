@@ -16,6 +16,12 @@ namespace Positron.Plugin.Configuracao
     /// padrão &lt; arquivo &lt; ambiente — a variável de ambiente continua vencendo,
     /// para o harness e a automação não dependerem de arquivo nenhum.
     ///
+    /// Como no reverso, o desenho também carrega a configuração geral no XData
+    /// (<c>Eletron</c>/<c>Config</c>): o comando <c>ELETCFG</c> abre a tela com o que o
+    /// desenho tem (<see cref="ConfiguracaoDoDesenho.Ler()"/>) e, no <c>Salvar</c>,
+    /// grava também o XData além do arquivo. O original grava **só** no desenho, nunca
+    /// no banco.
+    ///
     /// A tela é aberta pelo comando <c>ELETCFG</c>. Ela é modal: rodar
     /// <c>ELETCFG</c> dentro do script do harness trava (ninguém clica em OK), por
     /// isso os E2E **não** a executam — a lógica testável está em

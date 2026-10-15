@@ -474,6 +474,15 @@ namespace Positron.Plugin
             try
             {
                 ConfiguracaoPositron atual = ConfiguracaoPositron.Carregar();
+
+                // O reverso guarda a configuração geral no **desenho**, não no banco: a tela abre com
+                // o que o XData `Eletron`/`Config` tem (o `LerXDataConfiguracao` do `IniciarDWG`).
+                ConfiguracaoDoCaderno doDesenho = Configuracao.ConfiguracaoDoDesenho.Ler();
+                if (doDesenho != null)
+                {
+                    doDesenho.AplicarEm(atual);
+                }
+
                 using (Configuracao.FormularioConfiguracao tela = new Configuracao.FormularioConfiguracao(atual))
                 {
                     if (tela.ShowDialog() != System.Windows.Forms.DialogResult.OK || tela.Resultado == null)
@@ -483,7 +492,15 @@ namespace Positron.Plugin
                     }
 
                     tela.Resultado.Salvar();
-                    Plugin.Escrever("ELETCFG: configuração gravada em " + ConfiguracaoPositron.ArquivoPadrao + ".");
+
+                    // Grava também no XData do ModelSpace, como o `btSalvar` do original; os campos
+                    // que só existem no desenho (SCapa, Norma, DataSource…) ficam preservados.
+                    ConfiguracaoDoCaderno caderno = doDesenho ?? ConfiguracaoDoCaderno.De(tela.Resultado);
+                    caderno.AplicarDe(tela.Resultado);
+                    Configuracao.ConfiguracaoDoDesenho.Gravar(caderno);
+
+                    Plugin.Escrever("ELETCFG: configuração gravada em " + ConfiguracaoPositron.ArquivoPadrao
+                        + " e no XData do desenho (Eletron/Config, como o reverso).");
                     Plugin.Escrever("ELETCFG: a variável de ambiente POSITRON_* tem prioridade sobre o arquivo.");
                 }
             }

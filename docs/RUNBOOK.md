@@ -6409,6 +6409,19 @@ Chaves do arquivo: `banco`, `dwg`, `revisao`, `local`, `log`, `incluirColuna`,
 malformada é ignorada e valor inválido mantém o anterior — dado de terceiro não
 derruba o comando.
 
+**A configuração geral também vai para o desenho, como no reverso.** O comando
+`CFG`/`ELETCFG` do original **não grava no banco**: o `btSalvar` do
+`frmConfiguracaoGeral` manda o `DeclaracoesGeral.Conf` para o **XData do ModelSpace**
+(`XDataGeral.GravarXDataConfiguracao`: app `Eletron`, marcador `Config`, 41 valores;
+e `GravarXDataConfiguracao2`: app `EletronProj`, marcador `Projeto`, as pastas), e o
+`IniciarDWG` relê os dois ao abrir o desenho. O `ELETCFG` do recoder agora faz o
+mesmo: abre a tela com o que o XData do desenho tem e, no **Salvar**, grava o `.ini`
+**e** o XData. A regra pura é o `ConfiguracaoDoCaderno` (o layout, campo a campo, é
+um teste) e o I/O é o `ConfiguracaoDoDesenho` (junta os dois apps num buffer só, sem
+apagar o XData de terceiros). Os campos que só o original usa (`SCapa`, `Norma`,
+`DataSource`, `User`…) ficam **preservados** no round-trip. O `.ini`/ambiente
+continua sendo o caminho da automação (a `POSITRON_*` segue vencendo).
+
 **`ELETCFG` é modal e não pode entrar em script**: ninguém clica em OK e o ZWCAD
 fica parado. Por isso nenhum E2E o executa; a lógica testável está em
 `ConfiguracaoPositron`, coberta por `ConfiguracaoPositronTests`.
