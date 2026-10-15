@@ -1,6 +1,6 @@
 # Rodada 176 — `EDCON`/`EDCONP`: seção e cor das conexões, por seleção e por página
 
-**Data:** 2026-10-15 · **Commit:** *(o desta rodada)* · **Frente:** 5 — caderno, circuitos, conexão e páginas · **Situação:** ✅ completa
+**Data:** 2026-10-15 · **Commit:** `054b001a` · **Frente:** 5 — caderno, circuitos, conexão e páginas · **Situação:** ✅ completa
 
 ## Alvo
 

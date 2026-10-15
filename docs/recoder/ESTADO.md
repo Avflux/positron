@@ -54,6 +54,6 @@ Números de cobertura: `powershell -ExecutionPolicy Bypass -File scripts/cobertu
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 176 | 2026-10-15 | *(este)* | `EDCON`/`EDCONP`: seção e cor das conexões por seleção e por página, tela ligada | `rodadas/176-edicao-secao-cor-conexoes.md` |
+| 176 | 2026-10-15 | `054b001a` | `EDCON`/`EDCONP`: seção e cor das conexões por seleção e por página, tela ligada | `rodadas/176-edicao-secao-cor-conexoes.md` |
 | 175 | 2026-10-15 | `5e067c41` | cadeia do `CAD` completa: `TrocaColunas`, `AtualizaRevSimplificada`, `attsync` | `RUNBOOK.md` (histórico) |
 | 174 | 2026-10-15 | `9e5135f9` | inserir/excluir página com `AtualizaContTotFl` e ativação segura | `RUNBOOK.md` (histórico) |
