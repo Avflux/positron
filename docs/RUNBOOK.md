@@ -974,6 +974,17 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 163 — Lista de Plaquetas no app.**
+Novo relatório `plaquetas` (`services/sidecar/src/sidecar/relatorios/plaquetas.py`), com a consulta do
+`cDadosAccessPlaquetas.CarregaPlaquetas`: `Plaquetas4` filtrada pelo painel e ordenada por `Indice`. As
+colunas são as do original (`INDICE`, `Dispositivo`, `Descrição 1..3`, `Modelo`). `TIPO` e `HANDLE`
+vêm do desenho e não existem no banco, então não entram. O original também não filtra por revisão nem
+por DWG, e o relatório segue assim.
+
+Verificação: `test_db.py` cobre a grade do painel (com `Desc2`/`Desc3` nulos vazios), o painel vazio, o
+parâmetro obrigatório e o catálogo com cinco relatórios. `npm run test:sidecar` exit 0 (41 testes) e
+`ruff check` exit 0.
+
 **Rodada 162 — testes das chaves da Configuração Geral.**
 `ConfiguracaoPositronTests` ganha dois testes: `Padrao_da_tela_geral_segue_as_capturas_do_original`
 (os valores padrão da tela) e `As_chaves_da_tela_geral_sobrevivem_ao_round_trip` (as 19 chaves com

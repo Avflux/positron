@@ -431,8 +431,11 @@ async def test_relatorio_listar_traz_os_relatorios(project_db: Path):
         "materiais",
         "interligacao",
         "fiacao",
+        "plaquetas",
     ]
-    veias, materiais, interligacao, fiacao = catalogo["relatorios"]
+    veias, materiais, interligacao, fiacao, plaquetas = catalogo["relatorios"]
+    assert plaquetas["titulo"] == "Relatório Lista de Plaquetas"
+    assert plaquetas["parametros"] == ["painel"]
     assert veias["titulo"] == "Lista de Veias"
     assert veias["colunas"][:4] == ["Tag", "Formação", "Função", "Veias"]
     assert veias["parametros"] == ["painel", "revisao"]
@@ -490,6 +493,37 @@ async def test_relatorio_materiais_junta_o_catalogo(project_db: Path):
     # No painel 2 só há o item avulso (518), que não está no catálogo.
     painel2 = await handlers.dispatch("relatorio_gerar", {"relatorio": "materiais", "painel": 2})
     assert painel2["linhas"] == []
+
+
+async def test_relatorio_plaquetas_ordena_pelo_indice_do_painel(project_db: Path):
+    handlers = Handlers(str(project_db))
+    gerado = await handlers.dispatch("relatorio_gerar", {"relatorio": "plaquetas", "painel": 1})
+
+    assert gerado["titulo"] == "Relatório Lista de Plaquetas"
+    assert gerado["colunas"] == [
+        "INDICE",
+        "Dispositivo",
+        "Descrição 1",
+        "Descrição 2",
+        "Descrição 3",
+        "Modelo",
+    ]
+    # PLACA-B tem o Indice 130 e PLACA-A o 131: a ordem é a do banco, não a alfabética.
+    # Desc2/Desc3 nulos saem vazios.
+    assert gerado["total"] == 2
+    assert gerado["linhas"] == [
+        ["1", "PLACA-B", "Placa B", "", "", "MB"],
+        ["2", "PLACA-A", "Placa A", "linha 2", "", "MA"],
+    ]
+
+    vazio = await handlers.dispatch("relatorio_gerar", {"relatorio": "plaquetas", "painel": 9})
+    assert vazio["linhas"] == []
+
+
+async def test_relatorio_plaquetas_exige_painel(project_db: Path):
+    handlers = Handlers(str(project_db))
+    with pytest.raises(BadParams):
+        await handlers.dispatch("relatorio_gerar", {"relatorio": "plaquetas"})
 
 
 async def test_relatorio_veias_monta_as_duas_pontas(project_db: Path):

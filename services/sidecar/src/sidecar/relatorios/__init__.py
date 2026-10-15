@@ -12,7 +12,9 @@ leitor. Não há render de PDF/Excel aqui: o app desenha a grade.
 Relatórios portados: `Lista de Materiais` (`materiais.py`), `Lista de Veias`
 (`veias.py`), `Relatório de Interligação` (`interligacao.py`, o modo texto) e
 `Fiação` (`fiacao.py`, o modo *Dispositivos*, o padrão da tela do original — o grafo
-`terminal → potencial → outras pontas` do `CarregaLigacoesTerminal`).
+`terminal → potencial → outras pontas` do `CarregaLigacoesTerminal`) e `Lista de Plaquetas`
+(`plaquetas.py`, a parte do banco do `frmRelatorio_Plaquetas`; `TIPO`/`HANDLE` vêm do desenho e
+ficam de fora).
 """
 
 from __future__ import annotations
@@ -23,10 +25,11 @@ from .base import Relatorio
 from .fiacao import RELATORIO as _FIACAO
 from .interligacao import RELATORIO as _INTERLIGACAO
 from .materiais import RELATORIO as _MATERIAIS
+from .plaquetas import RELATORIO as _PLAQUETAS
 from .veias import RELATORIO as _VEIAS
 
 #: Os relatórios disponíveis, por id. A ordem é a da tela.
-RELATORIOS: tuple[Relatorio, ...] = (_VEIAS, _MATERIAIS, _INTERLIGACAO, _FIACAO)
+RELATORIOS: tuple[Relatorio, ...] = (_VEIAS, _MATERIAIS, _INTERLIGACAO, _FIACAO, _PLAQUETAS)
 
 _POR_ID = {relatorio.id: relatorio for relatorio in RELATORIOS}
 
