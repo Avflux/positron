@@ -1,6 +1,6 @@
 # Rodada 179 — `TROCTT`: troca DE → PARA em títulos, textos e multitextos, tela ligada
 
-**Data:** 2026-10-15 · **Commit:** *(este)* · **Frente:** 9 — exportar/importar e manipulação de projeto · **Situação:** ✅ completa
+**Data:** 2026-10-15 · **Commit:** `86907aaf` · **Frente:** 9 — exportar/importar e manipulação de projeto · **Situação:** ✅ completa
 
 ## Alvo
 

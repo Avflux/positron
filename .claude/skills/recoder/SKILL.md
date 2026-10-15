@@ -19,11 +19,25 @@ não pergunte o que dá para descobrir no repo; pare para perguntar **só** no q
 | o reverso decompilado (VB.NET → C#) | `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Eletron4/` |
 | visão geral do reverso | `cad-plugin/reverso/Eletron4_ZWcad/ARQUITETURA.md` |
 | comando → classe/método/tela | `docs/reverso-comandos.txt` · telas: `docs/reverso-formularios.txt` · barra: `docs/reverso-barra-do-original.txt` · capturas: `docs/reverso-capturas.txt` + `cad-plugin/reverso/captura_das_janelas/*.png` |
-| projeto real para medir | `cad-plugin/reverso/Teste_projeto_real/` (`Funcional.dwg`, `RCD.mdb`) |
+| projeto real para medir | `cad-plugin/reverso/Teste_projeto_real/` (`Funcional.dwg`, `RCD.mdb`; bibliotecas reais em `libs\` — Formato, Layout, Máscaras, Simbologia) |
+| textos exatos (`mMensagem[1, n]`) | `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Mensagens-PT.txt` (`n=texto`) e `Mensagens.txt` (PT+EN) |
+| o que o original guarda fora do desenho | `decompiled-cleaned/Eletron4.My/MySettings.cs` (`Cor`, `Secao`, `LicMode`…) e o registro `HKCU\Software\Cadgraph\Eletron4` (`Idioma`, `Altern`…) — grep `Registry` no decompilado |
+| modelos que o original usa | `Eletron4_ZWcad/BD Projeto/` (banco novo), `Formatos/` (17 DWG de folha), `MODELOS/` (Excel dos relatórios), `LP/`, `Blocos/*.rar` |
+| layout das telas | `decompiled-cleaned/Eletron4.frm*.resx` (28) + o designer no `.cs` + a captura |
 | receitas de build/CAD/armadilhas | `docs/RUNBOOK.md` (seções de operação e *Troubleshooting*) |
 | histórico até a rodada 175 (só leitura) | `docs/PLANO.md` §5 e §7 (triagem), seções "Rodada N" do `RUNBOOK.md` — **não acrescente mais nada lá** |
 
 Use `grep` nesses arquivos grandes; não leia o `PLANO.md`/`RUNBOOK.md` inteiros.
+
+## Regra de ouro: nada sem prova no reverso
+
+Todo controle, coluna, rótulo, texto, item de menu, dica, valor padrão, chave gravada (arquivo, registro,
+XData, banco) e comportamento do plugin precisa de **prova no reverso**: `arquivo:linha` do decompilado,
+`.resx`, `Mensagens-PT.txt` ou captura `.png`. **O que não tiver prova não entra** — nem "extra útil", nem
+rodapé, nem tooltip, nem chave nova de `.ini`, nem texto de desenvolvimento na tela. Se a medição precisa
+de algo que o original não tem, fica **só no harness** (variáveis `POSITRON_*`, nunca gravadas em arquivo
+nem mostradas em tela). Em 2026-10-15 o dono achou configuração, paleta de folhas e projeto ativo
+inventados — ver *Correção do básico* no `ESTADO.md`.
 
 ## 1. Escolher o alvo
 
@@ -49,7 +63,9 @@ que parece estranho.
    - mensagens ao usuário (texto exato — `MensagensDoReverso.cs`), `MsgBox`, ramos de cancelamento;
    - ramos condicionais (`switch` de layout/cliente: Eletrosul, CEMIG, Furnas…) e valores mágicos;
    - efeitos colaterais (o que mais ele apaga, recria, ativa).
-4. Se há tela: `.resx` + captura `.png` (controles, rótulos, ordem das colunas, o que fica desabilitado).
+4. Se há tela: designer no `.cs` + `.resx` + captura `.png` (controles, rótulos, ordem das colunas, o que
+   fica desabilitado, o que é condicional a `Conf.*`/registro/`ativo.Tipo`). Compare **controle a controle**
+   com o que o plugin mostra hoje e liste as diferenças na ficha.
 5. Confira `docs/recoder/conhecimento/` antes de redescobrir; **todo fato novo e reutilizável vai
    para lá** (ver §5).
 6. Escreva a **ficha** (seção *O que o reverso faz* do modelo) já no arquivo da rodada, antes do código.
@@ -62,6 +78,11 @@ que parece estranho.
   não duplique leitor de XData/dicionário.
 - Nomes e comentários seguem o código ao redor (português, cita `Classe.Metodo` do reverso).
 - Replique o comportamento observado; desvio do original só com motivo escrito na rodada.
+- **Escrita no desenho vinda de paleta ou janela não modal: sempre `LockDocument`** (o original trava em cada
+  rotina). Erro e aviso chegam ao usuário como no original (`MsgBox`, prompt), **nunca** engolidos numa
+  propriedade ou só no log.
+- O projeto ativo é **do desenho** (XData `EletronProj`/`Config`, índice do DWG pela tabela `DWG`), refeito a
+  cada troca de documento — nunca de um arquivo global da máquina.
 - O que ficar fora: **anote com o motivo** e mande para a fila — nunca deixe silencioso.
 - Comando novo: atualizar a tabela de comandos do `cad-plugin/README.md`.
 
@@ -74,6 +95,9 @@ Rode e copie os números para a rodada:
 2. `npm run plugin:build:zwcad` **e** `npm run plugin:build:autocad` — 0 avisos, 0 erros.
 3. Se toca o desenho: medir no CAD (`npm run cad:projeto` / `cad:projeto:acad`, ou o harness com
    fixture `scripts/cad-fixture-*.lsp`) no `Funcional.dwg` e colar a linha de resumo do comando.
+   **E provar pelo caminho do usuário real**, não só pelo comando digitado: o botão/paleta/menu que o
+   usuário clica (fora de comando = sem lock automático), um **desenho novo** sem XData e a **troca de
+   documento**. O que não der para automatizar vai para *Falta* como conferência do dono, com o passo a passo.
    ZWCAD é instância única: feche antes. AutoCAD: `scripts/instala-bundle.ps1 -Cad AutoCAD` após o build.
 4. Se mexeu em cobertura: rodar de novo `scripts/cobertura-do-reverso.ps1` e anotar os números.
 
