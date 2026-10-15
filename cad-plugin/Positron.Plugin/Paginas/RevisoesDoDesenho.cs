@@ -6,9 +6,11 @@ using Positron.Plugin.Bornes;
 #if AUTOCAD
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
 #else
 using ZwSoft.ZwCAD.ApplicationServices;
 using ZwSoft.ZwCAD.DatabaseServices;
+using ZwSoft.ZwCAD.Geometry;
 #endif
 
 namespace Positron.Plugin.Paginas
@@ -224,49 +226,41 @@ namespace Positron.Plugin.Paginas
         }
 
         /// <summary>
-        /// Regrava as revisões completas nos blocos de revisão do desenho.
-        /// Devolve quantos blocos foram atualizados.
+        /// Regrava as revisões completas nos blocos de revisão do desenho, como o
+        /// <c>AtualizaRevCompleta</c> do original: monta o **posicionamento** de cada página
+        /// (<see cref="PosicionamentoDeRevisoes.Calcular"/>) sobre os blocos que já existem, apaga,
+        /// desloca e cria os blocos, e devolve o que foi feito.
         /// </summary>
-        internal static int GravarCompletas(IReadOnlyList<RevisaoCompletaDaPagina> revisoes)
+        internal static ResultadoDaGravacaoDeRevisoes GravarCompletas(IReadOnlyList<RevisaoCompletaDaPagina> revisoes)
         {
+            ResultadoDaGravacaoDeRevisoes resultado = new ResultadoDaGravacaoDeRevisoes();
             if (revisoes == null || revisoes.Count == 0)
             {
-                return 0;
+                return resultado;
             }
 
             Document documento = Application.DocumentManager.MdiActiveDocument;
             if (documento == null)
             {
-                return 0;
+                return resultado;
             }
 
-            Dictionary<string, RevisaoCompletaDaPagina> mapa = new Dictionary<string, RevisaoCompletaDaPagina>(StringComparer.OrdinalIgnoreCase);
-            foreach (RevisaoCompletaDaPagina item in revisoes)
-            {
-                if (item != null && !string.IsNullOrEmpty(item.Pagina))
-                {
-                    mapa[item.Pagina] = item;
-                }
-            }
-
-            int gravados = 0;
             Database banco = documento.Database;
 
             using (Transaction transacao = banco.TransactionManager.StartTransaction())
             {
-                BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForWrite);
+                BlockTable tabela = (BlockTable)transacao.GetObject(banco.BlockTableId, OpenMode.ForRead);
+                BlockTableRecord espaco = (BlockTableRecord)transacao.GetObject(
+                    tabela[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
                 BornesDaCorrecao.GarantirAppName(transacao, banco, RevisaoCompletaXData.AppName);
 
+                // 1) lê todos os blocos de revisão do desenho, agrupados por página.
+                Dictionary<string, List<BlocoDeRevisao>> porPagina =
+                    new Dictionary<string, List<BlocoDeRevisao>>(StringComparer.OrdinalIgnoreCase);
                 foreach (ObjectId id in espaco)
                 {
                     BlockReference bloco = transacao.GetObject(id, OpenMode.ForRead) as BlockReference;
                     if (bloco == null || string.IsNullOrEmpty(bloco.Layer))
-                    {
-                        continue;
-                    }
-
-                    RevisaoCompletaDaPagina nova;
-                    if (!mapa.TryGetValue(bloco.Layer, out nova))
                     {
                         continue;
                     }
@@ -277,57 +271,373 @@ namespace Positron.Plugin.Paginas
                         continue;
                     }
 
-                    RevisaoCompletaDaPagina atual;
-                    if (!RevisaoCompletaXData.Ler(XDataNeutro.Para(xdata), out atual))
+                    RevisaoCompletaDaPagina rev;
+                    if (!RevisaoCompletaXData.Ler(XDataNeutro.Para(xdata), out rev))
                     {
                         continue;
                     }
 
-                    bloco.UpgradeOpen();
-                    nova.Posicao = atual.Posicao;
-                    bloco.XData = BornesDaCorrecao.ParaResultBuffer(RevisaoCompletaXData.ParaValores(
-                        nova, Environment.UserName, DateTime.Now.ToString()));
-
-                    // Sincroniza atributos do bloco caso existam
-                    foreach (ObjectId idAtributo in bloco.AttributeCollection)
+                    rev.Pagina = bloco.Layer;
+                    List<BlocoDeRevisao> lista;
+                    if (!porPagina.TryGetValue(bloco.Layer, out lista))
                     {
-                        AttributeReference atributo = transacao.GetObject(idAtributo, OpenMode.ForWrite) as AttributeReference;
-                        if (atributo == null || string.IsNullOrEmpty(atributo.Tag))
-                        {
-                            continue;
-                        }
+                        lista = new List<BlocoDeRevisao>();
+                        porPagina[bloco.Layer] = lista;
+                    }
 
-                        // As tags reais são REV0..REV7, DESC0..DESC7 etc. (o JdCp1GqFmnk do original).
-                        switch (RevisaoCompletaXData.CampoDoAtributo(atributo.Tag))
+                    lista.Add(new BlocoDeRevisao(id, rev));
+                }
+
+                // 2) as posições do formato (o maxCapa/maxCorpo do carregaConfiguracaoRevisao), medidas
+                // pelos blocos Revisao_Capa{n}/Revisao_Corpo{n} que o verificaCriaBlocoRevisao deixou.
+                int maxCapa = ContarDefinicoes(transacao, tabela, "Revisao_Capa");
+                int maxCorpo = ContarDefinicoes(transacao, tabela, "Revisao_Corpo");
+
+                // 3) aplica o plano de cada página editada.
+                foreach (RevisaoCompletaDaPagina recebida in revisoes)
+                {
+                    if (recebida == null || string.IsNullOrEmpty(recebida.Pagina))
+                    {
+                        continue;
+                    }
+
+                    List<BlocoDeRevisao> existentes;
+                    if (!porPagina.TryGetValue(recebida.Pagina, out existentes))
+                    {
+                        existentes = new List<BlocoDeRevisao>();
+                    }
+
+                    BlocoDeRevisao atual = BlocoDeMaiorPosicao(existentes);
+                    RevisaoCompletaDaPagina nova = Copiar(recebida);
+                    nova.Posicao = atual != null ? atual.Revisao.Posicao : 0;
+                    nova.RevisaoOriginal = atual != null ? atual.Revisao.Revisao : string.Empty;
+
+                    bool capa = PaginaAtiva.ChecaCapa(recebida.Pagina);
+                    int posicoes = capa ? maxCapa : maxCorpo;
+                    if (posicoes == 0)
+                    {
+                        // Sem os blocos de formato: não há como saber quantas posições cabem. O recoder
+                        // não apaga nada por isso — a página aceita pelo menos uma posição a mais.
+                        posicoes = MaiorPosicao(existentes) + 1;
+                        resultado.SemFormato++;
+                    }
+
+                    PlanoDaRevisaoCompleta plano = PosicionamentoDeRevisoes.Calcular(
+                        nova,
+                        Revisoes(existentes),
+                        posicoes);
+
+                    if (plano.Vazio)
+                    {
+                        continue;
+                    }
+
+                    resultado.Paginas++;
+                    if (plano.Estourou)
+                    {
+                        resultado.Estourou = true;
+                    }
+
+                    foreach (OperacaoDaRevisao operacao in plano.Operacoes)
+                    {
+                        switch (operacao.Tipo)
                         {
-                            case "Revisao":
-                                atributo.TextString = nova.Revisao ?? string.Empty;
+                            case TipoDaOperacaoDaRevisao.Atualizar:
+                                if (AtualizarBloco(transacao, existentes, operacao.Dados))
+                                {
+                                    resultado.Atualizados++;
+                                }
                                 break;
-                            case "Descricao":
-                                atributo.TextString = nova.Descricao ?? string.Empty;
+
+                            case TipoDaOperacaoDaRevisao.Apagar:
+                                if (ApagarBloco(transacao, existentes, operacao.Posicao))
+                                {
+                                    resultado.Apagados++;
+                                }
                                 break;
-                            case "Data":
-                                atributo.TextString = nova.Data ?? string.Empty;
-                                break;
-                            case "Elaborador":
-                                atributo.TextString = nova.Elaborador ?? string.Empty;
-                                break;
-                            case "Verificador":
-                                atributo.TextString = nova.Verificador ?? string.Empty;
-                                break;
-                            case "Aprovador":
-                                atributo.TextString = nova.Aprovador ?? string.Empty;
+
+                            case TipoDaOperacaoDaRevisao.Criar:
+                                if (CriarBloco(transacao, tabela, espaco, recebida.Pagina, operacao.Dados))
+                                {
+                                    resultado.Criados++;
+                                    if (plano.Estourou)
+                                    {
+                                        resultado.Deslocados++;
+                                    }
+                                }
+                                else
+                                {
+                                    resultado.SemDefinicao++;
+                                }
                                 break;
                         }
                     }
-
-                    gravados++;
                 }
 
                 transacao.Commit();
             }
 
-            return gravados;
+            return resultado;
+        }
+
+        /// <summary>Atualiza o XData e os atributos do bloco que já está na posição (o ramo "sem alteração").</summary>
+        private static bool AtualizarBloco(
+            Transaction transacao,
+            List<BlocoDeRevisao> existentes,
+            RevisaoCompletaDaPagina nova)
+        {
+            BlocoDeRevisao alvo = BlocoNaPosicao(existentes, nova.Posicao);
+            if (alvo == null)
+            {
+                return false;
+            }
+
+            BlockReference bloco = transacao.GetObject(alvo.Id, OpenMode.ForRead) as BlockReference;
+            if (bloco == null)
+            {
+                return false;
+            }
+
+            bloco.UpgradeOpen();
+            bloco.XData = BornesDaCorrecao.ParaResultBuffer(RevisaoCompletaXData.ParaValores(
+                nova, Environment.UserName, DateTime.Now.ToString()));
+            AtualizarAtributos(transacao, bloco, nova);
+            return true;
+        }
+
+        /// <summary>Apaga o bloco da posição (o <c>LK3p1o8pTVH</c>).</summary>
+        private static bool ApagarBloco(Transaction transacao, List<BlocoDeRevisao> existentes, int posicao)
+        {
+            BlocoDeRevisao alvo = BlocoNaPosicao(existentes, posicao);
+            if (alvo == null)
+            {
+                return false;
+            }
+
+            BlockReference bloco = transacao.GetObject(alvo.Id, OpenMode.ForRead) as BlockReference;
+            if (bloco == null)
+            {
+                return false;
+            }
+
+            bloco.UpgradeOpen();
+            bloco.Erase();
+            return true;
+        }
+
+        /// <summary>
+        /// Cria o bloco da revisão na posição: o <c>JdCp1GqFmnk</c> — a definição é
+        /// <c>Revisao_Capa{Posicao-1}</c> (capa) ou <c>Revisao_Corpo{Posicao-1}</c>, no layer da página,
+        /// com um atributo por definição do bloco e o XData <c>DiagLog/Revisao</c>.
+        /// Devolve <c>false</c> quando a definição do bloco não existe no desenho.
+        /// </summary>
+        private static bool CriarBloco(
+            Transaction transacao,
+            BlockTable tabela,
+            BlockTableRecord espaco,
+            string pagina,
+            RevisaoCompletaDaPagina dados)
+        {
+            string nome = (PaginaAtiva.ChecaCapa(pagina) ? "Revisao_Capa" : "Revisao_Corpo") + (dados.Posicao - 1);
+            if (!tabela.Has(nome))
+            {
+                return false;
+            }
+
+            BlockTableRecord definicao = transacao.GetObject(tabela[nome], OpenMode.ForRead) as BlockTableRecord;
+            if (definicao == null)
+            {
+                return false;
+            }
+
+            BlockReference bloco = new BlockReference(Point3d.Origin, definicao.ObjectId);
+            bloco.Layer = pagina;
+            espaco.AppendEntity(bloco);
+            transacao.AddNewlyCreatedDBObject(bloco, true);
+
+            foreach (ObjectId idDef in definicao)
+            {
+                AttributeDefinition atributoDef = transacao.GetObject(idDef, OpenMode.ForRead) as AttributeDefinition;
+                if (atributoDef == null)
+                {
+                    continue;
+                }
+
+                AttributeReference atributo = new AttributeReference();
+                atributo.SetAttributeFromBlock(atributoDef, bloco.BlockTransform);
+                AplicarValor(atributo, dados);
+                bloco.AttributeCollection.AppendAttribute(atributo);
+                transacao.AddNewlyCreatedDBObject(atributo, true);
+            }
+
+            bloco.XData = BornesDaCorrecao.ParaResultBuffer(RevisaoCompletaXData.ParaValores(
+                dados, Environment.UserName, DateTime.Now.ToString()));
+            return true;
+        }
+
+        /// <summary>O laço do <c>JdCp1GqFmnk</c>: cada atributo do bloco pela sua tag (<c>REV0..7</c> etc.).</summary>
+        private static void AtualizarAtributos(Transaction transacao, BlockReference bloco, RevisaoCompletaDaPagina nova)
+        {
+            foreach (ObjectId idAtributo in bloco.AttributeCollection)
+            {
+                AttributeReference atributo = transacao.GetObject(idAtributo, OpenMode.ForWrite) as AttributeReference;
+                if (atributo == null || string.IsNullOrEmpty(atributo.Tag))
+                {
+                    continue;
+                }
+
+                AplicarValor(atributo, nova);
+            }
+        }
+
+        /// <summary>
+        /// Escreve no atributo o campo da sua tag; tag que não é um campo de revisão (o título do
+        /// formato, por exemplo) fica com o valor que veio da definição — como no original, que só
+        /// troca o <c>TextString</c> das tags conhecidas.
+        /// </summary>
+        private static void AplicarValor(AttributeReference atributo, RevisaoCompletaDaPagina dados)
+        {
+            string campo = RevisaoCompletaXData.CampoDoAtributo(atributo.Tag);
+            if (campo == null)
+            {
+                return;
+            }
+
+            switch (campo)
+            {
+                case "Revisao":
+                    atributo.TextString = dados.Revisao ?? string.Empty;
+                    break;
+                case "Descricao":
+                    atributo.TextString = dados.Descricao ?? string.Empty;
+                    break;
+                case "Data":
+                    atributo.TextString = dados.Data ?? string.Empty;
+                    break;
+                case "Elaborador":
+                    atributo.TextString = dados.Elaborador ?? string.Empty;
+                    break;
+                case "Verificador":
+                    atributo.TextString = dados.Verificador ?? string.Empty;
+                    break;
+                case "Aprovador":
+                    atributo.TextString = dados.Aprovador ?? string.Empty;
+                    break;
+            }
+        }
+
+        private static List<RevisaoCompletaDaPagina> Revisoes(List<BlocoDeRevisao> existentes)
+        {
+            List<RevisaoCompletaDaPagina> revisoes = new List<RevisaoCompletaDaPagina>(existentes.Count);
+            foreach (BlocoDeRevisao bloco in existentes)
+            {
+                revisoes.Add(bloco.Revisao);
+            }
+
+            return revisoes;
+        }
+
+        private static BlocoDeRevisao BlocoNaPosicao(List<BlocoDeRevisao> existentes, int posicao)
+        {
+            foreach (BlocoDeRevisao bloco in existentes)
+            {
+                if (bloco.Revisao.Posicao == posicao)
+                {
+                    return bloco;
+                }
+            }
+
+            return null;
+        }
+
+        private static BlocoDeRevisao BlocoDeMaiorPosicao(List<BlocoDeRevisao> existentes)
+        {
+            BlocoDeRevisao maior = null;
+            foreach (BlocoDeRevisao bloco in existentes)
+            {
+                if (maior == null || bloco.Revisao.Posicao > maior.Revisao.Posicao)
+                {
+                    maior = bloco;
+                }
+            }
+
+            return maior;
+        }
+
+        private static int MaiorPosicao(List<BlocoDeRevisao> existentes)
+        {
+            BlocoDeRevisao maior = BlocoDeMaiorPosicao(existentes);
+            return maior == null ? 0 : maior.Revisao.Posicao;
+        }
+
+        private static int ContarDefinicoes(Transaction transacao, BlockTable tabela, string prefixo)
+        {
+            int total = 0;
+            foreach (ObjectId id in tabela)
+            {
+                BlockTableRecord definicao = transacao.GetObject(id, OpenMode.ForRead) as BlockTableRecord;
+                if (definicao == null || string.IsNullOrEmpty(definicao.Name))
+                {
+                    continue;
+                }
+
+                if (definicao.Name.StartsWith(prefixo, StringComparison.OrdinalIgnoreCase))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static RevisaoCompletaDaPagina Copiar(RevisaoCompletaDaPagina origem)
+        {
+            return new RevisaoCompletaDaPagina(
+                origem.Pagina,
+                origem.Revisao,
+                origem.Descricao,
+                origem.Data,
+                origem.Elaborador,
+                origem.Verificador,
+                origem.Aprovador,
+                origem.Posicao)
+            {
+                RevisaoOriginal = origem.RevisaoOriginal,
+            };
+        }
+
+        /// <summary>Um bloco de revisão já no desenho: a entidade e o XData lido.</summary>
+        private sealed class BlocoDeRevisao
+        {
+            internal BlocoDeRevisao(ObjectId id, RevisaoCompletaDaPagina revisao)
+            {
+                Id = id;
+                Revisao = revisao;
+            }
+
+            internal ObjectId Id { get; private set; }
+
+            internal RevisaoCompletaDaPagina Revisao { get; private set; }
+        }
+
+        /// <summary>O que a gravação fez — para o comando relatar (não há clique para ver a tela).</summary>
+        internal sealed class ResultadoDaGravacaoDeRevisoes
+        {
+            internal int Paginas { get; set; }
+
+            internal int Atualizados { get; set; }
+
+            internal int Criados { get; set; }
+
+            internal int Apagados { get; set; }
+
+            internal int Deslocados { get; set; }
+
+            internal int SemDefinicao { get; set; }
+
+            internal int SemFormato { get; set; }
+
+            internal bool Estourou { get; set; }
         }
 
         private static bool IndiceDoTitulo(DBText texto, out int indice, out string valor)

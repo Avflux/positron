@@ -974,6 +974,43 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 167 — Revisão Completa: o posicionamento dos blocos (`AtualizaRevCompleta`).**
+O que a rodada 166 deixou **aberto**: o plugin só regravava os blocos de revisão **que já existiam**,
+sem reposicionar nada. Agora entra a regra pura `PosicionamentoDeRevisoes`, que porta o laço do
+`AtualizaRevCompleta` do reverso (sobre o `capturaRevisoesCompletas`) com as três decisões: (1)
+**sem alteração** e já com posição → atualiza o bloco da posição (o `LK3p1o8pTVH` + o
+`JdCp1GqFmnk`); (2) **revisão alterada** e cabe → a revisão nova entra na `Posicao + 1`; (3)
+**alterada no topo** (`Posicao >= maxCapa/maxCorpo`) → o ramo de **estouro**: apaga todos os blocos
+da página, desce um cada posição > 1 (recriando com os dados antigos) e cria a nova — a mais antiga
+sai, como no original. A comparação com a `RevisaoOriginal` é **sem caixa** (o
+`Operators.CompareString(..., TextCompare: true)`) e a página sem revisão é pulada.
+
+- A regra é pura (`PosicionamentoDeRevisoes.Calcular`); o `ContarPosicoes`/`EhTagDeRevisao` portam o
+  `carregaConfiguracaoRevisao` (só as tags `REV`/`REV0..7` contam, por layer).
+- O adapter `RevisoesDoDesenho.GravarCompletas` virou **plan-driven**: lê todos os blocos de revisão
+  agrupados por página, casa cada página editada com o bloco de **maior posição** (a
+  `RevisaoOriginal` e a `Posicao` vêm do desenho, não da tela), mede as posições pelos blocos
+  `Revisao_Capa{n}`/`Revisao_Corpo{n}` que o `verificaCriaBlocoRevisao` deixou e aplica o plano:
+  `Atualizar` (XData + atributos no lugar), `Apagar` (o `Erase`) e `Criar` (o `JdCp1GqFmnk`:
+  `new BlockReference(Point3d.Origin, definição)` no layer da página, um `AttributeReference` por
+  definição via `SetAttributeFromBlock`, e o XData `DiagLog/Revisao`). O resultado é contado
+  (`Paginas`/`Atualizados`/`Criados`/`Apagados`/`Deslocados`/`SemDefinicao`/`SemFormato`) e o
+  comando relata na linha de comando.
+- **Duas coisas ficaram de fora, com o motivo:** (1) o recoder **não** cria as definições
+  `Revisao_Capa{n}`/`Revisao_Corpo{n}` a partir do bloco de formato (o `verificaCriaBlocoRevisao`) —
+  quando a definição não existe o bloco é **pulado** e entra na conta `SemDefinicao` (não se apaga
+  nada por isso); (2) sem nenhuma definição de posição, `posicoes` cai para `maiorPosicao + 1`
+  (`SemFormato`), para nunca disparar o deslocamento por engano num desenho sem formato — o
+  `maxCapa/maxCorpo` real do formato fica **aberto**.
+
+**Verificação:** a regra pura tem **8** testes (`PosicionamentoDeRevisoesTests`: os três ramos, a
+primeira revisão, o estouro com o deslocamento e a queda da mais antiga, a comparação sem caixa, a
+página vazia e a contagem de posições). `plugin:test` **812**, 0 falhas; as duas builds **0 avisos**.
+No **AutoCAD 2020** (`cad-autocad-smoke.ps1 -Desenho ..\Elet\RCD\Funcional.dwg -Dwg 63 -Revisao R0
+-Comandos REVCOMP`) o comando abre e carrega as **16 páginas** do caderno. **Não medido:** o clique do
+**Editar** (a janela é modal e num script não há quem clique) — o posicionamento em si fica coberto
+pelos testes da regra; o desenho real também não foi conferido bloco a bloco.
+
 **Rodada 166 — gravação da Revisão Completa: tags de atributo.** O `JdCp1GqFmnk` do original grava nos atributos as tags `REV0..REV7`, `DESC0..DESC7`, `DATA0..7`, `ELAB0..7`, `VERIF0..7` e `APROV0..7`; o plugin só reconhecia `REV`, `DESC`... (e aliases `REVISAO`, `DESCRICAO`, que o original não tem), então com os blocos reais não gravava nenhum atributo. Corrigido com `RevisaoCompletaXData.CampoDoAtributo` (família + dígito 0-7, sem o `REV` solto), usado no `GravarCompletas`; teste `Atributo_de_revisao_usa_a_familia_com_digito_de_0_a_7`. **Não portado (divergência grande, só verificável no CAD):** o `JdCp1GqFmnk`/laço do `capturaRevisoesCompletas` do original desloca as revisões entre posições (`Posicao--`), cria blocos `Revisao_Capa{n}`/`Revisao_Corpo{n}` com `Conf.maxCapa`/`maxCorpo` e apaga os que sobram (`LK3p1o8pTVH`). O plugin só regrava os blocos que já existem e não desloca nada. `plugin:test` **804**, 0 falhas, exit 0; builds 0 avisos.
 
 **Rodada 165 — revisão de Revisão Completa e Simplificada contra o `Revisao.cs` do reverso.** Leitura: (1) a simplificada usava a revisão do **projeto** como fallback para página sem campo REV — o original deixa **vazia** (`mRevSimplificada[1,i] = ""`); corrigido. (2) Com vários textos REV na mesma página, o original fica com o **último** lido (sobrescreve no laço); o plugin ficava com o primeiro; corrigido. (3) A completa aceitava um bloco de posição 0; o `capturaRevisoesCompletas` exige posição **estritamente maior** que a guardada (começa em 0) e também começa vazia; corrigido com `OperacoesDeRevisao.AceitaRevisaoCompleta` e teste. **Não verificado:** a **gravação** da completa (`gravarXDataRevisao` e o laço de atributos do `Revisao.cs` linha ~600–680, que apaga e recria atributos) não foi comparada linha a linha — o plugin só atualiza atributos existentes. A tela no CAD não foi aberta. `plugin:test` **803**, 0 falhas, exit 0.
