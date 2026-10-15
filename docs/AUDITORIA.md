@@ -37,6 +37,14 @@ no plugin e conectando-os na barra de ferramentas. Com isso, os comandos gerados
 **114**, os comandos sem nada caíram de 68 para **51** (restando apenas 1 que abre janela: `IMPBD`),
 as telas alcançadas subiram para **107** e a barra passou a ter 123 acionáveis cobertos e 116 abrindo janela.
 
+A rodada 159 ligou **duas** das **38** telas `frmRelatorio_*` — a **Lista de Veias** (`LVEI`) e a **Lista
+de Materiais** (`EXPLM`), cuja regra o app já tinha desde as rodadas 65–68 —, levando as telas com
+regra de **12** para **14** de 127. Não mexe nas contagens de comandos desta seção: os dois comandos já
+existiam (`[CommandMethod]` gerado, abrindo a casca) e a tela passou a ter comportamento. O que ficou de
+fora de cada tela (exportação Excel/DWG, ordenação manual, o modo multi-painel, o `bSepara` e o
+`CarregaFuncoesDaVeias4`) entra **desabilitado com o motivo na dica**, e o `OrdenaAVeia` das veias de
+reserva segue fora da regra com o motivo registrado no `PLANO.md` §7.3 e no `RUNBOOK.md`.
+
 **O reverso mora no repo desde a rodada 134** (`cad-plugin/reverso/Eletron4_ZWcad`, com o
 `decompiled/`, o `decompiled-cleaned/`, o `cleaned/` e o `DLL/`), e o painel agora **imprime de onde
 leu** — `-Decomp` aponta para outra cópia (a de fora do repo, por exemplo). Os cinco extratores
@@ -151,8 +159,7 @@ comando**, quanto de ambiente o corpo carrega, com os totais acima — é o term
 quase 1:1 (entre os pendentes que ele lista, o `LeAtributos`, de 122 linhas, é o único que só toca
 `Conversions`/`DeclaracoesGeral`) e onde tem de virar regra.
 
-**O que continua fora, decidido (não é pendência):** as **15 variantes** de tela (o argumento da
-construção), a **frente 11** (ambiente/licença — `RESETLIC`/`TCHAVE`/`TUSING`), os **3 destrutivos com
+**O que continua fora, decidido (não é pendência):** a **frente 11** (ambiente/licença — `RESETLIC`/`TCHAVE`/`TUSING`), os **3 destrutivos com
 `MsgBox`** (`DELFIPROJ`, `DELLM`, `DELPLA`) e as **19 sub-janelas** de relatórios DWG/Excel — a pilha de
 exportação (≈5.800 linhas), que sai pelo app (§7.3).
 

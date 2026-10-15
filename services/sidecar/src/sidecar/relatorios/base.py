@@ -70,4 +70,26 @@ def terminal(valor: Any) -> str:
     return texto_
 
 
-__all__ = ["TERMINAL_INDEFINIDO", "Relatorio", "terminal", "texto"]
+def numero(valor: Any) -> str:
+    """O `Conversions.ToString` do original **num `Double`** — o `texto()` não serve aqui.
+
+    O `str(0.0)` do Python dá `"0.0"` e o do VB dá `"0"`: o `Conversions.ToString(Double)`
+    usa o formato geral (o `ToStr` padrão do .NET Framework, **15 dígitos**), que não escreve
+    as casas decimais quando o número é inteiro — é o `".15g"` daqui. A diferença aparece na
+    coluna `Comprimento` da Lista de Veias (medida na rodada 159, com os 22 cabos do painel
+    503: o original grava `0` e o app escrevia `0.0`).
+    """
+    if valor is None:
+        return ""
+    if isinstance(valor, bool):
+        return texto(valor)
+    if isinstance(valor, int):
+        return str(valor)
+    if isinstance(valor, float):
+        if valor.is_integer() and abs(valor) < 1e15:
+            return str(int(valor))
+        return format(valor, ".15g").replace("e+", "E+").replace("e-", "E-")
+    return texto(valor)
+
+
+__all__ = ["TERMINAL_INDEFINIDO", "Relatorio", "numero", "terminal", "texto"]

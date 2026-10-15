@@ -420,6 +420,12 @@ coisas medidas nesta máquina importam para quem for testar:
   detalhe rodada a rodada). Por isso a interface mora em `PaletaAncoravel`, tocado só quando há
   janela.
 
+**Nesta máquina o pacote de autoload está REMOVIDO de propósito** (rodada 160): o autoload é o caminho
+de produção, e ele faz a barra aparecer **sem `NETLOAD`** — o que atrapalha o ciclo de teste (e, com o
+pacote velho, mostra a barra velha). Para medir a barra pela interface cheia, instale o pacote
+(`instala-bundle.ps1 -Cad AutoCAD`), meça e remova-o de novo (`-Remover`). Para o ciclo por `NETLOAD`,
+nenhum pacote é preciso.
+
 O jeito de medir a **barra** e a **paleta** é abrir a **interface cheia** por script — sem `NETLOAD`
 (é o autoload que está sob teste) e com o `POSITRON_LOG` apontado:
 
@@ -967,6 +973,83 @@ regra) é a **§0 do `AUDITORIA.md`**, que se reproduz com `scripts/cobertura-do
 do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o detalhe rodada a rodada
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
+
+**Rodada 160 — o plugin não se desmontava: o `Terminate()` vazio e o pacote de autoload.**
+O dono apontou que ao **fechar o AutoCAD/ZWCAD** o plugin não é desmontado e a **barra continua montada** — "para teste isso não é legal", e que por ora bastava o que ele pediu: **remover a barra** e **montar só depois do `NETLOAD`** (em produção pode ficar como está). A investigação achou **quatro** coisas, e três delas eram medíveis:
+
+1. **`Plugin.Terminate()` estava vazio** desde o começo — o CAD *avisava* o plugin do descarregamento e não havia nada removendo a aba. É a causa direta.
+2. **No AutoCAD a retentativa agendada nunca era cancelada:** quando o ribbon ainda não existe no `Initialize()`, a montagem é agendada para a primeira ociosidade (`Application.Idle`); o handler **continuava pendurado** e podia **recriar** a aba **depois** do unload. A remoção sem cancelar a retentativa não duraria.
+3. **O CAD não avisa no fechamento** — medido na interface cheia do AutoCAD 2020: fechando por `QUIT` (e pelo `Quit()` do COM) o `POSITRON_LOG` termina **sem** linha nenhuma de `Terminate`, enquanto o **`accoreconsole`, ao sair, chama** (a linha do desmonte aparece no harness). Ou seja: no fechamento normal não existe callback nosso para rodar — a aba morre com o processo. E ela **não volta** na sessão seguinte: a montagem do `NETLOAD` não trouxe a nota de sobra (abaixo), isto é, o ribbon **não** tinha aba do Positron antes da carga.
+4. **O que o fluxo de teste sentia era o pacote de autoload**, não o desmonte: com o `.bundle` em `%APPDATA%\Autodesk\ApplicationPlugins` (o caminho de **produção**) a DLL é carregada **sem `NETLOAD`**, então a barra aparece sozinha ao abrir o CAD — e, se o pacote estiver velho, aparece a barra **velha** (o defeito da rodada 150). Medido: **com** o pacote o CAD escreve o log e monta a aba na primeira ociosidade sem `NETLOAD`; **sem** o pacote o CAD abre **sem `POSITRON_LOG` nenhum**.
+
+O que entrou no código (o par do `Criar()`):
+
+- `BarraDeFerramentas.Remover()` — cancela a retentativa pendente (`CancelarRetentativa`) e **tira do ribbon toda aba** com o id do Positron, devolvendo a conta de abas e de painéis removidos; `Plugin.Terminate()` passa a chamá-lo (e **nunca lança**: um erro ao fechar o CAD não pode virar diálogo — vai para o log).
+- `ConstruirAba()` deixou de **engolir** a sobra: uma aba do Positron que ainda esteja no ribbon (build anterior no ar) sai antes da nova e o log **denuncia** em vez de ficar com duas — `[substituiu N aba(s) do Positron que já estavam no ribbon, com M painel(is) — build anterior no ar?]`.
+- O contador da retentativa (`_tentativas`) é **zerado** quando a retentativa termina: ele ficava sujo e uma segunda chamada não reagendaria nada.
+
+O que foi feito **no ambiente** para o fluxo de teste (o pedido literal): o pacote de autoload foi **removido** desta máquina (`instala-bundle.ps1 -Cad AutoCAD -Remover`) — a barra passa a existir **só depois do `NETLOAD`**. Para voltar ao caminho de produção (barra automática ao abrir), `instala-bundle.ps1 -Cad AutoCAD`.
+
+```text
+# 1) SEM autoload (pacote removido): o CAD abre sem plugin nenhum
+$env:POSITRON_LOG = "$env:TEMP\positron-sem-autoload.txt"
+# abre a interface cheia (acad.exe /nologo /i <copia>), espera ~35 s e confere:
+POSITRON_LOG existe? False
+
+# 2) NETLOAD da DLL do bin (copia local, por LISP) — a barra monta depois do load
+(setvar "FILEDIA" 0)
+(vl-cmdf "_.NETLOAD" "C:/positron-smoke/gui/Positron.Plugin.AutoCAD.dll")
+
+Positron carregado. Digite ELET para começar — ELET abre a paleta de folhas (FOLHAS também).
+Positron: DLL de 2026-10-14 21:33 — C:\positron-smoke\gui\Positron.Plugin.AutoCAD.dll
+Barra: aba "Positron" com 9 painel(is) — 121 botão(ões), 5 menu(s) com 39 item(ns), 1 liga/desliga, 1 lista e 1 campo; 34 linha(s), 86 quebra(s), 7 área(s) recolhível(is), 9 separador(es). Acionáveis: 123 ligado(s) (3 no comando do recoder), 38 desativado(s); tema escuro.
+pzBarra: 1 aba(s) POSITRON.ID_Positron ("Positron"), 9 painel(is) [Configuração | Caderno | ...]; RibbonButton=120, RibbonCombo=1, RibbonMenuButton=5, RibbonMenuItem=39, RibbonPanelBreak=7, RibbonRowBreak=86, RibbonRowPanel=34, RibbonSeparator=9, RibbonTextBox=1, RibbonToggleButton=1; 1 botão(ões) de canto; 40 item(ns) desativado(s).
+
+# 3) a prova de que o descarregamento agora age: no accoreconsole (headless), ao sair
+Barra: o CAD não tem ribbon nesta sessão — nada a desmontar.
+```
+
+**Duas coisas ficaram de fora, com o motivo:** a **paleta de folhas** (`PaletteSet`) não é fechada no desmonte — o pedido era a barra, e a decisão de fechar a paleta (que é do CAD e pode ser restaurada pela sessão) fica com o dono; e o **ZWCAD não foi medido** nesta rodada (não está instalado nesta máquina — o código é o mesmo, mas o `Terminate()`/autoload de lá não foi observado).
+
+**Como refazer a medição:** `.tmp-smoke/gui-netload2.ps1` (interface cheia + `NETLOAD` por LISP + `pzBarra` + `QUIT`), com o pacote removido. As duas builds **0 avisos** e `plugin:test` **798** (inalterado — a mudança é do `Positron.Plugin`, que a suíte do `Positron.Data` não cobre).
+
+**Rodada 159 — frente 12 (parte 9): as duas telas de relatório que já tinham a regra pronta — `frmRelatorio_Veias` (`LVEI`) e `frmRelatorio_Materiais` (`EXPLM`).**
+Os relatórios são a frente que o `PLANO.md` deixava como **decisão do dono** (§7.3) e o app já entregava **quatro tabulares** desde as rodadas 65–68 — dois deles (`veias` e `materiais`) reproduzindo as telas `frmRelatorio_Veias` e `frmRelatorio_Materiais`, com a regra medida no banco do projeto real. O que faltava **no CAD** era a tela: as duas cascas abriam pelo comando e ficavam vazias. Esta rodada liga as duas **sem reescrever a regra** — o `ListaDeVeias`/`ListaDeMateriaisDoRelatorio` são a mesma montagem que o app já media, agora em `Positron.Data` (é a regra de ouro do §7.7: nenhum código de tela antes da regra portada e testada).
+
+- `Positron.Data/Relatorios/ListaDeVeias.cs` — a **Lista de Veias** (o `CDadosAccessInterligacao.CarregaVeias4`), com as quinze colunas do `formataDGCabos`: (1) os cabos da revisão com o painel escolhido em `Pn1`/`Pn2`, por `Tag`, cada um **uma vez** (o `lCabosUnico`); (2) a ponta do painel escolhido vira a **ponta 1** e as marcas de `Aterrar` continuam presas aos `Pn1`/`Pn2` **originais** (`1` = fim do `Pn1`, `2` = fim do `Pn2`, `3` = os dois); (3) as veias do `Veias4` da mesma revisão, pulando `Num_Veia <= -51`, com o rótulo do `Nome_Veia` e, quando vazio, o número; (4) as pontas do `Interligacao4` casadas **por painel** — a ponta que não casa fica **vazia** —, com o `Terminal` vazio ou `"0"` saindo como o caracter indefinido (`?`) e o `NRegua` do lado **mandando** sobre a tag na coluna de dispositivo; (5) o `Documento Funcional` como a lista ordenada e sem repetição das duas pontas; (6) a `Página` como `Pagina1, Pagina2` quando diferem; (7) as veias de **reserva** (índice negativo) caindo no trecho da veia **seguinte**, como no original.
+- **O `qTotal` da tela** é o `lCabosUnico.Count` — os cabos com veia, **não** as linhas da grade: o cabo cujas veias não acham trecho no `Interligacao4` entra na conta e não aparece na lista. É um quirk do original e ficou fixado em teste; no painel 503 do projeto real são **42 cabos e 22 linhas** (`ListaDeVeias.CabosDoRelatorio`).
+- `Positron.Data/Relatorios/ListaDeMateriaisDoRelatorio.cs` — a **Lista de Materiais** pelo caminho de **um painel** da tela (o `CarregaDadosOrdemDispositivos` + o `CarregaGDDisp`): o agrupamento é por **trechos consecutivos do mesmo material** (material fora do catálogo ou `0` sempre começa linha nova), as tags do trecho unidas por `", "` e as quantidades **somadas**; a descrição sai do catálogo **com um espaço** no fim (o `DescCompleta + " "` do original, quirk mantido). O `CarregarOrdem` enche a `dgOrdem` com a ordem do **diagrama** (a `Ordem` que o `COMPLM` renumera 1..N por painel).
+- `ProjectStore.LerRevisoesDeCabos4` — a coluna `dgRevisao`: as revisões do **snapshot dos cabos** (`DISTINCT Revisao, Criador, Data FROM Cabos4 ORDER BY Data`), com a mais nova em cima (o laço do original acrescenta de trás para a frente). É outro recorte do `LerRevisoes` (que vem dos três pipelines do diagrama).
+- As telas: `LigacaoDeRelatorio` (a base fina das duas), `LigacaoDoFrmRelatorioVeias` e `LigacaoDoFrmRelatorioMateriais` — uma **arquivo por tela** + **uma linha** no `LigacoesDasTelas`, subindo para **14 de 127** telas com regra. A LVEI monta as colunas do `formataDGCabos` (a do `COMPRIMENTO` só com o `CBComprimento` ligado, como lá), a faixa `AntiqueWhite` alternando **por cabo** (o `flag` do `bqipPxovkmF`) e, com mais de um painel escolhido, a linha de cabeçalho `LightBlue` com o nome do painel na **terceira** coluna (o `iPainelSel` do `bSepara`); a EXPLM tem as três grades (`dgEquipamentos`/`dgOrdem`/`dgListaMateriais`), os textos do construtor do original e o recarregamento da `dgOrdem` na troca de painel.
+- **O que entra desabilitado, com o motivo na dica:** as exportações (`btExportaEXCEL`/`btExportaDWG` — a planilha e a montagem do bloco são da pilha de exportação, que sai pelo app), o `BTY`/`btLayout`/`btSalvaOrdem`/`btDesagrupar`/`btCima`/`btBaixo`/`btPrimeiro`/`btUltimo` (a **ordenação manual** das linhas e a gravação da ordem ainda não estão portadas), o `ckMultPNDetalhado` (o modo multi-painel, o `CarregaDadosDispositivosMultiplosPN`), a mesclagem de modelo/fabricante na descrição, o `tbMultiplicador`, o `CKAgrupar` (a montagem agrupada do `bSepara`) e o `RBFuncaoVeia` (o `CarregaFuncoesDaVeias4`).
+- **Duas coisas deliberadas, registradas:** (1) a tela **carrega na abertura** e não só no `btPesquisar` — no original a grade abre vazia até o clique e num script não há quem clique, então o harness não teria como medir; (2) no original onde há `MsgBox` o recoder **escreve na linha de comando**.
+- **Para medir num script:** `POSITRON_REL_PAINEL` escolhe o painel (as duas telas) e `POSITRON_REL_REVISAO` a revisão (a LVEI); sem elas a tela abre no primeiro item de cada coluna, como o original abre com a primeira linha selecionada.
+- **Achado de ferramenta:** duas telas de relatório no **mesmo** `.scr` não funcionam — o `accoreconsole` roda a primeira e a **segunda não escreve nada** (a janela modal come as linhas seguintes do script; o `.scr` gerado está correto — uma linha `LVEI` e, na seguinte, `EXPLM`). Cada tela medida em uma passada própria.
+- **A conferência valor a valor** (o que a rodada passou a usar): um dumper em C# sobre o `Positron.Data` (`ListaDeVeias.Montar` + `ListaDeMateriaisDoRelatorio.Montar`, 15 e 8 colunas) contra o **lado independente** em Python — o relatório `veias` do **app** (o módulo do sidecar, que nunca passa por C#) e uma reconstrução do agrupamento do EXPLM direto do `ListaMateriais` + `Materiais`. **Resultado: 0 diferença nas 72 linhas** (22 da LVEI + 34 do EXPLM, com as NBSP e o travessão do descritivo do catálogo incluídos).
+- **A única diferença que o cruzamento achou, e que era do app:** a coluna `Comprimento` da LVEI saía `0.0` no relatório do app e `0` na regra do CAD. O original usa `clsTextos.TiraNothing(Conversions.ToString(dComprimento))` (`frmRelatorio_Veias.cs:905`) — o `Conversions.ToString` de um `Double` **não escreve as casas quando o número é inteiro** —, então o `0` é o fiel e o `0.0` era o `str(float)` do Python. Entrou o `relatorios/base.py:numero()` (o `Conversions.ToString` do `Double`) e a `veias.py` passou a usá-lo; a variável `numero` do laço virou `numero_da_veia` para não sombrear a função. Fica registrado que o app **mostrava** `0.0` desde a rodada 65.
+- **A regra que fica de fora, com o motivo:** o `OrdenaAVeia` do original reordena as veias de índice **negativo** com heurísticas sobre o nome (`"P"`/`"T"`) — aqui as veias saem por `Num_Veia`, como no relatório do app (muda a ordem relativa das veias de reserva, não o conteúdo das linhas).
+
+```text
+# AutoCAD 2020 (accoreconsole), banco do projeto real (.tmp-smoke/r159.db: 697 cabos4,
+# 2388 veias4, 20 interligacao4, 104 ListaMateriais, 210 materiais), DWG 63, revisao R0
+POSITRON_REL_PAINEL=503 POSITRON_REL_REVISAO=R0 powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 -Banco <raiz>\.tmp-smoke\r159.db -Dwg 63 -Comandos "LVEI"
+
+LVEI: 22 linha(s) na Lista de Veias da revisão "R0" (42 cabo(s) distinto(s); painel(is) 503 de 697 cabo(s) e 2388 veia(s) na revisão; 480 painel(is) no cadastro).
+
+# mesma receita, -Comandos "EXPLM" (uma tela por passada: ver o achado de ferramenta acima)
+EXPLM: painel 503 — 91 item(ns) na ordem do diagrama.
+EXPLM: 34 linha(s) na Lista de Materiais do painel 503 (91 item(ns) na ordem do diagrama; 34 material(is) distinto(s)).
+EXPLM: 104 item(ns) na ListaMateriais do DWG 63; 210 material(is) no catálogo; 480 painel(is) no cadastro.
+
+# o cruzamento independente (dumper em C# contra o app + a reconstrução do EXPLM)
+C# linhas: 72 | ref linhas: 72
+linhas diferentes: 0
+
+# o app e o CAD antes da correção do Comprimento (a linha da LVEI, coluna 15)
+col 15: C#='0'  ref='0.0'
+```
+
+`plugin:test` **798** (+20: `ListaDeVeiasTests` 13, `ListaDeMateriaisDoRelatorioTests` 7), o sidecar **39** (`uv run --directory services/sidecar pytest`) e as duas builds **0 avisos**.
 
 **Rodada 158 — as 15 variantes das telas (`DICHESF`, `DIFURNAS`... — `frmRelatorio_DInterlig`/`_DICemig`/`frmTrocaPaineis`) e os 15 comandos gerados.**
 O item 6 da fila do `PLANO.md`: a conferência visual da rodada 153 havia identificado que 15 janelas do reverso eram instanciadas com argumentos no construtor que alteravam o formulário base (`new frmRelatorio_DInterlig(1..11)`, `new frmRelatorio_DICemig(1..3)` e `new frmTrocaPaineis(bAbre: false)`). Essas variantes não eram geradas como comandos para não abrir a casca padrão sem fidelidade.
