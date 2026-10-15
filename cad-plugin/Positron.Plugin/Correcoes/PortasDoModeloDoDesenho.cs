@@ -70,7 +70,7 @@ namespace Positron.Plugin.Correcoes
             }
 
             Database banco = documento.Database;
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             List<ModeloPorta> portas = LerPortasDoDicionario(banco);
             resultado.Portas = portas.Count;
             if (portas.Count == 0)

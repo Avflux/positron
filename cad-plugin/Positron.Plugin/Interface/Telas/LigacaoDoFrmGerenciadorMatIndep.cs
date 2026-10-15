@@ -75,7 +75,7 @@ namespace Positron.Plugin.Interface.Telas
             TextosDoOriginal(janela);
             MontarColunas(paineis, grade);
 
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             IReadOnlyDictionary<int, MaterialDoCatalogo> catalogo =
                 CatalogoDeMateriais.Indexar(Catalogo(config));
 

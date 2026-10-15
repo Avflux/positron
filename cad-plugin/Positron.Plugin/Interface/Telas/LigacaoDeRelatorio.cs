@@ -33,7 +33,7 @@ namespace Positron.Plugin.Interface.Telas
         /// <summary>A configuração viva (arquivo &lt; ambiente) — o banco e o DWG ativo saem dela.</summary>
         protected static ConfiguracaoPositron Configuracao()
         {
-            return ConfiguracaoPositron.Carregar();
+            return ConfiguracaoEfetiva.Carregar();
         }
 
         /// <summary>O painel pedido pelo harness (<c>POSITRON_REL_PAINEL</c>), ou <c>0</c>.</summary>

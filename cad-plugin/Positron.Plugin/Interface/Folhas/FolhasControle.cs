@@ -353,7 +353,7 @@ namespace Positron.Plugin.Interface.Folhas
         {
             try
             {
-                return Positron.Data.Configuracao.ConfiguracaoPositron.Carregar().LarguraFixaPaginas;
+                return ConfiguracaoEfetiva.Carregar().LarguraFixaPaginas;
             }
             catch (System.Exception)
             {
@@ -366,7 +366,7 @@ namespace Positron.Plugin.Interface.Folhas
         {
             try
             {
-                return Positron.Data.Configuracao.ConfiguracaoPositron.Carregar().PassoPagina;
+                return ConfiguracaoEfetiva.Carregar().PassoPagina;
             }
             catch (System.Exception)
             {

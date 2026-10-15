@@ -473,15 +473,11 @@ namespace Positron.Plugin
 #if !POSITRON_SEM_WINFORMS
             try
             {
-                ConfiguracaoPositron atual = ConfiguracaoPositron.Carregar();
-
                 // O reverso guarda a configuração geral no **desenho**, não no banco: a tela abre com
-                // o que o XData `Eletron`/`Config` tem (o `LerXDataConfiguracao` do `IniciarDWG`).
+                // o que o XData `Eletron`/`Config` tem (o `LerXDataConfiguracao` do `IniciarDWG`),
+                // com o ambiente por cima (padrão < arquivo < desenho < ambiente).
                 ConfiguracaoDoCaderno doDesenho = Configuracao.ConfiguracaoDoDesenho.Ler();
-                if (doDesenho != null)
-                {
-                    doDesenho.AplicarEm(atual);
-                }
+                ConfiguracaoPositron atual = ConfiguracaoEfetiva.Carregar(doDesenho);
 
                 using (Configuracao.FormularioConfiguracao tela = new Configuracao.FormularioConfiguracao(atual))
                 {
@@ -547,7 +543,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarFiacao(string revisao = null)
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -658,7 +654,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarJumper(string revisao = null)
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -991,7 +987,7 @@ namespace Positron.Plugin
         {
             try
             {
-                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+                ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
                 string linha = "PASSO: passo do caderno = " + config.PassoPagina;
 
                 string novo = pedido ?? System.Environment.GetEnvironmentVariable("POSITRON_PASSO_PAGINA");
@@ -1314,7 +1310,7 @@ namespace Positron.Plugin
         {
             try
             {
-                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+                ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
 
                 List<string> paginas = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
                 if (paginas.Count == 0)
@@ -1430,7 +1426,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarPlaquetas()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -1503,7 +1499,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarListaDeMateriais()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -2498,7 +2494,7 @@ namespace Positron.Plugin
         {
             try
             {
-                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+                ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
                 if (string.IsNullOrEmpty(config.Banco))
                 {
                     return "CorrigeCabos: defina POSITRON_DB_PATH — esta correção é no banco do projeto.";
@@ -2650,7 +2646,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarIndefinirCabos()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -2694,7 +2690,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarInterligacao(string revisao = null)
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -2800,7 +2796,7 @@ namespace Positron.Plugin
         [CommandMethod("VERIF")]
         public void Verif()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -2893,7 +2889,7 @@ namespace Positron.Plugin
         [CommandMethod("ELETREL")]
         public void EletRel()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -2930,7 +2926,7 @@ namespace Positron.Plugin
         public void EletCmp()
         {
 #if !POSITRON_SEM_WINFORMS
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             if (string.IsNullOrEmpty(config.Banco))
             {
                 Plugin.Escrever("ELETCMP: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).");
@@ -3489,7 +3485,7 @@ namespace Positron.Plugin
         /// </summary>
         private static ColunaPagina LerColunaPagina()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             return new ColunaPagina(
                 PaginasDoDesenho.Ler(),
                 config.IncluirColuna,
@@ -3625,7 +3621,7 @@ namespace Positron.Plugin
         [CommandMethod("SYNCV")]
         public void SincV()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
 
             if (config.InterligacaoLayout == 1)
             {
@@ -3656,7 +3652,7 @@ namespace Positron.Plugin
         {
             try
             {
-                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+                ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
                 if (string.IsNullOrEmpty(config.Banco))
                 {
                     return "CBD: defina POSITRON_DB_PATH — a compactação é no banco do projeto.";
@@ -3722,7 +3718,7 @@ namespace Positron.Plugin
         [CommandMethod("RESTPROJ")]
         public void RestaurarProjeto()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
 
             if (config.InterligacaoLayout == 1)
             {
@@ -3760,7 +3756,7 @@ namespace Positron.Plugin
         [CommandMethod("RECRIACABOS")]
         public void RecriarCabosPeloLayout()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
 
             if (Positron.Data.Configuracao.LayoutDaInterligacao.EhEletrosul(config.InterligacaoLayout))
             {

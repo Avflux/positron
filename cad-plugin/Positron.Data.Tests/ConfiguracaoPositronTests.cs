@@ -196,5 +196,32 @@ namespace Positron.Data.Tests
             Assert.Equal("}", lida.SufixoCruzLogFunc);
             Assert.Equal(3, lida.VisualizacaoModelosRele);
         }
+
+        [Fact]
+        public void Desenho_vence_o_arquivo_e_o_ambiente_vence_o_desenho()
+        {
+            ConfiguracaoDoCaderno desenho = ConfiguracaoDoCaderno.Padrao();
+            desenho.Local = "DO_DESENHO";
+            desenho.PrefixoCruzInterno = "{";
+            desenho.CorConexao = 3;
+
+            string conteudo = "local=DO_ARQUIVO\nprefixoCruzInterno=(\ncorFiacaoConexao=1\ndwg=7\n";
+            Dictionary<string, string> ambiente = Ambiente("POSITRON_LOCAL", "DO_AMBIENTE");
+
+            ConfiguracaoPositron lida = ConfiguracaoPositron.Ler(conteudo, ambiente, desenho);
+
+            Assert.Equal("DO_AMBIENTE", lida.Local);     // o ambiente vence o desenho
+            Assert.Equal("{", lida.PrefixoCruzInterno);  // o desenho vence o arquivo
+            Assert.Equal(3, lida.CorFiacaoConexao);      // idem
+            Assert.Equal(7, lida.Dwg);                   // campo só do arquivo fica
+        }
+
+        [Fact]
+        public void Sem_desenho_a_leitura_e_a_do_arquivo_e_ambiente()
+        {
+            ConfiguracaoPositron lida = ConfiguracaoPositron.Ler("local=DO_ARQUIVO\n", null, null);
+
+            Assert.Equal("DO_ARQUIVO", lida.Local);
+        }
     }
 }

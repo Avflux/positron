@@ -12,9 +12,9 @@ namespace Positron.Plugin.Configuracao
     /// (<c>frmConfiguracaoGeral</c>): abas <c>Banco de Dados</c>, <c>Bibliotecas</c> e <c>Geral</c>.
     ///
     /// Ela só **edita e grava** o arquivo: quem decide a configuração efetiva é
-    /// <see cref="ConfiguracaoPositron.Carregar()"/>, com a precedência
-    /// padrão &lt; arquivo &lt; ambiente — a variável de ambiente continua vencendo,
-    /// para o harness e a automação não dependerem de arquivo nenhum.
+    /// <see cref="ConfiguracaoEfetiva.Carregar()"/>, com a precedência
+    /// padrão &lt; arquivo &lt; desenho &lt; ambiente — a variável de ambiente continua
+    /// vencendo, para o harness e a automação não dependerem de arquivo nem de desenho.
     ///
     /// Como no reverso, o desenho também carrega a configuração geral no XData
     /// (<c>Eletron</c>/<c>Config</c>): o comando <c>ELETCFG</c> abre a tela com o que o

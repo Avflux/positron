@@ -11,11 +11,13 @@ namespace Positron.Data.Configuracao
     /// (<c>frmCompilar*</c>) e o recoder, até aqui, só aceitava por variável de
     /// ambiente (<c>POSITRON_*</c>).
     ///
-    /// **Precedência: padrão &lt; arquivo &lt; ambiente.** A variável de ambiente vence
-    /// porque é o caminho da automação (o harness do ZWCAD e os testes montam o
+    /// **Precedência: padrão &lt; arquivo &lt; desenho &lt; ambiente.** A variável de ambiente
+    /// vence porque é o caminho da automação (o harness do ZWCAD e os testes montam o
     /// cenário por variável); o arquivo é o caminho do usuário, gravado pela tela de
-    /// configuração. Assim a UI acrescenta persistência sem quebrar nada do que já
-    /// funciona.
+    /// configuração; e o **desenho** (o XData <c>Eletron</c>/<c>Config</c>, ver
+    /// <see cref="ConfiguracaoDoCaderno"/>) vence o arquivo porque no original a
+    /// configuração geral é do desenho — o <c>IniciarDWG</c> relê o XData ao abrir. Assim
+    /// a UI acrescenta persistência sem quebrar nada do que já funciona.
     ///
     /// O arquivo é um <c>.ini</c> simples (<c>chave=valor</c>, uma por linha), lido e
     /// escrito sem dependência externa. Linha malformada é ignorada e valor inválido
@@ -298,7 +300,7 @@ namespace Positron.Data.Configuracao
         {
             if (_cache == null)
             {
-                _cache = Carregar(ArquivoPadrao, Ambiente());
+                _cache = Carregar(ArquivoPadrao, VariaveisDeAmbiente());
             }
 
             return _cache;
@@ -307,13 +309,27 @@ namespace Positron.Data.Configuracao
         /// <summary>Carrega do arquivo indicado (se existir) e aplica o ambiente por cima.</summary>
         public static ConfiguracaoPositron Carregar(string arquivo, IDictionary<string, string> ambiente)
         {
-            ConfiguracaoPositron configuracao = Padrao();
+            return Carregar(arquivo, ambiente, null);
+        }
 
+        /// <summary>
+        /// A leitura efetiva do recoder: **padrão &lt; arquivo &lt; desenho &lt; ambiente**.
+        ///
+        /// O <paramref name="desenho"/> é o que o desenho carrega no XData
+        /// (<see cref="ConfiguracaoDoCaderno"/> — o app <c>Eletron</c>/<c>Config</c> que o
+        /// <c>IniciarDWG</c> do reverso relê ao abrir): ele vence o arquivo porque a
+        /// configuração do original é **do desenho**, e o ambiente vence os dois porque é o
+        /// caminho da automação (o harness monta o cenário por <c>POSITRON_*</c>). Só os campos
+        /// que o desenho traz entram — o resto do arquivo fica.
+        /// </summary>
+        public static ConfiguracaoPositron Carregar(string arquivo, IDictionary<string, string> ambiente, ConfiguracaoDoCaderno desenho)
+        {
+            string conteudo = null;
             if (!string.IsNullOrEmpty(arquivo) && File.Exists(arquivo))
             {
                 try
                 {
-                    Aplicar(configuracao, File.ReadAllLines(arquivo));
+                    conteudo = File.ReadAllText(arquivo);
                 }
                 catch (IOException)
                 {
@@ -321,8 +337,7 @@ namespace Positron.Data.Configuracao
                 }
             }
 
-            AplicarAmbiente(configuracao, ambiente);
-            return configuracao;
+            return Ler(conteudo, ambiente, desenho);
         }
 
         /// <summary>Zera o cache (usado depois de gravar a configuração).</summary>
@@ -400,10 +415,25 @@ namespace Positron.Data.Configuracao
         /// <summary>Lê o conteúdo (mesmo formato do arquivo). Exposto para teste.</summary>
         public static ConfiguracaoPositron Ler(string conteudo, IDictionary<string, string> ambiente)
         {
+            return Ler(conteudo, ambiente, null);
+        }
+
+        /// <summary>
+        /// Lê o conteúdo com a precedência completa: **conteúdo &lt; desenho &lt; ambiente**.
+        /// Exposto para testar o <see cref="Carregar(string, IDictionary{string, string}, ConfiguracaoDoCaderno)"/> sem
+        /// arquivo.
+        /// </summary>
+        public static ConfiguracaoPositron Ler(string conteudo, IDictionary<string, string> ambiente, ConfiguracaoDoCaderno desenho)
+        {
             ConfiguracaoPositron configuracao = Padrao();
             if (!string.IsNullOrEmpty(conteudo))
             {
                 Aplicar(configuracao, conteudo.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
+            }
+
+            if (desenho != null)
+            {
+                desenho.AplicarEm(configuracao);
             }
 
             AplicarAmbiente(configuracao, ambiente);
@@ -495,7 +525,11 @@ namespace Positron.Data.Configuracao
             }
         }
 
-        private static IDictionary<string, string> Ambiente()
+        /// <summary>
+        /// As variáveis <c>POSITRON_*</c> do processo, na forma que o <see cref="Carregar(string, IDictionary{string, string}, ConfiguracaoDoCaderno)"/>
+        /// aceita. Exposta para o plugin montar a leitura efetiva (arquivo + desenho + ambiente).
+        /// </summary>
+        public static IDictionary<string, string> VariaveisDeAmbiente()
         {
             Dictionary<string, string> ambiente = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (string nome in new[] { VariavelBanco, VariavelDwg, VariavelRevisao, VariavelLocal, VariavelLog, VariavelIncluirColuna, VariavelSeparador, VariavelRelatorio, VariavelOrdemListaBanco, VariavelCorTextoInterligacao, VariavelFonteCabos, VariavelSeparadorCaboVeia, VariavelSeparadorPainelRegua, VariavelPrefixoCruzInterno, VariavelSufixoCruzInterno, VariavelPassoPagina, VariavelLarguraFixaPaginas, VariavelInterligacaoLayout, VariavelCorInterligacao, VariavelEstiloLinha, VariavelEstiloLinhaEscala })

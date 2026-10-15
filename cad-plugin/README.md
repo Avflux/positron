@@ -172,9 +172,11 @@ anterior).
 `0..2` = layer cru, `3..5` = `Pagina.BuscaAlternativo` (o alternativo do layer, ou
 o próprio layer) e `6` = `(layer)` + separador + alternativo. A **matriz de
 páginas** vem do desenho (`PaginaMatrix`/`PaginasDoDesenho`), montada da
-`LayerTable` como o `Pagina.CarregaPaginas`. A configuração vem do ambiente —
-`POSITRON_INCLUIR_COLUNA` (padrão `0`) e `POSITRON_SEPARADOR_CRUZAMENTO` — porque
-o original a define na tela `frmConfiguracaoGeral`, que ainda não existe aqui.
+`LayerTable` como o `Pagina.CarregaPaginas`. A configuração vem do **desenho** (o
+XData `Eletron`/`Config` que a tela `ELETCFG` grava, como o `frmConfiguracaoGeral` do
+original), sobreposta pelo arquivo e pelo ambiente — `POSITRON_INCLUIR_COLUNA`
+(padrão `0`) e `POSITRON_SEPARADOR_CRUZAMENTO`; a leitura é o
+`ConfiguracaoEfetiva.Carregar()` (`padrão < arquivo < desenho < ambiente`).
 Vale para `Fiacao`, `Bornes4F`, `Dispositivos4F`, `Interligacao4` e `Bornes4I`.
 
 **Modelos (fases 8 e 9).** O `FIA` também gera **`Portas4F`**, **`Bornes4F`** e
