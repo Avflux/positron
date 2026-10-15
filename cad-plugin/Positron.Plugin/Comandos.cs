@@ -1000,6 +1000,113 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// <c>CAD</c> — o botão **CADERNO** da barra (o <c>Caderno.CriaCaderno</c> do reverso,
+        /// <c>Comandos.cs:107</c>): **cria ou troca o formato** do caderno.
+        ///
+        /// O caminho do desenho: se o desenho já tem um formato (o bloco com o XData
+        /// <c>DiagLog</c>/<c>Formato</c>), o original pergunta se é para substituir (a mMensagem
+        /// 75) e, confirmado, **captura** os atributos da referência, apaga a definição e as
+        /// referências do formato antigo e renomeia a capa para <c>"1"</c>; pede o DWG do formato
+        /// novo ("Selecione o formato:"), o insere como bloco na origem e **recria os atributos** —
+        /// os protegidos (<c>attProtCollection</c>) invisíveis e vazios, os demais com o valor
+        /// capturado (casado por página e tag, o <c>euxs3rkWO</c>), cada um perguntado no
+        /// <c>GetString</c> como no original; e restaura a capa.
+        ///
+        /// **Diálogos como o original.** Com <c>POSITRON_FORMATO</c> definido (a convenção
+        /// <c>POSITRON_*</c>) o comando **não** abre o diálogo de arquivo nem os prompts: usa o
+        /// caminho, mantém os valores preservados (o "Enter" do original) e aceita a troca pela
+        /// variável <c>POSITRON_FORMATO_TROCAR=1</c>.
+        ///
+        /// **Fora do recorte, registrado:** a cadeia que o original roda depois de inserir o bloco
+        /// (recarregar as páginas, recriar os campos de cada página, os blocos de revisão e os
+        /// títulos) — está no XML doc do <c>TrocaDeFormatoDoDesenho</c>.
+        /// </summary>
+        [CommandMethod("CAD")]
+        public void Cad()
+        {
+            Plugin.Escrever(ExecutarTrocaDoFormato());
+        }
+
+        /// <summary>A troca (ou criação) do formato e a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarTrocaDoFormato()
+        {
+            try
+            {
+                string caminho = System.Environment.GetEnvironmentVariable("POSITRON_FORMATO");
+                bool modoScript = !string.IsNullOrEmpty(caminho);
+
+                if (Positron.Plugin.Paginas.TrocaDeFormatoDoDesenho.Existe())
+                {
+                    if (modoScript)
+                    {
+                        // A confirmação do MsgBox vira variável: sem ela o script não troca nada.
+                        if (System.Environment.GetEnvironmentVariable("POSITRON_FORMATO_TROCAR") != "1")
+                        {
+                            return "CAD: " + Positron.Data.Interface.MensagensDoReverso.SubstituirFormato
+                                + " — defina POSITRON_FORMATO_TROCAR=1 para trocar.";
+                        }
+                    }
+                    else if (!ConfirmarTrocaDoFormato())
+                    {
+                        return "CAD: troca do formato cancelada (o formato atual fica).";
+                    }
+                }
+
+                Positron.Plugin.Paginas.TrocaDeFormatoDoDesenho.Resultado resultado =
+                    Positron.Plugin.Paginas.TrocaDeFormatoDoDesenho.Trocar(caminho);
+
+                if (resultado.Cancelado)
+                {
+                    return "CAD: nenhum formato escolhido — nada foi trocado.";
+                }
+
+                if (resultado.NomeDoBloco == null)
+                {
+                    return "CAD: não foi possível ler o DWG do formato — nada foi trocado.";
+                }
+
+                string linha = "CAD: " + (resultado.TinhaFormato ? "formato trocado" : "formato criado")
+                    + " — bloco \"" + resultado.NomeDoBloco + "\""
+                    + (resultado.TinhaFormato
+                        ? " (definição \"" + resultado.DefinicaoApagada + "\" e "
+                            + resultado.ReferenciasApagadas + " referência(s) apagada(s))"
+                        : string.Empty)
+                    + "; " + resultado.AtributosCriados + " atributo(s) ("
+                    + resultado.AtributosPreservados + " preservado(s), "
+                    + resultado.AtributosProtegidos + " protegido(s)"
+                    + (resultado.AtributosPerguntados > 0 ? ", " + resultado.AtributosPerguntados + " perguntado(s)" : string.Empty)
+                    + ")"
+                    + (string.IsNullOrEmpty(resultado.CapaRestaurada)
+                        ? string.Empty
+                        : "; capa \"" + resultado.CapaRestaurada + "\" passou por \"1\" e voltou")
+                    + ".";
+
+                return linha;
+            }
+            catch (System.Exception erro)
+            {
+                return "CAD: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+        /// <summary>
+        /// O <c>MsgBox</c> Yes/No do original (a mMensagem 75, sem título). Compilado sem WinForms a
+        /// troca é recusada — não há como confirmar (o mesmo caminho do <c>ELETCFG</c>).
+        /// </summary>
+        private static bool ConfirmarTrocaDoFormato()
+        {
+#if !POSITRON_SEM_WINFORMS
+            return System.Windows.Forms.MessageBox.Show(
+                Positron.Data.Interface.MensagensDoReverso.SubstituirFormato,
+                string.Empty,
+                System.Windows.Forms.MessageBoxButtons.YesNo,
+                System.Windows.Forms.MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes;
+#else
+            return false;
+#endif
+        }
+
         [CommandMethod("NOVAPAGINA")]
         public void NovaPagina()
         {

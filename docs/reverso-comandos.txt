@@ -27,7 +27,7 @@ passa argumento (`new frmRelatorio_DICemig(3)`), entao aquele comando e uma vari
 | `AtualizaOpcionaisDoCabo` |  | - | nao | nao | sim | `val5 != null` `flag` `(tipo == 3) | (tipo == 4) | (tipo == 5) | (tipo == 6)` `pl != null` `XDataInterligacao.lerXDataInterligacao(ref pl, ref ilig)` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) != 0` `Operators.CompareString(left, "", TextCompare: true) == 0` `ilig.NumVeia == -1000` `ilig.NumVeia == -1000` `Operators.CompareString(text3, "", TextCompare: true) == 0` `Operators.CompareString(text, "", TextCompare: true) == 0` `num == 100` | `clsUtilitarios.cs:1123` |
 | `BLI` |  | - | nao | nao | nao |  | `Comandos.cs:802` |
 | `BORN` | `frmBornes` | `new frmBornes()` | sim | nao | nao |  | `Comandos.cs:441` |
-| `CAD` |  | - | nao | nao | nao |  | `Comandos.cs:107` |
+| `CAD` |  | - | nao | nao | sim |  | `Comandos.cs:107` |
 | `CBD` |  | - | nao | nao | sim |  | `Comandos.cs:1248` |
 | `CFG` | `frmConfiguracaoGeral` | `new frmConfiguracaoGeral()` | sim | nao | nao |  | `Comandos.cs:95` |
 | `CHVAUT` |  | - | nao | nao | nao |  | `Comandos.cs:312` |

@@ -73,6 +73,22 @@ namespace Positron.Data.Interface
         /// <summary>Os formatos de folha do combo `Folha` do menu (literais do designer).</summary>
         public static readonly string[] FormatosDeFolha = { "12", "012", "0012", "00012", "000012", "0000012" };
 
+        /// <summary>
+        /// Os textos da **troca do formato** (o <c>Caderno.CriaCaderno</c>, o botão CADERNO da barra,
+        /// comando <c>CAD</c>): o diálogo de abrir o DWG (70/71), os prefixos do prompt de cada
+        /// atributo (<c>CAPA-&gt;</c>/<c>CORPO-&gt;</c>, 73/74) e a confirmação de substituir o formato
+        /// que já existe (75).
+        /// </summary>
+        public const string SelecioneOFormato = "Selecione o formato:";
+
+        public const string SelecioneUmFormato = "Selecione um formato";
+
+        public const string Capa = "CAPA->";
+
+        public const string Corpo = "CORPO->";
+
+        public const string SubstituirFormato = "Deseja substituir o formato atual?";
+
         /// <summary>Rótulos de botões da barra do original que caem em comandos que temos (Ribbon.cs).</summary>
         public const string BotaoGerDwg = "GER DWG";
 

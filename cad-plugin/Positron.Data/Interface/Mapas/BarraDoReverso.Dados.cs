@@ -26,7 +26,7 @@ namespace Positron.Data.Interface.Mapas
                     new ItemDaBarra[]
                     {
                         new ItemDaBarra(TipoDoItemDaBarra.Linha, "", "", "", "", "", "", 0, false, 269, false, false,
-                            new ItemDaBarra(TipoDoItemDaBarra.Botao, "IconeGrande", "CADERNO", "CAD", "Caderno_32", "", "Cria ou troca o formato", 0, false, 229, false, false),
+                            new ItemDaBarra(TipoDoItemDaBarra.Botao, "IconeGrande", "CADERNO", "CAD", "Caderno_32", "", "Cria ou troca o formato", 0, false, 229, true, false),
                             new ItemDaBarra(TipoDoItemDaBarra.QuebraDeLinha, "", "", "", "", "", "", 0, false, 271, false, false),
                             new ItemDaBarra(TipoDoItemDaBarra.Botao, "IconeGrande", "GER DWG", "GERDWG", "Database_Preto_32", "Database_Branco_32", "Gerenciador de DWGs", 0, false, 239, true, true)),
                         new ItemDaBarra(TipoDoItemDaBarra.Linha, "", "", "", "", "", "", 0, false, 273, false, false,
