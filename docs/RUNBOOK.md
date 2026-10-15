@@ -788,6 +788,15 @@ cp $BIN/Positron.Contract.dll $BIN/Positron.Data.dll $BIN/Positron.Data.Tests.dl
 (cd $DEST && TEMP='C:\Users\<voce>\AppData\Local\Temp' ./xunit.console.exe Positron.Data.Tests.dll)
 ```
 
+**A raiz do `loadFromRemoteSources` (rodada 168).** O `NETLOAD` que morre com `FileLoadException ...
+0x80131515` **dentro da árvore** tem correção na raiz, sem copiar a DLL: o switch
+`<loadFromRemoteSources enabled="true"/>` no `<runtime>` do `acad.exe.config` do AutoCAD. Nesta máquina
+ele foi aplicado (com o backup `acad.exe.config.positron-bak`) e **medido na interface cheia do AutoCAD
+2020**: o `NETLOAD` do caminho `...\Desktop\APP\positron\cad-plugin\...\Positron.Plugin.AutoCAD.dll`
+carrega (`Positron: DLL de ... — <o caminho da árvore>`, a barra monta com 9 painéis). O `-PastaLocal`
+do harness continua valendo como contorno sem mexer no CAD (e é obrigatório no `accoreconsole`, que tem
+o seu próprio `accoreconsole.exe.config`).
+
 Duas armadilhas da cópia: o runner precisa do `xunit.execution.desktop.dll` **na própria pasta** (ele
 não o resolve pela pasta do teste) e as DLLs do xunit no `bin` do teste são de versões **diferentes**
 (as 2.9.0 do adaptador) — copie as do runner **depois** das do teste, ou só as do `Positron.*`.
