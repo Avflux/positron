@@ -40,10 +40,11 @@ namespace Positron.Plugin.Paginas
     /// valor preservado, o "Enter" do original) e aceita a troca pela variável
     /// <c>POSITRON_FORMATO_TROCAR</c>.
     ///
-    /// **Fora do recorte, registrado:** a cadeia que o original roda **depois** de inserir o bloco
-    /// — o <c>CarregaPaginas</c>/<c>criaCamposFormato</c> de cada página, a criação dos blocos de
-    /// revisão (<c>verificaCriaBlocoRevisao</c>) e o <c>AtualizaTitulos</c>/<c>AtualizaRevSimplificada</c>
-    /// — e o <c>attsync</c> por referência. A troca em si (o que o botão faz) entra inteira.
+    /// **A cadeia pós-troca** — o <c>ApagarCamposPaginas</c>, o <c>criaCamposTOT</c>, o
+    /// <c>criaCamposFormato</c> de cada página, as definições de revisão, o <c>AtualizaTitulos</c> e
+    /// o <c>AtualizaContTotFl</c> — está em <see cref="RestauracaoDoFormatoDoDesenho"/>. Ficam
+    /// **fora, com o motivo:** o <c>TrocaColunas</c>, o <c>AtualizaRevSimplificada</c>, o
+    /// <c>attsync</c> por referência e a página ativa/paleta do fim do <c>CriaCaderno</c>.
     /// </summary>
     internal static class TrocaDeFormatoDoDesenho
     {

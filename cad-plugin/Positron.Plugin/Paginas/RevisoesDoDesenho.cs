@@ -582,6 +582,95 @@ namespace Positron.Plugin.Paginas
             return maior == null ? 0 : maior.Revisao.Posicao;
         }
 
+        /// <summary>
+        /// A parte da revisão da **cadeia pós-troca do formato**: recria as definições
+        /// <c>Revisao_Capa{n}</c>/<c>Revisao_Corpo{n}</c> a partir do bloco de formato novo (o
+        /// <c>verificaCriaBlocoRevisao</c>, que o original chama dentro do <c>CriaCaderno</c>) e apaga
+        /// as definições além do que o formato admite (o <c>ApagaDefinicaoReferencias("Revisao_Capa"+l)</c>
+        /// de <c>maxCapa..7</c> e o irmão do corpo). Devolve as posições que o formato define.
+        /// </summary>
+        internal static PosicoesDoFormato CriarDefinicoesDoFormato(out int definicoes, out int apagadas)
+        {
+            definicoes = 0;
+            apagadas = 0;
+            PosicoesDoFormato posicoes = new PosicoesDoFormato();
+
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            if (documento == null)
+            {
+                return posicoes;
+            }
+
+            Database banco = documento.Database;
+            using (Transaction transacao = banco.TransactionManager.StartTransaction())
+            {
+                BlockTable tabela = (BlockTable)transacao.GetObject(banco.BlockTableId, OpenMode.ForRead);
+                BlockTableRecord espaco = (BlockTableRecord)transacao.GetObject(
+                    tabela[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
+
+                string capaLayer = LayerDaCapa(transacao, banco);
+                BlockReference formato = FormatoDoDesenho.Encontrar(transacao, espaco);
+                if (formato != null && capaLayer.Length > 0)
+                {
+                    List<AtributoDeFormato> atributos = FormatoDoDesenho.Atributos(transacao, tabela, formato);
+                    posicoes = DefinicoesDeRevisao.Contar(ParaTags(atributos), capaLayer);
+                    int referencias;
+                    definicoes = CriarDefinicoes(transacao, tabela, atributos, capaLayer, posicoes, out referencias);
+
+                    // As posições além do formato admitido saem (o `for l = maxCapa To 7` do original).
+                    for (int l = posicoes.Capa; l <= 7; l++)
+                    {
+                        apagadas += ApagarDefinicao(transacao, tabela, "Revisao_Capa" + l);
+                    }
+
+                    for (int m = posicoes.Corpo; m <= 7; m++)
+                    {
+                        apagadas += ApagarDefinicao(transacao, tabela, "Revisao_Corpo" + m);
+                    }
+                }
+
+                transacao.Commit();
+            }
+
+            return posicoes;
+        }
+
+        /// <summary>
+        /// Apaga a definição e as referências dela (o <c>ApagaDefinicaoReferencias</c>). Devolve
+        /// quantas referências saíram; <c>0</c> quando não havia definição.
+        /// </summary>
+        private static int ApagarDefinicao(Transaction transacao, BlockTable tabela, string nome)
+        {
+            if (tabela == null || string.IsNullOrEmpty(nome) || !tabela.Has(nome))
+            {
+                return 0;
+            }
+
+            BlockTableRecord definicao = transacao.GetObject(tabela[nome], OpenMode.ForWrite) as BlockTableRecord;
+            if (definicao == null)
+            {
+                return 0;
+            }
+
+            int referencias = 0;
+            ObjectIdCollection ids = definicao.GetBlockReferenceIds(true, true);
+            if (ids != null)
+            {
+                foreach (ObjectId id in ids)
+                {
+                    DBObject objeto = transacao.GetObject(id, OpenMode.ForWrite, false, true);
+                    if (objeto != null)
+                    {
+                        objeto.Erase();
+                        referencias++;
+                    }
+                }
+            }
+
+            definicao.Erase(true);
+            return referencias;
+        }
+
         /// <summary>O layer da capa do caderno — o primeiro layer da tabela que o <c>checaCapa</c> aceita.</summary>
         private static string LayerDaCapa(Transaction transacao, Database banco)
         {

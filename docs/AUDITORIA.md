@@ -39,6 +39,8 @@ as telas alcançadas subiram para **107** e a barra passou a ter 123 acionáveis
 
 A rodada 170 ligou o **`CAD`** (o item **CADERNO** da barra, "cria ou troca o formato") — o `Caderno.CriaCaderno` do original: a regra pura `TrocaDeFormato` e o adapter `TrocaDeFormatoDoDesenho`, com os diálogos do original e o caminho de script `POSITRON_FORMATO`. Isso levou os **escritos à mão** de 73 para **74** (52 do reverso) e os comandos do reverso **sem nada** de 51 para **50** (49 de regra pura), além dos acionáveis cobertos da barra de **123** para **124** (o painel Caderno de 8 para 9).
 
+A rodada 173 fechou a **cadeia pós-troca do formato** do `CAD` — o `ApagarCamposPaginas`/`criaCamposTOT`/`criaCamposFormato` de cada página, as definições de revisão, os títulos e o `AtualizaContTotFl` (a regra pura `CamposDoFormato` e o adapter `RestauracaoDoFormatoDoDesenho`). Não mexe nas contagens desta seção: o `CAD` já estava coberto; o que entra é o comportamento do passo seguinte. **Fora, com o motivo:** o `TrocaColunas`, o `AtualizaRevSimplificada` e o `attsync` por referência.
+
 A rodada 159 ligou **duas** das **38** telas `frmRelatorio_*` — a **Lista de Veias** (`LVEI`) e a **Lista
 de Materiais** (`EXPLM`), cuja regra o app já tinha desde as rodadas 65–68 —, levando as telas com
 regra de **12** para **14** de 127. Não mexe nas contagens de comandos desta seção: os dois comandos já

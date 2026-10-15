@@ -114,7 +114,8 @@ namespace Positron.Plugin.Paginas
                 if (formato != null)
                 {
                     resultado.TemFormato = true;
-                    resultado.CamposCopiados = CopiarCampos(transacao, banco, espaco, formato, resultado.Nome);
+                    resultado.CamposCopiados = CopiarCampos(
+                        transacao, banco, espaco, formato, LayerDeReferencia, resultado.Nome);
                 }
 
                 transacao.Commit();
@@ -133,12 +134,18 @@ namespace Positron.Plugin.Paginas
             return resultado;
         }
 
-        /// <summary>Os oito campos do formato viram <c>DBText</c> no layer da página (o <c>criaCamposFormato</c>).</summary>
-        private static int CopiarCampos(
+        /// <summary>
+        /// Os oito campos do formato viram <c>DBText</c> no layer da página (o <c>criaCamposFormato</c>).
+        /// O <paramref name="layerRef"/> é o layer do atributo que serve de modelo: o <c>-1</c> nas
+        /// páginas normais e o **nome da capa** na capa (o <c>retornaNumeroCapa()</c> do original),
+        /// que é o que a cadeia pós-troca do formato passa.
+        /// </summary>
+        internal static int CopiarCampos(
             Transaction transacao,
             Database banco,
             BlockTableRecord espaco,
             BlockReference formato,
+            string layerRef,
             string layer)
         {
             int copiados = 0;
@@ -152,7 +159,7 @@ namespace Positron.Plugin.Paginas
                     continue;
                 }
 
-                if (!string.Equals(atributo.Layer, LayerDeReferencia, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(atributo.Layer, layerRef, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -175,7 +182,7 @@ namespace Positron.Plugin.Paginas
         }
 
         /// <summary>O <c>dtepniSZGL6</c> do original: o atributo vira um <c>DBText</c> com a mesma forma.</summary>
-        private static DBText Clonar(AttributeReference atributo, string conteudo, string layer)
+        internal static DBText Clonar(AttributeReference atributo, string conteudo, string layer)
         {
             DBText texto = new DBText
             {

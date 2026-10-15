@@ -1031,9 +1031,9 @@ namespace Positron.Plugin
         /// caminho, mantém os valores preservados (o "Enter" do original) e aceita a troca pela
         /// variável <c>POSITRON_FORMATO_TROCAR=1</c>.
         ///
-        /// **Fora do recorte, registrado:** a cadeia que o original roda depois de inserir o bloco
-        /// (recarregar as páginas, recriar os campos de cada página, os blocos de revisão e os
-        /// títulos) — está no XML doc do <c>TrocaDeFormatoDoDesenho</c>.
+        /// **A cadeia pós-troca** (recarregar as páginas, recriar os campos de cada uma, os blocos de
+        /// revisão, os títulos e o <c>CONT</c>/<c>FL</c>/<c>TOT</c>/<c>ALTERNATIVO</c>) roda depois da
+        /// inserção do bloco, em <c>RestauracaoDoFormatoDoDesenho</c>.
         /// </summary>
         [CommandMethod("CAD")]
         public void Cad()
@@ -1066,6 +1066,11 @@ namespace Positron.Plugin
                     }
                 }
 
+                // Os títulos das páginas são capturados **antes** da troca (o `capturaTitulos` do
+                // original) e devolvidos depois, quando a cadeia recria os campos (o `AtualizaTitulos`).
+                System.Collections.Generic.Dictionary<string, Positron.Data.Paginas.TitulosDaPagina> titulos =
+                    CapturarTitulos();
+
                 Positron.Plugin.Paginas.TrocaDeFormatoDoDesenho.Resultado resultado =
                     Positron.Plugin.Paginas.TrocaDeFormatoDoDesenho.Trocar(caminho);
 
@@ -1078,6 +1083,12 @@ namespace Positron.Plugin
                 {
                     return "CAD: não foi possível ler o DWG do formato — nada foi trocado.";
                 }
+
+                // A cadeia que o original roda depois de inserir o bloco (o resto do `CriaCaderno`):
+                // recarrega as páginas, recria os campos, refaz a revisão, restaura os títulos e
+                // regrava a configuração do desenho.
+                Positron.Plugin.Paginas.RestauracaoDoFormatoDoDesenho.Resultado cadeia =
+                    Positron.Plugin.Paginas.RestauracaoDoFormatoDoDesenho.Executar(titulos, resultado.TinhaFormato);
 
                 string linha = "CAD: " + (resultado.TinhaFormato ? "formato trocado" : "formato criado")
                     + " — bloco \"" + resultado.NomeDoBloco + "\""
@@ -1093,6 +1104,13 @@ namespace Positron.Plugin
                     + (string.IsNullOrEmpty(resultado.CapaRestaurada)
                         ? string.Empty
                         : "; capa \"" + resultado.CapaRestaurada + "\" passou por \"1\" e voltou")
+                    + "; cadeia: " + cadeia.CamposApagados + " campo(s) apagado(s), "
+                    + cadeia.CamposTot + " TOT, " + cadeia.CamposCriados + " campo(s) em " + cadeia.Paginas
+                    + " página(s), " + cadeia.Definicoes + " definição(ões) de revisão ("
+                    + cadeia.DefinicoesApagadas + " apagada(s)), " + cadeia.ContTotFl
+                    + " CONT/FL/TOT/ALTERNATIVO, " + cadeia.Titulos + " título(s)"
+                    + "; maxCapa " + cadeia.MaxCapa + "/maxCorpo " + cadeia.MaxCorpo
+                    + (cadeia.ConfigGravada ? " (configuração regravada)" : "")
                     + ".";
 
                 return linha;
@@ -1101,6 +1119,23 @@ namespace Positron.Plugin
             {
                 return "CAD: falhou — " + DescreverErro(erro) + ".";
             }
+        }
+
+        /// <summary>
+        /// Captura os títulos de todas as páginas (o <c>capturaTitulos</c> do original) — o que a
+        /// cadeia pós-troca devolve nos campos novos com o <c>AtualizaTitulos</c>.
+        /// </summary>
+        private static System.Collections.Generic.Dictionary<string, Positron.Data.Paginas.TitulosDaPagina> CapturarTitulos()
+        {
+            System.Collections.Generic.Dictionary<string, Positron.Data.Paginas.TitulosDaPagina> titulos =
+                new System.Collections.Generic.Dictionary<string, Positron.Data.Paginas.TitulosDaPagina>(
+                    System.StringComparer.OrdinalIgnoreCase);
+            foreach (string pagina in Positron.Plugin.Paginas.PaginasDoDesenho.Ler())
+            {
+                titulos[pagina] = Positron.Plugin.Paginas.TitulosDaPaginaDoDesenho.Ler(pagina);
+            }
+
+            return titulos;
         }
 
         /// <summary>

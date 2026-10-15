@@ -983,6 +983,24 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 173 — a cadeia pós-troca do formato (o `CAD`, o resto do `Caderno.CriaCaderno`), medida no AutoCAD 2020.**
+A rodada 170 entregou a **troca em si** e deixou a **cadeia que o original roda depois de inserir o bloco** fora, com o motivo (o XML doc do `TrocaDeFormatoDoDesenho`). É o que entra agora:
+
+- **Regra pura** (`Positron.Data/Paginas/CamposDoFormato.cs`): o que o `ApagarCamposPaginas` apaga (todo texto com o XData do título, o `LeXDataTitulo > 0`); o campo `TOT` do `criaCamposTOT` (o atributo protegido de tag `TOT`, texto `"1"`, índice 7); e o valor do `AtualizaContTotFl` por **índice** — 9=ALTERNATIVO (o alternativo da página), 5=CONT (a próxima página válida), 6=FL (o layer), 7=TOT (a última página) —, com o `Conf.incluirColuna` em 3..5 trocando a página pelo **alternativo** dela quando existe (o ramo `BuscaAlternativo(text, true)` do original).
+- **Adapter** (`Positron.Plugin/Paginas/RestauracaoDoFormatoDoDesenho.cs`): depois da inserção do bloco, apaga os campos antigos, recria o `TOT` e os **oito campos** de cada página (o `CriacaoDePaginaDoDesenho.CopiarCampos`, agora com o `layerRef` — a **capa** na capa e o `-1` nas demais), refaz as definições `Revisao_Capa{n}`/`Revisao_Corpo{n}` e apaga as que sobram (`RevisoesDoDesenho.CriarDefinicoesDoFormato`, o `for l = maxCapa To 7`), restaura os **títulos** capturados antes da troca (`TitulosDaPaginaDoDesenho`) e regrava o `maxCapa`/`maxCorpo` no XData da configuração (`ConfiguracaoDoDesenho`). O comando `CAD` captura os títulos antes do `Trocar`, e a revisão/os títulos só rodam quando o desenho **já tinha** formato (o `flag2` do original).
+- **Fora, com o motivo:** o `TrocaColunas` (as colunas de cruzamento), o `AtualizaRevSimplificada`, o `attsync` por referência e a página ativa/paleta do fim do `CriaCaderno`.
+
+**Verificação:** `plugin:test` **849** (+8, `CamposDoFormatoTests`), as duas builds **0 avisos**; **medido no AutoCAD 2020** (`Funcional.dwg`, DWG 63) com a fixture nova `scripts/cad-fixture-formato.lsp` (exporta a definição do formato do próprio desenho por `_.-WBLOCK`, e o `CAD` a usa como formato novo):
+
+```
+CAD: formato trocado — bloco "formato173" (definição "A3_PADRÃO_ELB" e 1 referência(s) apagada(s));
+30 atributo(s) (15 preservado(s), 13 protegido(s)); cadeia: 77 campo(s) apagado(s), 0 TOT,
+77 campo(s) em 16 página(s), 1 definição(ões) de revisão (0 apagada(s)), 16 CONT/FL/TOT/ALTERNATIVO,
+45 título(s); maxCapa 1/maxCorpo 0.
+```
+
+Com o `Revisao.dwg` como formato (que não tem os campos de página), a cadeia apaga os 77 campos do formato antigo e **não** recria nenhum (`0 campo(s) em 0 página(s)`), apaga 1 definição e regrava a configuração com `maxCapa 0/maxCorpo 0` — o outro lado do ramo.
+
 **Rodada 170 — o botão CADERNO: "cria ou troca o formato" (o comando `CAD`), a peça que faltava no painel Caderno da barra.**
 O item `CADERNO` da barra estava **desativado**: o `BarraDoReverso.Dados.cs` o gerou como `Coberto = false` (nenhum `[CommandMethod("CAD")]` no plugin) e o `Utilizavel` do `ItemDaBarra` só liga com `TemComando && Coberto && !Desativado`. O original (`Caderno.CriaCaderno`, `Comandos.cs:107`) é a **troca do formato** do caderno — e é o que entra:
 
