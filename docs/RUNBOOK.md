@@ -974,6 +974,13 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 162 — testes das chaves da Configuração Geral.**
+`ConfiguracaoPositronTests` ganha dois testes: `Padrao_da_tela_geral_segue_as_capturas_do_original`
+(os valores padrão da tela) e `As_chaves_da_tela_geral_sobrevivem_ao_round_trip` (as 19 chaves com
+valores não padrão, gravadas com `Texto()` e lidas de volta com `Ler`). Suíte do plugin pelo xunit
+console no `%TEMP%` (`pm161`): **800 total, 0 errors, 0 failed**. Com isso a persistência das chaves da
+tela tem teste próprio; o pipeline continua sem lê-las.
+
 **Rodada 161 — Configuração Geral (`ELETCFG`) em três abas, com as predefinições.**
 A tela `FormularioConfiguracao` passa a seguir as capturas do original: abas **Banco de Dados**
 (idioma, contatos auxiliares, nome do caderno, tipo de banco, banco do projeto, e DWG/revisão/log),

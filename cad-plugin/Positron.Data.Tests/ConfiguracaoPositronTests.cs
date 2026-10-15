@@ -127,5 +127,74 @@ namespace Positron.Data.Tests
             Assert.Equal("R9", configuracao.Revisao);
             Assert.Equal(3, configuracao.IncluirColuna);
         }
+
+        [Fact]
+        public void Padrao_da_tela_geral_segue_as_capturas_do_original()
+        {
+            ConfiguracaoPositron configuracao = ConfiguracaoPositron.Padrao();
+
+            Assert.Equal("pt", configuracao.Idioma);
+            Assert.Equal("IEC", configuracao.ContatosAuxiliares);
+            Assert.Equal("Access", configuracao.TipoBanco);
+            Assert.Equal("Eletronorte", configuracao.RepresentacaoCaboVeia);
+            Assert.Equal("?", configuracao.TerminalIndefinido);
+            Assert.Equal("-", configuracao.SeparadorCarimbo);
+            Assert.Equal(1.5, configuracao.AlturaCircuitos);
+            Assert.Equal(1.5, configuracao.AlturaReferenciaCruzada);
+            Assert.Equal(7, configuracao.CorFiacaoConexao);
+            Assert.Equal(7, configuracao.CorFiacaoTextoCircuito);
+            Assert.Equal("[", configuracao.PrefixoCruzLogFunc);
+            Assert.Equal("]", configuracao.SufixoCruzLogFunc);
+            Assert.Equal(0, configuracao.VisualizacaoModelosRele);
+        }
+
+        [Fact]
+        public void As_chaves_da_tela_geral_sobrevivem_ao_round_trip()
+        {
+            ConfiguracaoPositron original = new ConfiguracaoPositron
+            {
+                Idioma = "en",
+                ContatosAuxiliares = "ANSI",
+                TipoBanco = "SQL Server",
+                SimbologiaEletrica = @"C:\lib\eletrica",
+                SimbologiaTopografico = @"C:\lib\topo",
+                SimbologiaLayout = @"C:\lib\layout",
+                SimbologiaRelatorios = @"C:\lib\rel",
+                RepresentacaoCaboVeia = "Enel-SP",
+                TerminalIndefinido = "#",
+                SeparadorCarimbo = "_",
+                AlturaCircuitos = 2.25,
+                AlturaReferenciaCruzada = 1.75,
+                CorFiacaoConexao = 3,
+                CorFiacaoTextoCircuito = 5,
+                PrefixoCruzFuncFunc = "<",
+                SufixoCruzFuncFunc = ">",
+                PrefixoCruzLogFunc = "{",
+                SufixoCruzLogFunc = "}",
+                VisualizacaoModelosRele = 3,
+            };
+
+            ConfiguracaoPositron lida = ConfiguracaoPositron.Ler(original.Texto(), null);
+
+            Assert.Equal("en", lida.Idioma);
+            Assert.Equal("ANSI", lida.ContatosAuxiliares);
+            Assert.Equal("SQL Server", lida.TipoBanco);
+            Assert.Equal(@"C:\lib\eletrica", lida.SimbologiaEletrica);
+            Assert.Equal(@"C:\lib\topo", lida.SimbologiaTopografico);
+            Assert.Equal(@"C:\lib\layout", lida.SimbologiaLayout);
+            Assert.Equal(@"C:\lib\rel", lida.SimbologiaRelatorios);
+            Assert.Equal("Enel-SP", lida.RepresentacaoCaboVeia);
+            Assert.Equal("#", lida.TerminalIndefinido);
+            Assert.Equal("_", lida.SeparadorCarimbo);
+            Assert.Equal(2.25, lida.AlturaCircuitos);
+            Assert.Equal(1.75, lida.AlturaReferenciaCruzada);
+            Assert.Equal(3, lida.CorFiacaoConexao);
+            Assert.Equal(5, lida.CorFiacaoTextoCircuito);
+            Assert.Equal("<", lida.PrefixoCruzFuncFunc);
+            Assert.Equal(">", lida.SufixoCruzFuncFunc);
+            Assert.Equal("{", lida.PrefixoCruzLogFunc);
+            Assert.Equal("}", lida.SufixoCruzLogFunc);
+            Assert.Equal(3, lida.VisualizacaoModelosRele);
+        }
     }
 }
