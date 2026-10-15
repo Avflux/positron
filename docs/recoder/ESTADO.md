@@ -4,15 +4,15 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-15, depois da rodada 176)
+## Estado (2026-10-15, depois da rodada 177)
 
 | | valor |
 |---|---|
-| última rodada | **176** |
+| última rodada | **177** |
 | comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
-| telas `frm*` do reverso | **127**; **16** com a ligação à regra; 19 que nenhum comando abre |
-| testes (`npm run plugin:test`) | **876** |
+| telas `frm*` do reverso | **127**; **17** com a ligação à regra; 19 que nenhum comando abre |
+| testes (`npm run plugin:test`) | **884** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
 | host CAD medido | ZWCAD 2026 (AutoCAD 2020 não instalado nesta máquina em 2026-10-15) |
@@ -28,13 +28,13 @@ Números de cobertura: `powershell -ExecutionPolicy Bypass -File scripts/cobertu
 | 3–9 — edição (réguas, dispositivos, fiação, cabos, materiais, exportação) | triadas (`PLANO.md` §7.6); portar comando a comando |
 | 10 — páginas e caderno | ✅ (cadeia do `CAD` fechada na 175) |
 | 11 — shell (arranque, paleta, barra, autoload) | ✅ |
-| 12 — as 127 telas | todas abrem; 16 com regra ligada |
+| 12 — as 127 telas | todas abrem; 17 com regra ligada |
 | relatórios (9b) · SQL Server (9c) · cadastro de DWGs | ⏳ decisão do dono |
 
 ## Fila (uma rodada por item, na ordem)
 
 1. **Telas só-casca mais baratas** cuja regra cabe numa rodada (lista: `cobertura-do-reverso.ps1 -Listas`):
-   `frmPesquisaVeiasIndefinidas` (`PESQC`), `frmTrocarChave` (`TCHAVE`),
+   `frmTrocarChave` (`TCHAVE`),
    `frmPesquisaCabos` (`PESQCAB`), `frmEditaTitulosTextos` (`TROCTT`), `frmEstatisticaDeCabos` (`ESTVCABOS`).
 2. **Seção e cor ativas da barra** (`ListaDeSecao`/`CampoDeCor`, `Ribbon.cs:971,2264`): o padrão dos
    prompts do `EDCON`/`EDCONP` (hoje fixo em `1,5`/`PT`) e do `INSM`/`CON` — saiu da rodada 176.
@@ -54,6 +54,7 @@ Números de cobertura: `powershell -ExecutionPolicy Bypass -File scripts/cobertu
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
+| 177 | 2026-10-15 | *(este)* | `PESQC`: veias indefinidas na grade, ir até a veia (página, zoom, realce) | `rodadas/177-pesquisa-veias-indefinidas.md` |
 | 176 | 2026-10-15 | `054b001a` | `EDCON`/`EDCONP`: seção e cor das conexões por seleção e por página, tela ligada | `rodadas/176-edicao-secao-cor-conexoes.md` |
 | 175 | 2026-10-15 | `5e067c41` | cadeia do `CAD` completa: `TrocaColunas`, `AtualizaRevSimplificada`, `attsync` | `RUNBOOK.md` (histórico) |
 | 174 | 2026-10-15 | `9e5135f9` | inserir/excluir página com `AtualizaContTotFl` e ativação segura | `RUNBOOK.md` (histórico) |

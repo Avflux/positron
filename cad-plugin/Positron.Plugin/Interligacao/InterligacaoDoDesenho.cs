@@ -68,6 +68,25 @@ namespace Positron.Plugin.Interligacao
             return trechos;
         }
 
+        /// <summary>
+        /// Todo XData válido do ModelSpace com o handle, o layer e o canto mínimo da caixa da
+        /// polyline (o <c>Bounds.MinPoint</c>), na ordem do ModelSpace — a leitura do
+        /// <c>carregaTodasAsVeiasIndefinidasDoCaderno</c> (a pesquisa de veias indefinidas).
+        /// </summary>
+        public static IReadOnlyList<TrechoNoDesenho> LerComPosicao()
+        {
+            List<TrechoNoDesenho> trechos = new List<TrechoNoDesenho>();
+            Varrer((linha, ilig) =>
+            {
+                Extents3d? caixa = linha.Bounds;
+                double x = caixa.HasValue ? caixa.Value.MinPoint.X : 0.0;
+                double y = caixa.HasValue ? caixa.Value.MinPoint.Y : 0.0;
+                trechos.Add(new TrechoNoDesenho(linha.Handle.ToString(), linha.Layer, x, y, ilig));
+            });
+
+            return trechos;
+        }
+
         private static void Varrer(Action<Polyline, InterligacaoXData> visitar)
         {
             Document documento = Application.DocumentManager.MdiActiveDocument;

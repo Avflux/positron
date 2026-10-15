@@ -24,3 +24,4 @@ fato que se mostrou errado é corrigido aqui, não empilhado.
 | tema | arquivo |
 |---|---|
 | `CONEXAO`/`AUXCONEXAO`, edição de seção e cor, `SetFocus` | `conexao.md` |
+| `INTERLIGACAO`: as duas cargas de veias indefinidas, a tela `PESQC` | `interligacao.md` |
