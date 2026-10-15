@@ -974,6 +974,27 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 161 — Configuração Geral (`ELETCFG`) em três abas, com as predefinições.**
+A tela `FormularioConfiguracao` passa a seguir as capturas do original: abas **Banco de Dados**
+(idioma, contatos auxiliares, nome do caderno, tipo de banco, banco do projeto, e DWG/revisão/log),
+**Bibliotecas** (quatro simbologias, cada uma com botão de pasta) e **Geral** (os botões **Configurar
+Padrão**, o cruzamento de páginas — o `IncluirColuna` 0..6 na ordem da tela —, caracteres, alturas,
+representação cabo/veia, cores, prefixos/sufixos e visualização de relés). Os valores das três
+predefinições saem do `frmConfiguracaoGeral.cs` decompilado (os handlers `t86y5UlFWX`, `QD0y0V9eIp` e
+`zYIyRqNngg`): só preenchem os campos da tela, e o arquivo só é gravado no **Salvar**, como no original.
+
+**19 chaves novas** no `positron.ini` (`ConfiguracaoPositron`), sem variável de ambiente, lidas pelo
+mesmo `Aplicar`: `idioma`, `contatosAuxiliares`, `tipoBanco`, quatro `simbologia*`,
+`representacaoCaboVeia`, `terminalIndefinido`, `separadorCarimbo`, `alturaCircuitos`,
+`alturaReferenciaCruzada`, `corFiacaoConexao`, `corFiacaoTextoCircuito`, os quatro
+`prefixo/sufixoCruzFuncFunc` e `...LogFunc`, e `visualizacaoModelosRele`. **Gravadas, mas o pipeline
+ainda não as lê** — só as chaves que já existiam mudam comportamento.
+
+**Verificação:** `dotnet build` do `Positron.Plugin` com 0 avisos e 0 erros. A suíte foi rodada pelo
+xunit console 2.9.2 (`.tmp-smoke/xunit`) **a partir de `%TEMP%`**, porque na pasta do repo no Desktop o
+runner dá `Acesso negado` (o caso descrito no troubleshooting): `Total: 798, Errors: 0, Failed: 0`.
+A tela e os cliques das predefinições **não** foram exercitados (modal, precisa do CAD).
+
 **Rodada 160 — o plugin não se desmontava: o `Terminate()` vazio e o pacote de autoload.**
 O dono apontou que ao **fechar o AutoCAD/ZWCAD** o plugin não é desmontado e a **barra continua montada** — "para teste isso não é legal", e que por ora bastava o que ele pediu: **remover a barra** e **montar só depois do `NETLOAD`** (em produção pode ficar como está). A investigação achou **quatro** coisas, e três delas eram medíveis:
 
