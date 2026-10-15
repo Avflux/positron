@@ -297,30 +297,25 @@ namespace Positron.Plugin.Paginas
                             continue;
                         }
 
-                        string tag = atributo.Tag.Trim().ToUpperInvariant();
-                        switch (tag)
+                        // As tags reais são REV0..REV7, DESC0..DESC7 etc. (o JdCp1GqFmnk do original).
+                        switch (RevisaoCompletaXData.CampoDoAtributo(atributo.Tag))
                         {
-                            case "REV":
-                            case "REVISAO":
+                            case "Revisao":
                                 atributo.TextString = nova.Revisao ?? string.Empty;
                                 break;
-                            case "DESC":
-                            case "DESCRICAO":
+                            case "Descricao":
                                 atributo.TextString = nova.Descricao ?? string.Empty;
                                 break;
-                            case "DATA":
+                            case "Data":
                                 atributo.TextString = nova.Data ?? string.Empty;
                                 break;
-                            case "ELAB":
-                            case "ELABORADOR":
+                            case "Elaborador":
                                 atributo.TextString = nova.Elaborador ?? string.Empty;
                                 break;
-                            case "VERIF":
-                            case "VERIFICADOR":
+                            case "Verificador":
                                 atributo.TextString = nova.Verificador ?? string.Empty;
                                 break;
-                            case "APROV":
-                            case "APROVADOR":
+                            case "Aprovador":
                                 atributo.TextString = nova.Aprovador ?? string.Empty;
                                 break;
                         }

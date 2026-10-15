@@ -211,6 +211,46 @@ namespace Positron.Data.Paginas
             };
         }
 
+        /// <summary>
+        /// O campo de um atributo do bloco de revisão, como o <c>JdCp1GqFmnk</c> do original: a tag
+        /// é a família (<c>REV</c>, <c>DESC</c>, <c>DATA</c>, <c>ELAB</c>, <c>VERIF</c>, <c>APROV</c>)
+        /// seguida de um dígito de <c>0</c> a <c>7</c>, em maiúsculas. Qualquer outra tag (inclusive
+        /// <c>REV</c> sem dígito) não recebe valor. Devolve <c>null</c> quando não é um campo.
+        /// </summary>
+        public static string CampoDoAtributo(string tag)
+        {
+            string texto = (tag ?? string.Empty).ToUpperInvariant();
+            if (texto.Length < 2)
+            {
+                return null;
+            }
+
+            char digito = texto[texto.Length - 1];
+            if (digito < '0' || digito > '7')
+            {
+                return null;
+            }
+
+            string familia = texto.Substring(0, texto.Length - 1);
+            switch (familia)
+            {
+                case "REV":
+                    return "Revisao";
+                case "DESC":
+                    return "Descricao";
+                case "DATA":
+                    return "Data";
+                case "ELAB":
+                    return "Elaborador";
+                case "VERIF":
+                    return "Verificador";
+                case "APROV":
+                    return "Aprovador";
+                default:
+                    return null;
+            }
+        }
+
         private static string ValorTexto(object valor)
         {
             if (valor == null || valor is DBNull)
