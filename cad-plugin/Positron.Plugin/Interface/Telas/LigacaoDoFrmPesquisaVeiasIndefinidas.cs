@@ -1,21 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Positron.Data;
 using Positron.Data.Configuracao;
 using Positron.Data.Interligacao;
 using Positron.Plugin.Interligacao;
-using Positron.Plugin.Paginas;
-#if AUTOCAD
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
-using Application = Autodesk.AutoCAD.ApplicationServices.Application;
-#else
-using ZwSoft.ZwCAD.ApplicationServices;
-using ZwSoft.ZwCAD.DatabaseServices;
-using Application = ZwSoft.ZwCAD.ApplicationServices.Application;
-#endif
 
 namespace Positron.Plugin.Interface.Telas
 {
@@ -29,10 +18,6 @@ namespace Positron.Plugin.Interface.Telas
     /// </summary>
     internal sealed class LigacaoDoFrmPesquisaVeiasIndefinidas : ILigacaoDeTela
     {
-        // O `hDTV5h3NAKArXvSEL1u.lwF3Qy6iqF` do original: devolve o foco à janela do desenho.
-        [DllImport("user32.dll", EntryPoint = "SetFocus")]
-        private static extern IntPtr SetFocus(IntPtr janela);
-
         public string NomeDaTela
         {
             get { return "frmPesquisaVeiasIndefinidas"; }
@@ -43,6 +28,15 @@ namespace Positron.Plugin.Interface.Telas
             DataGridView grade = ControlesDaTela.Achar<DataGridView>(janela, "dgVeiasDWG");
             if (grade == null)
             {
+                return;
+            }
+
+            // O `arqAtivo.Indice == 0` do original: mMensagem 331, e a tela não abre.
+            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            if (config != null && config.Dwg == 0)
+            {
+                Plugin.Escrever("PESQC: Este arquivo ainda não foi cadastrado no banco do projeto!");
+                janela.Dispose();
                 return;
             }
 
@@ -68,8 +62,8 @@ namespace Positron.Plugin.Interface.Telas
             }
 
             janela.Resize += (origem, evento) => AjustarColunas(grade);
-            grade.KeyUp += (origem, evento) => IrAteASelecionada(grade);
-            grade.MouseUp += (origem, evento) => IrAteASelecionada(grade);
+            grade.KeyUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(grade, 4, "PESQC", false);
+            grade.MouseUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(grade, 4, "PESQC", false);
 
             List<string> amostra = new List<string>();
             foreach (LinhaDeVeiaIndefinida linha in linhas)
@@ -115,90 +109,6 @@ namespace Positron.Plugin.Interface.Telas
             }
 
             return false;
-        }
-
-        private static void IrAteASelecionada(DataGridView grade)
-        {
-            try
-            {
-                Document documento = Application.DocumentManager.MdiActiveDocument;
-                if (documento == null)
-                {
-                    return;
-                }
-
-                SetFocus(documento.Window.Handle);
-                using (documento.LockDocument())
-                {
-                    TirarRealceDaPaginaAtiva(documento);
-                    foreach (DataGridViewRow linha in grade.Rows)
-                    {
-                        if (!linha.Selected)
-                        {
-                            continue;
-                        }
-
-                        string handle = Convert.ToString(linha.Cells[4].Value);
-                        Plugin.Escrever("PESQC: " + IrAte(handle));
-                        SetFocus(documento.Window.Handle);
-                    }
-                }
-            }
-            catch (Exception erro)
-            {
-                Plugin.Escrever("PESQC: falhou — " + erro.Message + ".");
-            }
-        }
-
-        /// <summary>O <c>AtivaUmaHighlightZoom</c>: ativa a página da entidade, dá zoom e a realça.</summary>
-        private static string IrAte(string texto)
-        {
-            long? handle = Positron.Data.Paginas.LocalizacaoPorHandle.LerHandle(texto);
-            LocalizacaoPorHandleDoDesenho.Entidade entidade = handle.HasValue ? LocalizacaoPorHandleDoDesenho.Achar(handle.Value) : null;
-            if (entidade == null)
-            {
-                return "handle \"" + texto + "\" não achado no desenho.";
-            }
-
-            PaginaAtivaDoDesenho.Ativar(entidade.Layer);
-            Interface.Folhas.PaletaDeFolhas.Recarregar();
-            LocalizacaoPorHandleDoDesenho.DarZoom(entidade.Id);
-
-            Database banco = Application.DocumentManager.MdiActiveDocument.Database;
-            using (Transaction transacao = banco.TransactionManager.StartTransaction())
-            {
-                Entity alvo = transacao.GetObject(entidade.Id, OpenMode.ForRead) as Entity;
-                if (alvo != null)
-                {
-                    alvo.Highlight();
-                }
-
-                transacao.Commit();
-            }
-
-            return "veia " + texto + " na página \"" + entidade.Layer + "\" (zoom e realce).";
-        }
-
-        /// <summary>O <c>clsBlocos.Unhighlight</c>: tira o realce de toda entidade do layer da página ativa.</summary>
-        private static void TirarRealceDaPaginaAtiva(Document documento)
-        {
-            string pagina = PaginaAtivaDoDesenho.Ler();
-            Database banco = documento.Database;
-            using (Transaction transacao = banco.TransactionManager.StartTransaction())
-            {
-                BlockTable tabela = (BlockTable)transacao.GetObject(banco.BlockTableId, OpenMode.ForRead);
-                BlockTableRecord espaco = (BlockTableRecord)transacao.GetObject(tabela[BlockTableRecord.ModelSpace], OpenMode.ForRead);
-                foreach (ObjectId id in espaco)
-                {
-                    Entity entidade = transacao.GetObject(id, OpenMode.ForRead) as Entity;
-                    if (entidade != null && string.Equals(entidade.Layer, pagina, StringComparison.OrdinalIgnoreCase))
-                    {
-                        entidade.Unhighlight();
-                    }
-                }
-
-                transacao.Commit();
-            }
         }
 
         private static IReadOnlyDictionary<int, string> LerNomesDePaineis()

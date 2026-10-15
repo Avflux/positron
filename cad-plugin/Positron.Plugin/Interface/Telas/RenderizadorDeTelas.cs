@@ -128,6 +128,14 @@ namespace Positron.Plugin.Interface.Telas
                 }
 
                 Form janela = Montar(tela);
+
+                // A ligação descarta a janela quando o original não a abre (o `MsgBox` do
+                // construtor: arquivo não cadastrado, projeto sem cabos...); o motivo já foi escrito.
+                if (janela.IsDisposed)
+                {
+                    return rotulo + ": \"" + tela.Titulo + "\" (" + tela.Nome + ") não aberta.";
+                }
+
                 Mostrar(janela);
                 return rotulo + ": \"" + tela.Titulo + "\" (" + tela.Nome + ") aberta no CAD — " + tela.Campos.Count + " controle(s).";
             }

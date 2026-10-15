@@ -26,7 +26,7 @@ mas **não iguais** (rodada 177):
 
 - Construtor (`frmPesquisaVeiasIndefinidas.cs:163`): o `Geral.ExisteForm` procura
   `"frmPesquisaVeiasIndefinidas "` **com espaço no fim** — nunca acha, a tela abre de novo a cada
-  `PESQC`. Sem arquivo cadastrado (`arqAtivo.Indice == 0`): mMensagem 331
+  `PESQC`. Sem arquivo cadastrado (`arqAtivo.Indice == 0`; no recoder, `ConfiguracaoPositron.Dwg == 0`): mMensagem 331
   `Este arquivo ainda não foi cadastrado no banco do projeto!`. Título = mMensagem 568.
 - Grade (`:201`): `#` (1..n), página, `BuscaNomeDoPainel(menor)`, `BuscaNomeDoPainel(maior)`, handle
   oculto; `"???"` vira `" "`. Larguras 10/30/30/30% de `Width - 4` (ou `- 21` com barra vertical).
@@ -36,3 +36,22 @@ mas **não iguais** (rodada 177):
   atalho da paleta, `Caderno.ZEntity(id, 20)` e `Highlight()`.
 - Apelidos: `wkpp6H6CivH` = ir até a veia selecionada; `Otfp6h0f11R` = `Resize` → `AtualizaDGVeiasDWG`;
   `haG8HN1M755FJ2bc2NW.ARP1IVj2So` = a grade tem barra vertical visível.
+
+## A tela `frmPesquisaCabos` (`PESQCAB`) — o catálogo `Veias` (rodada 178)
+
+Lê o **banco**, não o desenho. Recoder: `PesquisaDeCabos` (`Positron.Data/Interligacao/`).
+
+- Cabos do caderno: `SELECT DISTINCT(Tag) FROM Veias WHERE Arquivo=@arquivo ORDER BY Tag` e
+  `List.Sort()` (`CDadosAccessInterligacao.cs:674`). Cabos de outros: `DISTINCT(Tag) ... WHERE Arquivo>0`
+  menos os do caderno (`:791`). As veias de cada tag são lidas **de todos os arquivos**
+  (`WHERE Tag=@tag ORDER BY Indice`).
+- A grade de veias usa o `LeCabosVeiasTodos` (`:4319`). O `sCaderno` é o `DWG.Nome` do `Arquivo` da veia.
+  Cabo deste caderno: página + handle (mesmo que a veia seja de outro DWG). Cabo de outro: `caderno-página`
+  e sem handle.
+- `ClsCabos.OrdenaVeias(dg, indice=4)` (`ClsCabos.cs:1208`): a veia 1 com `P` → pares (×2), com `T` →
+  ternas (×3; o `T` vence se tiver os dois). `-99` → 0; `< -50` → `+50`; negativos → `-(n·k − 0,1)`; bubble sort
+  crescente trocando as células como texto. Cores: col. 0 = 0/-99 → `LightBlue`; os outros alternam
+  `LightGoldenrodYellow`/`LightGray` quando a 1ª letra muda (sem caixa) ou quando um dos dois nomes é número.
+- Apelidos: `MI1pvipBDIv` = veias do cabo selecionado; `vp1pvC6nLi1` = ir até a veia (igual ao `wkpp6H6CivH`);
+  `JBgaA5p5W7h1TRpQ5uHE` = (índice, nome) do DWG.
+- `arqAtivo.Indice` no recoder = `ConfiguracaoPositron.Dwg` (`POSITRON_DWG`).

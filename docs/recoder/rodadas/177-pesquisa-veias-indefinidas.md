@@ -1,6 +1,6 @@
 # Rodada 177 — `PESQC`: pesquisa de veias indefinidas, tela ligada
 
-**Data:** 2026-10-15 · **Commit:** *(este)* · **Frente:** 7 — interligação, cabos e veias · **Situação:** ✅ completa
+**Data:** 2026-10-15 · **Commit:** `e4f19340` · **Frente:** 7 — interligação, cabos e veias · **Situação:** ✅ completa
 
 ## Alvo
 
@@ -50,7 +50,7 @@ Reaproveitado: `PaginaAtivaDoDesenho.Ativar`, `LocalizacaoPorHandleDoDesenho.Ach
 `PaginaNumerada.Decimal`, `DispositivoDaListaEdicao.NomeDoPainel`.
 
 **Desvios do original:**
-- Sem o teste de "arquivo cadastrado" (mMensagem 331): o recoder não tem o `arqAtivo.Indice` (o cadastro de DWGs é decisão do dono). A tela abre sempre.
+- ~~Sem o teste de "arquivo cadastrado" (mMensagem 331)~~: corrigido na rodada 178. O `arqAtivo.Indice` é o `ConfiguracaoPositron.Dwg`, e com DWG 0 a tela não abre.
 - A tela é aberta pelo gerador de telas, que já evita duplicata — o quirk do `ExisteForm` com espaço não é reproduzido.
 - A linha de resumo `PESQC:` na linha de comando, para o harness medir.
 

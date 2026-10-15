@@ -988,6 +988,31 @@ namespace Positron.Data
         }
 
         /// <summary>
+        /// O nome de cada DWG do cadastro (<c>SELECT Indice, Nome FROM DWG</c>, o começo do
+        /// <c>LeCabosVeiasTodos</c> do original): o "caderno" que a pesquisa de cabos põe na frente
+        /// da página das veias de outros DWGs.
+        /// </summary>
+        public IReadOnlyDictionary<int, string> LerNomesDeDwgs()
+        {
+            Dictionary<int, string> nomes = new Dictionary<int, string>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText = "SELECT Indice, Nome FROM DWG";
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        nomes[(int)leitor.GetInt64(0)] = leitor.IsDBNull(1) ? string.Empty : leitor.GetString(1);
+                    }
+                }
+            }
+
+            return nomes;
+        }
+
+        /// <summary>
         /// As **revisões do DWG** que já têm compilação gravada — as tabelas dos três pipelines
         /// (<c>Fiacao</c>, <c>Interligacao4</c>, <c>Jumper4</c>), unidas e ordenadas.
         ///
