@@ -28,6 +28,12 @@ namespace Positron.Data.Paginas
                 return "\"" + nome + "\" não é um layer de página (o LayerValido recusa)";
             }
 
+            // O `checaCapa` do original: a capa não se apaga (mensagem 17 do reverso).
+            if (PaginaAtiva.ChecaCapa(nome))
+            {
+                return "\"" + nome + "\" é a capa, que não se apaga (o checaCapa do original recusa)";
+            }
+
             if (paginas != null && paginas.Count > 0)
             {
                 foreach (string candidata in paginas)

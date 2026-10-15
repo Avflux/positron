@@ -225,8 +225,23 @@ namespace Positron.Data.Tests
         [Fact]
         public void OsCobertosEOsQueAbremJanelaSomamOCruzamentoMedido()
         {
-            Assert.Equal(124, BarraDoReverso.QuantosCobertos());
+            Assert.Equal(125, BarraDoReverso.QuantosCobertos());
             Assert.Equal(117, BarraDoReverso.QuantosAbremJanela());
+        }
+
+        /// <summary>
+        /// O botão **CADERNO** da barra (o comando `CAD`, "Cria ou troca o formato") ficou
+        /// **utilizável** na rodada 170: era o item que o dono apontava como "não funcional" — com o
+        /// `Coberto` falso o `Utilizavel` desliga o botão no ribbon.
+        /// </summary>
+        [Fact]
+        public void OBotaoCaderNoDaBarraFicouUtilizavel()
+        {
+            ItemDaBarra caderno = BarraDoReverso.Buscar("CAD");
+            Assert.NotNull(caderno);
+            Assert.Equal("CADERNO", caderno.Rotulo);
+            Assert.True(caderno.Coberto);
+            Assert.True(caderno.Utilizavel);
         }
 
         /// <summary>

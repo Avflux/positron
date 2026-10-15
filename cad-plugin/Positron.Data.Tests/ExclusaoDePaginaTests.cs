@@ -40,6 +40,17 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void A_capa_nao_se_apaga()
+        {
+            // O checaCapa do original: "1" e as variantes com zeros à esquerda são a capa.
+            List<string> comCapa = new List<string> { "1", "2", "001" };
+            Assert.NotNull(ExclusaoDePagina.Recusa("1", comCapa));
+            Assert.NotNull(ExclusaoDePagina.Recusa("001", comCapa));
+            Assert.NotNull(ExclusaoDePagina.Recusa("1", null));
+            Assert.Null(ExclusaoDePagina.Recusa("2", comCapa));
+        }
+
+        [Fact]
         public void Sem_lista_o_crivo_e_so_o_LayerValido()
         {
             Assert.Null(ExclusaoDePagina.Recusa("7", null));

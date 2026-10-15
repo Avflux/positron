@@ -42,7 +42,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from .base import Relatorio, terminal, texto
+from .base import Relatorio, numero, terminal, texto
 
 if TYPE_CHECKING:
     from ..db import ProjectDatabase
@@ -218,9 +218,9 @@ class RelatorioVeias(Relatorio):
 
             veias = await db.query(VEIAS, (tag, revisao))
             for posicao, veia in enumerate(veias):
-                numero = int(veia["Num_Veia"] or 0)
-                trecho = await _trecho(db, revisao, tag, numero, ponta1, ponta2)
-                if trecho is None and numero <= 0 and posicao + 1 < len(veias):
+                numero_da_veia = int(veia["Num_Veia"] or 0)
+                trecho = await _trecho(db, revisao, tag, numero_da_veia, ponta1, ponta2)
+                if trecho is None and numero_da_veia <= 0 and posicao + 1 < len(veias):
                     # As veias de reserva caem no trecho da veia seguinte (o original).
                     seguinte = int(veias[posicao + 1]["Num_Veia"] or 0)
                     trecho = await _trecho(db, revisao, tag, seguinte, ponta1, ponta2)
@@ -233,7 +233,7 @@ class RelatorioVeias(Relatorio):
                         tag,
                         _formacao(cabo),
                         texto(cabo["Funcao"]),
-                        texto(veia["Nome_Veia"]) or str(numero),
+                        texto(veia["Nome_Veia"]) or str(numero_da_veia),
                         nomes.get(ponta1, ""),
                         fim1.dispositivo if fim1 else "",
                         terminal(fim1.terminal) if fim1 else "",
@@ -244,7 +244,7 @@ class RelatorioVeias(Relatorio):
                         "X" if aterrar2 else "",
                         ", ".join(trecho.documentos),
                         _paginas(fim1.pagina if fim1 else "", fim2.pagina if fim2 else ""),
-                        texto(cabo["Comprimento"]),
+                        numero(cabo["Comprimento"]),
                     ]
                 )
         return linhas

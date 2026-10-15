@@ -28,7 +28,7 @@ namespace Positron.Data.Interface.Mapas
                 new Comando("AtualizaOpcionaisDoCabo", "clsUtilitarios.cs", 1123, false, false, true, new Janela[0]),
                 new Comando("BLI", "Comandos.cs", 802, false, false, false, new Janela[0]),
                 new Comando("BORN", "Comandos.cs", 441, true, false, false, new Janela[] { new Janela("frmBornes", "new frmBornes()") }),
-                new Comando("CAD", "Comandos.cs", 107, false, false, false, new Janela[0]),
+                new Comando("CAD", "Comandos.cs", 107, false, false, true, new Janela[0]),
                 new Comando("CBD", "Comandos.cs", 1248, false, false, true, new Janela[0]),
                 new Comando("CFG", "Comandos.cs", 95, true, false, false, new Janela[] { new Janela("frmConfiguracaoGeral", "new frmConfiguracaoGeral()") }),
                 new Comando("CHVAUT", "Comandos.cs", 312, false, false, false, new Janela[0]),

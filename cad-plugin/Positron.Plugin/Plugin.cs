@@ -62,10 +62,27 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// O CAD está **descarregando** o plugin (fim da sessão, ou um unload explícito).
+        ///
+        /// A interface que o plugin criou no CAD não é dele — o ribbon e a janela da paleta são do
+        /// CAD —, então o que foi montado aqui sai aqui. **Isto era um defeito até a rodada 160:** o
+        /// método estava vazio e a aba do Positron ficava no ribbon depois do descarregamento,
+        /// apontando para comandos que já não existiam.
+        ///
+        /// Nada lança daqui: um erro ao fechar o CAD não pode virar diálogo de erro (o registro vai
+        /// para o log, que é a evidência).
+        /// </summary>
         public void Terminate()
         {
-            // Nada a liberar ainda: o plugin não abre recursos que sobrevivam ao
-            // descarregamento (conexões são abertas e fechadas por consulta).
+            try
+            {
+                Escrever(Interface.Barra.BarraDeFerramentas.Remover());
+            }
+            catch (System.Exception erro)
+            {
+                RegistrarEmArquivo("Positron: o descarregamento falhou — " + erro.Message);
+            }
         }
 
         /// <summary>Escreve uma linha na linha de comando do ZWCAD.</summary>

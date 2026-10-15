@@ -50,7 +50,7 @@ namespace Positron.Plugin.Correcoes
         {
             Resultado resultado = new Resultado();
 
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             if (string.IsNullOrEmpty(config.Banco))
             {
                 resultado.SemBanco = true;

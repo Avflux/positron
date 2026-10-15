@@ -79,7 +79,7 @@ namespace Positron.Plugin.Interface.Telas
                 analisar.Click += (origem, evento) => Analisar(erros, campo);
             }
 
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
 
             // O campo abre com a revisão da configuração (o original abre vazio): é o valor que o
             // Analisar usa — e o que o harness mede, já que um script não digita no campo.
@@ -105,7 +105,7 @@ namespace Positron.Plugin.Interface.Telas
         /// <summary>O que o clique do <c>btAnalisar</c> faz: roda o pipeline e recarrega os erros.</summary>
         private void Analisar(DataGridView erros, TextBox campo)
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string revisao = RevisaoDoCampo(campo, config);
             Plugin.Escrever(Executar(revisao));
             CarregarErros(erros, config, revisao);

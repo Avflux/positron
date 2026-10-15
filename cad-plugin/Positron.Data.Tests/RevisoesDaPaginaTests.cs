@@ -78,6 +78,34 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void Revisao_completa_so_entra_com_posicao_maior_que_a_guardada()
+        {
+            // O original parte de Posicao 0: a posição 0 nunca entra, e a posição nova precisa ser maior.
+            Assert.False(OperacoesDeRevisao.AceitaRevisaoCompleta(0, 0));
+            Assert.True(OperacoesDeRevisao.AceitaRevisaoCompleta(0, 1));
+            Assert.True(OperacoesDeRevisao.AceitaRevisaoCompleta(1, 2));
+            Assert.False(OperacoesDeRevisao.AceitaRevisaoCompleta(2, 1));
+        }
+
+        [Fact]
+        public void Atributo_de_revisao_usa_a_familia_com_digito_de_0_a_7()
+        {
+            // As tags reais dos blocos são REV0..REV7 (o JdCp1GqFmnk do original); REV sem dígito não recebe valor.
+            Assert.Equal("Revisao", RevisaoCompletaXData.CampoDoAtributo("REV0"));
+            Assert.Equal("Revisao", RevisaoCompletaXData.CampoDoAtributo("rev7"));
+            Assert.Equal("Descricao", RevisaoCompletaXData.CampoDoAtributo("DESC3"));
+            Assert.Equal("Data", RevisaoCompletaXData.CampoDoAtributo("DATA1"));
+            Assert.Equal("Elaborador", RevisaoCompletaXData.CampoDoAtributo("ELAB2"));
+            Assert.Equal("Verificador", RevisaoCompletaXData.CampoDoAtributo("VERIF0"));
+            Assert.Equal("Aprovador", RevisaoCompletaXData.CampoDoAtributo("APROV7"));
+            Assert.Null(RevisaoCompletaXData.CampoDoAtributo("REV"));
+            Assert.Null(RevisaoCompletaXData.CampoDoAtributo("REV8"));
+            Assert.Null(RevisaoCompletaXData.CampoDoAtributo("REVISAO"));
+            Assert.Null(RevisaoCompletaXData.CampoDoAtributo("TITULO1PAG"));
+            Assert.Null(RevisaoCompletaXData.CampoDoAtributo(null));
+        }
+
+        [Fact]
         public void Construtor_de_revisao_simplificada_normaliza_nulos()
         {
             RevisaoSimplificadaDaPagina rev = new RevisaoSimplificadaDaPagina(null, null);

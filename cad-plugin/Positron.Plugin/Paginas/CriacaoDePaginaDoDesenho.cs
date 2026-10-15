@@ -33,12 +33,6 @@ namespace Positron.Plugin.Paginas
     /// </summary>
     internal static class CriacaoDePaginaDoDesenho
     {
-        /// <summary>App name do XData que marca o bloco de formato (e dos títulos).</summary>
-        internal const string AppNameDiagLog = "DiagLog";
-
-        /// <summary>A marca do bloco de formato dentro do XData <c>DiagLog</c>.</summary>
-        internal const string MarcaFormato = "Formato";
-
         /// <summary>App name do XData do layer (unidade/alternativo).</summary>
         internal const string AppNameEletron = "Eletron";
 
@@ -116,11 +110,12 @@ namespace Positron.Plugin.Paginas
                 resultado.Criado = true;
 
                 BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForWrite);
-                BlockReference formato = EncontrarFormato(transacao, espaco);
+                BlockReference formato = FormatoDoDesenho.Encontrar(transacao, espaco);
                 if (formato != null)
                 {
                     resultado.TemFormato = true;
-                    resultado.CamposCopiados = CopiarCampos(transacao, banco, espaco, formato, resultado.Nome);
+                    resultado.CamposCopiados = CopiarCampos(
+                        transacao, banco, espaco, formato, LayerDeReferencia, resultado.Nome);
                 }
 
                 transacao.Commit();
@@ -139,40 +134,18 @@ namespace Positron.Plugin.Paginas
             return resultado;
         }
 
-        /// <summary>O bloco de formato do ModelSpace (o <c>PossuiXDataFormato</c>).</summary>
-        private static BlockReference EncontrarFormato(Transaction transacao, BlockTableRecord espaco)
-        {
-            foreach (ObjectId id in espaco)
-            {
-                BlockReference bloco = transacao.GetObject(id, OpenMode.ForRead) as BlockReference;
-                if (bloco == null)
-                {
-                    continue;
-                }
-
-                ResultBuffer xdata = bloco.GetXDataForApplication(AppNameDiagLog);
-                if (xdata == null)
-                {
-                    continue;
-                }
-
-                IReadOnlyList<TypedXData> valores = XDataNeutro.Para(xdata);
-                if (valores.Count > 1
-                    && string.Equals(Convert.ToString(valores[1].Valor), MarcaFormato, StringComparison.OrdinalIgnoreCase))
-                {
-                    return bloco;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>Os oito campos do formato viram <c>DBText</c> no layer da página (o <c>criaCamposFormato</c>).</summary>
-        private static int CopiarCampos(
+        /// <summary>
+        /// Os oito campos do formato viram <c>DBText</c> no layer da página (o <c>criaCamposFormato</c>).
+        /// O <paramref name="layerRef"/> é o layer do atributo que serve de modelo: o <c>-1</c> nas
+        /// páginas normais e o **nome da capa** na capa (o <c>retornaNumeroCapa()</c> do original),
+        /// que é o que a cadeia pós-troca do formato passa.
+        /// </summary>
+        internal static int CopiarCampos(
             Transaction transacao,
             Database banco,
             BlockTableRecord espaco,
             BlockReference formato,
+            string layerRef,
             string layer)
         {
             int copiados = 0;
@@ -186,7 +159,7 @@ namespace Positron.Plugin.Paginas
                     continue;
                 }
 
-                if (!string.Equals(atributo.Layer, LayerDeReferencia, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(atributo.Layer, layerRef, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -209,7 +182,7 @@ namespace Positron.Plugin.Paginas
         }
 
         /// <summary>O <c>dtepniSZGL6</c> do original: o atributo vira um <c>DBText</c> com a mesma forma.</summary>
-        private static DBText Clonar(AttributeReference atributo, string conteudo, string layer)
+        internal static DBText Clonar(AttributeReference atributo, string conteudo, string layer)
         {
             DBText texto = new DBText
             {

@@ -125,8 +125,16 @@ namespace Positron.Plugin.Interface.Telas
                         }
                     }
 
-                    int gravados = RevisoesDoDesenho.GravarCompletas(lista);
-                    Plugin.Escrever("REVCOMP: " + gravados + " revisão(ões) completa(s) regravada(s) no desenho.");
+                    RevisoesDoDesenho.ResultadoDaGravacaoDeRevisoes gravacao = RevisoesDoDesenho.GravarCompletas(lista);
+                    Plugin.Escrever("REVCOMP: " + gravacao.Paginas + " página(s) posicionada(s) — "
+                        + gravacao.Atualizados + " atualizada(s), " + gravacao.Criados + " criada(s) ("
+                        + gravacao.Deslocados + " deslocada(s)), " + gravacao.Apagados + " apagada(s)"
+                        + (gravacao.Estourou ? "; houve deslocamento por falta de posição" : "")
+                        + (gravacao.Definicoes > 0 ? "; " + gravacao.Definicoes + " definição(ões) Revisao_Capa/Corpo (re)criada(s)" : "")
+                        + (gravacao.Referencias > 0 ? "; " + gravacao.Referencias + " referência(s) ressincronizada(s)" : "")
+                        + (gravacao.SemDefinicao > 0 ? "; " + gravacao.SemDefinicao + " sem bloco de formato (Revisao_Capa/Corpo)" : "")
+                        + (gravacao.SemFormato > 0 ? "; " + gravacao.SemFormato + " página(s) sem posições no formato" : "")
+                        + ".");
                     janela.Close();
                 };
             }

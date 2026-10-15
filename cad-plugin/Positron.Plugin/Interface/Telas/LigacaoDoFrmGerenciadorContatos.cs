@@ -35,7 +35,7 @@ namespace Positron.Plugin.Interface.Telas
             ConfigurarCombos(cbTipo, cbComp);
             DesabilitarAcoes(janela);
 
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             Dictionary<int, MaterialDoCatalogo> catalogo = CatalogoIndexado(Catalogo(config));
 
             List<ModeloContato> modelos = ContatosDoDesenho.LerModelos();

@@ -51,6 +51,8 @@ namespace Positron.Plugin.Interface.Barra
     {
         internal const string IdDaAba = "POSITRON.ID_Positron";
 
+        internal const string TituloDaAba = "Positron";
+
         /// <summary>
         /// Os botões do original cujo trabalho, no recoder, é de um comando **nosso**: o comando com
         /// o nome de lá existe, mas só abre a casca da tela (gerado na rodada 128).
@@ -115,6 +117,68 @@ namespace Positron.Plugin.Interface.Barra
             return ConstruirAba();
         }
 
+        /// <summary>
+        /// **Desmonta a aba** — o par do <see cref="Criar"/>, chamado pelo <c>Plugin.Terminate()</c>
+        /// quando o CAD descarrega o plugin. Nunca lança.
+        /// </summary>
+        /// <remarks>
+        /// Existe por um defeito medido (rodada 160): o <c>Terminate()</c> estava **vazio**, então a
+        /// aba ficava no ribbon depois do descarregamento — e, no AutoCAD, a **retentativa agendada**
+        /// na ociosidade (ver <see cref="NaOciosidade"/>) ainda podia recriá-la *depois* do unload,
+        /// porque ela nunca era cancelada. Aqui a aba sai **e** a retentativa é cancelada, senão a
+        /// remoção não dura.
+        /// </remarks>
+        internal static string Remover()
+        {
+#if AUTOCAD
+            CancelarRetentativa();
+#endif
+            try
+            {
+                RibbonControl ribbon = ComponentManager.Ribbon;
+                if (ribbon == null)
+                {
+                    return "Barra: o CAD não tem ribbon nesta sessão — nada a desmontar.";
+                }
+
+                int paineis;
+                int removidas = LimparAbas(ribbon, out paineis);
+                return removidas == 0
+                    ? "Barra: a aba \"" + TituloDaAba + "\" não estava no ribbon."
+                    : "Barra: aba \"" + TituloDaAba + "\" desmontada — " + removidas
+                        + " aba(s), " + paineis + " painel(is).";
+            }
+            catch (Exception erro)
+            {
+                return "Barra: falhou ao desmontar — " + erro.Message + ".";
+            }
+        }
+
+        /// <summary>
+        /// Tira do ribbon as abas do Positron e conta o que saiu — o <paramref name="paineis"/> é a
+        /// evidência de que a aba removida era a montada de verdade (a do mapa tem **9** painéis), e
+        /// não uma casca deixada para trás por uma versão antiga.
+        /// </summary>
+        private static int LimparAbas(RibbonControl ribbon, out int paineis)
+        {
+            paineis = 0;
+            int removidas = 0;
+            for (int i = ribbon.Tabs.Count - 1; i >= 0; i--)
+            {
+                RibbonTab aba = ribbon.Tabs[i];
+                if (!string.Equals(aba.Id, IdDaAba, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                paineis += aba.Panels.Count;
+                ribbon.Tabs.RemoveAt(i);
+                removidas++;
+            }
+
+            return removidas;
+        }
+
         /// <summary>A montagem da aba (o corpo comum aos dois CADs). Nunca lança.</summary>
         private static string ConstruirAba()
         {
@@ -126,18 +190,19 @@ namespace Positron.Plugin.Interface.Barra
                     return "Barra: o CAD não tem ribbon nesta sessão.";
                 }
 
-                for (int i = ribbon.Tabs.Count - 1; i >= 0; i--)
-                {
-                    if (string.Equals(ribbon.Tabs[i].Id, IdDaAba, StringComparison.OrdinalIgnoreCase))
-                    {
-                        ribbon.Tabs.RemoveAt(i);
-                    }
-                }
+                // Uma aba do Positron que ainda esteja no ribbon é de **outra** carga (build antigo do
+                // pacote, tipicamente): sai antes, e o log denuncia a sobra em vez de deixar duas.
+                int paineisDaSobra;
+                int sobra = LimparAbas(ribbon, out paineisDaSobra);
+                string nota = sobra == 0
+                    ? string.Empty
+                    : " [substituiu " + sobra + " aba(s) do Positron que já estavam no ribbon, com "
+                        + paineisDaSobra + " painel(is) — build anterior no ar?]";
 
                 RibbonTab aba = new RibbonTab
                 {
                     Id = IdDaAba,
-                    Title = "Positron",
+                    Title = TituloDaAba,
                 };
                 ribbon.Tabs.Add(aba);
 
@@ -164,7 +229,7 @@ namespace Positron.Plugin.Interface.Barra
                 // Como o original (`val.IsActive = true` no CreateRibbon): a aba abre à frente.
                 aba.IsActive = true;
 
-                return "Barra: aba \"" + aba.Title + "\" com " + paineis + " painel(is) — "
+                return "Barra: aba \"" + aba.Title + "\" com " + paineis + " painel(is) — " + nota
                     + conta.De(TipoDoItemDaBarra.Botao) + " botão(ões), "
                     + conta.De(TipoDoItemDaBarra.Menu) + " menu(s) com " + conta.De(TipoDoItemDaBarra.ItemDeMenu) + " item(ns), "
                     + conta.De(TipoDoItemDaBarra.Alternar) + " liga/desliga, "
@@ -543,7 +608,23 @@ namespace Positron.Plugin.Interface.Barra
             }
 
             Application.Idle -= NaOciosidade;
+            _tentativas = 0;
             Plugin.Escrever(ConstruirAba());
+        }
+
+        /// <summary>
+        /// Cancela a retentativa agendada — a aba desmontada não pode voltar sozinha na ociosidade
+        /// seguinte (é o caminho pelo qual o AutoCAD "ressuscitava" a barra depois do unload).
+        /// </summary>
+        private static void CancelarRetentativa()
+        {
+            if (_tentativas == 0)
+            {
+                return;
+            }
+
+            _tentativas = 0;
+            Application.Idle -= NaOciosidade;
         }
 #endif
 

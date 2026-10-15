@@ -1033,6 +1033,42 @@ namespace Positron.Data
             return revisoes;
         }
 
+        /// <summary>
+        /// As revisões do snapshot dos cabos (<c>Cabos4</c>) — o <c>CarregaRevisoesCabos4</c> do
+        /// original (<c>SELECT DISTINCT Revisao, Criador, Data FROM Cabos4 ORDER BY Data</c>), que é a
+        /// coluna <c>dgRevisao</c> das telas de relatório de cabos/veias (<c>LVEI</c>, <c>RINT</c>,
+        /// <c>DISTRIBUIÇÃO</c>…).
+        ///
+        /// É outro recorte do que o <see cref="LerRevisoes"/>: lá a revisão vem dos três pipelines do
+        /// diagrama (<c>Fiacao</c>/<c>Interligacao4</c>/<c>Jumper4</c>), aqui do snapshot dos cabos, que
+        /// só existe depois do <c>INT</c>.
+        /// </summary>
+        public IReadOnlyList<RevisaoDoDwg> LerRevisoesDeCabos4()
+        {
+            List<RevisaoDoDwg> revisoes = new List<RevisaoDoDwg>();
+            using (SQLiteConnection conexao = Abrir())
+            using (SQLiteCommand comando = conexao.CreateCommand())
+            {
+                comando.CommandText =
+                    "SELECT DISTINCT IFNULL(Revisao, '') AS Revisao, Criador, Data FROM Cabos4 ORDER BY Data";
+
+                using (SQLiteDataReader leitor = comando.ExecuteReader())
+                {
+                    while (leitor.Read())
+                    {
+                        revisoes.Add(new RevisaoDoDwg
+                        {
+                            Revisao = Texto(leitor, "Revisao"),
+                            Criador = Texto(leitor, "Criador"),
+                            Data = Valor(leitor, "Data"),
+                        });
+                    }
+                }
+            }
+
+            return revisoes;
+        }
+
         /// <summary>Lê o catálogo de cabos (<c>Cabos</c>) — fonte do snapshot <c>Cabos4</c>.</summary>
         public IReadOnlyList<CabosRow> LerCabos()
         {

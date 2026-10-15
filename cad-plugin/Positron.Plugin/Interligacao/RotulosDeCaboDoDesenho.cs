@@ -93,7 +93,7 @@ namespace Positron.Plugin.Interligacao
                 return resultado;
             }
 
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             bool semCatalogo;
             int quantosSingelos;
             HashSet<string> singelos = LerSingelos(config, out semCatalogo, out quantosSingelos);

@@ -473,7 +473,12 @@ namespace Positron.Plugin
 #if !POSITRON_SEM_WINFORMS
             try
             {
-                ConfiguracaoPositron atual = ConfiguracaoPositron.Carregar();
+                // O reverso guarda a configuração geral no **desenho**, não no banco: a tela abre com
+                // o que o XData `Eletron`/`Config` tem (o `LerXDataConfiguracao` do `IniciarDWG`),
+                // com o ambiente por cima (padrão < arquivo < desenho < ambiente).
+                ConfiguracaoDoCaderno doDesenho = Configuracao.ConfiguracaoDoDesenho.Ler();
+                ConfiguracaoPositron atual = ConfiguracaoEfetiva.Carregar(doDesenho);
+
                 using (Configuracao.FormularioConfiguracao tela = new Configuracao.FormularioConfiguracao(atual))
                 {
                     if (tela.ShowDialog() != System.Windows.Forms.DialogResult.OK || tela.Resultado == null)
@@ -483,7 +488,15 @@ namespace Positron.Plugin
                     }
 
                     tela.Resultado.Salvar();
-                    Plugin.Escrever("ELETCFG: configuração gravada em " + ConfiguracaoPositron.ArquivoPadrao + ".");
+
+                    // Grava também no XData do ModelSpace, como o `btSalvar` do original; os campos
+                    // que só existem no desenho (SCapa, Norma, DataSource…) ficam preservados.
+                    ConfiguracaoDoCaderno caderno = doDesenho ?? ConfiguracaoDoCaderno.De(tela.Resultado);
+                    caderno.AplicarDe(tela.Resultado);
+                    Configuracao.ConfiguracaoDoDesenho.Gravar(caderno);
+
+                    Plugin.Escrever("ELETCFG: configuração gravada em " + ConfiguracaoPositron.ArquivoPadrao
+                        + " e no XData do desenho (Eletron/Config, como o reverso).");
                     Plugin.Escrever("ELETCFG: a variável de ambiente POSITRON_* tem prioridade sobre o arquivo.");
                 }
             }
@@ -530,7 +543,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarFiacao(string revisao = null)
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -641,7 +654,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarJumper(string revisao = null)
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -974,7 +987,7 @@ namespace Positron.Plugin
         {
             try
             {
-                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+                ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
                 string linha = "PASSO: passo do caderno = " + config.PassoPagina;
 
                 string novo = pedido ?? System.Environment.GetEnvironmentVariable("POSITRON_PASSO_PAGINA");
@@ -998,6 +1011,148 @@ namespace Positron.Plugin
             {
                 return "PASSO: falhou — " + DescreverErro(erro) + ".";
             }
+        }
+
+        /// <summary>
+        /// <c>CAD</c> — o botão **CADERNO** da barra (o <c>Caderno.CriaCaderno</c> do reverso,
+        /// <c>Comandos.cs:107</c>): **cria ou troca o formato** do caderno.
+        ///
+        /// O caminho do desenho: se o desenho já tem um formato (o bloco com o XData
+        /// <c>DiagLog</c>/<c>Formato</c>), o original pergunta se é para substituir (a mMensagem
+        /// 75) e, confirmado, **captura** os atributos da referência, apaga a definição e as
+        /// referências do formato antigo e renomeia a capa para <c>"1"</c>; pede o DWG do formato
+        /// novo ("Selecione o formato:"), o insere como bloco na origem e **recria os atributos** —
+        /// os protegidos (<c>attProtCollection</c>) invisíveis e vazios, os demais com o valor
+        /// capturado (casado por página e tag, o <c>euxs3rkWO</c>), cada um perguntado no
+        /// <c>GetString</c> como no original; e restaura a capa.
+        ///
+        /// **Diálogos como o original.** Com <c>POSITRON_FORMATO</c> definido (a convenção
+        /// <c>POSITRON_*</c>) o comando **não** abre o diálogo de arquivo nem os prompts: usa o
+        /// caminho, mantém os valores preservados (o "Enter" do original) e aceita a troca pela
+        /// variável <c>POSITRON_FORMATO_TROCAR=1</c>.
+        ///
+        /// **A cadeia pós-troca** (recarregar as páginas, recriar os campos de cada uma, os blocos de
+        /// revisão, os títulos e o <c>CONT</c>/<c>FL</c>/<c>TOT</c>/<c>ALTERNATIVO</c>) roda depois da
+        /// inserção do bloco, em <c>RestauracaoDoFormatoDoDesenho</c>.
+        /// </summary>
+        [CommandMethod("CAD")]
+        public void Cad()
+        {
+            Plugin.Escrever(ExecutarTrocaDoFormato());
+        }
+
+        /// <summary>A troca (ou criação) do formato e a linha de resumo. Nunca lança.</summary>
+        internal static string ExecutarTrocaDoFormato()
+        {
+            try
+            {
+                string caminho = System.Environment.GetEnvironmentVariable("POSITRON_FORMATO");
+                bool modoScript = !string.IsNullOrEmpty(caminho);
+
+                if (Positron.Plugin.Paginas.TrocaDeFormatoDoDesenho.Existe())
+                {
+                    if (modoScript)
+                    {
+                        // A confirmação do MsgBox vira variável: sem ela o script não troca nada.
+                        if (System.Environment.GetEnvironmentVariable("POSITRON_FORMATO_TROCAR") != "1")
+                        {
+                            return "CAD: " + Positron.Data.Interface.MensagensDoReverso.SubstituirFormato
+                                + " — defina POSITRON_FORMATO_TROCAR=1 para trocar.";
+                        }
+                    }
+                    else if (!ConfirmarTrocaDoFormato())
+                    {
+                        return "CAD: troca do formato cancelada (o formato atual fica).";
+                    }
+                }
+
+                // Os títulos das páginas são capturados **antes** da troca (o `capturaTitulos` do
+                // original) e devolvidos depois, quando a cadeia recria os campos (o `AtualizaTitulos`).
+                System.Collections.Generic.Dictionary<string, Positron.Data.Paginas.TitulosDaPagina> titulos =
+                    CapturarTitulos();
+
+                Positron.Plugin.Paginas.TrocaDeFormatoDoDesenho.Resultado resultado =
+                    Positron.Plugin.Paginas.TrocaDeFormatoDoDesenho.Trocar(caminho);
+
+                if (resultado.Cancelado)
+                {
+                    return "CAD: nenhum formato escolhido — nada foi trocado.";
+                }
+
+                if (resultado.NomeDoBloco == null)
+                {
+                    return "CAD: não foi possível ler o DWG do formato — nada foi trocado.";
+                }
+
+                // A cadeia que o original roda depois de inserir o bloco (o resto do `CriaCaderno`):
+                // recarrega as páginas, recria os campos, refaz a revisão, restaura os títulos e
+                // regrava a configuração do desenho.
+                Positron.Plugin.Paginas.RestauracaoDoFormatoDoDesenho.Resultado cadeia =
+                    Positron.Plugin.Paginas.RestauracaoDoFormatoDoDesenho.Executar(titulos, resultado.TinhaFormato);
+
+                string linha = "CAD: " + (resultado.TinhaFormato ? "formato trocado" : "formato criado")
+                    + " — bloco \"" + resultado.NomeDoBloco + "\""
+                    + (resultado.TinhaFormato
+                        ? " (definição \"" + resultado.DefinicaoApagada + "\" e "
+                            + resultado.ReferenciasApagadas + " referência(s) apagada(s))"
+                        : string.Empty)
+                    + "; " + resultado.AtributosCriados + " atributo(s) ("
+                    + resultado.AtributosPreservados + " preservado(s), "
+                    + resultado.AtributosProtegidos + " protegido(s)"
+                    + (resultado.AtributosPerguntados > 0 ? ", " + resultado.AtributosPerguntados + " perguntado(s)" : string.Empty)
+                    + ")"
+                    + (string.IsNullOrEmpty(resultado.CapaRestaurada)
+                        ? string.Empty
+                        : "; capa \"" + resultado.CapaRestaurada + "\" passou por \"1\" e voltou")
+                    + "; cadeia: " + cadeia.CamposApagados + " campo(s) apagado(s), "
+                    + cadeia.CamposTot + " TOT, " + cadeia.CamposCriados + " campo(s) em " + cadeia.Paginas
+                    + " página(s), " + cadeia.Definicoes + " definição(ões) de revisão ("
+                    + cadeia.DefinicoesApagadas + " apagada(s)), " + cadeia.ContTotFl
+                    + " CONT/FL/TOT/ALTERNATIVO, " + cadeia.Titulos + " título(s)"
+                    + "; maxCapa " + cadeia.MaxCapa + "/maxCorpo " + cadeia.MaxCorpo
+                    + (cadeia.ConfigGravada ? " (configuração regravada)" : "")
+                    + ".";
+
+                return linha;
+            }
+            catch (System.Exception erro)
+            {
+                return "CAD: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+        /// <summary>
+        /// Captura os títulos de todas as páginas (o <c>capturaTitulos</c> do original) — o que a
+        /// cadeia pós-troca devolve nos campos novos com o <c>AtualizaTitulos</c>.
+        /// </summary>
+        private static System.Collections.Generic.Dictionary<string, Positron.Data.Paginas.TitulosDaPagina> CapturarTitulos()
+        {
+            System.Collections.Generic.Dictionary<string, Positron.Data.Paginas.TitulosDaPagina> titulos =
+                new System.Collections.Generic.Dictionary<string, Positron.Data.Paginas.TitulosDaPagina>(
+                    System.StringComparer.OrdinalIgnoreCase);
+            foreach (string pagina in Positron.Plugin.Paginas.PaginasDoDesenho.Ler())
+            {
+                titulos[pagina] = Positron.Plugin.Paginas.TitulosDaPaginaDoDesenho.Ler(pagina);
+            }
+
+            return titulos;
+        }
+
+        /// <summary>
+        /// O <c>MsgBox</c> Yes/No do original (a mMensagem 75, sem título). Compilado sem WinForms a
+        /// troca é recusada — não há como confirmar (o mesmo caminho do <c>ELETCFG</c>).
+        /// </summary>
+        private static bool ConfirmarTrocaDoFormato()
+        {
+#if !POSITRON_SEM_WINFORMS
+            return System.Windows.Forms.MessageBox.Show(
+                Positron.Data.Interface.MensagensDoReverso.SubstituirFormato,
+                string.Empty,
+                System.Windows.Forms.MessageBoxButtons.YesNo,
+                System.Windows.Forms.MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes;
+#else
+            return false;
+#endif
         }
 
         [CommandMethod("NOVAPAGINA")]
@@ -1190,7 +1345,7 @@ namespace Positron.Plugin
         {
             try
             {
-                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+                ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
 
                 List<string> paginas = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
                 if (paginas.Count == 0)
@@ -1198,27 +1353,47 @@ namespace Positron.Plugin
                     return "NOVAPAGINA: nenhuma página do caderno no desenho (os layers que o LayerValido aceita).";
                 }
 
-                string ultima = paginas[paginas.Count - 1];
-                PaginaCalculada nova = NovaPaginaEntre.Calcular(ultima, NovaPaginaEntre.Fim, config.PassoPagina);
+                // A página **ativa** do desenho (o `DeclaracoesGeral.ativo.Pagina` do
+                // `criarUmaNovaPagina`); `POSITRON_PAGINA` a sobrepõe (o recorte de teste, como no
+                // `ATIVAPAGINA`) e, sem ela (ou fora do caderno), a última.
+                string ativa = System.Environment.GetEnvironmentVariable("POSITRON_PAGINA");
+                if (string.IsNullOrEmpty(ativa))
+                {
+                    ativa = Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ler();
+                }
+
+                if (!EstaNoCaderno(paginas, ativa))
+                {
+                    ativa = paginas[paginas.Count - 1];
+                }
+
+                // A nova entra **depois da ativa**, como o original: a posterior é a próxima válida
+                // (e o fim quando a ativa é a última), para a página caber no meio.
+                string proxima = PaginasDoCaderno.ProximaValida(paginas, ativa);
+                PaginaCalculada nova = NovaPaginaEntre.Calcular(ativa, proxima, config.PassoPagina);
+                if (!NovaPaginaEntre.Cabe(nova))
+                {
+                    return "NOVAPAGINA: não cabe página depois de \"" + ativa + "\" — nada criado.";
+                }
 
                 // Unidade/alternativo vazios, como o `criarUmaNovaPagina` do original (ele zera os
                 // dois antes do `CriarLayer`; quem os edita é a fatia 5).
                 Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Resultado resultado =
                     Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Executar(
-                        nova.Pagina, config.LarguraFixaPaginas, string.Empty, string.Empty, ultima);
+                        nova.Pagina, config.LarguraFixaPaginas, string.Empty, string.Empty, ativa);
 
                 if (resultado.JaExistia)
                 {
                     return "NOVAPAGINA: o layer \"" + resultado.Nome + "\" já existe — página não criada (depois de \""
-                        + ultima + "\" a nova seria \"" + nova.Pagina + "\", passo " + config.PassoPagina + ").";
+                        + ativa + "\" a nova seria \"" + nova.Pagina + "\", passo " + config.PassoPagina + ").";
                 }
 
-                return "NOVAPAGINA: página \"" + resultado.Nome + "\" criada depois de \"" + ultima + "\" — layer"
+                return "NOVAPAGINA: página \"" + resultado.Nome + "\" criada depois de \"" + ativa + "\" — layer"
                     + (resultado.TemFormato
                         ? " + " + resultado.CamposCopiados + " campo(s) do formato copiado(s)"
                         : " (o desenho não tem bloco de formato: nenhum campo copiado)")
                     + (resultado.TitulosCopiados > 0
-                        ? " + " + resultado.TitulosCopiados + " título(s) herdado(s) de \"" + ultima + "\"."
+                        ? " + " + resultado.TitulosCopiados + " título(s) herdado(s) de \"" + ativa + "\"."
                         : ".");
             }
             catch (System.Exception erro)
@@ -1227,7 +1402,24 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>A página está na lista do caderno? (sem caixa, como as comparações do original.)</summary>
+        private static bool EstaNoCaderno(IReadOnlyList<string> paginas, string pagina)
+        {
+            if (string.IsNullOrEmpty(pagina))
+            {
+                return false;
+            }
 
+            foreach (string nome in paginas)
+            {
+                if (string.Equals(nome ?? string.Empty, pagina, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>A correção da interligação e a linha de resumo. Nunca lança.</summary>
         internal static string ExecutarCorrecaoDaInterligacao()
@@ -1269,7 +1461,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarPlaquetas()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -1342,7 +1534,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarListaDeMateriais()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -2337,7 +2529,7 @@ namespace Positron.Plugin
         {
             try
             {
-                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+                ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
                 if (string.IsNullOrEmpty(config.Banco))
                 {
                     return "CorrigeCabos: defina POSITRON_DB_PATH — esta correção é no banco do projeto.";
@@ -2489,7 +2681,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarIndefinirCabos()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -2533,7 +2725,7 @@ namespace Positron.Plugin
         /// </summary>
         internal static string ExecutarInterligacao(string revisao = null)
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -2639,7 +2831,7 @@ namespace Positron.Plugin
         [CommandMethod("VERIF")]
         public void Verif()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -2732,7 +2924,7 @@ namespace Positron.Plugin
         [CommandMethod("ELETREL")]
         public void EletRel()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             string caminho = config.Banco;
             if (string.IsNullOrEmpty(caminho))
             {
@@ -2769,7 +2961,7 @@ namespace Positron.Plugin
         public void EletCmp()
         {
 #if !POSITRON_SEM_WINFORMS
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             if (string.IsNullOrEmpty(config.Banco))
             {
                 Plugin.Escrever("ELETCMP: defina POSITRON_DB_PATH com o caminho do banco do projeto (.db).");
@@ -3328,7 +3520,7 @@ namespace Positron.Plugin
         /// </summary>
         private static ColunaPagina LerColunaPagina()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             return new ColunaPagina(
                 PaginasDoDesenho.Ler(),
                 config.IncluirColuna,
@@ -3464,7 +3656,7 @@ namespace Positron.Plugin
         [CommandMethod("SYNCV")]
         public void SincV()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
 
             if (config.InterligacaoLayout == 1)
             {
@@ -3495,7 +3687,7 @@ namespace Positron.Plugin
         {
             try
             {
-                ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+                ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
                 if (string.IsNullOrEmpty(config.Banco))
                 {
                     return "CBD: defina POSITRON_DB_PATH — a compactação é no banco do projeto.";
@@ -3561,7 +3753,7 @@ namespace Positron.Plugin
         [CommandMethod("RESTPROJ")]
         public void RestaurarProjeto()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
 
             if (config.InterligacaoLayout == 1)
             {
@@ -3599,7 +3791,7 @@ namespace Positron.Plugin
         [CommandMethod("RECRIACABOS")]
         public void RecriarCabosPeloLayout()
         {
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
 
             if (Positron.Data.Configuracao.LayoutDaInterligacao.EhEletrosul(config.InterligacaoLayout))
             {

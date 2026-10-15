@@ -52,6 +52,20 @@ namespace ZwSoft.ZwCAD.Geometry
             Y = y;
             Z = z;
         }
+
+        /// <summary>A origem (o <c>Point3d.Origin</c> da API real — o ponto do bloco de revisão).</summary>
+        public static Point3d Origin
+        {
+            get { return new Point3d(0.0, 0.0, 0.0); }
+        }
+    }
+
+    /// <summary>
+    /// Transformação do bloco (o <c>Matrix3d</c> da API real). O stub só precisa que o tipo
+    /// exista para o <c>SetAttributeFromBlock</c> — o original o usa para posicionar o atributo.
+    /// </summary>
+    public struct Matrix3d
+    {
     }
 
     /// <summary>Vetor 3D — o que a elipse do rótulo da Eletrosul usa (normal e eixo maior).</summary>
@@ -197,6 +211,9 @@ namespace ZwSoft.ZwCAD.DatabaseServices
     {
         public Handle Handle { get; set; }
 
+        /// <summary>Identidade do objeto (o <c>DBObject.ObjectId</c> da API real).</summary>
+        public ObjectId ObjectId { get; set; }
+
         public ResultBuffer GetXDataForApplication(string appName)
         {
             // Sem desenho de verdade não há XData: devolve null, que é o caminho
@@ -222,6 +239,16 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         /// <summary>Volta a entidade aberta para leitura depois da escrita (<c>DBObject.DowngradeOpen()</c>).</summary>
         public void DowngradeOpen()
         {
+        }
+
+        /// <summary>
+        /// Cópia do objeto (o <c>DBObject.Clone()</c> da API real) — usado pelo
+        /// <c>verificaCriaBlocoRevisao</c>: a definição nova copia os <c>AttributeDefinition</c> do
+        /// bloco de formato. A API real devolve <c>object</c>.
+        /// </summary>
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 
@@ -421,6 +448,12 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         /// <summary>A definição do bloco (o <c>BlockReference.BlockTableRecord</c> da API real).</summary>
         public ObjectId BlockTableRecord { get; set; }
 
+        /// <summary>A transformação do bloco (o <c>BlockReference.BlockTransform</c> da API real).</summary>
+        public Matrix3d BlockTransform
+        {
+            get { return default(Matrix3d); }
+        }
+
         /// <summary>Escalas do bloco (o <c>BlockReference.ScaleFactors</c> da API real).</summary>
         public Scale3d ScaleFactors { get; set; }
 
@@ -484,6 +517,16 @@ namespace ZwSoft.ZwCAD.DatabaseServices
 
         /// <summary>Atributo invisível (o `bt14PortasDiscrepantes` usa no ramo da régua).</summary>
         public bool Invisible { get; set; }
+
+        /// <summary>Copia a posição/tag do atributo da definição do bloco (o <c>SetAttributeFromBlock</c> da API real).</summary>
+        public void SetAttributeFromBlock(AttributeDefinition definicao, Matrix3d transformacao)
+        {
+            if (definicao != null)
+            {
+                Tag = definicao.Tag;
+                TextString = definicao.TextString;
+            }
+        }
     }
 
     /// <summary>
@@ -633,9 +676,37 @@ namespace ZwSoft.ZwCAD.DatabaseServices
         {
         }
 
+        /// <summary>
+        /// As referências que usam esta definição (o `GetBlockReferenceIds` da API real — o
+        /// `attsync` do `verificaCriaBlocoRevisao`). Sem desenho de verdade não há referência.
+        /// </summary>
+        public ObjectIdCollection GetBlockReferenceIds(bool directOnly, bool forceValidity)
+        {
+            return new ObjectIdCollection();
+        }
+
         public IEnumerator GetEnumerator()
         {
             return new List<ObjectId>().GetEnumerator();
+        }
+    }
+
+    /// <summary>
+    /// Coleção de <see cref="ObjectId"/> (o `ObjectIdCollection` da API real, devolvida pelo
+    /// `GetBlockReferenceIds`). O stub só precisa da enumeração, como o original a percorre.
+    /// </summary>
+    public class ObjectIdCollection : IEnumerable
+    {
+        private readonly List<ObjectId> _ids = new List<ObjectId>();
+
+        public int Count
+        {
+            get { return _ids.Count; }
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            return _ids.GetEnumerator();
         }
     }
 

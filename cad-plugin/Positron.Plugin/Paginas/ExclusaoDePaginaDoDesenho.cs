@@ -14,8 +14,7 @@ namespace Positron.Plugin.Paginas
     /// <summary>
     /// A parte que **apaga** a página: o <c>Pagina.ApagarElementosPagina</c> do reverso — toda
     /// entidade do ModelSpace no layer da página é apagada (<c>Erase</c>) — mais o **layer**, que o
-    /// original deixa para trás (uma "página" sem elementos e sem layer é o que a lista do caderno
-    /// espera; a diferença está registrada no RUNBOOK).
+    /// botão "Excluir Páginas" do original também chama o `RemoveLayer`, então o layer sai junto).
     ///
     /// A decisão de poder apagar é pura (<see cref="ExclusaoDePagina.Recusa"/>); aqui só se varre e
     /// se apaga. **Nunca lança**: a ação é destrutiva e o comando reporta o que fez.

@@ -6,7 +6,7 @@
 
 **Não.** O que está coberto é o **recorte** — as correções e a limpeza do CAD (frente 2), a base/contexto (frente 1) e os três pipelines —, e o que está **mapeado** são os **216 comandos** do reverso (todos classificados). O que **não** está coberto é a **lógica por trás dos formulários** (49% do código do reverso) nem a pilha de exportação/importação, as rotinas destrutivas e a integração de ambiente/licença.
 
-## 0. Estado medido agora — o que falta, em ordem (rodadas 132–155)
+## 0. Estado medido agora — o que falta, em ordem (rodadas 132–170)
 
 Esta seção responde à pergunta recorrente *"o que já cobrimos e o que falta"* **com número medido no
 próprio repo**, e não com memória: o `scripts/cobertura-do-reverso.ps1` cruza o mapa dos 216 comandos
@@ -26,23 +26,28 @@ powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1 -Acopl
 | comandos do reverso | **216** |
 | deles, abrem alguma janela / são regra de desenho pura | **121** / **95** |
 | telas `frm*` | **127** |
-| comandos que o plugin responde | **188** = **73 escritos à mão** (51 do reverso + 22 nossos) + **115 gerados** (só abrem a tela) |
-| comandos do reverso **sem nada no plugin** | **50** = **0** que abre janela + **50** de regra pura |
-| telas alcançadas por algum comando | **108** (6 com regra escrita à mão, 102 só casca) |
+| comandos que o plugin responde | **188** = **74 escritos à mão** (52 do reverso + 22 nossos) + **114 gerados** (só abrem a tela) |
+| comandos do reverso **sem nada no plugin** | **50** = **1** que abre janela (`IMPBD`) + **49** de regra pura |
+| telas alcançadas por algum comando | **107** (6 com regra escrita à mão, 101 só casca) |
 | telas que **nenhum** comando abre (sub-janela: relatórios DWG/Excel, editores) | **19** |
-| telas sem comando e sem casca pelo nome | **0** |
+| telas sem comando e sem casca pelo nome | **1** (`IMPBD`) |
 
 A rodada 158 ligou as **15 variantes** das telas (`VariantesDoReverso.cs`), gerando os 15 comandos
 no plugin e conectando-os na barra de ferramentas. Com isso, os comandos gerados subiram de 99 para
 **114**, os comandos sem nada caíram de 68 para **51** (restando apenas 1 que abre janela: `IMPBD`),
 as telas alcançadas subiram para **107** e a barra passou a ter 123 acionáveis cobertos e 116 abrindo janela.
-A rodada 159 ligou o último: o `IMPBD` (`frmImportarProjetos`) só tinha, além da janela, o aviso
-`mMensagem[1969]` ("Esta função não é suportada para o SQL Server.") no `else` da guarda do
-`Conf.Banco == "SV"` — o recoder não tem SQL Server, então ele virou o **115º gerado**: **50** sem nada
-(todos de regra pura), **108** telas alcançadas e a barra com **124** cobertos e **117** abrindo janela
-(nenhum item de janela sem comando). A tela é casca: a importação (`clsImportarProjetos`) segue na frente 9.
-A rodada 160 ligou a tela `frmEstimativaVeiasLivres` (`ESTVL`) à regra nova `EstimativaDeVeiasLivres`:
-o painel passa a dizer **13** telas com a ligação na tela (eram 12).
+
+A rodada 170 ligou o **`CAD`** (o item **CADERNO** da barra, "cria ou troca o formato") — o `Caderno.CriaCaderno` do original: a regra pura `TrocaDeFormato` e o adapter `TrocaDeFormatoDoDesenho`, com os diálogos do original e o caminho de script `POSITRON_FORMATO`. Isso levou os **escritos à mão** de 73 para **74** (52 do reverso) e os comandos do reverso **sem nada** de 51 para **50** (49 de regra pura), além dos acionáveis cobertos da barra de **123** para **124** (o painel Caderno de 8 para 9).
+
+A rodada 173 fechou a **cadeia pós-troca do formato** do `CAD` — o `ApagarCamposPaginas`/`criaCamposTOT`/`criaCamposFormato` de cada página, as definições de revisão, os títulos e o `AtualizaContTotFl` (a regra pura `CamposDoFormato` e o adapter `RestauracaoDoFormatoDoDesenho`). Não mexe nas contagens desta seção: o `CAD` já estava coberto; o que entra é o comportamento do passo seguinte. **Fora, com o motivo:** o `TrocaColunas`, o `AtualizaRevSimplificada` e o `attsync` por referência.
+
+A rodada 159 ligou **duas** das **38** telas `frmRelatorio_*` — a **Lista de Veias** (`LVEI`) e a **Lista
+de Materiais** (`EXPLM`), cuja regra o app já tinha desde as rodadas 65–68 —, levando as telas com
+regra de **12** para **14** de 127. Não mexe nas contagens de comandos desta seção: os dois comandos já
+existiam (`[CommandMethod]` gerado, abrindo a casca) e a tela passou a ter comportamento. O que ficou de
+fora de cada tela (exportação Excel/DWG, ordenação manual, o modo multi-painel, o `bSepara` e o
+`CarregaFuncoesDaVeias4`) entra **desabilitado com o motivo na dica**, e o `OrdenaAVeia` das veias de
+reserva segue fora da regra com o motivo registrado no `PLANO.md` §7.3 e no `RUNBOOK.md`.
 
 **O reverso mora no repo desde a rodada 134** (`cad-plugin/reverso/Eletron4_ZWcad`, com o
 `decompiled/`, o `decompiled-cleaned/`, o `cleaned/` e o `DLL/`), e o painel agora **imprime de onde
@@ -51,7 +56,7 @@ leu** — `-Decomp` aponta para outra cópia (a de fora do repo, por exemplo). O
 regeração da rodada 134 saiu **byte a byte igual** ao que já estava no repo: só a linha de
 proveniência mudou.
 
-**Os "51 sem tela e sem nada no plugin" não são 51 regras faltando:** a triagem do §7.6 já dividiu
+**Os "50 sem tela e sem nada no plugin" não são 50 regras faltando:** a triagem do §7.6 já dividiu
 cada um (só UI, interativo, destrutivo, ambiente ou substância coberta sob outro nome). A **regra em
 lote de verdade** estava na **frente 2**, e ela fechou no que é regra: dos **38** comandos, **37**
 estão entregues (o **`EncontraHandle`** na **rodada 146**; antes, o **`CorrigeInterligacao`** na
@@ -158,8 +163,7 @@ comando**, quanto de ambiente o corpo carrega, com os totais acima — é o term
 quase 1:1 (entre os pendentes que ele lista, o `LeAtributos`, de 122 linhas, é o único que só toca
 `Conversions`/`DeclaracoesGeral`) e onde tem de virar regra.
 
-**O que continua fora, decidido (não é pendência):** as **15 variantes** de tela (o argumento da
-construção), a **frente 11** (ambiente/licença — `RESETLIC`/`TCHAVE`/`TUSING`), os **3 destrutivos com
+**O que continua fora, decidido (não é pendência):** a **frente 11** (ambiente/licença — `RESETLIC`/`TCHAVE`/`TUSING`), os **3 destrutivos com
 `MsgBox`** (`DELFIPROJ`, `DELLM`, `DELPLA`) e as **19 sub-janelas** de relatórios DWG/Excel — a pilha de
 exportação (≈5.800 linhas), que sai pelo app (§7.3).
 
@@ -199,7 +203,7 @@ Cruzamento com o §7.6 do `docs/PLANO.md`: **209 dos 216** nomes apareciam citad
 | classificados como **só UI** (o comando abre um formulário) | **68** |
 | **interativos/navegação** (ponto, seleção, jig, URL, páginas) | **28** |
 | **destrutivos com confirmação** (`MsgBox`): `DELFIPROJ`, `DELLM`, `DELPLA` | **3** |
-| **arquivo/ambiente**: `CHVAUT`, `SYNCLP`, `LXLS`, `PortasChesf`, `IMPBD` (este abre a casca desde a 159) | **5** |
+| **arquivo/ambiente**: `CHVAUT`, `SYNCLP`, `LXLS`, `PortasChesf`, `IMPBD` | **5** |
 | **cobertos pela substância** de outro comando ou pela projeção: `LAYELN`, `LAYELS`, `RECRIACABOS`, `SYNCC` | **4** |
 | comandos **próprios** do recoder (sem par): `ELETCFG`, `INDCABO`, `VERIF`, `ELETREL`, `ELETCMP`, `SobeLm`, `pzDiag`, `pzDiagCriar`, `ApagaERROS` | 9 (fora dos 216) |
 

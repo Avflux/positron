@@ -36,7 +36,7 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
 | # | painel | mMensagem | botoes | itens de menu | cobertos | metodo | linha |
 |---|---|---|---|---|---|---|---|
 | 1 | Configuração | 111 | 2 | 0 | 1 | `TSfp1Hv8Fcw` | 116 |
-| 2 | Caderno | 109 | 13 | 0 | 9 | `sqNp1kxf3Uh` | 158 |
+| 2 | Caderno | 109 | 13 | 0 | 10 | `sqNp1kxf3Uh` | 158 |
 | 3 | Dispositivos | 110 | 24 | 0 | 18 | `Xcxp1ds9OPI` | 319 |
 | 4 | Bornes | 540 | 9 | 0 | 7 | `fJdp1fB9M7a` | 654 |
 | 5 | Fiação | 559 | 16 | 11 | 21 | `RuZp1DKCh0P` | 812 |
@@ -55,7 +55,7 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
 ### 2. Caderno (`sqNp1kxf3Uh`, linha 158)
 
 - linha
-  - Botao/IconeGrande "CADERNO" `CAD` icone Caderno_32 nao coberto - Cria ou troca o formato (linha 229)
+  - Botao/IconeGrande "CADERNO" `CAD` icone Caderno_32 coberto - Cria ou troca o formato (linha 229)
   - (quebra de linha)
   - Botao/IconeGrande "GER DWG" `GERDWG` icone Database_Preto_32/Database_Branco_32 coberto, abre janela - Gerenciador de DWGs (linha 239)
 - linha
@@ -382,5 +382,5 @@ conteiner: Separador `val8` do painel 5 (linha 1008, comando ``); Separador `val
 
 - Paineis: **9**.
 - Botoes: **121**; menus: **5** com **39** itens; liga/desliga: **1**.
-- Acionaveis (botao, item de menu, liga/desliga): **161** - o recoder responde a **124**, dos quais **117** abrem janela.
+- Acionaveis (botao, item de menu, liga/desliga): **161** - o recoder responde a **125**, dos quais **117** abrem janela.
 

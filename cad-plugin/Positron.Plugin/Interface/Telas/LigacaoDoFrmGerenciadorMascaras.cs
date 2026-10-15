@@ -32,7 +32,7 @@ namespace Positron.Plugin.Interface.Telas
             TextosDoOriginal(janela);
             DesabilitarAcoes(janela);
 
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             Dictionary<int, MaterialDoCatalogo> catalogo = CatalogoIndexado(Catalogo(config));
 
             List<ModeloMascara> modelos = ModelosMascaraDoDesenho.LerModelos();

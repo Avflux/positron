@@ -420,6 +420,12 @@ coisas medidas nesta máquina importam para quem for testar:
   detalhe rodada a rodada). Por isso a interface mora em `PaletaAncoravel`, tocado só quando há
   janela.
 
+**Nesta máquina o pacote de autoload está REMOVIDO de propósito** (rodada 160): o autoload é o caminho
+de produção, e ele faz a barra aparecer **sem `NETLOAD`** — o que atrapalha o ciclo de teste (e, com o
+pacote velho, mostra a barra velha). Para medir a barra pela interface cheia, instale o pacote
+(`instala-bundle.ps1 -Cad AutoCAD`), meça e remova-o de novo (`-Remover`). Para o ciclo por `NETLOAD`,
+nenhum pacote é preciso.
+
 O jeito de medir a **barra** e a **paleta** é abrir a **interface cheia** por script — sem `NETLOAD`
 (é o autoload que está sob teste) e com o `POSITRON_LOG` apontado:
 
@@ -782,6 +788,15 @@ cp $BIN/Positron.Contract.dll $BIN/Positron.Data.dll $BIN/Positron.Data.Tests.dl
 (cd $DEST && TEMP='C:\Users\<voce>\AppData\Local\Temp' ./xunit.console.exe Positron.Data.Tests.dll)
 ```
 
+**A raiz do `loadFromRemoteSources` (rodada 168).** O `NETLOAD` que morre com `FileLoadException ...
+0x80131515` **dentro da árvore** tem correção na raiz, sem copiar a DLL: o switch
+`<loadFromRemoteSources enabled="true"/>` no `<runtime>` do `acad.exe.config` do AutoCAD. Nesta máquina
+ele foi aplicado (com o backup `acad.exe.config.positron-bak`) e **medido na interface cheia do AutoCAD
+2020**: o `NETLOAD` do caminho `...\Desktop\APP\positron\cad-plugin\...\Positron.Plugin.AutoCAD.dll`
+carrega (`Positron: DLL de ... — <o caminho da árvore>`, a barra monta com 9 painéis). O `-PastaLocal`
+do harness continua valendo como contorno sem mexer no CAD (e é obrigatório no `accoreconsole`, que tem
+o seu próprio `accoreconsole.exe.config`).
+
 Duas armadilhas da cópia: o runner precisa do `xunit.execution.desktop.dll` **na própria pasta** (ele
 não o resolve pela pasta do teste) e as DLLs do xunit no `bin` do teste são de versões **diferentes**
 (as 2.9.0 do adaptador) — copie as do runner **depois** das do teste, ou só as do `Positron.*`.
@@ -968,44 +983,211 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
-**Rodada 160 — a tela `frmEstimativaVeiasLivres` (`ESTVL`) ligada à regra: a estimativa de veias livres.**
-Com a fila do `PLANO.md` vazia, a menor tela que era só casca (267 linhas). Ela é uma grade (`DE`, `PARA`, `# VEIAS`) com o par de painéis e quantas veias **indefinidas** (`NumVeia == -1000`) o ligam, mais o botão Copiar. Toda a regra vem do desenho; do banco, só o nome dos painéis.
-- regra pura `Positron.Data/Interligacao/EstimativaDeVeiasLivres.cs`: o `carregaApenasAsVeiasIndefinidasDoCaderno` (pula a ponta que só tem o painel 2 fora do tipo 3; no tipo 2 completa o painel pelo `Painel2` da polyline apontada pelo handle do XData; ordena por painel 1 decrescente e painel 2 crescente) seguido do `clsInterligacao.Estimativa` (pula painel zero, par em ordem, conta na ordem da primeira aparição); nomes pelo cadastro `Paineis` (`"???"` fora dele); o texto do Copiar com TAB e CRLF;
-- `InterligacaoDoDesenho`: uma varredura só (`Varrer`) para o `Ler` e o novo `LerComHandles`;
-- `LigacaoDoFrmEstimativaVeiasLivres`: as colunas do `formataDGVeias`, a grade e o `btCopiar`; `LigacoesDasTelas` com **13 de 127**;
-- +5 testes (`EstimativaDeVeiasLivresTests`).
+**Rodada 173 — a cadeia pós-troca do formato (o `CAD`, o resto do `Caderno.CriaCaderno`), medida no AutoCAD 2020.**
+A rodada 170 entregou a **troca em si** e deixou a **cadeia que o original roda depois de inserir o bloco** fora, com o motivo (o XML doc do `TrocaDeFormatoDoDesenho`). É o que entra agora:
 
-O `Funcional.dwg` não tem veia indefinida (o `ESTVL` dá 0 pares). Para a prova com linhas, cópias do desenho e do banco, com o `Cabos` da cópia reduzido a um cabo que o desenho não usa — o `INDCABO` então indefine os 20 trechos:
+- **Regra pura** (`Positron.Data/Paginas/CamposDoFormato.cs`): o que o `ApagarCamposPaginas` apaga (todo texto com o XData do título, o `LeXDataTitulo > 0`); o campo `TOT` do `criaCamposTOT` (o atributo protegido de tag `TOT`, texto `"1"`, índice 7); e o valor do `AtualizaContTotFl` por **índice** — 9=ALTERNATIVO (o alternativo da página), 5=CONT (a próxima página válida), 6=FL (o layer), 7=TOT (a última página) —, com o `Conf.incluirColuna` em 3..5 trocando a página pelo **alternativo** dela quando existe (o ramo `BuscaAlternativo(text, true)` do original).
+- **Adapter** (`Positron.Plugin/Paginas/RestauracaoDoFormatoDoDesenho.cs`): depois da inserção do bloco, apaga os campos antigos, recria o `TOT` e os **oito campos** de cada página (o `CriacaoDePaginaDoDesenho.CopiarCampos`, agora com o `layerRef` — a **capa** na capa e o `-1` nas demais), refaz as definições `Revisao_Capa{n}`/`Revisao_Corpo{n}` e apaga as que sobram (`RevisoesDoDesenho.CriarDefinicoesDoFormato`, o `for l = maxCapa To 7`), restaura os **títulos** capturados antes da troca (`TitulosDaPaginaDoDesenho`) e regrava o `maxCapa`/`maxCorpo` no XData da configuração (`ConfiguracaoDoDesenho`). O comando `CAD` captura os títulos antes do `Trocar`, e a revisão/os títulos só rodam quando o desenho **já tinha** formato (o `flag2` do original).
+- **Fora, com o motivo:** o `TrocaColunas` (as colunas de cruzamento), o `AtualizaRevSimplificada`, o `attsync` por referência e a página ativa/paleta do fim do `CriaCaderno`.
 
-```text
-# ZWCAD 2026, cópias do Funcional.dwg e do r154.db (Cabos só com 7SA6000)
-powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Desenho <copia>\Funcional159.dwg -Banco <copia>\r159.db -Comandos "ESTVL,INDCABO,ESTVL"
+**Verificação:** `plugin:test` **849** (+8, `CamposDoFormatoTests`), as duas builds **0 avisos**; **medido no AutoCAD 2020** (`Funcional.dwg`, DWG 63) com a fixture nova `scripts/cad-fixture-formato.lsp` (exporta a definição do formato do próprio desenho por `_.-WBLOCK`, e o `CAD` a usa como formato novo):
 
-ESTVL: 0 par(es) de painéis com veia indefinida.
-ESTVL: "Estimativa Veias Faltantes" (frmEstimativaVeiasLivres) aberta no CAD — 5 controle(s).
-INDCABO: 20 de 20 trecho(s) de interligação indefinido(s); 24 de 24 rótulo(s) do cabo com o caracter indefinido (catálogo: 1 cabo(s)).
-ESTVL: 2 par(es) de painéis com veia indefinida: PNL-GGE -> 400G1 (10); PNL-GGE -> 400G2 (10).
+```
+CAD: formato trocado — bloco "formato173" (definição "A3_PADRÃO_ELB" e 1 referência(s) apagada(s));
+30 atributo(s) (15 preservado(s), 13 protegido(s)); cadeia: 77 campo(s) apagado(s), 0 TOT,
+77 campo(s) em 16 página(s), 1 definição(ões) de revisão (0 apagada(s)), 16 CONT/FL/TOT/ALTERNATIVO,
+45 título(s); maxCapa 1/maxCorpo 0.
 ```
 
-`JANELAS`: 127 de 127 montadas, **13** com regra. `plugin:test` **783** (+5), as duas builds **0 avisos**.
+Com o `Revisao.dwg` como formato (que não tem os campos de página), a cadeia apaga os 77 campos do formato antigo e **não** recria nenhum (`0 campo(s) em 0 página(s)`), apaga 1 definição e regrava a configuração com `maxCapa 0/maxCorpo 0` — o outro lado do ramo.
 
-**Rodada 159 — o `IMPBD` (`frmImportarProjetos`): o último comando do reverso que abre janela ligado.**
-Com a fila do `PLANO.md` toda ✅, o painel da rodada 158 deixava um único comando de janela sem nada no plugin. No original o `IMPBD` só abre a tela; o `else` da guarda `Conf.Banco == "SV"` mostra o `mMensagem[1, 1969]` ("Esta função não é suportada para o SQL Server."). O extrator via esse `MsgBox` como trabalho e o deixava de fora.
-- `scripts/extrair-comandos-do-reverso.ps1`: o `MsgBox(RuntimeHelpers.GetObjectValue(DeclaracoesGeral.mMensagem[...]))` conta como relato da guarda (o único corpo que muda é o do `IMPBD`); o recoder não tem SQL Server, então a guarda nunca barra;
-- regenerados `ComandosDoOriginal.Gerado.cs` (**115** gerados), `ComandosDoReverso.Dados.cs`, `docs/reverso-comandos.txt` e, pelo `extrair-barra-do-reverso.ps1`, `BarraDoReverso.Dados.cs` e `docs/reverso-barra-do-original.txt` (**124** cobertos, **117** abrindo janela, nenhum item de janela sem comando);
-- painel (`cobertura-do-reverso.ps1`): **50** do reverso sem nada (**0** abrem janela), **108** telas alcançadas;
-- a tela é casca: a importação (`clsImportarProjetos`) segue na frente 9.
+**Rodada 170 — o botão CADERNO: "cria ou troca o formato" (o comando `CAD`), a peça que faltava no painel Caderno da barra.**
+O item `CADERNO` da barra estava **desativado**: o `BarraDoReverso.Dados.cs` o gerou como `Coberto = false` (nenhum `[CommandMethod("CAD")]` no plugin) e o `Utilizavel` do `ItemDaBarra` só liga com `TemComando && Coberto && !Desativado`. O original (`Caderno.CriaCaderno`, `Comandos.cs:107`) é a **troca do formato** do caderno — e é o que entra:
+
+- **Regra pura** (`Positron.Data/Paginas/TrocaDeFormato.cs`): as decisões do `CriaCaderno` sobre dados — `TagsProtegidas` (as **59** do `attProtCollection`: os quatro títulos, `PAINEL`, `SECAO`, `FL`, `CONT`, `REV`, `TOT`, `ALTERNATIVO` e as seis famílias `REV`/`DESC`/`DATA`/`ELAB`/`VERIF`/`APROV` × `0..7`) e o `Protegida`; o `ValePreservar`/`Captura` (o `CapturaAtributosDoFormato`: não protegida **e** com texto); o `ValorPreservado` (o `euxs3rkWO`: casa pela **página em decimal**, o `calculaPaginaDecimal`, e pela **tag** sem caixa); o `Definir` (protegida → invisível e vazia; o resto → o valor preservado, que no original é o `DefaultValue` do prompt) e o `PrecisaRenomearCapa` (renomear para `"1"` só quando a capa tem outro nome).
+- **Adapter** (`Positron.Plugin/Paginas/TrocaDeFormatoDoDesenho.cs`): o `Existe` (o `ExisteFormato`), o `EscolherFormato` (o `GetFileNameForOpen`, "Selecione o formato:") e o `Trocar`: captura os atributos da **referência** do formato antigo, apaga a definição e **todas** as referências dela (o `ApagaDefinicaoReferencias`, as referências primeiro e o registro depois), insere o DWG do formato novo como bloco na **origem** no layer `0` (`Database`/`ReadDwgFile`/`Insert`), carimba o XData `DiagLog`/`Formato` (1001 "DiagLog", 1000 "Formato", 1070 3, 1000 " ") e **recria** um `AttributeReference` por definição com a instrução da regra; a capa vai a `"1"` antes da troca e volta ao nome antigo no fim. No modo interativo cada atributo não protegido é **perguntado** (o `GetString` com o prefixo `CAPA->`/`CORPO->` e o valor preservado de padrão), como o original.
+- **Comando `CAD`** (`Comandos.cs`) com os **diálogos do original**: a confirmação `MsgBox` Yes/No quando já existe formato (a mMensagem 75) e o diálogo do DWG. Com a convenção `POSITRON_*`, o `POSITRON_FORMATO` (caminho do DWG) e o `POSITRON_FORMATO_TROCAR=1` (a confirmação) rodam o mesmo **sem diálogo nem prompts** — é o caminho de um script, que o dono pode usar numa medição futura. As cinco mensagens do original (70/71/73/74/75) entraram no `MensagensDoReverso`.
+- **Barra e mapa de comandos regenerados** (`extrair-barra-do-reverso.ps1`/`extrair-comandos-do-reverso.ps1`): os cobertos da barra **123 → 124**, o painel **Caderno 8 → 9** (o `CADERNO` passa a `coberto`) e o `ComandosDoReverso.Dados.cs` marca o `CAD` como `JaNoPlugin`.
+- **Fora, com o motivo:** a cadeia que o original roda **depois** de inserir o bloco — o `Pagina.CarregaPaginas`/`OrdenaMatrizPaginas`/`ApagarCamposPaginas`/`criaCamposTOT`/`criaCamposFormato` de cada página, o `verificaCriaBlocoRevisao`, o `AtualizaTitulos`/`AtualizaRevSimplificada`/`TrocaColunas`, o `AtualizaContTotFl` e o `GravarXDataConfiguracao`, fechados pelo `GerenciadorPagina` — fica como a fatia seguinte (a troca em si, o que o botão faz, entra inteira). Também fora: o `attsync` por referência.
+
+**Verificação:** `plugin:test` **831** (+8: os 7 de `TrocaDeFormatoTests` e o `OBotaoCaderNoDaBarraFicouUtilizavel`, que fixa o item da barra como **utilizável** — o critério do dono), as duas builds (ZWCAD e AutoCAD) **0 avisos**.
+> **Armadilha do instrumento (medida nesta máquina, como nas rodadas 148/168):** o `npm run plugin:test` sai **exit 0 sem rodar teste nenhum** neste SDK .NET 10 preview (o adaptador do xunit não carrega). A suíte foi rodada pelo **console runner do xunit** fora da árvore (a receita está na seção `npm run plugin:test` sai 0 sem rodar teste nenhum, acima), com os **831** verdes. **Não medido no CAD:** a troca é **modal** (diálogo de arquivo + um prompt por atributo + o `MsgBox`); o caminho `POSITRON_FORMATO` existe para a medir num script quando o dono quiser — no `Funcional.dwg` (DWG 63) um formato novo de teste ainda não foi rodado.
+
+**Rodada 169 — Páginas e Revisão: as duas pendências que sobraram (o `NOVAPAGINA` depois da ativa e o `attsync` das referências).**
+
+**1) `NOVAPAGINA` insere depois da página **ativa**.** A rodada 164 registrou a divergência: o recoder calculava a página sempre **depois da última**, enquanto o `criarUmaNovaPagina` do original parte da página **ativa** (`DeclaracoesGeral.ativo.Pagina`) e calcula entre ela e a **próxima válida** (`BuscaProximaPaginaValida`, com o sentinela `1000000` quando a ativa é a última — que o `NovaPaginaEntre.Calcular` já trata como o vazio). O `ExecutarNovaPagina` passou a ler a ativa (`PaginaAtivaDoDesenho.Ler`, o mesmo leitor do `ATIVAPAGINA`), com `POSITRON_PAGINA` sobrepondo (o recorte de teste, como no `ATIVAPAGINA`) e a última como fallback quando a ativa não é do caderno; entrou o overload `PaginasDoCaderno.ProximaValida(IReadOnlyList<string>, string)` sobre os nomes crus.
+
+**2) O `attsync` das referências antigas.** O `verificaCriaBlocoRevisao` do original, depois de refazer cada definição, dispara `_.attsync _Name <def>` em **cada referência** dela. A parte **estrutural** entrou como regra pura `SincronizacaoDeAtributos.Calcular` (as tags da definição que a referência não tem — acrescentar — e as da referência que a definição não tem — remover, sem caixa) e o `RevisoesDoDesenho.Attsync`, chamado ao fim de cada `VerificaCriaDefinicao`, acrescenta os que faltam (do `AttributeDefinition` correspondente) e tira os que sobraram. **Divergência deliberada:** o `ATTSYNC` do CAD rebobina os valores para o padrão da definição — e como as cópias têm `TextString` vazio, isso **apagaria a revisão das páginas não editadas**; o recoder reproduz só a estrutura, preservando os valores. O stub ganhou o `GetBlockReferenceIds`/`ObjectIdCollection` para o gate de compilação.
+
+**Verificação:** `plugin:test` **823** (+6: `SincronizacaoDeAtributosTests` e o overload novo em `PaginasDoCadernoTests`), as duas builds **0 avisos**. **Medido no AutoCAD 2020** (`Funcional.dwg`, DWG 63): com `POSITRON_PAGINA=15` (página do meio do caderno, a próxima é `16`) o `NOVAPAGINA` criou a **`15A` depois de `15`** (o `Calcular` de duas páginas consecutivas acrescenta a letra, como o original); antes o comando criava sempre depois da última. **Não medido:** o `attsync` em si (exige um desenho com bloco de revisão já apontando para uma definição velha) — a regra pura tem teste e o adapter entra no caminho do `REVCOMP`, cuja janela é modal.
+
+**Rodada 168 — Revisão Completa: a criação das definições `Revisao_Capa{n}`/`Revisao_Corpo{n}` (o `verificaCriaBlocoRevisao`) e o `maxCapa`/`maxCorpo` do formato.**
+O que as rodadas 166–167 deixaram **aberto**: o plugin só regravava os blocos de revisão **que já existiam** e, quando a definição `Revisao_Capa{n}`/`Revisao_Corpo{n}` não estava no desenho, o bloco era **pulado** (a conta `SemDefinicao`); o `maxCapa`/`maxCorpo` vinha de uma contagem **informal** (quantos `BlockTableRecord`s começam com `Revisao_Capa`/`Revisao_Corpo`). Agora entra a regra que o original chama no **início** do `AtualizaRevCompleta`:
+
+- **Regra pura** (`Positron.Data/Paginas/DefinicoesDeRevisao.cs`): o `verificaCriaBlocoRevisao` em três decisões — `Nome(layer, tipo)` (a capa ou o `-1`, com o dígito da posição: `Revisao_Capa0`…/`Revisao_Corpo0`…), `Copiar(layerDoAtributo, tag, layerAlvo, tipo)` (o atributo do formato entra na definição quando o **layer** casa, a **tag** está no `attRevProtCollection` — as 48 tags `REV`/`DESC`/`DATA`/`ELAB`/`VERIF`/`APROV` × dígitos `0..7` — e ela **termina** com o dígito) e `Contar(formato, capaLayer)` (o `maxCapa`/`maxCorpo` do `carregaConfiguracaoRevisao`: só as tags **numeradas** `REV0..7`, por layer — o `REV` solto só liga um flag no original e **não** conta).
+- **Adapter**: `FormatoDoDesenho` (novo) acha o bloco de formato (o `BlockReference` do ModelSpace com o XData `DiagLog`/`Formato`) e lê as `AttributeDefinition` da **definição** dele (o `blockFormatoName` — a definição, não os valores da referência); `RevisoesDoDesenho.GravarCompletas` passa a **criar/refazer** cada definição (esvazia a que existe com o `Erase` de cada entidade, como o original, e copia os atributos que casam com o layer `0`, visíveis e com o texto vazio) e a contar as posições **do formato** em vez do prefixo dos nomes. O `CriarBloco` de cada página continua usando essas definições recém-garantidas.
+- **Fora, com o motivo:** o `attsync` que o original dispara **por referência** (é comando do CAD; os blocos novos do recoder já nascem da definição atualizada — as referências **antigas** das outras páginas não são ressincronizadas, o que só apareceria num desenho que já tinha os blocos com o formato velho); e, no `Nome`, o ramo do original para um layer que não é capa nem `-1` cria um registro **sem nome**, que o recoder não reproduz.
+
+**Verificação:** a regra pura tem **5** testes (`DefinicoesDeRevisaoTests`: o nome pela capa/`-1`, as 48 tags protegidas, as três condições do `Copiar`, a contagem por layer com o `REV` solto fora e as tags numeradas). `plugin:test` **817** (a suíte pelo console runner do xunit no `%TEMP%`, `pm170`: `Total: 817, Errors: 0, Failed: 0`), as duas builds **0 avisos**. **Não medido no CAD:** a janela do `REVCOMP` é modal e num script não há quem clique — a criação das definições fica coberta pelos testes da regra e pelo caminho do adapter (que só roda no desenho real).
+
+**Rodada 167 — Revisão Completa: o posicionamento dos blocos (`AtualizaRevCompleta`).**
+O que a rodada 166 deixou **aberto**: o plugin só regravava os blocos de revisão **que já existiam**,
+sem reposicionar nada. Agora entra a regra pura `PosicionamentoDeRevisoes`, que porta o laço do
+`AtualizaRevCompleta` do reverso (sobre o `capturaRevisoesCompletas`) com as três decisões: (1)
+**sem alteração** e já com posição → atualiza o bloco da posição (o `LK3p1o8pTVH` + o
+`JdCp1GqFmnk`); (2) **revisão alterada** e cabe → a revisão nova entra na `Posicao + 1`; (3)
+**alterada no topo** (`Posicao >= maxCapa/maxCorpo`) → o ramo de **estouro**: apaga todos os blocos
+da página, desce um cada posição > 1 (recriando com os dados antigos) e cria a nova — a mais antiga
+sai, como no original. A comparação com a `RevisaoOriginal` é **sem caixa** (o
+`Operators.CompareString(..., TextCompare: true)`) e a página sem revisão é pulada.
+
+- A regra é pura (`PosicionamentoDeRevisoes.Calcular`); o `ContarPosicoes`/`EhTagDeRevisao` portam o
+  `carregaConfiguracaoRevisao` (só as tags `REV`/`REV0..7` contam, por layer).
+- O adapter `RevisoesDoDesenho.GravarCompletas` virou **plan-driven**: lê todos os blocos de revisão
+  agrupados por página, casa cada página editada com o bloco de **maior posição** (a
+  `RevisaoOriginal` e a `Posicao` vêm do desenho, não da tela), mede as posições pelos blocos
+  `Revisao_Capa{n}`/`Revisao_Corpo{n}` que o `verificaCriaBlocoRevisao` deixou e aplica o plano:
+  `Atualizar` (XData + atributos no lugar), `Apagar` (o `Erase`) e `Criar` (o `JdCp1GqFmnk`:
+  `new BlockReference(Point3d.Origin, definição)` no layer da página, um `AttributeReference` por
+  definição via `SetAttributeFromBlock`, e o XData `DiagLog/Revisao`). O resultado é contado
+  (`Paginas`/`Atualizados`/`Criados`/`Apagados`/`Deslocados`/`SemDefinicao`/`SemFormato`) e o
+  comando relata na linha de comando.
+- **Duas coisas ficaram de fora, com o motivo:** (1) o recoder **não** cria as definições
+  `Revisao_Capa{n}`/`Revisao_Corpo{n}` a partir do bloco de formato (o `verificaCriaBlocoRevisao`) —
+  quando a definição não existe o bloco é **pulado** e entra na conta `SemDefinicao` (não se apaga
+  nada por isso); (2) sem nenhuma definição de posição, `posicoes` cai para `maiorPosicao + 1`
+  (`SemFormato`), para nunca disparar o deslocamento por engano num desenho sem formato — o
+  `maxCapa/maxCorpo` real do formato fica **aberto**.
+
+**Verificação:** a regra pura tem **8** testes (`PosicionamentoDeRevisoesTests`: os três ramos, a
+primeira revisão, o estouro com o deslocamento e a queda da mais antiga, a comparação sem caixa, a
+página vazia e a contagem de posições). `plugin:test` **812**, 0 falhas; as duas builds **0 avisos**.
+No **AutoCAD 2020** (`cad-autocad-smoke.ps1 -Desenho ..\Elet\RCD\Funcional.dwg -Dwg 63 -Revisao R0
+-Comandos REVCOMP`) o comando abre e carrega as **16 páginas** do caderno. **Não medido:** o clique do
+**Editar** (a janela é modal e num script não há quem clique) — o posicionamento em si fica coberto
+pelos testes da regra; o desenho real também não foi conferido bloco a bloco.
+
+**Rodada 166 — gravação da Revisão Completa: tags de atributo.** O `JdCp1GqFmnk` do original grava nos atributos as tags `REV0..REV7`, `DESC0..DESC7`, `DATA0..7`, `ELAB0..7`, `VERIF0..7` e `APROV0..7`; o plugin só reconhecia `REV`, `DESC`... (e aliases `REVISAO`, `DESCRICAO`, que o original não tem), então com os blocos reais não gravava nenhum atributo. Corrigido com `RevisaoCompletaXData.CampoDoAtributo` (família + dígito 0-7, sem o `REV` solto), usado no `GravarCompletas`; teste `Atributo_de_revisao_usa_a_familia_com_digito_de_0_a_7`. **Não portado (divergência grande, só verificável no CAD):** o `JdCp1GqFmnk`/laço do `capturaRevisoesCompletas` do original desloca as revisões entre posições (`Posicao--`), cria blocos `Revisao_Capa{n}`/`Revisao_Corpo{n}` com `Conf.maxCapa`/`maxCorpo` e apaga os que sobram (`LK3p1o8pTVH`). O plugin só regrava os blocos que já existem e não desloca nada. `plugin:test` **804**, 0 falhas, exit 0; builds 0 avisos.
+
+**Rodada 165 — revisão de Revisão Completa e Simplificada contra o `Revisao.cs` do reverso.** Leitura: (1) a simplificada usava a revisão do **projeto** como fallback para página sem campo REV — o original deixa **vazia** (`mRevSimplificada[1,i] = ""`); corrigido. (2) Com vários textos REV na mesma página, o original fica com o **último** lido (sobrescreve no laço); o plugin ficava com o primeiro; corrigido. (3) A completa aceitava um bloco de posição 0; o `capturaRevisoesCompletas` exige posição **estritamente maior** que a guardada (começa em 0) e também começa vazia; corrigido com `OperacoesDeRevisao.AceitaRevisaoCompleta` e teste. **Não verificado:** a **gravação** da completa (`gravarXDataRevisao` e o laço de atributos do `Revisao.cs` linha ~600–680, que apaga e recria atributos) não foi comparada linha a linha — o plugin só atualiza atributos existentes. A tela no CAD não foi aberta. `plugin:test` **803**, 0 falhas, exit 0.
+
+**Rodada 164 — Páginas: inserir e excluir conferidos contra o reverso.** Achado: o `NovaPaginaEntre.Calcular` devolve `PgNum 0` em alguns casos (ex.: entre `1A` e `1B` dá `0B`); o original (`criarUmaNovaPagina`, `TBNp1Uume8n`) **não cria nada** quando `PgNum == 0` (mensagem 31/32), mas o plugin passava o nome para o `CriacaoDePagina.Normalizar`, que tirava o zero e criava o layer **`B`**. Correção: `NovaPaginaEntre.Cabe` (`PgNum != 0`), usada no `InserirPagina` (grade) e no `NOVAPAGINA` antes de criar. Teste `Quando_nao_cabe_o_PgNum_zero_e_recusado`. Conferido ramo a ramo: `Calcular` bate com o `calculaNovaPagina` nos quatro ramos (numérico × alfanumérico). **Divergências registradas, não corrigidas:** (1) o `NOVAPAGINA` calcula sempre depois da **última** página, enquanto o `criarUmaNovaPagina` do original insere depois da **ativa** (com `BuscaProximaPaginaValida`); (2) o `APAGAPAGINA` apaga o **layer** junto, como o botão "Excluir Páginas" do original (que chama `Pagina.RemoveLayer`). **Corrigido na mesma rodada:** a exclusão não recusava a **capa** (`checaCapa`, mensagem 17 do original) — `ExclusaoDePagina.Recusa` agora recusa a capa (`PaginaAtiva.ChecaCapa`), com teste `A_capa_nao_se_apaga`. `plugin:test` **802** (+2 nesta rodada), 0 falhas, exit 0.
+
+**Rodada 163 — Lista de Plaquetas no app.**
+Novo relatório `plaquetas` (`services/sidecar/src/sidecar/relatorios/plaquetas.py`), com a consulta do
+`cDadosAccessPlaquetas.CarregaPlaquetas`: `Plaquetas4` filtrada pelo painel e ordenada por `Indice`. As
+colunas são as do original (`INDICE`, `Dispositivo`, `Descrição 1..3`, `Modelo`). `TIPO` e `HANDLE`
+vêm do desenho e não existem no banco, então não entram. O original também não filtra por revisão nem
+por DWG, e o relatório segue assim.
+
+Verificação: `test_db.py` cobre a grade do painel (com `Desc2`/`Desc3` nulos vazios), o painel vazio, o
+parâmetro obrigatório e o catálogo com cinco relatórios. `npm run test:sidecar` exit 0 (41 testes) e
+`ruff check` exit 0.
+
+**Rodada 162 — testes das chaves da Configuração Geral.**
+`ConfiguracaoPositronTests` ganha dois testes: `Padrao_da_tela_geral_segue_as_capturas_do_original`
+(os valores padrão da tela) e `As_chaves_da_tela_geral_sobrevivem_ao_round_trip` (as 19 chaves com
+valores não padrão, gravadas com `Texto()` e lidas de volta com `Ler`). Suíte do plugin pelo xunit
+console no `%TEMP%` (`pm161`): **800 total, 0 errors, 0 failed**. Com isso a persistência das chaves da
+tela tem teste próprio; o pipeline continua sem lê-las.
+
+**Rodada 161 — Configuração Geral (`ELETCFG`) em três abas, com as predefinições.**
+A tela `FormularioConfiguracao` passa a seguir as capturas do original: abas **Banco de Dados**
+(idioma, contatos auxiliares, nome do caderno, tipo de banco, banco do projeto, e DWG/revisão/log),
+**Bibliotecas** (quatro simbologias, cada uma com botão de pasta) e **Geral** (os botões **Configurar
+Padrão**, o cruzamento de páginas — o `IncluirColuna` 0..6 na ordem da tela —, caracteres, alturas,
+representação cabo/veia, cores, prefixos/sufixos e visualização de relés). Os valores das três
+predefinições saem do `frmConfiguracaoGeral.cs` decompilado (os handlers `t86y5UlFWX`, `QD0y0V9eIp` e
+`zYIyRqNngg`): só preenchem os campos da tela, e o arquivo só é gravado no **Salvar**, como no original.
+
+**19 chaves novas** no `positron.ini` (`ConfiguracaoPositron`), sem variável de ambiente, lidas pelo
+mesmo `Aplicar`: `idioma`, `contatosAuxiliares`, `tipoBanco`, quatro `simbologia*`,
+`representacaoCaboVeia`, `terminalIndefinido`, `separadorCarimbo`, `alturaCircuitos`,
+`alturaReferenciaCruzada`, `corFiacaoConexao`, `corFiacaoTextoCircuito`, os quatro
+`prefixo/sufixoCruzFuncFunc` e `...LogFunc`, e `visualizacaoModelosRele`. **Gravadas, mas o pipeline
+ainda não as lê** — só as chaves que já existiam mudam comportamento.
+
+**Verificação:** `dotnet build` do `Positron.Plugin` com 0 avisos e 0 erros. A suíte foi rodada pelo
+xunit console 2.9.2 (`.tmp-smoke/xunit`) **a partir de `%TEMP%`**, porque na pasta do repo no Desktop o
+runner dá `Acesso negado` (o caso descrito no troubleshooting): `Total: 798, Errors: 0, Failed: 0`.
+A tela e os cliques das predefinições **não** foram exercitados (modal, precisa do CAD).
+
+**Rodada 160 — o plugin não se desmontava: o `Terminate()` vazio e o pacote de autoload.**
+O dono apontou que ao **fechar o AutoCAD/ZWCAD** o plugin não é desmontado e a **barra continua montada** — "para teste isso não é legal", e que por ora bastava o que ele pediu: **remover a barra** e **montar só depois do `NETLOAD`** (em produção pode ficar como está). A investigação achou **quatro** coisas, e três delas eram medíveis:
+
+1. **`Plugin.Terminate()` estava vazio** desde o começo — o CAD *avisava* o plugin do descarregamento e não havia nada removendo a aba. É a causa direta.
+2. **No AutoCAD a retentativa agendada nunca era cancelada:** quando o ribbon ainda não existe no `Initialize()`, a montagem é agendada para a primeira ociosidade (`Application.Idle`); o handler **continuava pendurado** e podia **recriar** a aba **depois** do unload. A remoção sem cancelar a retentativa não duraria.
+3. **O CAD não avisa no fechamento** — medido na interface cheia do AutoCAD 2020: fechando por `QUIT` (e pelo `Quit()` do COM) o `POSITRON_LOG` termina **sem** linha nenhuma de `Terminate`, enquanto o **`accoreconsole`, ao sair, chama** (a linha do desmonte aparece no harness). Ou seja: no fechamento normal não existe callback nosso para rodar — a aba morre com o processo. E ela **não volta** na sessão seguinte: a montagem do `NETLOAD` não trouxe a nota de sobra (abaixo), isto é, o ribbon **não** tinha aba do Positron antes da carga.
+4. **O que o fluxo de teste sentia era o pacote de autoload**, não o desmonte: com o `.bundle` em `%APPDATA%\Autodesk\ApplicationPlugins` (o caminho de **produção**) a DLL é carregada **sem `NETLOAD`**, então a barra aparece sozinha ao abrir o CAD — e, se o pacote estiver velho, aparece a barra **velha** (o defeito da rodada 150). Medido: **com** o pacote o CAD escreve o log e monta a aba na primeira ociosidade sem `NETLOAD`; **sem** o pacote o CAD abre **sem `POSITRON_LOG` nenhum**.
+
+O que entrou no código (o par do `Criar()`):
+
+- `BarraDeFerramentas.Remover()` — cancela a retentativa pendente (`CancelarRetentativa`) e **tira do ribbon toda aba** com o id do Positron, devolvendo a conta de abas e de painéis removidos; `Plugin.Terminate()` passa a chamá-lo (e **nunca lança**: um erro ao fechar o CAD não pode virar diálogo — vai para o log).
+- `ConstruirAba()` deixou de **engolir** a sobra: uma aba do Positron que ainda esteja no ribbon (build anterior no ar) sai antes da nova e o log **denuncia** em vez de ficar com duas — `[substituiu N aba(s) do Positron que já estavam no ribbon, com M painel(is) — build anterior no ar?]`.
+- O contador da retentativa (`_tentativas`) é **zerado** quando a retentativa termina: ele ficava sujo e uma segunda chamada não reagendaria nada.
+
+O que foi feito **no ambiente** para o fluxo de teste (o pedido literal): o pacote de autoload foi **removido** desta máquina (`instala-bundle.ps1 -Cad AutoCAD -Remover`) — a barra passa a existir **só depois do `NETLOAD`**. Para voltar ao caminho de produção (barra automática ao abrir), `instala-bundle.ps1 -Cad AutoCAD`.
 
 ```text
-# ZWCAD 2026, banco novo
-powershell -ExecutionPolicy Bypass -File scripts/cad-zwcad-smoke.ps1 -Comandos "JANELAS,IMPBD"
+# 1) SEM autoload (pacote removido): o CAD abre sem plugin nenhum
+$env:POSITRON_LOG = "$env:TEMP\positron-sem-autoload.txt"
+# abre a interface cheia (acad.exe /nologo /i <copia>), espera ~35 s e confere:
+POSITRON_LOG existe? False
 
-Barra: aba "Positron" com 9 painel(is) — 121 botão(ões), 5 menu(s) com 39 item(ns), 1 liga/desliga, 1 lista e 1 campo; 34 linha(s), 86 quebra(s), 7 área(s) recolhível(is), 9 separador(es). Acionáveis: 124 ligado(s) (3 no comando do recoder), 37 desativado(s); tema escuro.
-JANELAS: seletor aberto com 127 tela(s) do reverso.
-IMPBD: "Importar Projeto" (frmImportarProjetos) aberta no CAD — 25 controle(s).
+# 2) NETLOAD da DLL do bin (copia local, por LISP) — a barra monta depois do load
+(setvar "FILEDIA" 0)
+(vl-cmdf "_.NETLOAD" "C:/positron-smoke/gui/Positron.Plugin.AutoCAD.dll")
+
+Positron carregado. Digite ELET para começar — ELET abre a paleta de folhas (FOLHAS também).
+Positron: DLL de 2026-10-14 21:33 — C:\positron-smoke\gui\Positron.Plugin.AutoCAD.dll
+Barra: aba "Positron" com 9 painel(is) — 121 botão(ões), 5 menu(s) com 39 item(ns), 1 liga/desliga, 1 lista e 1 campo; 34 linha(s), 86 quebra(s), 7 área(s) recolhível(is), 9 separador(es). Acionáveis: 123 ligado(s) (3 no comando do recoder), 38 desativado(s); tema escuro.
+pzBarra: 1 aba(s) POSITRON.ID_Positron ("Positron"), 9 painel(is) [Configuração | Caderno | ...]; RibbonButton=120, RibbonCombo=1, RibbonMenuButton=5, RibbonMenuItem=39, RibbonPanelBreak=7, RibbonRowBreak=86, RibbonRowPanel=34, RibbonSeparator=9, RibbonTextBox=1, RibbonToggleButton=1; 1 botão(ões) de canto; 40 item(ns) desativado(s).
+
+# 3) a prova de que o descarregamento agora age: no accoreconsole (headless), ao sair
+Barra: o CAD não tem ribbon nesta sessão — nada a desmontar.
 ```
 
-`plugin:test` **778** (contagens atualizadas), as duas builds **0 avisos**.
+**Duas coisas ficaram de fora, com o motivo:** a **paleta de folhas** (`PaletteSet`) não é fechada no desmonte — o pedido era a barra, e a decisão de fechar a paleta (que é do CAD e pode ser restaurada pela sessão) fica com o dono; e o **ZWCAD não foi medido** nesta rodada (não está instalado nesta máquina — o código é o mesmo, mas o `Terminate()`/autoload de lá não foi observado).
+
+**Como refazer a medição:** `.tmp-smoke/gui-netload2.ps1` (interface cheia + `NETLOAD` por LISP + `pzBarra` + `QUIT`), com o pacote removido. As duas builds **0 avisos** e `plugin:test` **798** (inalterado — a mudança é do `Positron.Plugin`, que a suíte do `Positron.Data` não cobre).
+
+**Rodada 159 — frente 12 (parte 9): as duas telas de relatório que já tinham a regra pronta — `frmRelatorio_Veias` (`LVEI`) e `frmRelatorio_Materiais` (`EXPLM`).**
+Os relatórios são a frente que o `PLANO.md` deixava como **decisão do dono** (§7.3) e o app já entregava **quatro tabulares** desde as rodadas 65–68 — dois deles (`veias` e `materiais`) reproduzindo as telas `frmRelatorio_Veias` e `frmRelatorio_Materiais`, com a regra medida no banco do projeto real. O que faltava **no CAD** era a tela: as duas cascas abriam pelo comando e ficavam vazias. Esta rodada liga as duas **sem reescrever a regra** — o `ListaDeVeias`/`ListaDeMateriaisDoRelatorio` são a mesma montagem que o app já media, agora em `Positron.Data` (é a regra de ouro do §7.7: nenhum código de tela antes da regra portada e testada).
+
+- `Positron.Data/Relatorios/ListaDeVeias.cs` — a **Lista de Veias** (o `CDadosAccessInterligacao.CarregaVeias4`), com as quinze colunas do `formataDGCabos`: (1) os cabos da revisão com o painel escolhido em `Pn1`/`Pn2`, por `Tag`, cada um **uma vez** (o `lCabosUnico`); (2) a ponta do painel escolhido vira a **ponta 1** e as marcas de `Aterrar` continuam presas aos `Pn1`/`Pn2` **originais** (`1` = fim do `Pn1`, `2` = fim do `Pn2`, `3` = os dois); (3) as veias do `Veias4` da mesma revisão, pulando `Num_Veia <= -51`, com o rótulo do `Nome_Veia` e, quando vazio, o número; (4) as pontas do `Interligacao4` casadas **por painel** — a ponta que não casa fica **vazia** —, com o `Terminal` vazio ou `"0"` saindo como o caracter indefinido (`?`) e o `NRegua` do lado **mandando** sobre a tag na coluna de dispositivo; (5) o `Documento Funcional` como a lista ordenada e sem repetição das duas pontas; (6) a `Página` como `Pagina1, Pagina2` quando diferem; (7) as veias de **reserva** (índice negativo) caindo no trecho da veia **seguinte**, como no original.
+- **O `qTotal` da tela** é o `lCabosUnico.Count` — os cabos com veia, **não** as linhas da grade: o cabo cujas veias não acham trecho no `Interligacao4` entra na conta e não aparece na lista. É um quirk do original e ficou fixado em teste; no painel 503 do projeto real são **42 cabos e 22 linhas** (`ListaDeVeias.CabosDoRelatorio`).
+- `Positron.Data/Relatorios/ListaDeMateriaisDoRelatorio.cs` — a **Lista de Materiais** pelo caminho de **um painel** da tela (o `CarregaDadosOrdemDispositivos` + o `CarregaGDDisp`): o agrupamento é por **trechos consecutivos do mesmo material** (material fora do catálogo ou `0` sempre começa linha nova), as tags do trecho unidas por `", "` e as quantidades **somadas**; a descrição sai do catálogo **com um espaço** no fim (o `DescCompleta + " "` do original, quirk mantido). O `CarregarOrdem` enche a `dgOrdem` com a ordem do **diagrama** (a `Ordem` que o `COMPLM` renumera 1..N por painel).
+- `ProjectStore.LerRevisoesDeCabos4` — a coluna `dgRevisao`: as revisões do **snapshot dos cabos** (`DISTINCT Revisao, Criador, Data FROM Cabos4 ORDER BY Data`), com a mais nova em cima (o laço do original acrescenta de trás para a frente). É outro recorte do `LerRevisoes` (que vem dos três pipelines do diagrama).
+- As telas: `LigacaoDeRelatorio` (a base fina das duas), `LigacaoDoFrmRelatorioVeias` e `LigacaoDoFrmRelatorioMateriais` — uma **arquivo por tela** + **uma linha** no `LigacoesDasTelas`, subindo para **14 de 127** telas com regra. A LVEI monta as colunas do `formataDGCabos` (a do `COMPRIMENTO` só com o `CBComprimento` ligado, como lá), a faixa `AntiqueWhite` alternando **por cabo** (o `flag` do `bqipPxovkmF`) e, com mais de um painel escolhido, a linha de cabeçalho `LightBlue` com o nome do painel na **terceira** coluna (o `iPainelSel` do `bSepara`); a EXPLM tem as três grades (`dgEquipamentos`/`dgOrdem`/`dgListaMateriais`), os textos do construtor do original e o recarregamento da `dgOrdem` na troca de painel.
+- **O que entra desabilitado, com o motivo na dica:** as exportações (`btExportaEXCEL`/`btExportaDWG` — a planilha e a montagem do bloco são da pilha de exportação, que sai pelo app), o `BTY`/`btLayout`/`btSalvaOrdem`/`btDesagrupar`/`btCima`/`btBaixo`/`btPrimeiro`/`btUltimo` (a **ordenação manual** das linhas e a gravação da ordem ainda não estão portadas), o `ckMultPNDetalhado` (o modo multi-painel, o `CarregaDadosDispositivosMultiplosPN`), a mesclagem de modelo/fabricante na descrição, o `tbMultiplicador`, o `CKAgrupar` (a montagem agrupada do `bSepara`) e o `RBFuncaoVeia` (o `CarregaFuncoesDaVeias4`).
+- **Duas coisas deliberadas, registradas:** (1) a tela **carrega na abertura** e não só no `btPesquisar` — no original a grade abre vazia até o clique e num script não há quem clique, então o harness não teria como medir; (2) no original onde há `MsgBox` o recoder **escreve na linha de comando**.
+- **Para medir num script:** `POSITRON_REL_PAINEL` escolhe o painel (as duas telas) e `POSITRON_REL_REVISAO` a revisão (a LVEI); sem elas a tela abre no primeiro item de cada coluna, como o original abre com a primeira linha selecionada.
+- **Achado de ferramenta:** duas telas de relatório no **mesmo** `.scr` não funcionam — o `accoreconsole` roda a primeira e a **segunda não escreve nada** (a janela modal come as linhas seguintes do script; o `.scr` gerado está correto — uma linha `LVEI` e, na seguinte, `EXPLM`). Cada tela medida em uma passada própria.
+- **A conferência valor a valor** (o que a rodada passou a usar): um dumper em C# sobre o `Positron.Data` (`ListaDeVeias.Montar` + `ListaDeMateriaisDoRelatorio.Montar`, 15 e 8 colunas) contra o **lado independente** em Python — o relatório `veias` do **app** (o módulo do sidecar, que nunca passa por C#) e uma reconstrução do agrupamento do EXPLM direto do `ListaMateriais` + `Materiais`. **Resultado: 0 diferença nas 72 linhas** (22 da LVEI + 34 do EXPLM, com as NBSP e o travessão do descritivo do catálogo incluídos).
+- **A única diferença que o cruzamento achou, e que era do app:** a coluna `Comprimento` da LVEI saía `0.0` no relatório do app e `0` na regra do CAD. O original usa `clsTextos.TiraNothing(Conversions.ToString(dComprimento))` (`frmRelatorio_Veias.cs:905`) — o `Conversions.ToString` de um `Double` **não escreve as casas quando o número é inteiro** —, então o `0` é o fiel e o `0.0` era o `str(float)` do Python. Entrou o `relatorios/base.py:numero()` (o `Conversions.ToString` do `Double`) e a `veias.py` passou a usá-lo; a variável `numero` do laço virou `numero_da_veia` para não sombrear a função. Fica registrado que o app **mostrava** `0.0` desde a rodada 65.
+- **A regra que fica de fora, com o motivo:** o `OrdenaAVeia` do original reordena as veias de índice **negativo** com heurísticas sobre o nome (`"P"`/`"T"`) — aqui as veias saem por `Num_Veia`, como no relatório do app (muda a ordem relativa das veias de reserva, não o conteúdo das linhas).
+
+```text
+# AutoCAD 2020 (accoreconsole), banco do projeto real (.tmp-smoke/r159.db: 697 cabos4,
+# 2388 veias4, 20 interligacao4, 104 ListaMateriais, 210 materiais), DWG 63, revisao R0
+POSITRON_REL_PAINEL=503 POSITRON_REL_REVISAO=R0 powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 -Banco <raiz>\.tmp-smoke\r159.db -Dwg 63 -Comandos "LVEI"
+
+LVEI: 22 linha(s) na Lista de Veias da revisão "R0" (42 cabo(s) distinto(s); painel(is) 503 de 697 cabo(s) e 2388 veia(s) na revisão; 480 painel(is) no cadastro).
+
+# mesma receita, -Comandos "EXPLM" (uma tela por passada: ver o achado de ferramenta acima)
+EXPLM: painel 503 — 91 item(ns) na ordem do diagrama.
+EXPLM: 34 linha(s) na Lista de Materiais do painel 503 (91 item(ns) na ordem do diagrama; 34 material(is) distinto(s)).
+EXPLM: 104 item(ns) na ListaMateriais do DWG 63; 210 material(is) no catálogo; 480 painel(is) no cadastro.
+
+# o cruzamento independente (dumper em C# contra o app + a reconstrução do EXPLM)
+C# linhas: 72 | ref linhas: 72
+linhas diferentes: 0
+
+# o app e o CAD antes da correção do Comprimento (a linha da LVEI, coluna 15)
+col 15: C#='0'  ref='0.0'
+```
+
+`plugin:test` **798** (+20: `ListaDeVeiasTests` 13, `ListaDeMateriaisDoRelatorioTests` 7), o sidecar **39** (`uv run --directory services/sidecar pytest`) e as duas builds **0 avisos**.
 
 **Rodada 158 — as 15 variantes das telas (`DICHESF`, `DIFURNAS`... — `frmRelatorio_DInterlig`/`_DICemig`/`frmTrocaPaineis`) e os 15 comandos gerados.**
 O item 6 da fila do `PLANO.md`: a conferência visual da rodada 153 havia identificado que 15 janelas do reverso eram instanciadas com argumentos no construtor que alteravam o formulário base (`new frmRelatorio_DInterlig(1..11)`, `new frmRelatorio_DICemig(1..3)` e `new frmTrocaPaineis(bAbre: false)`). Essas variantes não eram geradas como comandos para não abrir a casca padrão sem fidelidade.
@@ -6244,6 +6426,25 @@ Chaves do arquivo: `banco`, `dwg`, `revisao`, `local`, `log`, `incluirColuna`,
 `separadorCruzamento` (o nome da variável também é aceito como chave). Linha
 malformada é ignorada e valor inválido mantém o anterior — dado de terceiro não
 derruba o comando.
+
+**A configuração geral também vai para o desenho, como no reverso.** O comando
+`CFG`/`ELETCFG` do original **não grava no banco**: o `btSalvar` do
+`frmConfiguracaoGeral` manda o `DeclaracoesGeral.Conf` para o **XData do ModelSpace**
+(`XDataGeral.GravarXDataConfiguracao`: app `Eletron`, marcador `Config`, 41 valores;
+e `GravarXDataConfiguracao2`: app `EletronProj`, marcador `Projeto`, as pastas), e o
+`IniciarDWG` relê os dois ao abrir o desenho. O `ELETCFG` do recoder faz o mesmo: abre a tela com o que o XData do desenho tem e, no
+**Salvar**, grava o `.ini` **e** o XData. A regra pura é o `ConfiguracaoDoCaderno` (o
+layout, campo a campo, é um teste) e o I/O é o `ConfiguracaoDoDesenho` (junta os dois
+apps num buffer só, sem apagar o XData de terceiros). Os campos que só o original usa
+(`SCapa`, `Norma`, `DataSource`, `User`…) ficam **preservados** no round-trip.
+
+**Os comandos também leem o desenho** (o `IniciarDWG` do reverso). A leitura dos
+comandos/adapter é o `ConfiguracaoEfetiva.Carregar()` — `padrão < arquivo < desenho <
+ambiente`, via `ConfiguracaoPositron.Carregar(arquivo, ambiente, desenho)`: o desenho
+(o XData `Eletron`/`Config`) vence o arquivo e o ambiente `POSITRON_*` vence os dois (é
+o caminho da automação). Sem desenho ativo, ou sem o XData, cai no arquivo — como
+antes. O `Plugin.Escrever` (o caminho do `log`) segue no `ConfiguracaoPositron.Carregar()`
+com cache, porque o `log` não é do desenho.
 
 **`ELETCFG` é modal e não pode entrar em script**: ninguém clica em OK e o ZWCAD
 fica parado. Por isso nenhum E2E o executa; a lógica testável está em

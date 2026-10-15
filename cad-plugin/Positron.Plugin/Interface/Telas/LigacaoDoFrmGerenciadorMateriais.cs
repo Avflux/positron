@@ -68,7 +68,7 @@ namespace Positron.Plugin.Interface.Telas
 
             TextosDoOriginal(janela);
 
-            ConfiguracaoPositron config = ConfiguracaoPositron.Carregar();
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             List<MaterialDoCatalogo> materiais = Catalogo(config);
             PreencherGrade(grade, materiais);
 
