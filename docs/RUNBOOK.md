@@ -974,6 +974,8 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 164 — Páginas: inserir e excluir conferidos contra o reverso.** Achado: o `NovaPaginaEntre.Calcular` devolve `PgNum 0` em alguns casos (ex.: entre `1A` e `1B` dá `0B`); o original (`criarUmaNovaPagina`, `TBNp1Uume8n`) **não cria nada** quando `PgNum == 0` (mensagem 31/32), mas o plugin passava o nome para o `CriacaoDePagina.Normalizar`, que tirava o zero e criava o layer **`B`**. Correção: `NovaPaginaEntre.Cabe` (`PgNum != 0`), usada no `InserirPagina` (grade) e no `NOVAPAGINA` antes de criar. Teste `Quando_nao_cabe_o_PgNum_zero_e_recusado`. Conferido ramo a ramo: `Calcular` bate com o `calculaNovaPagina` nos quatro ramos (numérico × alfanumérico). **Divergências registradas, não corrigidas:** (1) o `NOVAPAGINA` calcula sempre depois da **última** página, enquanto o `criarUmaNovaPagina` do original insere depois da **ativa** (com `BuscaProximaPaginaValida`); (2) o `APAGAPAGINA` também apaga o **layer** (o original só apaga as entidades e deixa o layer — decisão já registrada acima). `plugin:test` **801** (+1), 0 falhas, exit 0.
+
 **Rodada 163 — Lista de Plaquetas no app.**
 Novo relatório `plaquetas` (`services/sidecar/src/sidecar/relatorios/plaquetas.py`), com a consulta do
 `cDadosAccessPlaquetas.CarregaPlaquetas`: `Plaquetas4` filtrada pelo painel e ordenada por `Indice`. As

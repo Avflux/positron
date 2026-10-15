@@ -61,5 +61,16 @@ namespace Positron.Data.Tests
             Assert.Equal("B", pagina.PgAlfa);
             Assert.Equal("0B", pagina.Pagina);
         }
+
+        [Fact]
+        public void Quando_nao_cabe_o_PgNum_zero_e_recusado()
+        {
+            // O original só cria a página com PgNum != 0; "0B" não é página (sem a guarda o
+            // Normalizar transformava em um layer "B").
+            Assert.False(NovaPaginaEntre.Cabe(NovaPaginaEntre.Calcular("1A", "1B", 1)));
+            Assert.False(NovaPaginaEntre.Cabe(NovaPaginaEntre.Calcular("1Z", "2", 1)));
+            Assert.True(NovaPaginaEntre.Cabe(NovaPaginaEntre.Calcular("1", "2", 1)));
+            Assert.False(NovaPaginaEntre.Cabe(null));
+        }
     }
 }

@@ -181,6 +181,15 @@ namespace Positron.Data.Paginas
             return pagina;
         }
 
+        /// <summary>
+        /// Cabe a página? O original só cria quando `PgNum` é diferente de zero (a mensagem 31/32
+        /// quando não cabe). Sem essa guarda, `0B` viraria o layer `B` no `Normalizar`.
+        /// </summary>
+        public static bool Cabe(PaginaCalculada pagina)
+        {
+            return pagina != null && pagina.PgNum != 0;
+        }
+
         /// <summary>O `Asc` da última letra (0 quando não é letra).</summary>
         private static int Letra(string pagina)
         {

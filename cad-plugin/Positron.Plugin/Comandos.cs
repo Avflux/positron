@@ -1200,6 +1200,10 @@ namespace Positron.Plugin
 
                 string ultima = paginas[paginas.Count - 1];
                 PaginaCalculada nova = NovaPaginaEntre.Calcular(ultima, NovaPaginaEntre.Fim, config.PassoPagina);
+                if (!NovaPaginaEntre.Cabe(nova))
+                {
+                    return "NOVAPAGINA: não cabe página depois de \"" + ultima + "\" — nada criado.";
+                }
 
                 // Unidade/alternativo vazios, como o `criarUmaNovaPagina` do original (ele zera os
                 // dois antes do `CriarLayer`; quem os edita é a fatia 5).

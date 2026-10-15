@@ -302,6 +302,12 @@ namespace Positron.Plugin.Interface.Folhas
             string posterior = linha + 1 < _grade.Rows.Count ? _grade.Rows[linha + 1].Cells[0].Value as string : string.Empty;
 
             PaginaCalculada nova = NovaPaginaEntre.Calcular(anterior, posterior, PassoPagina());
+            if (!NovaPaginaEntre.Cabe(nova))
+            {
+                // O original (mensagem 31/32) não cria nada quando não cabe a página.
+                UltimaMensagem = "Inserir: não cabe página entre \"" + anterior + "\" e \"" + (posterior ?? "") + "\" — nada criado.";
+                return UltimaMensagem;
+            }
 
             // A fatia 6: a página não é só calculada — o layer e os campos do formato são criados.
             CriacaoDePaginaDoDesenho.Resultado resultado = CriacaoDePaginaDoDesenho.Executar(
