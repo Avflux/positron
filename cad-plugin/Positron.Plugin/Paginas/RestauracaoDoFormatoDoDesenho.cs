@@ -22,19 +22,19 @@ namespace Positron.Plugin.Paginas
     /// recarregar as páginas, apagar os campos antigos (<c>ApagarCamposPaginas</c>), recriar o campo
     /// <c>TOT</c> (<c>criaCamposTOT</c>) e os oito campos de cada página (<c>criaCamposFormato</c>),
     /// refazer as definições de revisão (<c>verificaCriaBlocoRevisao</c>) e apagar as que sobram do
-    /// formato antigo, restaurar os **títulos** capturados antes da troca (<c>AtualizaTitulos</c>),
+    /// formato antigo com sincronização estrutural de atributos (<c>attsync</c>), restaurar os **títulos**
+    /// capturados antes da troca (<c>AtualizaTitulos</c>), restaurar as **revisões simplificadas**
+    /// (<c>AtualizaRevSimplificada</c>), restabelecer as **colunas de cruzamento** (<c>TrocaColunas</c>),
     /// recalcular o conteúdo de <c>CONT</c>/<c>FL</c>/<c>TOT</c>/<c>ALTERNATIVO</c>
-    /// (<c>AtualizaContTotFl</c>) e regravar a **configuração** do desenho com o <c>maxCapa</c>/
-    /// <c>maxCorpo</c> do formato novo (<c>GravarXDataConfiguracao</c>).
+    /// (<c>AtualizaContTotFl</c>), regravar a **configuração** do desenho com o <c>maxCapa</c>/
+    /// <c>maxCorpo</c> do formato novo (<c>GravarXDataConfiguracao</c>) e ativar a capa
+    /// (<c>DeclaracoesGeral.ativo.Pagina = retornaNumeroCapa()</c>).
     ///
     /// O que a cadeia faz com cada campo é puro (<see cref="CamposDoFormato"/>); este adapter só fala
     /// com o CAD.
     ///
-    /// **Fora, com o motivo:** o <c>TrocaColunas</c> (apaga e reinsere as entidades de coluna com o
-    /// XData de cruzamento, que o adapter ainda não tem) e o <c>AtualizaRevSimplificada</c> (depende
-    /// das revisões capturadas antes da troca, que o recoder reaplica pela via dos títulos — ver o
-    /// <c>RevisoesDoDesenho</c>), além do <c>attsync</c> por referência e da página ativa/paleta do
-    /// fim do <c>CriaCaderno</c>.
+    /// **Fora, com o motivo:** apenas a chamada de interface interativa do final do fluxo
+    /// (<c>Comandos.GerenciadorPagina()</c>, que abre/focaliza a paleta de páginas para o operador).
     /// </summary>
     internal static class RestauracaoDoFormatoDoDesenho
     {
@@ -67,6 +67,18 @@ namespace Positron.Plugin.Paginas
             /// <summary>Títulos restaurados (o <c>AtualizaTitulos</c>).</summary>
             internal int Titulos { get; set; }
 
+            /// <summary>Revisões simplificadas restauradas (o <c>AtualizaRevSimplificada</c>).</summary>
+            internal int RevSimplificadas { get; set; }
+
+            /// <summary>Entidades de coluna antigas apagadas do ModelSpace (<c>TrocaColunas</c>).</summary>
+            internal int ColunasApagadas { get; set; }
+
+            /// <summary>Entidades de coluna clonadas e inseridas do novo formato (<c>TrocaColunas</c>).</summary>
+            internal int ColunasCriadas { get; set; }
+
+            /// <summary>Referências de revisão sincronizadas com as definições (o <c>Attsync</c> estrutural).</summary>
+            internal int ReferenciasSincronizadas { get; set; }
+
             /// <summary>O <c>maxCapa</c>/<c>maxCorpo</c> do formato novo.</summary>
             internal int MaxCapa { get; set; }
 
@@ -74,16 +86,30 @@ namespace Positron.Plugin.Paginas
 
             /// <summary>A configuração do desenho foi regravada.</summary>
             internal bool ConfigGravada { get; set; }
+
+            /// <summary>A capa que foi ativada ao fim da restauração.</summary>
+            internal string CapaAtivada { get; set; }
         }
 
         /// <summary>
-        /// Roda a cadeia. <paramref name="titulos"/> são os títulos capturados **antes** da troca,
-        /// por página (a chave é o layer); só entram quando <paramref name="tinhaFormato"/> é
+        /// Sobrecarga compatível que roda a cadeia sem revisões simplificadas pré-capturadas.
+        /// </summary>
+        internal static Resultado Executar(IReadOnlyDictionary<string, TitulosDaPagina> titulos, bool tinhaFormato)
+        {
+            return Executar(titulos, null, tinhaFormato);
+        }
+
+        /// <summary>
+        /// Roda a cadeia. <paramref name="titulos"/> e <paramref name="revisoes"/> são os dados
+        /// capturados **antes** da troca; só entram quando <paramref name="tinhaFormato"/> é
         /// verdadeiro (o <c>flag2 = ExisteFormato()</c> do original gateia a revisão e os títulos). O
         /// <c>Conf.incluirColuna</c> que o <c>AtualizaContTotFl</c> consulta sai da configuração do
         /// desenho. Nunca lança.
         /// </summary>
-        internal static Resultado Executar(IReadOnlyDictionary<string, TitulosDaPagina> titulos, bool tinhaFormato)
+        internal static Resultado Executar(
+            IReadOnlyDictionary<string, TitulosDaPagina> titulos,
+            IReadOnlyList<RevisaoSimplificadaDaPagina> revisoes,
+            bool tinhaFormato)
         {
             Resultado resultado = new Resultado();
 
@@ -97,6 +123,8 @@ namespace Positron.Plugin.Paginas
             List<PaginaDoCaderno> paginas = LerPaginas(banco);
             ConfiguracaoDoCaderno conf = ConfiguracaoDoDesenho.Ler();
             int incluirColuna = conf != null ? conf.IncluirColuna : 1;
+            ObjectId formatoDefId = ObjectId.Null;
+            string capa = string.Empty;
 
             using (Transaction transacao = banco.TransactionManager.StartTransaction())
             {
@@ -116,7 +144,8 @@ namespace Positron.Plugin.Paginas
                     return resultado;
                 }
 
-                string capa = LayerDaCapa(transacao, banco);
+                formatoDefId = formato.BlockTableRecord;
+                capa = LayerDaCapa(transacao, banco);
 
                 // 2) criaCamposTOT: o campo TOT nasce no layer do atributo (capa ou -1).
                 resultado.CamposTot = CriarCamposTot(transacao, banco, espaco, formato, capa);
@@ -145,13 +174,15 @@ namespace Positron.Plugin.Paginas
 
             PosicoesDoFormato posicoes = new PosicoesDoFormato();
 
-            // 4) Revisão e títulos: só quando o desenho **já tinha** formato (o `if (flag2)` do
-            //    original). Na criação do formato não há revisão nem título a restaurar.
+            // 4) Revisão, títulos e colunas: só quando o desenho **já tinha** formato (o `if (flag2)` do
+            //    original). Na criação do formato não há revisão, títulos nem colunas antigas a restaurar.
             if (tinhaFormato)
             {
-                posicoes = RevisoesDoDesenho.CriarDefinicoesDoFormato(out int definicoes, out int apagadas);
+                int definicoes, apagadas, referencias;
+                posicoes = RevisoesDoDesenho.CriarDefinicoesDoFormato(out definicoes, out apagadas, out referencias);
                 resultado.Definicoes = definicoes;
                 resultado.DefinicoesApagadas = apagadas;
+                resultado.ReferenciasSincronizadas = referencias;
                 resultado.MaxCapa = posicoes.Capa;
                 resultado.MaxCorpo = posicoes.Corpo;
 
@@ -166,17 +197,38 @@ namespace Positron.Plugin.Paginas
                         }
                     }
                 }
+
+                // 6) AtualizaRevSimplificada: devolve as revisões simplificadas capturadas antes da troca.
+                if (revisoes != null && revisoes.Count > 0)
+                {
+                    resultado.RevSimplificadas = RevisoesDoDesenho.GravarSimplificadas(revisoes);
+                }
+
+                // 7) TrocaColunas: apaga entidades de coluna antigas e reinstancia do formato novo.
+                if (!formatoDefId.IsNull)
+                {
+                    TrocaColunasDoDesenho.Resultado colunas = TrocaColunasDoDesenho.Trocar(banco, formatoDefId);
+                    resultado.ColunasApagadas = colunas.EntidadesApagadas;
+                    resultado.ColunasCriadas = colunas.EntidadesCriadas;
+                }
             }
 
-            // 6) AtualizaContTotFl: o conteúdo de CONT/FL/TOT/ALTERNATIVO.
+            // 8) AtualizaContTotFl: o conteúdo de CONT/FL/TOT/ALTERNATIVO.
             resultado.ContTotFl = AtualizarContTotFl(banco, paginas, incluirColuna);
 
-            // 7) GravarXDataConfiguracao com o maxCapa/maxCorpo do formato novo.
+            // 9) GravarXDataConfiguracao com o maxCapa/maxCorpo do formato novo.
             if (conf != null && (conf.MaxCapa != posicoes.Capa || conf.MaxCorpo != posicoes.Corpo))
             {
                 conf.MaxCapa = posicoes.Capa;
                 conf.MaxCorpo = posicoes.Corpo;
                 resultado.ConfigGravada = ConfiguracaoDoDesenho.Gravar(conf);
+            }
+
+            // 10) Ativação da capa (o `DeclaracoesGeral.ativo.Pagina = Pagina.retornaNumeroCapa()` do original).
+            if (!string.IsNullOrEmpty(capa))
+            {
+                PaginaAtivaDoDesenho.Ativar(capa);
+                resultado.CapaAtivada = capa;
             }
 
             return resultado;

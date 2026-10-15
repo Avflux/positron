@@ -983,6 +983,27 @@ do plano (comandos, testes, frentes) está no topo do `PLANO.md`. Abaixo, o deta
 (mais novo primeiro) — as tabelas de números que aparecem no meio de uma rodada são **o que aquela
 rodada mediu**, e não a contagem de hoje.
 
+**Rodada 175 — Cadeia do CAD completa: `TrocaColunas`, `AtualizaRevSimplificada` e `attsync` por referência, medidos no ZWCAD 2026.**
+Fecha as pendências que haviam ficado fora da cadeia pós-troca do formato (`Caderno.CriaCaderno:241-250`):
+
+- **Regra pura** (`Positron.Data/Paginas/ColunaDaPaginaXData.cs`, `ColunaDaPagina.cs`):
+  - `ColunaDaPaginaXData`: layout DXF com 5 valores do XData `DiagLog`/`COLUNAS` (`XDataGeral.gravarXDataColuna` e `verificaXDataColunas`), lendo o tipo da coluna e gerando os valores carimbados com usuário e data;
+  - `ColunaDaPagina`: modelo do par `(página, tipo)` com igualdade case-insensitive e deduplicação (`Deduplicar`) preservando a ordem da primeira aparição, espelhando a matriz de `Pagina.TrocaColunas`.
+- **Troca de colunas** (`Positron.Plugin/Paginas/TrocaColunasDoDesenho.cs`):
+  - Localiza no ModelSpace as entidades de coluna marcadas com XData `DiagLog`/`COLUNAS`, apaga as entidades antigas do desenho, e reinstancia para cada `(página, tipo)` único as entidades clonadas da definição do novo bloco de formato (`formato.BlockTableRecord`) cujo layer seja igual ao tipo da coluna, regravando o XData.
+- **Restauração de revisões simplificadas** (`Positron.Plugin/Paginas/RestauracaoDoFormatoDoDesenho.cs`, `Comandos.cs`):
+  - O comando `CAD` passa a capturar `RevisoesDoDesenho.LerSimplificadas()` antes da troca (espelhando `Revisao.capturaRevisoesSimplificadas()`);
+  - A cadeia de restauração regrava as revisões nos novos campos de página de índice 8 gerados pelo formato novo (`RevisoesDoDesenho.GravarSimplificadas`).
+- **Attsync estrutural e ativação da capa**:
+  - `RevisoesDoDesenho.CriarDefinicoesDoFormato` agora expõe a contagem de referências de revisão sincronizadas estruturalmente via `Attsync`;
+  - Ao final da cadeia de restauração, ativa com segurança o layer da capa (`PaginaAtivaDoDesenho.Ativar`), reproduzindo `DeclaracoesGeral.ativo.Pagina = Pagina.retornaNumeroCapa()`.
+- **Fora, com o motivo:** apenas a chamada de interface `Comandos.GerenciadorPagina()` (abrir/focar janela interativa).
+
+**Verificação:** `plugin:test` **861** (+6 testes em `ColunaDaPaginaTests`), as duas builds (ZWCAD e AutoCAD) **0 avisos, 0 erros**; **medido no ZWCAD 2026** no `Funcional.dwg` (DWG 63) com `formato173.dwg`:
+```
+CAD: formato trocado — bloco "formato173" (definição "A3_PADRÃO_ELB" e 1 referência(s) apagada(s)); 30 atributo(s) (15 preservado(s), 13 protegido(s)); cadeia: 77 campo(s) apagado(s), 0 TOT, 77 campo(s) em 16 página(s), 1 definição(ões) de revisão (0 apagada(s)), 16 CONT/FL/TOT/ALTERNATIVO, 45 título(s), 16 rev. simplificada(s); maxCapa 1/maxCorpo 0; capa "1" ativa.
+```
+
 **Rodada 174 — Páginas: inserir e excluir com AtualizaContTotFl e ativação segura, medidos no ZWCAD 2026.**
 O reverso executa o recálculo dos marcadores de sequência (`AtualizaContTotFl()`) e a ativação segura de página tanto na criação/inserção quanto na exclusão de páginas. A rodada fecha essas pontas no plugin:
 

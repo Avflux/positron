@@ -1066,10 +1066,13 @@ namespace Positron.Plugin
                     }
                 }
 
-                // Os títulos das páginas são capturados **antes** da troca (o `capturaTitulos` do
-                // original) e devolvidos depois, quando a cadeia recria os campos (o `AtualizaTitulos`).
+                // Os títulos e as revisões simplificadas das páginas são capturados **antes** da troca
+                // (o `capturaTitulos` e `capturaRevisoesSimplificadas` do original) e devolvidos depois,
+                // quando a cadeia recria os campos (o `AtualizaTitulos` e `AtualizaRevSimplificada`).
                 System.Collections.Generic.Dictionary<string, Positron.Data.Paginas.TitulosDaPagina> titulos =
                     CapturarTitulos();
+                System.Collections.Generic.List<Positron.Data.Paginas.RevisaoSimplificadaDaPagina> revisoes =
+                    Positron.Plugin.Paginas.RevisoesDoDesenho.LerSimplificadas();
 
                 Positron.Plugin.Paginas.TrocaDeFormatoDoDesenho.Resultado resultado =
                     Positron.Plugin.Paginas.TrocaDeFormatoDoDesenho.Trocar(caminho);
@@ -1085,10 +1088,10 @@ namespace Positron.Plugin
                 }
 
                 // A cadeia que o original roda depois de inserir o bloco (o resto do `CriaCaderno`):
-                // recarrega as páginas, recria os campos, refaz a revisão, restaura os títulos e
-                // regrava a configuração do desenho.
+                // recarrega as páginas, recria os campos, refaz a revisão com attsync, restaura os títulos,
+                // restaura as revisões simplificadas, reconstitui as colunas e regrava a configuração do desenho.
                 Positron.Plugin.Paginas.RestauracaoDoFormatoDoDesenho.Resultado cadeia =
-                    Positron.Plugin.Paginas.RestauracaoDoFormatoDoDesenho.Executar(titulos, resultado.TinhaFormato);
+                    Positron.Plugin.Paginas.RestauracaoDoFormatoDoDesenho.Executar(titulos, revisoes, resultado.TinhaFormato);
 
                 string linha = "CAD: " + (resultado.TinhaFormato ? "formato trocado" : "formato criado")
                     + " — bloco \"" + resultado.NomeDoBloco + "\""
@@ -1107,10 +1110,17 @@ namespace Positron.Plugin
                     + "; cadeia: " + cadeia.CamposApagados + " campo(s) apagado(s), "
                     + cadeia.CamposTot + " TOT, " + cadeia.CamposCriados + " campo(s) em " + cadeia.Paginas
                     + " página(s), " + cadeia.Definicoes + " definição(ões) de revisão ("
-                    + cadeia.DefinicoesApagadas + " apagada(s)), " + cadeia.ContTotFl
-                    + " CONT/FL/TOT/ALTERNATIVO, " + cadeia.Titulos + " título(s)"
+                    + cadeia.DefinicoesApagadas + " apagada(s)"
+                    + (cadeia.ReferenciasSincronizadas > 0 ? ", " + cadeia.ReferenciasSincronizadas + " attsync" : string.Empty)
+                    + "), " + cadeia.ContTotFl + " CONT/FL/TOT/ALTERNATIVO, "
+                    + cadeia.Titulos + " título(s), "
+                    + cadeia.RevSimplificadas + " rev. simplificada(s)"
+                    + (cadeia.ColunasApagadas > 0 || cadeia.ColunasCriadas > 0
+                        ? ", colunas: " + cadeia.ColunasApagadas + " apagada(s)/" + cadeia.ColunasCriadas + " recriada(s)"
+                        : string.Empty)
                     + "; maxCapa " + cadeia.MaxCapa + "/maxCorpo " + cadeia.MaxCorpo
                     + (cadeia.ConfigGravada ? " (configuração regravada)" : "")
+                    + (!string.IsNullOrEmpty(cadeia.CapaAtivada) ? "; capa \"" + cadeia.CapaAtivada + "\" ativa" : string.Empty)
                     + ".";
 
                 return linha;

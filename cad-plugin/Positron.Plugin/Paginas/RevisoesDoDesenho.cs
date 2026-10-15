@@ -591,8 +591,18 @@ namespace Positron.Plugin.Paginas
         /// </summary>
         internal static PosicoesDoFormato CriarDefinicoesDoFormato(out int definicoes, out int apagadas)
         {
+            int referencias;
+            return CriarDefinicoesDoFormato(out definicoes, out apagadas, out referencias);
+        }
+
+        /// <summary>
+        /// Sobrecarga que também devolve as referências de revisão sincronizadas estruturalmente via <see cref="Attsync"/>.
+        /// </summary>
+        internal static PosicoesDoFormato CriarDefinicoesDoFormato(out int definicoes, out int apagadas, out int referencias)
+        {
             definicoes = 0;
             apagadas = 0;
+            referencias = 0;
             PosicoesDoFormato posicoes = new PosicoesDoFormato();
 
             Document documento = Application.DocumentManager.MdiActiveDocument;
@@ -614,7 +624,6 @@ namespace Positron.Plugin.Paginas
                 {
                     List<AtributoDeFormato> atributos = FormatoDoDesenho.Atributos(transacao, tabela, formato);
                     posicoes = DefinicoesDeRevisao.Contar(ParaTags(atributos), capaLayer);
-                    int referencias;
                     definicoes = CriarDefinicoes(transacao, tabela, atributos, capaLayer, posicoes, out referencias);
 
                     // As posições além do formato admitido saem (o `for l = maxCapa To 7` do original).
