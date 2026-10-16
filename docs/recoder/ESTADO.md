@@ -4,11 +4,11 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 198)
+## Estado (2026-10-16, depois da rodada 199)
 
 | | valor |
 |---|---|
-| última rodada | **198** |
+| última rodada | **199** |
 | comandos no plugin | **78** escritos à mão (53 do reverso + 25 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
@@ -69,7 +69,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    - Ela grava o XData (`GravarXDataConfiguracao`/`2`) e o idioma no registro (`:3904-3910`).
    - Inclui o bloco SQL Server; tira o grupo "Projeto" (DWG/Revisão/Log).
    - Leva ao XData a norma IEC/ANSI, o Log Func e a representação cabo/veia, que hoje não chegam lá.
-5. 🟡 *(rodadas 188–198: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos`, `frmEstatisticaDeBornes` `frmEditaRevisaoSimplificada` `frmEditaRevisaoCompleta` `frmEditaTitulos` e `frmPesquisaXdatas` feitas; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
+5. 🟡 *(rodadas 188–199: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos`, `frmEstatisticaDeBornes` `frmEditaRevisaoSimplificada` `frmEditaRevisaoCompleta` `frmEditaTitulos` `frmPesquisaXdatas` e as três `frmCompilar*` feitas; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
    designer e a captura, atrás de invenções do mesmo tipo. O que aparecer vira item aqui.
 
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
@@ -108,7 +108,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 198 | 2026-10-16 | *(este)* | auditoria da `frmPesquisaXdatas`: resultado do apagar em `MsgBox`, `LockDocument` no apagar, larguras 70/30 e limites de tamanho; sai a linha inventada; builds 0 avisos, testes não rodados (só casca) | `rodadas/198-auditoria-pesquisa-xdatas.md` |
+| 199 | 2026-10-16 | *(este)* | auditoria das três telas `frmCompilar*` (base `LigacaoDeCompilacao`): guarda 331, dicas pelas mMensagens, `dgRevisao` Revisão/Criador/Data, `dgERROS` vazia na abertura, 761 para revisão vazia; saem dicas e linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/199-auditoria-compilar-telas.md` |
+| 198 | 2026-10-16 | `95d3b85e` | auditoria da `frmPesquisaXdatas`: resultado do apagar em `MsgBox`, `LockDocument` no apagar, larguras 70/30 e limites de tamanho; sai a linha inventada; builds 0 avisos, testes não rodados (só casca) | `rodadas/198-auditoria-pesquisa-xdatas.md` |
 | 197 | 2026-10-16 | `ddf3acf2` | auditoria da `frmEditaTitulos`: saem 2 linhas inventadas e a rolagem extra, `MsgBox` sem título como no original; builds 0 avisos, testes não rodados (só casca) | `rodadas/197-auditoria-edita-titulos.md` |
 | 196 | 2026-10-16 | `ea7e928e` | auditoria da `frmEditaRevisaoCompleta`: faixa `CCapa`..`CCorpo`, `restauraCampos`, larguras percentuais, DE/PARA, gravação com `LockDocument` e `MsgBox`; saem 2 linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/196-auditoria-edita-revisao-completa.md` |
 | 195 | 2026-10-16 | `a400d984` | auditoria da `frmEditaRevisaoSimplificada`: faixa `SCapa`..`SCorpo`, `restauraCampos`, larguras, Copiar pelo `Click`, gravação com `LockDocument` e `MsgBox`; saem 2 linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/195-auditoria-edita-revisao-simplificada.md` |
@@ -117,4 +118,3 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 | 192 | 2026-10-16 | `1ed1c0ac` | auditoria da `frmPesquisaCabos`: saem 3 linhas inventadas do `PESQCAB`, entram limites de tamanho e ordem de colunas; 975 testes, builds 0 avisos | `rodadas/192-auditoria-pesquisa-cabos.md` |
 | 191 | 2026-10-16 | `6364c756` | auditoria da `frmPesquisaVeiasIndefinidas`: saem as linhas inventadas do `PESQC`/`PESQCAB`, entram `MinimumSize` e ordem de colunas; 975 testes, builds 0 avisos | `rodadas/191-auditoria-pesquisa-veias-indefinidas.md` |
 | 190 | 2026-10-16 | `d9974a12` | auditoria da `frmEditaConexao`: tela confere; saem 4 linhas inventadas do `EDCONP`/`EDCON` e o erro vira `MsgBox`; 975 testes, builds 0 avisos | `rodadas/190-auditoria-edita-conexao.md` |
-| 189 | 2026-10-16 | `c22898f1` | auditoria da `frmEstimativaVeiasLivres`: tela e regra conferem; saem 2 mensagens inventadas; 975 testes, builds 0 avisos | `rodadas/189-auditoria-estimativa-veias-livres.md` |

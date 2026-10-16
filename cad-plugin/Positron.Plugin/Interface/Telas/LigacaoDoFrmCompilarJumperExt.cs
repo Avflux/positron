@@ -23,6 +23,16 @@ namespace Positron.Plugin.Interface.Telas
             get { return "JMP"; }
         }
 
+        protected override string DicaAnalisar
+        {
+            get { return "Analisar Jumpers"; }
+        }
+
+        protected override string DicaSalvar
+        {
+            get { return "Salvar nova revisão dos jumpers"; }
+        }
+
         protected override string Executar(string revisao)
         {
             return Comandos.ExecutarJumper(revisao);

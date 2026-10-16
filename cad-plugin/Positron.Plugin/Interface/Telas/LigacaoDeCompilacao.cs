@@ -8,45 +8,27 @@ namespace Positron.Plugin.Interface.Telas
 {
     /// <summary>
     /// A base das **três telas de compilação** do original — <c>frmCompilarFiacao</c>,
-    /// <c>frmCompilarInterligacao</c> e <c>frmCompilarJumperExt</c>. As três têm a mesma casca (a
-    /// grade das revisões, a grade de erros e os quatro botões Analisar/Salvar/Apagar/ApagarComp) e a
-    /// **regra de cada uma já existe** no recoder: são os pipelines <c>FIA</c>, <c>INT</c> e
-    /// <c>JMP</c>, medidos no desenho real desde as primeiras rodadas.
+    /// <c>frmCompilarInterligacao</c> e <c>frmCompilarJumperExt</c> —, com o construtor de
+    /// <c>frmCompilarJumperExt.cs:461</c> (os outros dois são iguais): banco inválido ou DWG sem
+    /// cadastro → <c>MsgBox</c> 331 e a tela não abre; <c>cbPreservar</c> marcado; dicas dos botões
+    /// Analisar/Apagar/Salvar pelas mMensagens; <c>btSalvar</c> desabilitado; <c>dgRevisao</c> com
+    /// Revisão | Criador | Data (<c>formataDGRevisao :2422</c>, larguras 2/8, 2/8, 4/8 de largura − 22);
+    /// <c>dgERROS</c> vazia e sem coluna (<c>formataDGErros(false) :2479</c>).
     ///
-    /// O que fica ligado (e por quê):
+    /// <c>btAnalisar</c> roda o pipeline do recoder (<c>FIA</c>/<c>INT</c>/<c>JMP</c>) com a revisão
+    /// digitada — vazia: <c>MsgBox</c> 761 — e então mostra a coluna "Erros" (755) com os problemas
+    /// da revisão. O original mostra aí as páginas onde desenhou um bloco de erro; o recoder não
+    /// desenha, então lista o problema (diferença registrada no RUNBOOK).
     ///
-    /// - <c>btAnalisar</c> roda o pipeline da tela com a revisão do <c>tbRevisao</c> (vazia = a da
-    ///   configuração, <c>POSITRON_REVISAO</c>) e recarrega a grade de erros — é o "Analisar" do
-    ///   original, que é o mesmo caminho do comando equivalente;
-    /// - <c>dgERROS</c> abre com os **problemas da revisão** (a mesma lista que o <c>VERIF</c> e o
-    ///   <c>ELETREL</c> usam, um por linha) — o original só a preenche depois do Analisar e com as
-    ///   **páginas** onde ele desenhou um bloco de erro (o recoder não desenha; a diferença está
-    ///   registrada no RUNBOOK);
-    /// - <c>dgRevisao</c> abre com as revisões que já têm compilação no banco para o DWG ativo
-    ///   (<see cref="ProjectStore.LerRevisoes"/>) — o original lê criador e data do Access, colunas
-    ///   que o schema do SQLite não tem por revisão, então só a primeira coluna é preenchida.
+    /// <c>btApagar</c> e <c>btApagarComp</c> ficam desabilitados: a regra de apagar a revisão
+    /// (mMensagem 760, <c>RemoveRevisaoTabelaParaDWG</c>) e de apagar os blocos de erro ainda não
+    /// foi portada (fila do <c>ESTADO.md</c>).
     ///
-    /// O que entra **desabilitado**, com o motivo na dica (o mesmo padrão do menu das folhas): o
-    /// <c>btSalvar</c> (o recoder grava na mesma passada do Analisar — o original separa os dois
-    /// passos), o <c>btApagar</c> (destrutivo: apaga a compilação da revisão nas tabelas) e o
-    /// <c>btApagarComp</c> (o original desenha blocos <c>ErroFiacao</c> no desenho e este botão os
-    /// apaga — o recoder não desenha erro no desenho).
-    ///
-    /// **Como a tela é medida num script:** não há clique, então <c>POSITRON_ANALISAR=1</c> roda a
-    /// **mesma** análise do <c>btAnalisar</c> ao abrir a tela (o gancho do harness, como o
-    /// <c>POSITRON_JANELA</c> do seletor) e a linha <c>COMPILAR:</c> resume o que a ligação leu.
+    /// **Harness:** um script não clica nem digita, então <c>POSITRON_ANALISAR=1</c> preenche o campo
+    /// com a revisão da configuração (<c>POSITRON_REVISAO</c>) e roda o mesmo caminho do clique ao abrir.
     /// </summary>
     internal abstract class LigacaoDeCompilacao : ILigacaoDeTela
     {
-        private const string MotivoSalvar =
-            "Salvar: o recoder grava na mesma passada do Analisar (o original separa analisar de salvar)";
-
-        private const string MotivoApagar =
-            "Apagar: destrutivo — apaga a compilação da revisão (Interligacao4/Portas4I/Bornes4I/Cabos4/Veias4)";
-
-        private const string MotivoApagarComp =
-            "ApagarComp: o original desenha blocos ErroFiacao no desenho e este botão os apaga; o recoder não desenha";
-
         /// <summary>As dicas ficam num único componente vivo (um <c>ToolTip</c> por botão morreria no GC).</summary>
         private static ToolTip _dicas;
 
@@ -54,6 +36,12 @@ namespace Positron.Plugin.Interface.Telas
 
         /// <summary>O comando do recoder que o <c>Analisar</c> desta tela executa.</summary>
         protected abstract string Comando { get; }
+
+        /// <summary>A mMensagem da dica do <c>btAnalisar</c> desta tela.</summary>
+        protected abstract string DicaAnalisar { get; }
+
+        /// <summary>A mMensagem da dica do <c>btSalvar</c> desta tela.</summary>
+        protected abstract string DicaSalvar { get; }
 
         /// <summary>Roda o pipeline da tela com a revisão pedida e devolve a linha de resumo.</summary>
         protected abstract string Executar(string revisao);
@@ -65,113 +53,160 @@ namespace Positron.Plugin.Interface.Telas
                 return;
             }
 
+            // Construtor do original: `clsAuxiliar.BancoValido()` e, sem o DWG cadastrado, a mMensagem 331.
+            if (!InicioDoDesenho.BancoValido(true))
+            {
+                janela.Dispose();
+                return;
+            }
+
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
+            if (config.Dwg == 0)
+            {
+                Aviso.MsgBox("Este arquivo ainda não foi cadastrado no banco do projeto!", string.Empty);
+                janela.Dispose();
+                return;
+            }
+
             DataGridView revisoes = ControlesDaTela.Achar<DataGridView>(janela, "dgRevisao");
             DataGridView erros = ControlesDaTela.Achar<DataGridView>(janela, "dgERROS");
             Button analisar = ControlesDaTela.Achar<Button>(janela, "btAnalisar");
+            Button apagar = ControlesDaTela.Achar<Button>(janela, "btApagar");
+            Button salvar = ControlesDaTela.Achar<Button>(janela, "btSalvar");
+            Button apagarComp = ControlesDaTela.Achar<Button>(janela, "btApagarComp");
             TextBox campo = ControlesDaTela.Achar<TextBox>(janela, "tbRevisao");
+            CheckBox preservar = ControlesDaTela.Achar<CheckBox>(janela, "cbPreservar");
 
-            Desabilitar(ControlesDaTela.Achar<Button>(janela, "btSalvar"), MotivoSalvar);
-            Desabilitar(ControlesDaTela.Achar<Button>(janela, "btApagar"), MotivoApagar);
-            Desabilitar(ControlesDaTela.Achar<Button>(janela, "btApagarComp"), MotivoApagarComp);
+            if (preservar != null)
+            {
+                preservar.Checked = true;
+            }
+
+            if (_dicas == null)
+            {
+                _dicas = new ToolTip();
+            }
+
+            Dica(analisar, DicaAnalisar);
+            Dica(apagar, "Apagar revisão");
+            Dica(salvar, DicaSalvar);
+
+            if (salvar != null)
+            {
+                salvar.Enabled = false;
+            }
+
+            if (apagar != null)
+            {
+                apagar.Enabled = false;
+            }
+
+            if (apagarComp != null)
+            {
+                apagarComp.Enabled = false;
+            }
+
+            if (erros != null)
+            {
+                erros.Rows.Clear();
+                erros.Columns.Clear();
+            }
+
+            CarregarRevisoes(revisoes, config);
 
             if (analisar != null)
             {
                 analisar.Click += (origem, evento) => Analisar(erros, campo);
             }
 
-            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
-
-            // O campo abre com a revisão da configuração (o original abre vazio): é o valor que o
-            // Analisar usa — e o que o harness mede, já que um script não digita no campo.
-            if (campo != null && string.IsNullOrEmpty(campo.Text))
-            {
-                campo.Text = config.Revisao ?? string.Empty;
-            }
-
-            string revisao = RevisaoDoCampo(campo, config);
-            int quantas = CarregarRevisoes(revisoes, config);
-            int problemas = CarregarErros(erros, config, revisao);
-
-            Plugin.Escrever("COMPILAR: " + NomeDaTela + " — Analisar ligado no " + Comando
-                + " (revisão \"" + revisao + "\"); " + quantas + " revisão(ões) na grade; "
-                + problemas + " problema(s) na grade de erros; desabilitados: Salvar, Apagar e ApagarComp.");
-
             if (AnalisarAoAbrir())
             {
+                if (campo != null && string.IsNullOrEmpty(campo.Text))
+                {
+                    campo.Text = config.Revisao ?? string.Empty;
+                }
+
                 Analisar(erros, campo);
             }
         }
 
-        /// <summary>O que o clique do <c>btAnalisar</c> faz: roda o pipeline e recarrega os erros.</summary>
+        /// <summary>O que o clique do <c>btAnalisar</c> faz: pede a revisão, roda o pipeline e mostra os erros.</summary>
         private void Analisar(DataGridView erros, TextBox campo)
         {
+            string revisao = campo == null ? string.Empty : (campo.Text ?? string.Empty).Trim();
+            if (revisao.Length == 0)
+            {
+                Aviso.MsgBox("Informe um número de revisão!", string.Empty);
+                return;
+            }
+
             ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
-            string revisao = RevisaoDoCampo(campo, config);
             Plugin.Escrever(Executar(revisao));
             CarregarErros(erros, config, revisao);
         }
 
-        private static string RevisaoDoCampo(TextBox campo, ConfiguracaoPositron config)
+        private static void Dica(Button botao, string texto)
         {
-            string digitada = campo == null ? null : campo.Text;
-            if (string.IsNullOrEmpty(digitada) || string.IsNullOrEmpty(digitada.Trim()))
+            if (botao != null)
             {
-                return config.Revisao ?? string.Empty;
-            }
-
-            return digitada.Trim();
-        }
-
-        /// <summary>As revisões do DWG ativo que já têm compilação no banco (a grade do original).</summary>
-        private static int CarregarRevisoes(DataGridView grade, ConfiguracaoPositron config)
-        {
-            if (grade == null)
-            {
-                return 0;
-            }
-
-            grade.Rows.Clear();
-            if (string.IsNullOrEmpty(config.Banco))
-            {
-                return 0;
-            }
-
-            try
-            {
-                // As colunas do mapa são (Revisão, Data, Criador); o original adiciona
-                // (revisao, criador, data) — aqui cada valor vai para a coluna do seu nome.
-                IReadOnlyList<RevisaoDoDwg> revisoes = new ProjectStore(config.Banco).LerRevisoes(config.Dwg);
-                foreach (RevisaoDoDwg revisao in revisoes)
-                {
-                    grade.Rows.Add(revisao.Revisao, revisao.Data, revisao.Criador);
-                }
-
-                return revisoes.Count;
-            }
-            catch (Exception erro)
-            {
-                Plugin.Escrever("COMPILAR: as revisões do DWG não vieram do banco — " + erro.Message);
-                return 0;
+                _dicas.SetToolTip(botao, texto);
             }
         }
 
         /// <summary>
-        /// Os problemas da revisão na grade — a **mesma** lista do <c>VERIF</c>/<c>ELETREL</c>
-        /// (<c>Comandos.VerificarRevisao</c>), um por linha. O original mostra as páginas onde
-        /// desenhou um bloco de erro; o recoder não desenha erro no desenho, então mostra o problema.
+        /// A grade do original (<c>formataDGRevisao</c> e <c>CarregaDGRevisao</c>): Revisão | Criador |
+        /// Data, as revisões do DWG ativo que já têm compilação no banco.
         /// </summary>
-        private static int CarregarErros(DataGridView grade, ConfiguracaoPositron config, string revisao)
+        private static void CarregarRevisoes(DataGridView grade, ConfiguracaoPositron config)
         {
             if (grade == null)
             {
-                return 0;
+                return;
             }
 
             grade.Rows.Clear();
-            if (string.IsNullOrEmpty(config.Banco))
+            grade.Columns.Clear();
+            foreach (string titulo in new[] { "Revisão", "Criador", "Data" })
             {
-                return 0;
+                int indice = grade.Columns.Add("", titulo);
+                grade.Columns[indice].SortMode = DataGridViewColumnSortMode.NotSortable;
             }
+
+            float util = grade.Width - 22;
+            grade.Columns[0].Width = (int)Math.Round(util * 2f / 8f);
+            grade.Columns[1].Width = (int)Math.Round(util * 2f / 8f);
+            grade.Columns[2].Width = (int)Math.Round(util * 4f / 8f);
+
+            try
+            {
+                IReadOnlyList<RevisaoDoDwg> revisoes = new ProjectStore(config.Banco).LerRevisoes(config.Dwg);
+                foreach (RevisaoDoDwg revisao in revisoes)
+                {
+                    grade.Rows.Add(revisao.Revisao, revisao.Criador, revisao.Data);
+                }
+            }
+            catch (Exception erro)
+            {
+                Aviso.MsgBox(erro.Message, "Elétron");
+            }
+        }
+
+        /// <summary>
+        /// A coluna "Erros" (<c>formataDGErros(true)</c>, mMensagem 755) com os problemas da revisão —
+        /// a **mesma** lista do <c>VERIF</c>/<c>ELETREL</c> (<c>Comandos.VerificarRevisao</c>), um por linha.
+        /// </summary>
+        private static void CarregarErros(DataGridView grade, ConfiguracaoPositron config, string revisao)
+        {
+            if (grade == null)
+            {
+                return;
+            }
+
+            grade.Rows.Clear();
+            grade.Columns.Clear();
+            int coluna = grade.Columns.Add("", "Erros");
+            grade.Columns[coluna].SortMode = DataGridViewColumnSortMode.NotSortable;
+            grade.Columns[coluna].Width = grade.Width - 4;
 
             try
             {
@@ -182,18 +217,14 @@ namespace Positron.Plugin.Interface.Telas
                 int contatos;
                 List<Problema> problemas = Positron.Plugin.Comandos.VerificarRevisao(
                     config.Banco, config.Dwg, revisao, out fios, out trechos, out portas, out bornes, out contatos);
-
                 foreach (Problema problema in problemas)
                 {
                     grade.Rows.Add(Linha(problema));
                 }
-
-                return problemas.Count;
             }
             catch (Exception erro)
             {
-                Plugin.Escrever("COMPILAR: os problemas da revisão não vieram — " + erro.Message);
-                return 0;
+                Aviso.MsgBox(erro.Message, "Elétron");
             }
         }
 
@@ -208,23 +239,6 @@ namespace Positron.Plugin.Interface.Telas
             string onde = string.IsNullOrEmpty(problema.Identificador) ? string.Empty : " [" + problema.Identificador + "]";
             string detalhe = string.IsNullOrEmpty(problema.Detalhe) ? string.Empty : " — " + problema.Detalhe;
             return problema.Area + " / " + problema.Tipo + " (" + problema.Tabela + ")" + onde + detalhe;
-        }
-
-        private static void Desabilitar(Button botao, string motivo)
-        {
-            if (botao == null)
-            {
-                return;
-            }
-
-            botao.Enabled = false;
-            botao.Tag = motivo;
-            if (_dicas == null)
-            {
-                _dicas = new ToolTip();
-            }
-
-            _dicas.SetToolTip(botao, motivo);
         }
 
         /// <summary>

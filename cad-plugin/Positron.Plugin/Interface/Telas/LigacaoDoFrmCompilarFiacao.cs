@@ -25,6 +25,16 @@ namespace Positron.Plugin.Interface.Telas
             get { return "FIA"; }
         }
 
+        protected override string DicaAnalisar
+        {
+            get { return "Analisar Fiação"; }
+        }
+
+        protected override string DicaSalvar
+        {
+            get { return "Salvar nova revisão da fiação"; }
+        }
+
         protected override string Executar(string revisao)
         {
             return Comandos.ExecutarFiacao(revisao);

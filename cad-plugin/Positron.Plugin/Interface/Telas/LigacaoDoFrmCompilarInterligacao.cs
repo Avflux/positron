@@ -21,6 +21,16 @@ namespace Positron.Plugin.Interface.Telas
             get { return "INT"; }
         }
 
+        protected override string DicaAnalisar
+        {
+            get { return "Analisar Interligação"; }
+        }
+
+        protected override string DicaSalvar
+        {
+            get { return "Salvar nova revisão da interligação"; }
+        }
+
         protected override string Executar(string revisao)
         {
             return Comandos.ExecutarInterligacao(revisao);
