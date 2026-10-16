@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -7,7 +7,8 @@ namespace Positron.Plugin.Interface.Telas
     /// <summary>
     /// A ligação do <c>frmSplash</c> (comandos <c>ONSPL</c> e <c>OFFSPL</c> do original):
     /// exibe a tela de abertura centrada, sem bordas, com transparência azul sobre o bitmap
-    /// <c>SplashEL26</c>, e permite fechamento por clique, tecla (ESC/Enter/Espaço) ou pelo comando <c>OFFSPL</c>.
+    /// <c>SplashEL26</c> (<c>frmSplash.cs</c>). Como no original, a tela não tem clique nem tecla:
+    /// fecha só pelo comando <c>OFFSPL</c> (<c>Comandos.cs:40</c>).
     /// </summary>
     internal sealed class LigacaoDoFrmSplash : ILigacaoDeTela
     {
@@ -59,17 +60,6 @@ namespace Positron.Plugin.Interface.Telas
             janela.TopMost = true;
             janela.ShowIcon = false;
             janela.ShowInTaskbar = false;
-
-            // Fechamento interativo conveniente por clique ou tecla
-            janela.Click += (s, e) => janela.Close();
-            janela.KeyPreview = true;
-            janela.KeyDown += (s, e) =>
-            {
-                if (e.KeyCode == Keys.Escape || e.KeyCode == Keys.Enter || e.KeyCode == Keys.Space)
-                {
-                    janela.Close();
-                }
-            };
 
             _instanciaAtiva = janela;
             janela.FormClosed += (s, e) =>

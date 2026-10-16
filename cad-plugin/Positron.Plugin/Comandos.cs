@@ -1245,14 +1245,8 @@ namespace Positron.Plugin
         [CommandMethod("OFFSPL")]
         public void ComandoOffSpl()
         {
-            if (Interface.Telas.LigacaoDoFrmSplash.Fechar())
-            {
-                Plugin.Escrever("OFFSPL: splash fechada.");
-            }
-            else
-            {
-                Plugin.Escrever("OFFSPL: nenhuma tela de splash aberta.");
-            }
+            // O original só fecha a tela (`LjQTwnGi0W.Close()`), sem mensagem.
+            Interface.Telas.LigacaoDoFrmSplash.Fechar();
         }
 
         /// <summary>
