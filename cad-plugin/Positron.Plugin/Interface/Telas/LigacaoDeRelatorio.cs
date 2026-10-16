@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows.Forms;
 using Positron.Data;
 using Positron.Data.Configuracao;
@@ -63,7 +63,7 @@ namespace Positron.Plugin.Interface.Telas
             }
             catch (Exception erro)
             {
-                Plugin.Escrever(rotulo + ": o banco não respondeu — " + erro.Message);
+                Aviso.MsgBoxCritico(erro.Message, string.Empty);
                 return default(T);
             }
         }

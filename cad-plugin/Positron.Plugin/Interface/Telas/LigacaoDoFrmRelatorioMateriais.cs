@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Positron.Data;
@@ -19,16 +19,18 @@ namespace Positron.Plugin.Interface.Telas
     /// do original) sobre a <c>ListaMateriais</c> que o <c>COMPLM</c> já grava e o catálogo
     /// (<c>Materiais</c>) — as mesmas tabelas que o <c>ATINDEP</c> liga desde a rodada 148.
     ///
-    /// **O que entra desabilitado, com o motivo na dica:** as duas exportações (<c>btExportaEXCEL</c> e
-    /// <c>btExportaDWG</c>, interop), a ordenação manual das linhas com a gravação da ordem
-    /// (<c>btCima</c>/<c>btBaixo</c>/<c>btPrimeiro</c>/<c>btUltimo</c>/<c>btSalvaOrdem</c>/
-    /// <c>btDesagrupar</c>/<c>BTY</c>/<c>btLayout</c>), o modo **multi-painel**
-    /// (<c>ckMultPNDetalhado</c>, que acrescenta uma coluna por painel) e a **mesclagem** de
-    /// modelo/fabricante na descrição — a tela abre no modo padrão do designer (um painel, descrição
-    /// completa), que é o portado.
+    /// **Como o construtor do original** (<c>frmRelatorio_Materiais.cs:1647</c>): as grades abrem sem
+    /// colunas (a <c>dgEquipamentos</c> só ganha colunas se há painéis; <c>dgOrdem</c> e
+    /// <c>dgListaMateriais</c> ganham as suas ao carregar), o grupo "Multiplicador de Típicos" e o
+    /// <c>tbCod</c>/<c>ckExcel2</c>/<c>ckDWG2</c> ficam escondidos, e as dicas são só as de
+    /// <c>btPesquisar</c>, <c>btExportaDWG</c>, <c>btExportaEXCEL</c>, <c>btSalvaOrdem</c> e <c>BTY</c>.
     ///
-    /// O painel sai do primeiro item da coluna da esquerda; num script, <c>POSITRON_REL_PAINEL</c>
-    /// escolhe (a receita no RUNBOOK).
+    /// **O que entra desabilitado:** as duas exportações, a ordenação manual das linhas com a gravação
+    /// da ordem, o modo **multi-painel** e a **mesclagem** de modelo/fabricante — regras ainda não
+    /// portadas (fila do <c>ESTADO.md</c>). A tela usa o modo padrão do designer (um painel, descrição completa).
+    ///
+    /// Como no original, a lista só sai no <c>btPesquisar</c>. No harness, <c>POSITRON_REL_PAINEL</c>
+    /// escolhe o painel e roda a mesma carga ao abrir (a receita no RUNBOOK).
     /// </summary>
     internal sealed class LigacaoDoFrmRelatorioMateriais : LigacaoDeRelatorio
     {
@@ -47,13 +49,16 @@ namespace Positron.Plugin.Interface.Telas
             bool descricaoCompleta = completa == null || completa.Checked;
 
             TextosDoOriginal(janela);
-            Colunas(equipamentos, ordem, grade, janela);
             Motivos(janela);
+
+            // Sem colunas até haver o que mostrar (o `x0npqmuPsyI` limpa as grades no construtor).
+            LimparGrade(equipamentos);
+            LimparGrade(ordem);
+            LimparGrade(grade);
 
             ConfiguracaoPositron config = Configuracao();
             if (config == null || string.IsNullOrEmpty(config.Banco))
             {
-                Plugin.Escrever("EXPLM: " + Positron.Data.Interface.MensagensDoReverso.BancoNaoConfigurado);
                 return;
             }
 
@@ -70,58 +75,57 @@ namespace Positron.Plugin.Interface.Telas
             IReadOnlyDictionary<int, MaterialDoCatalogo> indexado = CatalogoDeMateriais.Indexar(catalogo);
             List<int> paineis = ListaDeMateriaisDoRelatorio.Paineis(linhas);
 
+            if (paineis.Count == 0)
+            {
+                return;
+            }
+
+            // `formataDGEquip`: Indice (escondida) | "Equipamentos  Painéis" (mMensagem 748).
             if (equipamentos != null)
             {
-                equipamentos.Columns.Clear();
+                equipamentos.MultiSelect = false;
                 equipamentos.Columns.Add("Indice", "Indice");
                 equipamentos.Columns.Add(string.Empty, "Equipamentos  Painéis");
                 equipamentos.Columns[0].Width = 0;
                 equipamentos.Columns[0].Visible = false;
-
-                equipamentos.Rows.Clear();
                 foreach (int painel in paineis)
                 {
                     equipamentos.Rows.Add(painel, NomeDoPainel(nomes, painel));
                 }
 
-                // O original, ao trocar o equipamento escolhido, recarrega a `dgOrdem` (o
-                // `CarregaDadosOrdemDispositivos`); a `dgListaMateriais` só sai no `btPesquisar`.
+                // O original, ao trocar o equipamento escolhido, recarrega a `dgOrdem`; a
+                // `dgListaMateriais` só sai no `btPesquisar`.
                 equipamentos.SelectionChanged += (origem, evento) =>
-                {
-                    int escolhido = PainelEscolhido(equipamentos);
-                    Plugin.Escrever("EXPLM: painel " + escolhido + " — "
-                        + CarregarOrdem(ordem, linhas, escolhido) + " item(ns) na ordem do diagrama.");
-                };
+                    CarregarOrdem(ordem, linhas, PainelEscolhido(equipamentos), janela);
             }
 
-            if (paineis.Count == 0)
-            {
-                Plugin.Escrever("EXPLM: a ListaMateriais do DWG " + config.Dwg + " está vazia (o COMPLM "
-                    + "ainda não rodou neste projeto); a tela abre vazia.");
-                return;
-            }
+            Ligar(pesquisar, (origem, evento) =>
+                Carregar(equipamentos, ordem, grade, linhas, indexado, descricaoCompleta, janela));
 
+            // Harness: um script não clica nem escolhe, então `POSITRON_REL_PAINEL` escolhe o painel
+            // e roda a carga do `btPesquisar` ao abrir.
             int pedido = PainelPedido();
-            int escolhida = pedido != 0 && paineis.Contains(pedido) ? paineis.IndexOf(pedido) : 0;
-            if (equipamentos != null)
+            if (pedido != 0 && paineis.Contains(pedido) && equipamentos != null)
             {
-                equipamentos.Rows[escolhida].Selected = true;
+                equipamentos.Rows[paineis.IndexOf(pedido)].Selected = true;
+                Carregar(equipamentos, ordem, grade, linhas, indexado, descricaoCompleta, janela);
             }
+        }
 
-            // Num script a tela não é *clicada*: sem esta carga a grade abriria vazia até o
-            // btPesquisar, como no original, e o harness não teria como medir a lista.
-            Plugin.Escrever(Carregar(equipamentos, ordem, grade, linhas, indexado, descricaoCompleta));
-            Ligar(pesquisar, (origem, evento) => Plugin.Escrever(
-                Carregar(equipamentos, ordem, grade, linhas, indexado, descricaoCompleta)));
-
-            Plugin.Escrever("EXPLM: " + linhas.Count + " item(ns) na ListaMateriais do DWG "
-                + config.Dwg + "; " + indexado.Count + " material(is) no catálogo; "
-                + nomes.Count + " painel(is) no cadastro.");
+        private static void LimparGrade(DataGridView grade)
+        {
+            if (grade != null)
+            {
+                grade.Rows.Clear();
+                grade.Columns.Clear();
+            }
         }
 
         /// <summary>Os textos do construtor do original (o <c>mMensagem</c> que vira cabeçalho de coluna).</summary>
         private static void TextosDoOriginal(Form janela)
         {
+            Texto(janela, "GroupBox1", "Multiplicador de Típicos");
+            Texto(janela, "GroupBox2", string.Empty);
             Texto(janela, "lbTitulos", "Titulos dos Relatórios");
             Texto(janela, "lbMultiplicador", "Fator de Multiplicação");
             Texto(janela, "ckMesclarModelo", "Mesclar Modelo na Descrição");
@@ -141,119 +145,94 @@ namespace Positron.Plugin.Interface.Telas
             Texto(janela, "tbMod", "Modelo");
             Texto(janela, "tbFab", "Fabricante");
             Texto(janela, "tbCod", "Código do Cliente");
+            Texto(janela, "tbMultiplicador", "1");
+
+            // Do construtor: escondidos e desabilitados.
+            Esconder(janela, "GroupBox1");
+            Esconder(janela, "GroupBox4");
+            Esconder(janela, "tbCod");
+            Esconder(janela, "ckExcel2");
+            Esconder(janela, "ckDWG2");
 
             Dica(janela, "btPesquisar", "Pesquisar Materiais");
             Dica(janela, "btExportaDWG", "Exporta Lista de Materiais para o DWG");
             Dica(janela, "btExportaEXCEL", "Exporta Lista de Materiais para o Excel");
+            Dica(janela, "btSalvaOrdem", "Salvar Ordem");
+            Dica(janela, "BTY", "Altura Inicial do Relatório");
+        }
+
+        private static void Esconder(Form janela, string nome)
+        {
+            Control controle = ControlesDaTela.Procurar(janela, nome);
+            if (controle != null)
+            {
+                controle.Visible = false;
+            }
         }
 
         /// <summary>
-        /// As três grades do original: o <c>formataDGEquip</c>, o <c>formataDGOrdem</c> e o
-        /// <c>formataDGListaMateriais</c> — este último com os títulos das caixas, como lá.
+        /// O que a tela não porta: os botões ficam desabilitados (regra ainda não portada). Só os que têm
+        /// dica no construtor do original (<c>btExportaEXCEL</c>, <c>btExportaDWG</c>, <c>btSalvaOrdem</c>,
+        /// <c>BTY</c>) mostram dica; <c>tbMultiplicador</c> e <c>btSalvaOrdem</c> já abrem desabilitados lá.
         /// </summary>
-        private static void Colunas(DataGridView equipamentos, DataGridView ordem, DataGridView grade, Form janela)
-        {
-            if (equipamentos != null)
-            {
-                equipamentos.Rows.Clear();
-                equipamentos.Columns.Clear();
-                equipamentos.Columns.Add("Indice", "Indice");
-                equipamentos.Columns.Add(string.Empty, "Equipamentos  Painéis");
-                equipamentos.Columns[0].Width = 0;
-                equipamentos.Columns[0].Visible = false;
-            }
-
-            if (ordem != null)
-            {
-                ordem.Rows.Clear();
-                ordem.Columns.Clear();
-                ordem.Columns.Add("#", "#");
-                ordem.Columns.Add("TAG", LerCaixa(janela, "tbTag"));
-                ordem.Columns.Add("COD", "MAT");
-                ordem.Columns.Add("Ordem", "Ordem");
-                ordem.Columns.Add("Quantidade", "Quantidade");
-                ordem.Columns.Add("OrdemLay", "OrdemLay");
-            }
-
-            if (grade != null)
-            {
-                grade.Rows.Clear();
-                grade.Columns.Clear();
-                grade.Columns.Add("#", LerCaixa(janela, "tbIndice"));
-                grade.Columns.Add("Quant", LerCaixa(janela, "tbQuant"));
-                grade.Columns.Add("TAG", LerCaixa(janela, "tbTag"));
-                grade.Columns.Add("DESC", LerCaixa(janela, "tbDesc"));
-                grade.Columns.Add("MOD", LerCaixa(janela, "tbMod"));
-                grade.Columns.Add("FAB", LerCaixa(janela, "tbFab"));
-                grade.Columns.Add("COD", LerCaixa(janela, "tbCod"));
-                grade.Columns.Add("INDEXLM", string.Empty);
-            }
-        }
-
-        /// <summary>O que a tela não porta, com o motivo na dica.</summary>
         private static void Motivos(Form janela)
         {
-            Desabilitar(janela, "btExportaEXCEL",
-                "Exporta para o Excel: a planilha é da pilha de exportação do original, que sai pelo app");
-            Desabilitar(janela, "btExportaDWG",
-                "Exporta para o DWG: a montagem do bloco é do fluxo de layout do original, que ainda não está portado");
-            Desabilitar(janela, "btSalvaOrdem",
-                "Salvar a Ordem: a gravação da ordem das linhas no banco ainda não está portada");
-            Desabilitar(janela, "btDesagrupar",
-                "Desagrupar: mexe na ordem das linhas, que ainda não é editável nesta tela");
-            Desabilitar(janela, "btLayout",
-                "Ordem Layout: reordena pelas posições do layout, que ainda não está portado");
-            Desabilitar(janela, "BTY",
-                "Configuração do relatório: a tela de configuração do original ainda não está portada");
-            Desabilitar(janela, "btCima",
-                "Mover para cima: a ordenação manual das linhas ainda não é editável nesta tela");
-            Desabilitar(janela, "btBaixo",
-                "Mover para baixo: a ordenação manual das linhas ainda não é editável nesta tela");
-            Desabilitar(janela, "btPrimeiro",
-                "Mover para o primeiro: a ordenação manual das linhas ainda não é editável nesta tela");
-            Desabilitar(janela, "btUltimo",
-                "Mover para o último: a ordenação manual das linhas ainda não é editável nesta tela");
-            Desabilitar(janela, "ckMultPNDetalhado",
-                "Detalhar Quantidade Por Painel: o modo multi-painel (o CarregaDadosDispositivosMultiplosPN) ainda não está portado");
-            Desabilitar(janela, "ckMesclarModelo",
-                "Mesclar Modelo na Descrição: a mesclagem do texto da descrição ainda não está portada");
-            Desabilitar(janela, "ckMesclarFabricante",
-                "Mesclar Fabricante na Descrição: a mesclagem do texto da descrição ainda não está portada");
-            Desabilitar(janela, "ckDWG2",
-                "DWG: o relatório por DWG do original ainda não está portado");
-            Desabilitar(janela, "ckExcel2",
-                "Excel: a planilha é da pilha de exportação do original, que sai pelo app");
-            Desabilitar(janela, "tbMultiplicador",
-                "Fator de Multiplicação: o multiplicador de típicos ainda não está portado");
+            foreach (string nome in new[]
+            {
+                "btExportaEXCEL", "btExportaDWG", "btSalvaOrdem", "btDesagrupar", "btLayout", "BTY",
+                "btCima", "btBaixo", "btPrimeiro", "btUltimo", "ckMultPNDetalhado", "ckMesclarModelo",
+                "ckMesclarFabricante", "tbMultiplicador",
+            })
+            {
+                Control controle = ControlesDaTela.Procurar(janela, nome);
+                if (controle != null)
+                {
+                    controle.Enabled = false;
+                }
+            }
         }
 
         /// <summary>
         /// A carga do painel escolhido: o <c>dgOrdem</c> com os itens na ordem do diagrama e o
         /// <c>dgListaMateriais</c> com a <see cref="ListaDeMateriaisDoRelatorio"/>.
         /// </summary>
-        private static string Carregar(
+        private static void Carregar(
             DataGridView equipamentos,
             DataGridView ordem,
             DataGridView grade,
             List<LinhaListaMaterial> linhas,
             IReadOnlyDictionary<int, MaterialDoCatalogo> catalogo,
-            bool descricaoCompleta)
+            bool descricaoCompleta,
+            Form janela)
         {
             if (equipamentos == null || grade == null)
             {
-                return "EXPLM: as grades da lista de materiais não estão na tela.";
+                return;
             }
 
             int painel = PainelEscolhido(equipamentos);
             if (painel == 0)
             {
-                return "EXPLM: escolha o painel na coluna da esquerda.";
+                return;
             }
 
-            int itens = CarregarOrdem(ordem, linhas, painel);
+            CarregarOrdem(ordem, linhas, painel, janela);
+
+            // `formataDGListaMateriais`: os títulos vêm das caixas `tbIndice`…`tbCod`, sem ordenação.
+            grade.Rows.Clear();
+            grade.Columns.Clear();
+            foreach (string[] coluna in new[]
+            {
+                new[] { "#", "tbIndice" }, new[] { "Quant", "tbQuant" }, new[] { "TAG", "tbTag" },
+                new[] { "DESC", "tbDesc" }, new[] { "MOD", "tbMod" }, new[] { "FAB", "tbFab" },
+                new[] { "COD", "tbCod" }, new[] { "INDEXLM", null },
+            })
+            {
+                int indice = grade.Columns.Add(coluna[0], coluna[1] == null ? string.Empty : LerCaixa(janela, coluna[1]));
+                grade.Columns[indice].SortMode = DataGridViewColumnSortMode.NotSortable;
+            }
 
             List<LinhaDaLMDoRelatorio> lista = ListaDeMateriaisDoRelatorio.Montar(linhas, catalogo, painel, descricaoCompleta);
-            grade.Rows.Clear();
             foreach (LinhaDaLMDoRelatorio linha in lista)
             {
                 grade.Rows.Add(
@@ -271,38 +250,38 @@ namespace Positron.Plugin.Interface.Telas
             {
                 grade.Rows[0].Selected = true;
             }
-
-            return "EXPLM: " + grade.Rows.Count + " linha(s) na Lista de Materiais do painel " + painel
-                + " (" + itens + " item(ns) na ordem do diagrama; " + lista.Count
-                + " material(is) distinto(s)).";
         }
 
         /// <summary>
         /// A `dgOrdem` do painel escolhido — o `CarregaDadosOrdemDispositivos`/`formataDGOrdem`: os
-        /// itens na **ordem do diagrama** (a `Ordem` que o `COMPLM` renumera 1..N por painel). Devolve
-        /// quantos itens entraram.
+        /// itens na **ordem do diagrama** (a `Ordem` que o `COMPLM` renumera 1..N por painel).
         /// </summary>
-        private static int CarregarOrdem(DataGridView ordem, List<LinhaListaMaterial> linhas, int painel)
+        private static void CarregarOrdem(DataGridView ordem, List<LinhaListaMaterial> linhas, int painel, Form janela)
         {
             if (ordem == null)
             {
-                return 0;
+                return;
             }
 
+            // `formataDGOrdem`: as colunas só existem com um painel escolhido.
             ordem.Rows.Clear();
+            ordem.Columns.Clear();
             if (painel == 0)
             {
-                return 0;
+                return;
             }
 
-            int itens = 0;
+            ordem.Columns.Add("#", "#");
+            ordem.Columns.Add("TAG", LerCaixa(janela, "tbTag"));
+            ordem.Columns.Add("COD", "MAT");
+            ordem.Columns.Add("Ordem", "Ordem");
+            ordem.Columns.Add("Quantidade", "Quantidade");
+            ordem.Columns.Add("OrdemLay", "OrdemLay");
+
             foreach (LinhaListaMaterial linha in PaineisDaListaDeMateriais.DoPainel(linhas, painel))
             {
                 ordem.Rows.Add(linha.Indice, linha.Tag, linha.IndiceMaterial, linha.Ordem, linha.Quantidade, linha.OrdemLay);
-                itens++;
             }
-
-            return itens;
         }
 
         private static int PainelEscolhido(DataGridView equipamentos)

@@ -4,11 +4,11 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 202)
+## Estado (2026-10-16, depois da rodada 203)
 
 | | valor |
 |---|---|
-| última rodada | **202** |
+| última rodada | **203** |
 | comandos no plugin | **78** escritos à mão (53 do reverso + 25 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
@@ -69,7 +69,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    - Ela grava o XData (`GravarXDataConfiguracao`/`2`) e o idioma no registro (`:3904-3910`).
    - Inclui o bloco SQL Server; tira o grupo "Projeto" (DWG/Revisão/Log).
    - Leva ao XData a norma IEC/ANSI, o Log Func e a representação cabo/veia, que hoje não chegam lá.
-5. 🟡 *(rodadas 188–202: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos`, `frmEstatisticaDeBornes` `frmEditaRevisaoSimplificada` `frmEditaRevisaoCompleta` `frmEditaTitulos` `frmPesquisaXdatas` as três `frmCompilar*` `frmGerenciadorMascaras` `frmGerenciadorContatos` e `frmSplash` feitas; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
+5. 🟡 *(rodadas 188–203: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos`, `frmEstatisticaDeBornes` `frmEditaRevisaoSimplificada` `frmEditaRevisaoCompleta` `frmEditaTitulos` `frmPesquisaXdatas` as três `frmCompilar*` `frmGerenciadorMascaras` `frmGerenciadorContatos` `frmSplash` e `frmRelatorio_Materiais` feitas; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
    designer e a captura, atrás de invenções do mesmo tipo. O que aparecer vira item aqui.
 
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
@@ -108,7 +108,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 202 | 2026-10-16 | *(este)* | auditoria da `frmSplash`: saem o fechamento por clique/tecla e as mensagens do `OFFSPL`, que o original não tem; builds 0 avisos, testes não rodados (só casca) | `rodadas/202-auditoria-splash.md` |
+| 203 | 2026-10-16 | *(este)* | auditoria da `frmRelatorio_Materiais`: grades sem colunas até haver dados, lista só no `btPesquisar`, dicas e controles escondidos como no construtor; saem dicas e linhas `EXPLM:` inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/203-auditoria-relatorio-materiais.md` |
+| 202 | 2026-10-16 | `bb4b3a34` | auditoria da `frmSplash`: saem o fechamento por clique/tecla e as mensagens do `OFFSPL`, que o original não tem; builds 0 avisos, testes não rodados (só casca) | `rodadas/202-auditoria-splash.md` |
 | 201 | 2026-10-16 | `3fee7071` | auditoria da `frmGerenciadorContatos`: guarda 331, grades sem colunas quando vazias e com cabeçalhos/larguras do original, dicas pelas mMensagens, `LbTerminais` e cor dos blocos; saem dicas e linhas inventadas (inclui `MODELOS:` da base); builds 0 avisos, testes não rodados (só casca) | `rodadas/201-auditoria-gerenciador-contatos.md` |
 | 200 | 2026-10-16 | `097fdc5c` | auditoria da `frmGerenciadorMascaras`: guarda 331, grades sem colunas quando vazias e com os cabeçalhos/larguras do original, dicas pelas mMensagens, cor dos blocos; saem dicas e linha inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/200-auditoria-gerenciador-mascaras.md` |
 | 199 | 2026-10-16 | `3e1e906d` | auditoria das três telas `frmCompilar*` (base `LigacaoDeCompilacao`): guarda 331, dicas pelas mMensagens, `dgRevisao` Revisão/Criador/Data, `dgERROS` vazia na abertura, 761 para revisão vazia; saem dicas e linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/199-auditoria-compilar-telas.md` |
@@ -117,4 +118,3 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 | 196 | 2026-10-16 | `ea7e928e` | auditoria da `frmEditaRevisaoCompleta`: faixa `CCapa`..`CCorpo`, `restauraCampos`, larguras percentuais, DE/PARA, gravação com `LockDocument` e `MsgBox`; saem 2 linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/196-auditoria-edita-revisao-completa.md` |
 | 195 | 2026-10-16 | `a400d984` | auditoria da `frmEditaRevisaoSimplificada`: faixa `SCapa`..`SCorpo`, `restauraCampos`, larguras, Copiar pelo `Click`, gravação com `LockDocument` e `MsgBox`; saem 2 linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/195-auditoria-edita-revisao-simplificada.md` |
 | 194 | 2026-10-16 | `2d7cddc4` | auditoria da `frmEstatisticaDeBornes`: colunas, nome do painel, filtro, seleção e rodapé como no `clsReguasDeBornes`; guarda 331 e limites de tamanho; 975 testes, builds 0 avisos | `rodadas/194-auditoria-estatistica-de-bornes.md` |
-| 193 | 2026-10-16 | `36c1de66` | auditoria da `frmEditaTitulosTextos`: avisos 53 e resultado viram `MsgBox`, saem linhas inventadas, entram limites de tamanho; 975 testes, builds 0 avisos | `rodadas/193-auditoria-edita-titulos-textos.md` |
