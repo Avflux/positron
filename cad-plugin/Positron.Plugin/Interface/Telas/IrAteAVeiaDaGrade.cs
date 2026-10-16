@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Positron.Data.Paginas;
@@ -31,9 +31,10 @@ namespace Positron.Plugin.Interface.Telas
         /// <summary>
         /// Vai até as linhas selecionadas. O handle está na coluna <paramref name="colunaDoHandle"/>;
         /// a linha sem handle é pulada e, com <paramref name="desmarcarSemHandle"/>, perde a seleção
-        /// (o <c>frmPesquisaCabos</c> faz isso com as veias de outros cadernos). Nunca lança.
+        /// (o <c>frmPesquisaCabos</c> faz isso com as veias de outros cadernos). Nunca lança e não
+        /// escreve nada: o original engole o erro (só aborta a transação) e não imprime.
         /// </summary>
-        internal static void Selecionadas(DataGridView grade, int colunaDoHandle, string rotulo, bool desmarcarSemHandle)
+        internal static void Selecionadas(DataGridView grade, int colunaDoHandle, bool desmarcarSemHandle)
         {
             try
             {
@@ -65,25 +66,24 @@ namespace Positron.Plugin.Interface.Telas
                             continue;
                         }
 
-                        Plugin.Escrever(rotulo + ": " + IrAte(documento, handle));
+                        IrAte(documento, handle);
                         SetFocus(documento.Window.Handle);
                     }
                 }
             }
-            catch (Exception erro)
+            catch (Exception)
             {
-                Plugin.Escrever(rotulo + ": falhou — " + erro.Message + ".");
             }
         }
 
         /// <summary>O <c>AtivaUmaHighlightZoom</c>: ativa a página da entidade, dá zoom e a realça.</summary>
-        private static string IrAte(Document documento, string texto)
+        private static void IrAte(Document documento, string texto)
         {
             long? handle = LocalizacaoPorHandle.LerHandle(texto);
             LocalizacaoPorHandleDoDesenho.Entidade entidade = handle.HasValue ? LocalizacaoPorHandleDoDesenho.Achar(handle.Value) : null;
             if (entidade == null)
             {
-                return "handle \"" + texto + "\" não achado no desenho.";
+                return;
             }
 
             PaginaAtivaDoDesenho.Ativar(entidade.Layer);
@@ -100,8 +100,6 @@ namespace Positron.Plugin.Interface.Telas
 
                 transacao.Commit();
             }
-
-            return "veia " + texto + " na página \"" + entidade.Layer + "\" (zoom e realce).";
         }
 
         /// <summary>O <c>clsBlocos.Unhighlight</c>: tira o realce de toda entidade do layer da página ativa.</summary>

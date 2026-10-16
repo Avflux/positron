@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -82,8 +82,8 @@ namespace Positron.Plugin.Interface.Telas
             janela.Resize += (origem, evento) => AjustarColunas(cabos, veias);
             cabos.KeyUp += (origem, evento) => MostrarVeias(cabos, veias, catalogo, nomesDeDwgs);
             cabos.MouseUp += (origem, evento) => MostrarVeias(cabos, veias, catalogo, nomesDeDwgs);
-            veias.KeyUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(veias, 3, "PESQCAB", true);
-            veias.MouseUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(veias, 3, "PESQCAB", true);
+            veias.KeyUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(veias, 3, true);
+            veias.MouseUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(veias, 3, true);
 
             int doCaderno = 0;
             int deOutros = 0;

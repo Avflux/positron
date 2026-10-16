@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Positron.Data;
@@ -47,6 +47,8 @@ namespace Positron.Plugin.Interface.Telas
                 return;
             }
 
+            janela.MinimumSize = new System.Drawing.Size(400, 200);
+            grade.AllowUserToOrderColumns = true;
             grade.Rows.Clear();
             grade.Columns.Clear();
             grade.Columns.Add("Indice", "#");
@@ -69,23 +71,8 @@ namespace Positron.Plugin.Interface.Telas
             }
 
             janela.Resize += (origem, evento) => AjustarColunas(grade);
-            grade.KeyUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(grade, 4, "PESQC", false);
-            grade.MouseUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(grade, 4, "PESQC", false);
-
-            List<string> amostra = new List<string>();
-            foreach (LinhaDeVeiaIndefinida linha in linhas)
-            {
-                if (amostra.Count == 5)
-                {
-                    amostra.Add("...");
-                    break;
-                }
-
-                amostra.Add(linha.Pagina + " " + linha.Origem.Trim() + "->" + linha.Destino.Trim() + " [" + linha.Handle + "]");
-            }
-
-            Plugin.Escrever("PESQC: " + linhas.Count + " veia(s) indefinida(s) na grade"
-                + (amostra.Count > 0 ? ": " + string.Join("; ", amostra.ToArray()) : string.Empty) + ".");
+            grade.KeyUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(grade, 4, false);
+            grade.MouseUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(grade, 4, false);
         }
 
         /// <summary>O <c>AtualizaDGVeiasDWG</c>: 10/30/30/30% da largura útil e o handle oculto.</summary>
@@ -130,9 +117,9 @@ namespace Positron.Plugin.Interface.Telas
             {
                 return new ProjectStore(config.Banco).LerNomesDePaineis();
             }
-            catch (Exception erro)
+            catch (Exception)
             {
-                Plugin.Escrever("PESQC: o cadastro de painéis não veio do banco — " + erro.Message);
+                // `Dicionario.BuscaNomeDoPainel` (`Dicionario.cs:47`) engole o erro e devolve "???".
                 return new Dictionary<int, string>();
             }
         }
