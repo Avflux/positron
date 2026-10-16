@@ -43,11 +43,9 @@ namespace Positron.Plugin.Interface.Telas
             IReadOnlyList<LinhaDaEstimativa> linhas = EstimativaDeVeiasLivres.Calcular(
                 InterligacaoDoDesenho.LerComHandles(),
                 LerNomesDePaineis());
-            List<string> pares = new List<string>();
             foreach (LinhaDaEstimativa linha in linhas)
             {
                 grade.Rows.Add(linha.Nome1, linha.Nome2, linha.Quantidade.ToString());
-                pares.Add(linha.Nome1 + " -> " + linha.Nome2 + " (" + linha.Quantidade + ")");
             }
 
             Button copiar = ControlesDaTela.Achar<Button>(janela, "btCopiar");
@@ -55,9 +53,6 @@ namespace Positron.Plugin.Interface.Telas
             {
                 copiar.Click += (origem, evento) => Copiar(grade);
             }
-
-            Plugin.Escrever("ESTVL: " + linhas.Count + " par(es) de painéis com veia indefinida"
-                + (pares.Count > 0 ? ": " + string.Join("; ", pares) : string.Empty) + ".");
         }
 
         private static void Copiar(DataGridView grade)
@@ -94,9 +89,8 @@ namespace Positron.Plugin.Interface.Telas
             {
                 return new ProjectStore(config.Banco).LerNomesDePaineis();
             }
-            catch (Exception erro)
+            catch (Exception)
             {
-                Plugin.Escrever("ESTVL: o cadastro de painéis não veio do banco — " + erro.Message);
                 return new Dictionary<int, string>();
             }
         }

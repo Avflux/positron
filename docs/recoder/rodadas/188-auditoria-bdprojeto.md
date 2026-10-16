@@ -1,6 +1,6 @@
 # Rodada 188 — auditoria da `frmConfiguracaoBDProjeto` (item 5 da correção do básico, 1ª tela)
 
-**Data:** 2026-10-16 · **Commit:** `*(este)*` · **Frente:** correção do básico · **Situação:** 🟡 parcial (1 tela de ~42 auditada)
+**Data:** 2026-10-16 · **Commit:** `7afed20a` · **Frente:** correção do básico · **Situação:** 🟡 parcial (1 tela de ~42 auditada)
 
 ## Alvo
 
