@@ -42,6 +42,17 @@ namespace Positron.Plugin.Paginas
         /// <summary>A pagina ativa do desenho (o <c>LocalizaPaginaAtiva</c>); vazio quando a camada corrente nao e pagina.</summary>
         internal static string Ler()
         {
+            return PaginaAtiva.Localiza(LerCamadaCorrente());
+        }
+
+        /// <summary>
+        /// O nome da **camada corrente**, cru — e o que o <c>LocalizaPaginaAtiva</c> do original devolve
+        /// (<c>Pagina.cs:1347</c>: ele nao checa se a camada e uma pagina). O <c>AtivaPagina</c> do
+        /// original recebe esse nome como veio (o <c>IniciarDWG</c> e o <c>travaDWG</c>); a guarda do
+        /// <see cref="Ler"/> e de quem pergunta pela pagina ativa do desenho.
+        /// </summary>
+        internal static string LerCamadaCorrente()
+        {
             Document documento = Application.DocumentManager.MdiActiveDocument;
             if (documento == null)
             {
@@ -60,7 +71,7 @@ namespace Positron.Plugin.Paginas
                 transacao.Commit();
             }
 
-            return PaginaAtiva.Localiza(corrente);
+            return corrente;
         }
 
         /// <summary>A capa da tabela de layers (o <c>retornaNumeroCapa</c>); vazia quando nao ha.</summary>

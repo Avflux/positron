@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Positron.Data.Correcoes;
 using Positron.Data.Configuracao;
 #if AUTOCAD
 using Autodesk.AutoCAD.ApplicationServices;
@@ -16,17 +17,26 @@ namespace Positron.Plugin
     /// O que o original faz **a cada desenho ativado**: o <c>EventosDOC.AtivaDocumento</c>
     /// (<c>EventosDOC.cs:119-150</c>, ligado ao <c>DocumentActivated</c> em <c>myEletron.cs:233</c>) fecha as
     /// janelas abertas e roda o <c>Iniciar.IniciarDWG</c> (<c>Iniciar.cs:61-195</c>), que também roda no
-    /// <c>Initialize</c> para o desenho já aberto. Do <c>IniciarDWG</c> entram aqui:
+    /// <c>Initialize</c> para o desenho já aberto. Do <c>IniciarDWG</c> entram aqui, na ordem do original:
     ///
-    /// - a paleta de páginas aberta e recarregada com as páginas **deste** desenho (o
-    ///   <c>Comandos.GerenciadorPagina</c>, chamado nos dois ramos);
-    /// - na **primeira** ativação de cada desenho (o <c>lDwgRegen</c>), com o banco do projeto inválido
-    ///   (o <c>clsAuxiliar.BancoValido(bMsg: false)</c>) num desenho do Elétron (tipo <c>E</c>), a
-    ///   <c>frmConfiguracaoBDProjeto</c>, para ligar o desenho a um banco.
+    /// - os **painéis da barra** pelo **tipo do desenho** (<c>Iniciar.cs:72-127</c>) — a regra é pura
+    ///   (<see cref="Positron.Data.Interface.Mapas.LigacaoDosPaineis"/>) e quem aplica é a
+    ///   <see cref="Interface.Barra.BarraDeFerramentas"/>;
+    /// - as **páginas deste** desenho: com páginas, a **página ativa** é ativada antes de a paleta
+    ///   abrir (o <c>else</c> do <c>IniciarDWG</c>, que também lê os atalhos e checa o formato — os dois
+    ///   o recoder lê sob demanda, ver *Falta* da rodada 181);
+    /// - a paleta de páginas recarregada (o <c>Comandos.GerenciadorPagina</c>, nos dois ramos);
+    /// - na **primeira** ativação de cada desenho (o <c>lDwgRegen</c>): o <c>Geral.travaDWG(false)</c>
+    ///   (destrava as camadas, ativa a página ativa e dá <c>Regen</c>), o estilo de texto **Romans**, as
+    ///   **cinco correções automáticas** — cada uma só se a marca dela ainda não estiver no XData
+    ///   <c>CORRECAO</c> do ModelSpace (<see cref="Positron.Data.Correcoes.MarcasDeCorrecao"/>) — e, com
+    ///   o banco do projeto inválido (o <c>clsAuxiliar.BancoValido(bMsg: false)</c>) num desenho do
+    ///   Elétron (tipo <c>E</c>), a <c>frmConfiguracaoBDProjeto</c>, para ligar o desenho a um banco.
     ///
     /// A configuração (o <c>LerXDataConfiguracao</c>/<c>2</c>) não fica guardada: cada comando relê o
-    /// desenho ativo (<see cref="ConfiguracaoEfetiva"/>). O que o <c>IniciarDWG</c> faz e ainda não entrou
-    /// está na rodada 180 (*Falta*).
+    /// desenho ativo (<see cref="ConfiguracaoEfetiva"/>). O que o <c>IniciarDWG</c> faz e ainda não
+    /// entrou (o <c>ACorrecaoBD.CorrigeBD</c>, os dicionários de DWG/painel, o status do banco na
+    /// paleta) está na rodada 181 (*Falta*).
     /// </summary>
     internal static class InicioDoDesenho
     {
@@ -67,7 +77,7 @@ namespace Positron.Plugin
             }
         }
 
-        /// <summary>O <c>IniciarDWG</c> (a parte que entrou): a paleta e o banco do projeto.</summary>
+        /// <summary>O <c>IniciarDWG</c>: o tipo do desenho, as páginas, a paleta e o bloco de uma vez por desenho.</summary>
         internal static void Iniciar()
         {
             Document documento = Application.DocumentManager.MdiActiveDocument;
@@ -76,21 +86,180 @@ namespace Positron.Plugin
                 return;
             }
 
+            string tipo = TipoDoDesenho(documento);
+            Registrar(Interface.Barra.BarraDeFerramentas.AplicarTipoDoDesenho(tipo));
+
+            // O `else` do `IniciarDWG` (o desenho tem páginas): ativa a página que o desenho mostra e
+            // só depois abre a paleta — sem páginas o original abre a paleta direto (o `GerenciadorPagina`).
+            IReadOnlyList<string> paginas = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
+            if (paginas.Count > 0)
+            {
+                Registrar(AtivarAPaginaCorrente("IniciarDWG: " + paginas.Count + " página(s) do caderno"));
+            }
+
             Interface.Folhas.PaletaDeFolhas.Mostrar();
 
             if (!Iniciados.Add(documento.Name))
             {
+                // Já iniciado nesta sessão: o original sai antes do `lDwgRegen`.
                 return;
             }
+
+            // --- o `lDwgRegen`: o que roda uma vez por desenho ---
+
+            // O `Geral.travaDWG(bTravar: false)`: destrava as camadas, ativa a página ativa e dá o Regen.
+            Registrar(DestravarCamadas());
+
+            Registrar("IniciarDWG: estilo de texto Romans — " + Correcoes.EstiloDeTextoDoDesenho.GarantirRomans());
+
+            foreach (string linha in CorrecoesAutomaticas())
+            {
+                Registrar(linha);
+            }
+
+            documento.Editor.Regen();
 
             // Só os motivos do original (328/329): o banco Access, que o original lê, não abre a tela.
             string motivo = Validar();
             bool invalidoNoOriginal = motivo == Positron.Data.Interface.MensagensDoReverso.BancoNaoConfigurado
                 || motivo == BancoNaoEncontrado;
-            if (invalidoNoOriginal && TipoDoDesenho(documento) == "E")
+            if (invalidoNoOriginal && tipo == "E")
             {
                 Plugin.Escrever(Interface.Telas.RenderizadorDeTelas.Abrir("frmConfiguracaoBDProjeto", "Banco de Dados do Projeto"));
             }
+        }
+
+        /// <summary>
+        /// As **cinco correções automáticas** do <c>IniciarDWG</c> (<c>Iniciar.cs:151-186</c>), na ordem
+        /// do original, cada uma pulada quando a marca dela já está no XData <c>CORRECAO</c> do desenho.
+        /// </summary>
+        private static IReadOnlyList<string> CorrecoesAutomaticas()
+        {
+            List<string> linhas = new List<string>();
+            linhas.Add(UmaCorrecao(
+                MarcasDeCorrecao.AppNameDoDispositivo,
+                "CorrecaoDisp",
+                Comandos.ExecutarCorrigirAppNameDosDispositivos));
+            linhas.Add(UmaCorrecao(
+                MarcasDeCorrecao.BornesVisiveis,
+                "CorrecaoBornesVisiveis",
+                Comandos.ExecutarCorrigirVisibilidadeDosBornes));
+            linhas.Add(UmaCorrecao(
+                MarcasDeCorrecao.TextosDeCircuito,
+                "correcaoTextosCircuitos",
+                ExecutarCorrecaoDosTextosDeCircuito));
+            linhas.Add(UmaCorrecao(
+                MarcasDeCorrecao.Linhas,
+                "correcaoLines",
+                ExecutarCorrecaoDosLines));
+            linhas.Add(UmaCorrecao(
+                MarcasDeCorrecao.OrdemDosBornes,
+                "corrigeOrdemBornes",
+                Comandos.ExecutarCorrigirOrdemDosBornes));
+            return linhas;
+        }
+
+        /// <summary>
+        /// Uma correção do <c>lDwgRegen</c>: o <c>LerCorrecao</c> (a marca), a correção e o
+        /// <c>setaCorrecao</c>. Nunca lança — o erro da correção vira a linha do log, e a marca **não**
+        /// é gravada (a correção roda de novo na próxima vez, como no original, que também não marca
+        /// quando a chamada estoura e o <c>catch</c> do <c>IniciarDWG</c> pega o erro).
+        /// </summary>
+        private static string UmaCorrecao(int marca, string nome, Func<string> executar)
+        {
+            try
+            {
+                if (Correcoes.MarcasDeCorrecaoDoDesenho.Lida(marca))
+                {
+                    return nome + ": já corrigido neste desenho (marca " + marca + " no XData " + MarcasDeCorrecao.AppName + ").";
+                }
+
+                string resultado = executar();
+                bool marcado = Correcoes.MarcasDeCorrecaoDoDesenho.Marcar(marca);
+                return nome + ": " + resultado + " (marca " + marca
+                    + (marcado ? " gravada" : " NÃO gravada — sem desenho ativo") + ").";
+            }
+            catch (Exception erro)
+            {
+                return nome + ": falhou — " + erro.Message + " (marca " + marca + " não gravada).";
+            }
+        }
+
+        /// <summary>O <c>correcaoTextosCircuitos</c> (<c>Correcao.cs:397</c>) e a linha de resumo.</summary>
+        private static string ExecutarCorrecaoDosTextosDeCircuito()
+        {
+            Correcoes.TextosDeCircuitoDoDesenho.Resultado resultado =
+                Correcoes.TextosDeCircuitoDoDesenho.Executar();
+            return resultado.TextosCorrigidos + " de " + resultado.TextosAuxiliares
+                + " texto(s) auxiliar(es) de circuito alinhados (o VerticalMode 1 vira Baseline na mesma posição)";
+        }
+
+        /// <summary>O <c>correcaoLines</c> (<c>Correcao.cs:480</c>) e a linha de resumo.</summary>
+        private static string ExecutarCorrecaoDosLines()
+        {
+            Correcoes.XDataDasLinhasDoDesenho.Resultado resultado =
+                Correcoes.XDataDasLinhasDoDesenho.Executar();
+            return resultado.LinhasLimpas + " de " + resultado.LinhasLidas + " Line(s) com o XData limpo ("
+                + resultado.ConexaoLimpos + " CONEXAO, " + resultado.InterligacaoLimpos + " INTERLIGACAO)";
+        }
+
+        /// <summary>
+        /// O <c>Geral.travaDWG(false)</c> (<c>Geral.cs:1061</c>): destrava **todas** as camadas, ativa a
+        /// página ativa (<c>LocalizaPaginaAtiva</c> + <c>AtivaPagina</c>, dentro do próprio
+        /// <c>travaDWG</c>) e dá o <c>Regen</c>. Devolve a linha do log.
+        /// </summary>
+        private static string DestravarCamadas()
+        {
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            if (documento == null)
+            {
+                return "IniciarDWG: sem desenho ativo — camadas não destravadas.";
+            }
+
+            Database banco = documento.Database;
+            int destravadas = 0;
+            using (documento.LockDocument())
+            using (Transaction transacao = banco.TransactionManager.StartTransaction())
+            {
+                LayerTable tabela = (LayerTable)transacao.GetObject(banco.LayerTableId, OpenMode.ForRead);
+                foreach (ObjectId id in tabela)
+                {
+                    LayerTableRecord camada = transacao.GetObject(id, OpenMode.ForRead) as LayerTableRecord;
+                    if (camada == null || !camada.IsLocked)
+                    {
+                        continue;
+                    }
+
+                    camada.UpgradeOpen();
+                    camada.IsLocked = false;
+                    destravadas++;
+                }
+
+                transacao.Commit();
+            }
+
+            string ativacao = AtivarAPaginaCorrente("camadas destravadas (" + destravadas + " travada(s) liberada(s))");
+            documento.Editor.Regen();
+            return "IniciarDWG: " + ativacao;
+        }
+
+        /// <summary>
+        /// O <c>Pagina.LocalizaPaginaAtiva()</c> seguido do <c>Pagina.AtivaPagina(pagina)</c>: o
+        /// original passa a **camada corrente crua** (não checa se ela é uma página) e a ativação
+        /// desliga todos os outros layers. Devolve a linha do log.
+        /// </summary>
+        private static string AtivarAPaginaCorrente(string situacao)
+        {
+            string pagina = Positron.Plugin.Paginas.PaginaAtivaDoDesenho.LerCamadaCorrente();
+            Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Resultado resultado =
+                Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ativar(pagina);
+
+            // A paleta acompanha a página ativada (o `_uscPagina.ativaPaginaAtalho`), quando já existe.
+            Interface.Folhas.PaletaDeFolhas.Recarregar();
+
+            return situacao + " — página ativa \"" + (resultado.PaginaEncontrada ? pagina : "(nenhuma)")
+                + "\": " + resultado.LayersDesligados + " layer(s) desligado(s), "
+                + resultado.LayersLigados + " ligado(s), " + resultado.LayersAlterados + " alterado(s)";
         }
 
         /// <summary>
@@ -182,6 +351,19 @@ namespace Positron.Plugin
             using (ResultBuffer xdata = objeto.GetXDataForApplication(app))
             {
                 return xdata != null;
+            }
+        }
+
+        /// <summary>
+        /// A linha do <c>IniciarDWG</c> vai **só para o log do harness** (o original não escreve nada ao
+        /// carregar): sem <c>POSITRON_LOG</c> não há linha nenhuma, e a linha de comando do CAD fica
+        /// limpa. <c>null</c>/vazio não escreve nada.
+        /// </summary>
+        private static void Registrar(string linha)
+        {
+            if (!string.IsNullOrEmpty(linha))
+            {
+                Plugin.Registrar(linha);
             }
         }
 

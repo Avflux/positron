@@ -179,6 +179,97 @@ namespace Positron.Plugin.Interface.Barra
             return removidas;
         }
 
+        /// <summary>
+        /// O bloco do <c>IniciarDWG</c> que liga/desliga os **painéis** pelo **tipo do desenho**
+        /// (<c>Iniciar.cs:72-127</c>) — a regra é pura (<see cref="LigacaoDosPaineis"/>). Devolve a
+        /// linha do log, ou <c>null</c> quando o CAD não tem ribbon nesta sessão (o
+        /// <c>accoreconsole</c>): não há painel nenhum para ligar, e o original nem chega aqui (ele só
+        /// roda no CAD de janela). Nunca lança.
+        /// </summary>
+        internal static string AplicarTipoDoDesenho(string tipo)
+        {
+            try
+            {
+                RibbonControl ribbon = ComponentManager.Ribbon;
+                if (ribbon == null)
+                {
+                    return null;
+                }
+
+                RibbonTab aba = AcharAba(ribbon);
+                if (aba == null)
+                {
+                    return "Barra: a aba \"" + TituloDaAba + "\" não está no ribbon — o tipo \"" + tipo
+                        + "\" não foi aplicado aos painéis.";
+                }
+
+                IReadOnlyList<bool?> plano = LigacaoDosPaineis.Plano(tipo, aba.Panels.Count);
+                List<string> ligados = new List<string>();
+                List<string> desligados = new List<string>();
+                List<string> intocados = new List<string>();
+                for (int i = 0; i < aba.Panels.Count && i < plano.Count; i++)
+                {
+                    RibbonPanel painel = aba.Panels[i];
+                    string nome = painel.Source == null ? "#" + i : painel.Source.Title;
+                    if (plano[i] == null)
+                    {
+                        // O último painel no tipo V: o original não toca (`IsEnabled` fica como está).
+                        intocados.Add(nome + " (" + (painel.IsEnabled ? "ligado" : "desligado") + ")");
+                        continue;
+                    }
+
+                    painel.IsEnabled = plano[i].Value;
+                    if (plano[i].Value)
+                    {
+                        ligados.Add(nome);
+                    }
+                    else
+                    {
+                        desligados.Add(nome);
+                    }
+                }
+
+                return "Barra: desenho tipo \"" + tipo + "\" — " + ligados.Count + " painel(is) ligado(s)"
+                    + Lista(ligados) + ", " + desligados.Count + " desligado(s)" + Lista(desligados)
+                    + ", " + intocados.Count + " intocado(s)" + Lista(intocados) + ".";
+            }
+            catch (Exception erro)
+            {
+                return "Barra: falhou ao aplicar o tipo \"" + tipo + "\" — " + erro.Message + ".";
+            }
+        }
+
+        /// <summary>
+        /// O tipo do **desenho ativo** aplicado aos painéis, para a linha de resumo — <c>null</c> quando
+        /// não há desenho ativo (o par do <see cref="AplicarTipoDoDesenho"/> chamado pela montagem da
+        /// aba, no caminho da ociosidade do AutoCAD).
+        /// </summary>
+        internal static string AplicarTipoDoDesenhoDoDesenhoAtivo()
+        {
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            return documento == null ? null : AplicarTipoDoDesenho(InicioDoDesenho.TipoDoDesenho(documento));
+        }
+
+        /// <summary>Os nomes entre parênteses, para a linha de resumo (vazio quando não há nenhum).</summary>
+        private static string Lista(List<string> nomes)
+        {
+            return nomes.Count == 0 ? string.Empty : " [" + string.Join(" | ", nomes.ToArray()) + "]";
+        }
+
+        /// <summary>A aba do Positron no ribbon, ou <c>null</c> quando não está lá.</summary>
+        private static RibbonTab AcharAba(RibbonControl ribbon)
+        {
+            foreach (RibbonTab candidata in ribbon.Tabs)
+            {
+                if (string.Equals(candidata.Id, IdDaAba, StringComparison.OrdinalIgnoreCase))
+                {
+                    return candidata;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>A montagem da aba (o corpo comum aos dois CADs). Nunca lança.</summary>
         private static string ConstruirAba()
         {
@@ -229,6 +320,12 @@ namespace Positron.Plugin.Interface.Barra
                 // Como o original (`val.IsActive = true` no CreateRibbon): a aba abre à frente.
                 aba.IsActive = true;
 
+                // O tipo do desenho **de agora**: no ZWCAD a aba já existe quando o `IniciarDWG` roda,
+                // mas no AutoCAD ela nasce na primeira ociosidade — depois dele (rodada 138). Sem
+                // reaplicar aqui, a aba nasceria com os nove painéis ligados num desenho que não é do
+                // Elétron (medido na rodada 181).
+                string aplicacao = AplicarTipoDoDesenhoDoDesenhoAtivo();
+
                 return "Barra: aba \"" + aba.Title + "\" com " + paineis + " painel(is) — " + nota
                     + conta.De(TipoDoItemDaBarra.Botao) + " botão(ões), "
                     + conta.De(TipoDoItemDaBarra.Menu) + " menu(s) com " + conta.De(TipoDoItemDaBarra.ItemDeMenu) + " item(ns), "
@@ -237,7 +334,8 @@ namespace Positron.Plugin.Interface.Barra
                     + conta.De(TipoDoItemDaBarra.Linha) + " linha(s), " + conta.De(TipoDoItemDaBarra.QuebraDeLinha) + " quebra(s), "
                     + conta.De(TipoDoItemDaBarra.Recolhe) + " área(s) recolhível(is), " + conta.De(TipoDoItemDaBarra.Separador) + " separador(es). "
                     + "Acionáveis: " + conta.Ligados + " ligado(s) (" + conta.Substituidos + " no comando do recoder), "
-                    + conta.Desativados + " desativado(s); tema " + (escuro ? "escuro" : "claro") + ".";
+                    + conta.Desativados + " desativado(s); tema " + (escuro ? "escuro" : "claro") + "."
+                    + (string.IsNullOrEmpty(aplicacao) ? string.Empty : " " + aplicacao);
             }
             catch (Exception erro)
             {
@@ -282,7 +380,9 @@ namespace Positron.Plugin.Interface.Barra
                 List<string> titulos = new List<string>();
                 foreach (RibbonPanel painel in aba.Panels)
                 {
-                    titulos.Add(painel.Source.Title);
+                    // O estado do painel saiu do `IniciarDWG` (o tipo do desenho, rodada 181): ele entra
+                    // na medição porque é o que o tipo muda na barra viva.
+                    titulos.Add(painel.Source.Title + (painel.IsEnabled ? " ligado" : " DESLIGADO"));
                     if (painel.Source.DialogLauncher != null)
                     {
                         lancadores++;
@@ -303,11 +403,27 @@ namespace Positron.Plugin.Interface.Barra
                 return "pzBarra: " + abasPositron + " aba(s) " + IdDaAba + " (\"" + aba.Title + "\"), "
                     + aba.Panels.Count + " painel(is) [" + string.Join(" | ", titulos.ToArray()) + "]; "
                     + string.Join(", ", partes.ToArray()) + "; " + lancadores + " botão(ões) de canto; "
-                    + desativados + " item(ns) desativado(s).";
+                    + desativados + " item(ns) desativado(s); " + TipoDoDesenho() + ".";
             }
             catch (Exception erro)
             {
                 return "pzBarra: falhou — " + erro.Message + ".";
+            }
+        }
+
+        /// <summary>O tipo do desenho ativo (o `verificaTipoXData`) — a causa do estado dos painéis.</summary>
+        private static string TipoDoDesenho()
+        {
+            try
+            {
+                Document documento = Application.DocumentManager.MdiActiveDocument;
+                return documento == null
+                    ? "sem desenho ativo"
+                    : "desenho tipo \"" + InicioDoDesenho.TipoDoDesenho(documento) + "\"";
+            }
+            catch (Exception)
+            {
+                return "tipo do desenho ilegível";
             }
         }
 

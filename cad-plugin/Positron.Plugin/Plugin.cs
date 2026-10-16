@@ -100,6 +100,16 @@ namespace Positron.Plugin
             }
         }
 
+        /// <summary>
+        /// Anexa uma linha **só no log do harness** (o par do <see cref="Escrever"/> sem a linha de
+        /// comando): o que o original faz em silêncio ao carregar o desenho — o <c>IniciarDWG</c> — fica
+        /// medível sem poluir a linha de comando de quem usa o plugin.
+        /// </summary>
+        internal static void Registrar(string mensagem)
+        {
+            RegistrarEmArquivo(mensagem);
+        }
+
         /// <summary>Escreve uma linha na linha de comando do ZWCAD.</summary>
         internal static void Escrever(string mensagem)
         {

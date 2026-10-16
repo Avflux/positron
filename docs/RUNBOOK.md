@@ -791,12 +791,18 @@ assembly 'xunit.execution.desktop' ... Acesso negado.` A saída é rodar a cópi
 DEST=/c/Users/<voce>/AppData/Local/Temp/pm151; BIN=cad-plugin/Positron.Data.Tests/bin/Debug/net472
 RUNNER=.tmp-smoke/xunit/tools/net472
 mkdir -p $DEST
+cp -r $BIN/. $DEST/          # o bin INTEIRO (o System.Data.SQLite e o xunit.core moram nele)
 cp $RUNNER/xunit.console.exe $RUNNER/xunit.console.exe.config $RUNNER/xunit.abstractions.dll \
    $RUNNER/xunit.execution.desktop.dll $RUNNER/xunit.runner.utility.net452.dll \
-   $RUNNER/xunit.runner.reporters.net452.dll $DEST/
-cp $BIN/Positron.Contract.dll $BIN/Positron.Data.dll $BIN/Positron.Data.Tests.dll $BIN/schema.sql $DEST/
+   $RUNNER/xunit.runner.reporters.net452.dll $DEST/   # as do runner DEPOIS (elas mandam)
 (cd $DEST && TEMP='C:\Users\<voce>\AppData\Local\Temp' ./xunit.console.exe Positron.Data.Tests.dll)
 ```
+
+**Copiar só as `Positron.*` produz falha falsa (corrigido na rodada 181):** sem o
+`System.Data.SQLite.dll` o runner falha **46** testes com `FileNotFoundException ... System.Data.SQLite`,
+e sem o `xunit.core.dll` do bin ele **nem começa** (`FileNotFoundException ... xunit.core 2.9.2` — a
+pasta do runner não traz o `xunit.core`). Por isso `cp -r $BIN/.` e só então as DLLs do runner, que
+mandam na versão.
 
 **A raiz do `loadFromRemoteSources` (rodada 168).** O `NETLOAD` que morre com `FileLoadException ...
 0x80131515` **dentro da árvore** tem correção na raiz, sem copiar a DLL: o switch
@@ -852,6 +858,25 @@ Armadilha vizinha, medida na mesma investigação: `(command "_.OPEN" ...)` num
 script é assíncrono e a `pz-dump` seguinte roda no desenho antigo. Para abrir um
 DWG como desenho ativo, passe o **arquivo na linha de comando** do ZWCAD
 (`ZWCAD.exe <desenho> /nologo /b <script>`).
+
+### O XData do **ModelSpace** e como montá-lo por LISP (medido na rodada 181)
+
+Três coisas que custam uma rodada cada se não forem sabidas (o
+`scripts/cad-fixture-iniciar.lsp` foi feito com elas):
+
+- **`entget` de um `BlockTableRecord` não devolve o grupo `-3`.** O XData do ModelSpace (o
+  `Eletron` do tipo do desenho, o `CORRECAO` das marcas) só sai pelo **ActiveX** —
+  `(vla-GetXData (vla-get-ModelSpace doc) app 'tipos 'valores)`. No `accoreconsole` o ActiveX
+  **não existe** (o `vlax-get-acad-object` devolve `nil` e o `vla-GetXData` morre com
+  `bad argument type`), então: o que depende do XData do ModelSpace se mede na **interface cheia**,
+  e no headless só o XData das **entidades** (por `entget` com a applist `'("*")`).
+- **`entmake` descarta o valor `1000` de string vazia.** O layout do `AUXCONEXAO` no original tem
+  `1000 ""` no meio e o buffer sai **torto** (os índices pulam e o `entget` devolve os valores
+  deslocados). Montando por LISP, use um texto não vazio em cada `1000` e não conte com o vazio.
+- **O grupo `-3` do `entget` é uma LISTA de blocos**: `(-3 ((APP (1000 . valor)...)))` — o bloco do
+  app pedido é o **primeiro** item (`(car (cdr (assoc -3 (entget e (list app)))))`), e a app exata
+  vem pela applist. O `(entget e)` **sem** applist também não traz o `-3` no AutoCAD 2020 (mesma regra
+  do ZWCAD 2026, acima).
 
 ### Comando com prompts (`GetKeywords`/`GetSelection`/`GetString`) pelo harness
 
