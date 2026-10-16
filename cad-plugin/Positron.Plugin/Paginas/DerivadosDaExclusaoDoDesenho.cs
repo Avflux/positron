@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Positron.Data;
 using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
@@ -8,8 +9,10 @@ using Positron.Plugin.Bornes;
 using Positron.Plugin.Correcoes;
 #if AUTOCAD
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
 #else
 using ZwSoft.ZwCAD.DatabaseServices;
+using ZwSoft.ZwCAD.Geometry;
 #endif
 
 namespace Positron.Plugin.Paginas
@@ -32,8 +35,13 @@ namespace Positron.Plugin.Paginas
     /// modelo cujo <c>HandleContatoAux</c> é o handle do contato apagado tem os atributos
     /// <c>INSERCAO</c>/<c>INSERCAONA</c>/<c>INSERCAONF</c> zerados e o <c>HandleContatoAux</c> esvaziado.
     ///
-    /// Os ramos do dispositivo (<c>promoveComplementar</c>/<c>ApagaContatosModeloDispositivo</c>) e da
-    /// máscara (<c>ApagaAMascara</c>) não estão portados (fila do <c>ESTADO.md</c>).
+    /// O ramo da **máscara** (tipo <c>M</c>) chama o <c>clsMascara.ApagaAMascara</c> (<c>clsMascara.cs:1264</c>):
+    /// a primeira outra máscara com o mesmo painel/nomes/alternativo é promovida e as demais apontam
+    /// para ela (<see cref="ApagarMascara"/>); sem sucessora, as portas e as definições da máscara saem
+    /// junto; com ela, passam a apontar para ela.
+    ///
+    /// Os ramos do dispositivo (<c>promoveComplementar</c>/<c>ApagaContatosModeloDispositivo</c>) não
+    /// estão portados (fila do <c>ESTADO.md</c>).
     /// </summary>
     internal static class DerivadosDaExclusaoDoDesenho
     {
@@ -65,6 +73,11 @@ namespace Positron.Plugin.Paginas
                     LimparInsercaoDoModelo(entidade.Handle.ToString(), transacao, banco, espaco);
                 }
 
+                if (string.Equals(tipo, DispositivoFiacaoXData.TipoMascara, StringComparison.OrdinalIgnoreCase))
+                {
+                    return ApagarAMascara(entidade as BlockReference, transacao, banco, espaco);
+                }
+
                 return 0;
             }
             catch (Exception)
@@ -84,6 +97,209 @@ namespace Positron.Plugin.Paginas
 
             string handleDaIrma = DerivadosDaExclusao.HandleDaIrma(interligacao);
             return handleDaIrma == null ? 0 : ApagarIrma(handleDaIrma, transacao, banco, espaco);
+        }
+
+        /// <summary>
+        /// O <c>ApagaAMascara</c>: planeja pela regra pura, regrava as outras máscaras e depois apaga ou
+        /// reaponta as portas e as definições da apagada. Devolve quantas entidades **extras** saíram.
+        /// </summary>
+        private static int ApagarAMascara(BlockReference mascara, Transaction transacao, Database banco, BlockTableRecord espaco)
+        {
+            if (mascara == null)
+            {
+                return 0;
+            }
+
+            EstadoDaMascara estado = LerMascara(mascara);
+            if (estado == null)
+            {
+                return 0;
+            }
+
+            string handle = mascara.Handle.ToString();
+            List<ApagarMascara.Candidata> candidatas = new List<ApagarMascara.Candidata>();
+            foreach (ObjectId id in espaco)
+            {
+                if (id.IsErased)
+                {
+                    continue;
+                }
+
+                BlockReference outra = transacao.GetObject(id, OpenMode.ForRead) as BlockReference;
+                EstadoDaMascara outroEstado = outra == null ? null : LerMascara(outra);
+                if (outroEstado == null)
+                {
+                    continue;
+                }
+
+                candidatas.Add(new ApagarMascara.Candidata
+                {
+                    Handle = outra.Handle.ToString(),
+                    Estado = outroEstado,
+                    Modelo = LerAtributo(transacao, outra, ApagarMascara.AtributoModelo),
+                    Fabricante = LerAtributo(transacao, outra, ApagarMascara.AtributoFabricante),
+                    Descricao = LerAtributo(transacao, outra, ApagarMascara.AtributoDescricao),
+                });
+            }
+
+            ApagarMascara.Plano plano = ApagarMascara.Planejar(
+                handle,
+                estado,
+                LerAtributo(transacao, mascara, ApagarMascara.AtributoModelo),
+                LerAtributo(transacao, mascara, ApagarMascara.AtributoFabricante),
+                LerAtributo(transacao, mascara, ApagarMascara.AtributoDescricao),
+                candidatas);
+            if (plano == null)
+            {
+                return 0;
+            }
+
+            foreach (ApagarMascara.Gravacao gravacao in plano.Gravacoes)
+            {
+                GravarMascara(gravacao, transacao, banco);
+            }
+
+            return ApagarOuReapontarPortas(handle, plano.Sucessora, transacao, banco, espaco);
+        }
+
+        /// <summary>O ramo `M` do <c>LeXDataQualquerDispositivo</c>: o estado da máscara, ou <c>null</c>.</summary>
+        private static EstadoDaMascara LerMascara(BlockReference bloco)
+        {
+            ResultBuffer xdata = bloco.GetXDataForApplication(EstadoDaMascara.AppName);
+            EstadoDaMascara estado;
+            return xdata != null && EstadoDaMascara.Ler(XDataNeutro.Para(xdata), out estado) ? estado : null;
+        }
+
+        private static string LerAtributo(Transaction transacao, BlockReference bloco, string tag)
+        {
+            foreach (ObjectId idAtributo in bloco.AttributeCollection)
+            {
+                AttributeReference atributo = transacao.GetObject(idAtributo, OpenMode.ForRead) as AttributeReference;
+                if (atributo != null && string.Equals(atributo.Tag, tag, StringComparison.OrdinalIgnoreCase))
+                {
+                    return atributo.TextString ?? string.Empty;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>O `EditaUmAtributoDeUmBloco` de cada atributo do plano e o `GravarXDataMascara` do estado novo.</summary>
+        private static void GravarMascara(ApagarMascara.Gravacao gravacao, Transaction transacao, Database banco)
+        {
+            BlockReference bloco = BornesDaCorrecao.AbrirPorHandle(transacao, banco, gravacao.Handle);
+            if (bloco == null)
+            {
+                return;
+            }
+
+            foreach (ApagarMascara.EdicaoDeAtributo edicao in gravacao.Atributos)
+            {
+                foreach (ObjectId idAtributo in bloco.AttributeCollection)
+                {
+                    AttributeReference atributo = transacao.GetObject(idAtributo, OpenMode.ForRead) as AttributeReference;
+                    if (atributo == null || !string.Equals(atributo.Tag, edicao.Tag, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    atributo.UpgradeOpen();
+                    if (!string.Equals(atributo.TextString, edicao.Valor, StringComparison.OrdinalIgnoreCase))
+                    {
+                        atributo.TextString = edicao.Valor;
+                    }
+
+                    atributo.Visible = edicao.Visivel;
+                    atributo.AdjustAlignment(banco);
+                    break;
+                }
+            }
+
+            BornesDaCorrecao.GarantirAppName(transacao, banco, EstadoDaMascara.AppName);
+            bloco.UpgradeOpen();
+            bloco.XData = XDataNeutro.ParaResultBuffer(gravacao.Estado.ParaValores(
+                Environment.UserName, DateTime.Now.ToString(), new Point3d(0, 0, 0)));
+        }
+
+        /// <summary>
+        /// O fim do <c>ApagaAMascara</c>: as definições (`Definicao`) e as portas (`E`) cujo
+        /// <c>HandleDaMascara</c> é o da apagada saem (sem sucessora) ou passam a apontar para a sucessora.
+        /// </summary>
+        private static int ApagarOuReapontarPortas(string handle, string sucessora, Transaction transacao, Database banco, BlockTableRecord espaco)
+        {
+            int apagados = 0;
+            foreach (ObjectId id in espaco)
+            {
+                if (id.IsErased)
+                {
+                    continue;
+                }
+
+                Entity entidade = transacao.GetObject(id, OpenMode.ForRead) as Entity;
+                if (entidade == null)
+                {
+                    continue;
+                }
+
+                ResultBuffer dispositivo = entidade.GetXDataForApplication(DispositivoFiacaoXData.AppName);
+                ResultBuffer importado = dispositivo == null
+                    ? entidade.GetXDataForApplication(DispositivoFiacaoXData.AppNameImportado)
+                    : null;
+                string tipo = DerivadosDaExclusao.TipoDoDispositivo(
+                    dispositivo == null ? null : XDataNeutro.Para(dispositivo),
+                    importado == null ? null : XDataNeutro.Para(importado));
+
+                bool apagar;
+                if (!string.Equals(tipo, DispositivoFiacaoXData.TipoPorta, StringComparison.OrdinalIgnoreCase))
+                {
+                    ResultBuffer definicao = entidade.GetXDataForApplication(EstadoDaDefinicao.AppName);
+                    EstadoDaDefinicao def;
+                    if (definicao == null || !EstadoDaDefinicao.Ler(XDataNeutro.Para(definicao), out def))
+                    {
+                        continue;
+                    }
+
+                    string novo = ApagarMascara.NovoHandleDaMascara(def.HandleDaMascara, handle, sucessora, out apagar);
+                    if (apagar)
+                    {
+                        entidade.UpgradeOpen();
+                        entidade.Erase();
+                        apagados++;
+                    }
+                    else if (novo != null)
+                    {
+                        def.HandleDaMascara = novo;
+                        BornesDaCorrecao.GarantirAppName(transacao, banco, EstadoDaDefinicao.AppName);
+                        entidade.UpgradeOpen();
+                        entidade.XData = XDataNeutro.ParaResultBuffer(def.ParaValores());
+                    }
+
+                    continue;
+                }
+
+                EstadoDaPorta porta;
+                if (dispositivo == null || !EstadoDaPorta.Ler(XDataNeutro.Para(dispositivo), out porta))
+                {
+                    continue;
+                }
+
+                string novoHandle = ApagarMascara.NovoHandleDaMascara(porta.HandleDaMascara, handle, sucessora, out apagar);
+                if (apagar)
+                {
+                    entidade.UpgradeOpen();
+                    entidade.Erase();
+                    apagados++;
+                }
+                else if (novoHandle != null)
+                {
+                    porta.HandleDaMascara = novoHandle;
+                    BornesDaCorrecao.GarantirAppName(transacao, banco, EstadoDaMascara.AppName);
+                    entidade.UpgradeOpen();
+                    entidade.XData = XDataNeutro.ParaResultBuffer(porta.ParaValores(Environment.UserName, DateTime.Now.ToString()));
+                }
+            }
+
+            return apagados;
         }
 
         /// <summary>

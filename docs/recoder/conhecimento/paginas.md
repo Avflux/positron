@@ -158,3 +158,16 @@ Caminhos relativos a `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Eletr
   `clsDispositivoAuxiliares.SincronizaContatos`, `clsPortas.SincronizaPortas`, e o handler fecha com
   `CarregaPG()` e a seleção de volta na linha calculada por `JaTp14wdVuV` (`:2225`: a primeira linha
   selecionada **menos um**, nunca abaixo de 0).
+
+## XData de máscara, porta e definição (rodada 210)
+
+Layouts que o `ApagaAMascara` regrava (`XDataDispositivosMaster.cs`); app name `Dispositivo` (a `Definicao` tem o dela, e aceita o legado `DEFINICAO`):
+
+| XData | gravação | leitura (índices) |
+|---|---|---|
+| máscara `M` | `:502`, 29 valores (`1011` no 19; usuário/data nos 24/25) | `:740` ramo `M`: Nome1 2, Nome2 3, Alternativo 4, Painel 8, indexModelo 12, Complementar 13 (`-1`/`0` na gravação), HandleMascPrincipal 14, Topografico 16, Layout 17, iLM1 21, iLM2 23 |
+| porta `E` | `:396`, 18 valores (usuário/data nos 16/17) | Nome1 2, Nome2 3, HandleDaMascara 4, indiceDoModelo 5, indiceDaPorta 6, handleDaDefinicao 9, chavePrimaria 10, Alternativo 11 |
+| `Definicao` | `:903`, 5 valores | `:970`: HandleDaMascara 1, indiceDoModelo 2, indiceDaPorta 3, handleDaPorta 4 |
+
+Classes: `Positron.Data/Paginas/ApagarMascara.cs` (`EstadoDaMascara`, `EstadoDaPorta`, `EstadoDaDefinicao`).
+`EditaUmAtributoDeUmBloco(handle, tag, valor, bliga)` (`clsBlocos.cs:391`): grava o texto só se mudou, **`Visible = bliga`**, `AdjustAlignment` e `Draw`.
