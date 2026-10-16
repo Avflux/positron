@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Positron.Data.Paginas;
@@ -46,10 +46,14 @@ namespace Positron.Plugin.Interface.Telas
             TextBox de = ControlesDaTela.Achar<TextBox>(janela, "tbDe");
             TextBox para = ControlesDaTela.Achar<TextBox>(janela, "tbPara");
 
+            // Do designer (`frmEditaTitulosTextos.cs`): largura presa em 396.
+            janela.MinimumSize = new System.Drawing.Size(396, 387);
+            janela.MaximumSize = new System.Drawing.Size(396, 600);
+
             bool[] existentes = TitulosETextosDoDesenho.LerTitulosExistentes();
             if (!existentes[1] && !existentes[2] && !existentes[3] && !existentes[4])
             {
-                Plugin.Escrever("TROCTT: O Formato usado não possui títulos!");
+                Aviso.MsgBox("O Formato usado não possui títulos!", "Elétron");
                 janela.Dispose();
                 return;
             }
@@ -77,9 +81,6 @@ namespace Positron.Plugin.Interface.Telas
             grade.Columns[0].Width = LarguraUtil(grade);
 
             editar.Click += (origem, evento) => Editar(grade, titulos, textos, multi, de, para);
-
-            Plugin.Escrever("TROCTT: " + paginas.Count + " página(s) na grade; títulos do formato: "
-                + Lista(existentes) + ".");
 
             PreencherPeloHarness(grade, titulos, textos, multi, de, para);
         }
@@ -117,13 +118,13 @@ namespace Positron.Plugin.Interface.Telas
 
                 int alterados = TitulosETextosDoDesenho.Editar(opcoes, selecionadas);
 
-                // O MsgBox do original: o número e a mMensagem 1221.
-                Plugin.Escrever("TROCTT: " + alterados + " textos sofreram alteração. (\"" + opcoes.De + "\" -> \""
-                    + opcoes.Para + "\" em " + selecionadas.Count + " página(s))");
+                // O MsgBox do original (`clsEditaTitulosTextos.cs:158`): o número e a mMensagem 1221.
+                Aviso.MsgBox(alterados + " textos sofreram alteração.", string.Empty);
             }
             catch (Exception erro)
             {
-                Plugin.Escrever("TROCTT: falhou — " + erro.Message + ".");
+                // O original relança (`clsEditaTitulosTextos.cs:162`) e o erro chega ao usuário.
+                Aviso.MsgBoxCritico(erro.Message, string.Empty);
             }
         }
 
@@ -187,20 +188,6 @@ namespace Positron.Plugin.Interface.Telas
         private static bool Marcada(CheckBox caixa)
         {
             return caixa != null && caixa.Checked;
-        }
-
-        private static string Lista(bool[] existentes)
-        {
-            List<string> nomes = new List<string>();
-            for (int i = 1; i <= 4; i++)
-            {
-                if (existentes[i])
-                {
-                    nomes.Add(i.ToString());
-                }
-            }
-
-            return string.Join(", ", nomes.ToArray());
         }
 
         private static int LarguraUtil(DataGridView grade)
