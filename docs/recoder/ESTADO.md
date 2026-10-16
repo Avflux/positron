@@ -4,11 +4,11 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 193)
+## Estado (2026-10-16, depois da rodada 194)
 
 | | valor |
 |---|---|
-| última rodada | **193** |
+| última rodada | **194** |
 | comandos no plugin | **78** escritos à mão (53 do reverso + 25 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
@@ -69,7 +69,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    - Ela grava o XData (`GravarXDataConfiguracao`/`2`) e o idioma no registro (`:3904-3910`).
    - Inclui o bloco SQL Server; tira o grupo "Projeto" (DWG/Revisão/Log).
    - Leva ao XData a norma IEC/ANSI, o Log Func e a representação cabo/veia, que hoje não chegam lá.
-5. 🟡 *(rodadas 188–193: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos` e `frmEditaTitulosTextos` feitas; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
+5. 🟡 *(rodadas 188–194: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos` e `frmEstatisticaDeBornes` feitas; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
    designer e a captura, atrás de invenções do mesmo tipo. O que aparecer vira item aqui.
 
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
@@ -108,7 +108,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 193 | 2026-10-16 | *(este)* | auditoria da `frmEditaTitulosTextos`: avisos 53 e resultado viram `MsgBox`, saem linhas inventadas, entram limites de tamanho; 975 testes, builds 0 avisos | `rodadas/193-auditoria-edita-titulos-textos.md` |
+| 194 | 2026-10-16 | *(este)* | auditoria da `frmEstatisticaDeBornes`: colunas, nome do painel, filtro, seleção e rodapé como no `clsReguasDeBornes`; guarda 331 e limites de tamanho; 975 testes, builds 0 avisos | `rodadas/194-auditoria-estatistica-de-bornes.md` |
+| 193 | 2026-10-16 | `36c1de66` | auditoria da `frmEditaTitulosTextos`: avisos 53 e resultado viram `MsgBox`, saem linhas inventadas, entram limites de tamanho; 975 testes, builds 0 avisos | `rodadas/193-auditoria-edita-titulos-textos.md` |
 | 192 | 2026-10-16 | `1ed1c0ac` | auditoria da `frmPesquisaCabos`: saem 3 linhas inventadas do `PESQCAB`, entram limites de tamanho e ordem de colunas; 975 testes, builds 0 avisos | `rodadas/192-auditoria-pesquisa-cabos.md` |
 | 191 | 2026-10-16 | `6364c756` | auditoria da `frmPesquisaVeiasIndefinidas`: saem as linhas inventadas do `PESQC`/`PESQCAB`, entram `MinimumSize` e ordem de colunas; 975 testes, builds 0 avisos | `rodadas/191-auditoria-pesquisa-veias-indefinidas.md` |
 | 190 | 2026-10-16 | `d9974a12` | auditoria da `frmEditaConexao`: tela confere; saem 4 linhas inventadas do `EDCONP`/`EDCON` e o erro vira `MsgBox`; 975 testes, builds 0 avisos | `rodadas/190-auditoria-edita-conexao.md` |

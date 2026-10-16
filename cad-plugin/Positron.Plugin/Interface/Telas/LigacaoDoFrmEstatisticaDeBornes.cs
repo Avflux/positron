@@ -1,7 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Windows.Forms;
+using Positron.Data;
+using Positron.Data.Configuracao;
 using Positron.Data.Modelos;
 using Positron.Plugin.Modelos;
 
@@ -10,12 +13,15 @@ namespace Positron.Plugin.Interface.Telas
     /// <summary>
     /// A ligação do <c>frmEstatisticaDeBornes</c> (o comando <c>STATBORN</c>): a grade por régua (a
     /// mesma conta do comando, a do `clsReguasDeBornes.SomaOsBornes`) e os sete totais do rodapé —
-    /// usados simples/reserva, duplos e o total — sobre as linhas **selecionadas** (ou todas, quando
-    /// nada está selecionado: o `calculaSelecionado` do original).
+    /// usados/reserva simples e duplos, os totais simples/duplo e o geral — sobre as linhas
+    /// **selecionadas** (<c>clsReguasDeBornes.calculaSelecionado</c>, <c>:26</c>).
     ///
-    /// As **colunas** desta grade não estão no designer nem nas rotinas do formulário: o original as
-    /// cria dentro do `clsReguasDeBornes`, que o recoder não porta. Aqui entram as do relatório do
-    /// recoder (o `Cabecalho` do <see cref="EstatisticaDeBornes"/>).
+    /// As colunas e o filtro são os do <c>clsReguasDeBornes.carregaEstatisticaNoDG</c> (<c>:58</c>):
+    /// `#` (oculta), Painel (1081, pelo nome do cadastro), Régua (1043), Simples (1078), Reserva
+    /// (1049), Duplo (1079), Reserva (1049), Total (1080); o filtro casa por "contém" o nome do
+    /// painel ou da régua, sem diferenciar maiúsculas. O <c>AtualizaColunasDGEstatistica</c>
+    /// (<c>:101</c>) fixa as larguras 25/20/10/10/10/10/15%, liga a seleção múltipla e **seleciona
+    /// todas as linhas** — a cada carga e a cada redimensionamento.
     /// </summary>
     internal sealed class LigacaoDoFrmEstatisticaDeBornes : ILigacaoDeTela
     {
@@ -32,92 +38,153 @@ namespace Positron.Plugin.Interface.Telas
                 return;
             }
 
-            if (grade.Columns.Count == 0)
+            // O construtor do original: `clsAuxiliar.BancoValido()` (MsgBox 328/329) e, sem o DWG
+            // cadastrado (`arqAtivo.Indice == 0`), a mMensagem 331. Nos dois casos a tela não abre.
+            if (!InicioDoDesenho.BancoValido(true))
             {
-                grade.Columns.Add("indice", "Régua");
-                grade.Columns.Add("painel", "Painel");
-                grade.Columns.Add("nome", "Nome");
-                grade.Columns.Add("usoS", "US");
-                grade.Columns.Add("resS", "RS");
-                grade.Columns.Add("usoD", "UD");
-                grade.Columns.Add("resD", "RD");
-                grade.Columns.Add("total", "Total");
+                janela.Dispose();
+                return;
             }
+
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
+            if (config.Dwg == 0)
+            {
+                Aviso.MsgBox("Este arquivo ainda não foi cadastrado no banco do projeto!", string.Empty);
+                janela.Dispose();
+                return;
+            }
+
+            // Do designer (`frmEstatisticaDeBornes.cs`): largura presa em 450 e colunas reordenáveis.
+            janela.MinimumSize = new Size(450, 540);
+            janela.MaximumSize = new Size(450, 1200);
+            grade.AllowUserToOrderColumns = true;
 
             EstatisticaDeBornesDoDesenho.Resultado resultado = EstatisticaDeBornesDoDesenho.Calcular();
-
-            grade.Rows.Clear();
-            foreach (LinhaDeEstatistica linha in resultado.Linhas)
-            {
-                grade.Rows.Add(linha.IndiceRegua, linha.Painel, linha.NomeRegua, linha.UsoS, linha.ResS, linha.UsoD, linha.ResD, linha.Total);
-            }
-
+            IReadOnlyDictionary<int, string> nomesDePaineis = LerNomesDePaineis(config);
             TextBox filtro = ControlesDaTela.Achar<TextBox>(janela, "TBPesquisa");
+
+            Carregar(grade, resultado, nomesDePaineis, filtro == null ? string.Empty : filtro.Text);
+            MostrarSelecionado(janela, grade);
+
             if (filtro != null)
             {
-                filtro.TextChanged += (origem, evento) => FiltrarReguas(grade, filtro, resultado);
+                // O `fALCfcTcWb` do original (KeyUp): maiúsculas, recarrega e refaz os totais.
+                filtro.KeyUp += (origem, evento) =>
+                {
+                    filtro.Text = filtro.Text.ToUpper();
+                    Carregar(grade, resultado, nomesDePaineis, filtro.Text);
+                    MostrarSelecionado(janela, grade);
+                };
             }
 
-            grade.SelectionChanged += (origem, evento) => RecalcularTotais(janela, grade);
-            RecalcularTotais(janela, grade);
+            grade.KeyUp += (origem, evento) => MostrarSelecionado(janela, grade);
+            grade.MouseUp += (origem, evento) => MostrarSelecionado(janela, grade);
+            janela.Resize += (origem, evento) => AjustarColunas(grade);
         }
 
-        private static void FiltrarReguas(DataGridView grade, TextBox filtro, EstatisticaDeBornesDoDesenho.Resultado resultado)
+        /// <summary>O <c>carregaEstatisticaNoDG</c>: colunas, linhas filtradas e o ajuste final.</summary>
+        private static void Carregar(DataGridView grade, EstatisticaDeBornesDoDesenho.Resultado resultado,
+            IReadOnlyDictionary<int, string> nomesDePaineis, string pesquisa)
         {
-            string alvo = (filtro.Text ?? string.Empty).Trim();
             grade.Rows.Clear();
+            grade.Columns.Clear();
+            grade.Columns.Add("IndiceRegua", "#");
+            grade.Columns.Add("Painel", "Painel");
+            grade.Columns.Add("Regua", "Régua");
+            grade.Columns.Add("UsoS", "Simples");
+            grade.Columns.Add("ResS", "Reserva");
+            grade.Columns.Add("UsoD", "Duplo");
+            grade.Columns.Add("ResD", "Reserva");
+            grade.Columns.Add("Total", "Total");
+            grade.ColumnHeadersVisible = true;
 
+            string alvo = (pesquisa ?? string.Empty).ToUpperInvariant();
             foreach (LinhaDeEstatistica linha in resultado.Linhas)
             {
-                if (alvo.Length > 0
-                    && (linha.NomeRegua ?? string.Empty).IndexOf(alvo, StringComparison.OrdinalIgnoreCase) < 0
-                    && (linha.Painel ?? string.Empty).IndexOf(alvo, StringComparison.OrdinalIgnoreCase) < 0
-                    && linha.IndiceRegua.ToString().IndexOf(alvo, StringComparison.Ordinal) < 0)
+                int indicePainel;
+                string painel;
+                if (!int.TryParse(linha.Painel, out indicePainel) || !nomesDePaineis.TryGetValue(indicePainel, out painel))
                 {
-                    continue;
+                    painel = "???";
                 }
 
-                grade.Rows.Add(linha.IndiceRegua, linha.Painel, linha.NomeRegua, linha.UsoS, linha.ResS, linha.UsoD, linha.ResD, linha.Total);
+                if (painel.ToUpperInvariant().Contains(alvo) || (linha.NomeRegua ?? string.Empty).ToUpperInvariant().Contains(alvo))
+                {
+                    int novo = grade.Rows.Add(linha.IndiceRegua, painel, linha.NomeRegua, linha.UsoS, linha.ResS, linha.UsoD, linha.ResD, linha.Total);
+                    grade.Rows[novo].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                }
             }
 
-            RecalcularTotais(grade.FindForm(), grade);
+            AjustarColunas(grade);
         }
 
-        /// <summary>
-        /// Os sete rótulos do rodapé: usados/reserva simples, usados/reserva duplos, o total simples
-        /// (`TS` = US + RS), o total duplo (`TD` = UD + RD) e o total geral — o `mQuantBornes` do
-        /// original.
-        /// </summary>
-        private static void RecalcularTotais(Form janela, DataGridView grade)
+        /// <summary>O <c>AtualizaColunasDGEstatistica</c>: larguras, colunas visíveis e todas as linhas selecionadas.</summary>
+        private static void AjustarColunas(DataGridView grade)
         {
-            if (janela == null || grade == null)
+            if (grade.RowCount == 0 || grade.Columns.Count < 8)
             {
                 return;
             }
 
-            List<DataGridViewRow> linhas = new List<DataGridViewRow>();
+            double largura = HaBarraVertical(grade) ? grade.Width - 21 : grade.Width - 4;
+            double[] fatores = { 0, 0.25, 0.2, 0.1, 0.1, 0.1, 0.1, 0.15 };
+            for (int i = 0; i < 8; i++)
+            {
+                grade.Columns[i].Width = (int)Math.Round(largura * fatores[i]);
+                grade.Columns[i].Visible = i != 0;
+                grade.Columns[i].ReadOnly = false;
+            }
+
+            grade.MultiSelect = true;
             foreach (DataGridViewRow linha in grade.Rows)
             {
-                if (linha.Selected)
-                {
-                    linhas.Add(linha);
-                }
+                linha.Selected = true;
             }
+        }
 
-            if (linhas.Count == 0)
+        private static bool HaBarraVertical(DataGridView grade)
+        {
+            foreach (Control controle in grade.Controls)
             {
-                foreach (DataGridViewRow linha in grade.Rows)
+                if (controle is VScrollBar && controle.Visible)
                 {
-                    linhas.Add(linha);
+                    return true;
                 }
             }
 
+            return false;
+        }
+
+        private static IReadOnlyDictionary<int, string> LerNomesDePaineis(ConfiguracaoPositron config)
+        {
+            try
+            {
+                return new ProjectStore(config.Banco).LerNomesDePaineis();
+            }
+            catch (Exception)
+            {
+                // `Dicionario.BuscaNomeDoPainel` (`Dicionario.cs:47`) engole o erro e devolve "???".
+                return new Dictionary<int, string>();
+            }
+        }
+
+        /// <summary>
+        /// O <c>MostraSelecionado</c> (<c>frmEstatisticaDeBornes.cs</c>): os sete rótulos do rodapé
+        /// somam **só as linhas selecionadas** (nenhuma selecionada = tudo zero).
+        /// </summary>
+        private static void MostrarSelecionado(Form janela, DataGridView grade)
+        {
             int usoS = 0;
             int resS = 0;
             int usoD = 0;
             int resD = 0;
-            foreach (DataGridViewRow linha in linhas)
+            foreach (DataGridViewRow linha in grade.Rows)
             {
+                if (!linha.Selected)
+                {
+                    continue;
+                }
+
                 usoS += Numero(linha, 3);
                 resS += Numero(linha, 4);
                 usoD += Numero(linha, 5);
