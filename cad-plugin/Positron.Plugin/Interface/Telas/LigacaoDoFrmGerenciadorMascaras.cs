@@ -1,9 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using Positron.Data.Configuracao;
 using Positron.Data.Materiais;
 using Positron.Data.Modelos;
+using Positron.Plugin.Configuracao;
 using Positron.Plugin.Modelos;
 
 namespace Positron.Plugin.Interface.Telas
@@ -15,7 +18,11 @@ namespace Positron.Plugin.Interface.Telas
     /// - as caixas de texto do modelo (<c>TBModelo</c>, <c>tbBlocoTopografico</c>, <c>tbBlocoLayout</c>);
     /// - o catálogo de materiais resolvendo os códigos LM1 e LM2 (<c>tbCodigo*</c>, <c>tbDescricaoResum*</c>, <c>tbModelo*</c>, <c>tbFabricante*</c>);
     /// - as caixas da porta selecionada (<c>TBEFC</c>, <c>TBTerminais</c>, <c>TBOrientacao</c>, <c>TBRegua</c>, <c>TBBornes</c>);
-    /// - botões de edição, gravação e interop do Excel desabilitados com motivo explicativo na dica.
+    /// - como o construtor do original (<c>frmGerenciadorMascaras.cs:1881</c>): banco inválido ou DWG sem
+    ///   cadastro → <c>MsgBox</c> 331; dicas pelas mMensagens; as grades só ganham colunas quando há linhas
+    ///   (<c>clsMascara.carregaModelosDeMascaraNoDG :397</c>, <c>clsDispositivoMascaras.carregaContatosNoDGMascara :543</c>),
+    ///   com as larguras de <c>AtualizaColunasDGModelos :474</c> e <c>AtualizaColunasDGPortasMascara :2962</c>;
+    /// - os botões de edição, gravação e Excel ficam desabilitados (regra ainda não portada), com a dica do original.
     /// </summary>
     internal sealed class LigacaoDoFrmGerenciadorMascaras : LigacaoDeModelos
     {
@@ -29,38 +36,68 @@ namespace Positron.Plugin.Interface.Telas
             DataGridView dgMascaras = ControlesDaTela.Achar<DataGridView>(janela, "DGMascaras");
             DataGridView dgPortas = ControlesDaTela.Achar<DataGridView>(janela, "DGPortas");
 
+            // Construtor do original: `clsAuxiliar.BancoValido()` e, sem o DWG cadastrado, a mMensagem 331.
+            if (!InicioDoDesenho.BancoValido(true))
+            {
+                janela.Dispose();
+                return;
+            }
+
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
+            if (config.Dwg == 0)
+            {
+                Aviso.MsgBox("Este arquivo ainda não foi cadastrado no banco do projeto!", string.Empty);
+                janela.Dispose();
+                return;
+            }
+
             TextosDoOriginal(janela);
             DesabilitarAcoes(janela);
 
-            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             Dictionary<int, MaterialDoCatalogo> catalogo = CatalogoIndexado(Catalogo(config));
+            ConfiguracaoDoCaderno caderno = ConfiguracaoDoDesenho.LerOuPadrao();
 
             List<ModeloMascara> modelos = ModelosMascaraDoDesenho.LerModelos();
 
             if (dgMascaras != null)
             {
-                dgMascaras.Columns.Clear();
-                dgMascaras.Columns.Add("IndiceModelo", "#");
-                dgMascaras.Columns.Add("Nome", "Modelo");
-                dgMascaras.Columns.Add("Material1", "Material 1");
-                dgMascaras.Columns.Add("Material2", "Material 2");
-                dgMascaras.Columns.Add("Topográfico", "Bloco Topográfico");
-                dgMascaras.Columns.Add("Layout", "Bloco Layout");
-                dgMascaras.Columns.Add(string.Empty, string.Empty);
-                dgMascaras.Columns[6].Visible = false;
-                dgMascaras.ColumnHeadersVisible = true;
-
+                // `carregaModelosDeMascaraNoDG`: sem modelos, a grade fica sem colunas.
                 dgMascaras.Rows.Clear();
-                foreach (ModeloMascara m in modelos)
+                dgMascaras.Columns.Clear();
+                if (modelos.Count > 0)
                 {
-                    dgMascaras.Rows.Add(
-                        m.Indice,
-                        m.Nome ?? string.Empty,
-                        m.Lm1,
-                        m.Lm2,
-                        m.BlocoTopografico ?? string.Empty,
-                        m.BlocoLayout ?? string.Empty,
-                        string.Empty);
+                    dgMascaras.Columns.Add("IndiceModelo", "#");
+                    dgMascaras.Columns.Add("Nome", "Nome");
+                    dgMascaras.Columns.Add("Material1", "LM1");
+                    dgMascaras.Columns.Add("Material2", "LM2");
+                    dgMascaras.Columns.Add("Topográfico", "Topográfico");
+                    dgMascaras.Columns.Add("Layout", "Layout");
+                    dgMascaras.Columns.Add(string.Empty, string.Empty);
+                    dgMascaras.ColumnHeadersVisible = true;
+
+                    foreach (ModeloMascara m in modelos)
+                    {
+                        dgMascaras.Rows.Add(
+                            m.Indice,
+                            m.Nome ?? string.Empty,
+                            m.Lm1,
+                            m.Lm2,
+                            m.BlocoTopografico ?? string.Empty,
+                            m.BlocoLayout ?? string.Empty,
+                            string.Empty);
+                    }
+
+                    foreach (DataGridViewRow linha in dgMascaras.Rows)
+                    {
+                        linha.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                    }
+
+                    LarguraDosModelos(dgMascaras);
+                    janela.Resize += (origem, evento) =>
+                    {
+                        LarguraDosModelos(dgMascaras);
+                        LarguraDasPortas(dgPortas);
+                    };
                 }
 
                 Action atualizarModeloSelecionado = () =>
@@ -80,6 +117,9 @@ namespace Positron.Plugin.Interface.Telas
                     TextoDaCaixa(janela, "TBModelo", sel.Nome);
                     PreencherMaterial(janela, sel.Lm1, 1, catalogo);
                     PreencherMaterial(janela, sel.Lm2, 2, catalogo);
+                    // `mostraModeloMascara`: cinza, e branco quando o diretório da simbologia existe.
+                    CorDoBloco(janela, "tbBlocoTopografico", caderno.DirSimbologiaTopografico);
+                    CorDoBloco(janela, "tbBlocoLayout", caderno.DirSimbologiaLayout);
                     TextoDaCaixa(janela, "tbBlocoTopografico", FormatacaoDeModelos.FormatarNomeDoBloco(sel.BlocoTopografico));
                     TextoDaCaixa(janela, "tbBlocoLayout", FormatacaoDeModelos.FormatarNomeDoBloco(sel.BlocoLayout));
 
@@ -110,15 +150,71 @@ namespace Positron.Plugin.Interface.Telas
                     atualizarModeloSelecionado();
                 }
             }
+        }
 
-            int portasPrimeiro = (modelos.Count > 0)
-                ? ModelosMascaraDoDesenho.LerPortas(modelos[0].Indice, modelos[0].Nome).Count
-                : 0;
-            string nomePrimeiro = (modelos.Count > 0) ? modelos[0].Nome : "-";
+        /// <summary>`clsMascara.AtualizaColunasDGModelos`: 10/18/10/10/26/26% e a última coluna escondida.</summary>
+        private static void LarguraDosModelos(DataGridView grade)
+        {
+            if (grade == null || grade.RowCount == 0 || grade.Columns.Count < 7)
+            {
+                return;
+            }
 
-            Plugin.Escrever(string.Format(
-                "GERMASC: {0} modelo(s) de máscara lido(s) do desenho ({1} porta(s) no primeiro modelo \"{2}\"); {3} material(is) no catálogo; botões de edição desabilitados.",
-                modelos.Count, portasPrimeiro, nomePrimeiro, catalogo.Count));
+            double util = grade.Width - (TemBarra(grade) ? 21 : 4);
+            double[] fatores = { 0.1, 0.18, 0.1, 0.1, 0.26, 0.26 };
+            for (int i = 0; i < 6; i++)
+            {
+                grade.Columns[i].Width = (int)Math.Round(util * fatores[i]);
+            }
+
+            grade.Columns[6].Width = 0;
+            grade.Columns[6].Visible = false;
+            grade.MultiSelect = false;
+        }
+
+        /// <summary>`AtualizaColunasDGPortasMascara`: 50/0/20%/30%/65/30%/20% (do que sobra de largura − 115).</summary>
+        private static void LarguraDasPortas(DataGridView grade)
+        {
+            if (grade == null || grade.RowCount == 0 || grade.Columns.Count < 7)
+            {
+                return;
+            }
+
+            double util = grade.Width - (TemBarra(grade) ? 21 : 4) - 115.0;
+            grade.Columns[0].Width = 50;
+            grade.Columns[1].Width = 0;
+            grade.Columns[2].Width = (int)Math.Round(util * 0.2);
+            grade.Columns[3].Width = (int)Math.Round(util * 0.3);
+            grade.Columns[4].Width = 65;
+            grade.Columns[5].Width = (int)Math.Round(util * 0.3);
+            grade.Columns[6].Width = (int)Math.Round(util * 0.2);
+            grade.Columns[1].Visible = false;
+            grade.MultiSelect = false;
+        }
+
+        private static void CorDoBloco(Form janela, string nome, string diretorio)
+        {
+            TextBox caixa = ControlesDaTela.Achar<TextBox>(janela, nome);
+            if (caixa != null)
+            {
+                caixa.BackColor = !string.IsNullOrEmpty(diretorio) && Directory.Exists(diretorio)
+                    ? Color.White
+                    : Color.Silver;
+            }
+        }
+
+        private static bool TemBarra(DataGridView grade)
+        {
+            foreach (Control controle in grade.Controls)
+            {
+                VScrollBar barra = controle as VScrollBar;
+                if (barra != null && barra.Visible)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void PreencherPortas(Form janela, DataGridView dgPortas, List<ModeloPorta> portas)
@@ -128,7 +224,15 @@ namespace Positron.Plugin.Interface.Telas
                 return;
             }
 
+            // `carregaContatosNoDGMascara`: sem portas, a grade fica sem colunas.
+            dgPortas.Rows.Clear();
             dgPortas.Columns.Clear();
+            if (portas.Count == 0)
+            {
+                LimparCaixasDaPorta(janela);
+                return;
+            }
+
             dgPortas.Columns.Add("IndicePorta", "#");
             dgPortas.Columns.Add("indexModelo", "indexModelo");
             dgPortas.Columns.Add("EFC", "EFC");
@@ -139,7 +243,6 @@ namespace Positron.Plugin.Interface.Telas
             dgPortas.Columns[1].Visible = false;
             dgPortas.ColumnHeadersVisible = true;
 
-            dgPortas.Rows.Clear();
             foreach (ModeloPorta p in portas)
             {
                 dgPortas.Rows.Add(
@@ -152,6 +255,7 @@ namespace Positron.Plugin.Interface.Telas
                     p.Bornes ?? string.Empty);
             }
 
+            LarguraDasPortas(dgPortas);
             LimparCaixasDaPorta(janela);
 
             dgPortas.SelectionChanged += (origem, evento) =>
@@ -204,22 +308,34 @@ namespace Positron.Plugin.Interface.Telas
             Texto(janela, "lbLayout", "Bloco de Layout");
         }
 
+        /// <summary>
+        /// As dicas do construtor do original (mMensagens 661–663, 1126–1128, 668–670, 673, 1124, 1125,
+        /// 1353, 1481, 1843). Os botões de edição, gravação e Excel ficam desabilitados: a regra deles
+        /// ainda não foi portada (fila do <c>ESTADO.md</c>).
+        /// </summary>
         private static void DesabilitarAcoes(Form janela)
         {
-            Desabilitar(janela, "BTAdicionaMascara", "adição de modelo de máscara não portada");
-            Desabilitar(janela, "BTEditaMascara", "edição de modelo de máscara não portada");
-            Desabilitar(janela, "BTApagaMascara", "remoção de modelo de máscara não portada");
-            Desabilitar(janela, "btApagaModelosSemUso", "limpeza de modelos sem uso não portada");
-            Desabilitar(janela, "BTAdicionaPorta", "adição de componente não portada");
-            Desabilitar(janela, "BTEditaPorta", "edição de componente não portada");
-            Desabilitar(janela, "BTApagaPorta", "remoção de componente não portada");
-            Desabilitar(janela, "btVerifica", "verificação na tela não portada (use VERIF)");
-            Desabilitar(janela, "BTImportaEX", "interop Excel não portado");
-            Desabilitar(janela, "BTExportaEX", "interop Excel não portado");
-            Desabilitar(janela, "btSelecionaBlocoTopo", "seleção gráfica não portada");
-            Desabilitar(janela, "btSelecionaBlocoLayout", "seleção gráfica não portada");
-            Desabilitar(janela, "btPesquisaLM1", "pesquisa de material na tela não portada");
-            Desabilitar(janela, "btPesquisaLM2", "pesquisa de material na tela não portada");
+            Desabilitar(janela, "BTAdicionaMascara", "Adiciona Novo Modelo");
+            Desabilitar(janela, "BTEditaMascara", "Edita o Modelo");
+            Desabilitar(janela, "BTApagaMascara", "Apaga o Modelo");
+            Desabilitar(janela, "btApagaModelosSemUso", "Apagar Modelos não utilizados");
+            Desabilitar(janela, "BTAdicionaPorta", "Adicionar Componente");
+            Desabilitar(janela, "BTEditaPorta", "Editar Componente");
+            Desabilitar(janela, "BTApagaPorta", "Apagar Componente");
+            Desabilitar(janela, "btVerifica", "Verifica terminais e bornes duplicados.");
+            Desabilitar(janela, "BTImportaEX", "Importa do Excel o modelo Selecionado ");
+            Desabilitar(janela, "BTExportaEX", "Exporta para o Excel o modelo Selecionado ");
+            Desabilitar(janela, "btSelecionaBlocoTopo", "Procurar Bloco");
+            Desabilitar(janela, "btSelecionaBlocoLayout", "Procurar Bloco");
+
+            // Os botões de pesquisa de material (LM1/LM2) não têm dica no construtor do original.
+            Desabilitar(janela, "btPesquisaLM1", null);
+            Desabilitar(janela, "btPesquisaLM2", null);
+
+            Dica(janela, "TBEFC", "Terminal 1");
+            Dica(janela, "TBTerminais", "Terminal 2");
+            Dica(janela, "TBRegua", "Terminal 3");
+            Dica(janela, "DGPortasInseridas", "Contatos Auxiliares já inseridos");
 
             TextBox tbTopo = ControlesDaTela.Achar<TextBox>(janela, "tbBlocoTopografico");
             if (tbTopo != null)
