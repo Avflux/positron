@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -24,7 +24,7 @@ namespace Positron.Plugin.Interface.Telas
             // frmEditaTitulos chama restauraCampos antes de inspecionar o formato, inclusive
             // quando depois não encontra títulos. Abertura pela paleta exige lock próprio.
             try { RestauracaoDoFormatoDoDesenho.RestaurarCampos(); }
-            catch (Exception erro) { Aviso.MsgBox(erro.Message, "Elétron"); }
+            catch (Exception erro) { Aviso.MsgBoxCritico(erro.Message, string.Empty); }
             bool[] existentes = TitulosETextosDoDesenho.LerTitulosExistentes();
             if (!existentes[1] && !existentes[2] && !existentes[3] && !existentes[4])
             {
@@ -112,12 +112,11 @@ namespace Positron.Plugin.Interface.Telas
                     novos[pagina] = t;
                     alternativos[pagina] = Convert.ToString(linha.Cells[6].Value);
                 }
-                int gravados = TitulosDaPaginaDoDesenho.GravarGrade(novos, alternativos);
+                TitulosDaPaginaDoDesenho.GravarGrade(novos, alternativos);
                 foreach (DataGridViewRow linha in grade.Rows)
                     UnidadeDaPaginaDoDesenho.Gravar(Convert.ToString(linha.Cells[0].Value),
                         Convert.ToString(linha.Cells[5].Value), Convert.ToString(linha.Cells[6].Value));
                 PaletaDeFolhas.Recarregar();
-                Plugin.Escrever("Editar os Títulos: " + grade.Rows.Count + " página(s), " + gravados + " texto(s) regravado(s).");
                 janela.Close();
             });
             menu.Opening += (origem, evento) => copiar.Enabled = grade.SelectedCells.Count == 1;
@@ -127,7 +126,7 @@ namespace Positron.Plugin.Interface.Telas
                 DataGridViewCell celula = grade.Rows[evento.RowIndex].Cells[6];
                 string valor = Convert.ToString(celula.Value);
                 celula.Value = EdicaoDaGradeDeTitulos.Limitar(6, valor);
-                if (valor.Length > 20) Aviso.MsgBox("Máximo de 20 caracteres", "Elétron");
+                if (valor.Length > 20) Aviso.MsgBox("Máximo de 20 caracteres", string.Empty);
             };
             string ativa = PaginaAtivaDoDesenho.Ler();
             foreach (DataGridViewRow linha in grade.Rows)
@@ -135,7 +134,6 @@ namespace Positron.Plugin.Interface.Telas
                 {
                     grade.CurrentCell = linha.Cells[0];
                     linha.Selected = true;
-                    grade.FirstDisplayedScrollingRowIndex = linha.Index;
                     break;
                 }
             // A janela modeless pertence ao DWG que a abriu; fecha ao trocar de documento.
@@ -146,7 +144,6 @@ namespace Positron.Plugin.Interface.Telas
             System.Windows.Forms.Application.Idle += verificar;
             janela.FormClosed += (origem, evento) => System.Windows.Forms.Application.Idle -= verificar;
             janela.Disposed += (origem, evento) => System.Windows.Forms.Application.Idle -= verificar;
-            Plugin.Escrever("Editar os Títulos: " + grade.Rows.Count + " página(s) na grade; capa excluída.");
         }
 
         private static void Transformar(DataGridView grade, Func<DataGridViewCell, string> transformar)
@@ -162,7 +159,7 @@ namespace Positron.Plugin.Interface.Telas
             item.Click += (origem, evento) =>
             {
                 try { acao(); }
-                catch (Exception erro) { Aviso.MsgBoxCritico(erro.Message, "Elétron"); }
+                catch (Exception erro) { Aviso.MsgBoxCritico(erro.Message, string.Empty); }
             };
             menu.Items.Add(item);
             return item;

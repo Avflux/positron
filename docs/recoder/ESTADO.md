@@ -4,11 +4,11 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 196)
+## Estado (2026-10-16, depois da rodada 197)
 
 | | valor |
 |---|---|
-| última rodada | **196** |
+| última rodada | **197** |
 | comandos no plugin | **78** escritos à mão (53 do reverso + 25 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
@@ -69,7 +69,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    - Ela grava o XData (`GravarXDataConfiguracao`/`2`) e o idioma no registro (`:3904-3910`).
    - Inclui o bloco SQL Server; tira o grupo "Projeto" (DWG/Revisão/Log).
    - Leva ao XData a norma IEC/ANSI, o Log Func e a representação cabo/veia, que hoje não chegam lá.
-5. 🟡 *(rodadas 188–196: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos`, `frmEstatisticaDeBornes` `frmEditaRevisaoSimplificada` e `frmEditaRevisaoCompleta` feitas; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
+5. 🟡 *(rodadas 188–197: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos`, `frmEstatisticaDeBornes` `frmEditaRevisaoSimplificada` `frmEditaRevisaoCompleta` e `frmEditaTitulos` feitas; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
    designer e a captura, atrás de invenções do mesmo tipo. O que aparecer vira item aqui.
 
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
@@ -108,7 +108,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 196 | 2026-10-16 | *(este)* | auditoria da `frmEditaRevisaoCompleta`: faixa `CCapa`..`CCorpo`, `restauraCampos`, larguras percentuais, DE/PARA, gravação com `LockDocument` e `MsgBox`; saem 2 linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/196-auditoria-edita-revisao-completa.md` |
+| 197 | 2026-10-16 | *(este)* | auditoria da `frmEditaTitulos`: saem 2 linhas inventadas e a rolagem extra, `MsgBox` sem título como no original; builds 0 avisos, testes não rodados (só casca) | `rodadas/197-auditoria-edita-titulos.md` |
+| 196 | 2026-10-16 | `ea7e928e` | auditoria da `frmEditaRevisaoCompleta`: faixa `CCapa`..`CCorpo`, `restauraCampos`, larguras percentuais, DE/PARA, gravação com `LockDocument` e `MsgBox`; saem 2 linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/196-auditoria-edita-revisao-completa.md` |
 | 195 | 2026-10-16 | `a400d984` | auditoria da `frmEditaRevisaoSimplificada`: faixa `SCapa`..`SCorpo`, `restauraCampos`, larguras, Copiar pelo `Click`, gravação com `LockDocument` e `MsgBox`; saem 2 linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/195-auditoria-edita-revisao-simplificada.md` |
 | 194 | 2026-10-16 | `2d7cddc4` | auditoria da `frmEstatisticaDeBornes`: colunas, nome do painel, filtro, seleção e rodapé como no `clsReguasDeBornes`; guarda 331 e limites de tamanho; 975 testes, builds 0 avisos | `rodadas/194-auditoria-estatistica-de-bornes.md` |
 | 193 | 2026-10-16 | `36c1de66` | auditoria da `frmEditaTitulosTextos`: avisos 53 e resultado viram `MsgBox`, saem linhas inventadas, entram limites de tamanho; 975 testes, builds 0 avisos | `rodadas/193-auditoria-edita-titulos-textos.md` |
@@ -117,4 +118,3 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 | 190 | 2026-10-16 | `d9974a12` | auditoria da `frmEditaConexao`: tela confere; saem 4 linhas inventadas do `EDCONP`/`EDCON` e o erro vira `MsgBox`; 975 testes, builds 0 avisos | `rodadas/190-auditoria-edita-conexao.md` |
 | 189 | 2026-10-16 | `c22898f1` | auditoria da `frmEstimativaVeiasLivres`: tela e regra conferem; saem 2 mensagens inventadas; 975 testes, builds 0 avisos | `rodadas/189-auditoria-estimativa-veias-livres.md` |
 | 188 | 2026-10-16 | `7afed20a` | auditoria da `frmConfiguracaoBDProjeto`: tela confere; saem 3 mensagens inventadas e o erro do cadastro do DWG vira `MsgBox` crítico; 975 testes, builds 0 avisos | `rodadas/188-auditoria-bdprojeto.md` |
-| 187 | 2026-10-16 | `de0ce906` | `frmConfiguracaoGeral` fiel (110 controles, 3 abas, cores CAD, presets, SQL Server); gravação XData `Eletron`/`Config` (41 valores) e `EletronProj`/`Projeto` e chave de registro `Idioma`; remoção da tela feita à mão e substituto da barra; 975 testes, builds 0 avisos, smoke accoreconsole medido | `rodadas/187-configuracao-geral-fiel.md` |
