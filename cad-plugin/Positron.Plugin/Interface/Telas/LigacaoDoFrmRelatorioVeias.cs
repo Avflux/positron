@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -22,13 +22,18 @@ namespace Positron.Plugin.Interface.Telas
     /// <c>bqipPxovkmF</c>). Com mais de um painel escolhido, cada painel ganha a linha de cabeçalho
     /// <c>LightBlue</c> com o nome na terceira coluna — o <c>iPainelSel</c> do <c>bSepara</c>.
     ///
-    /// **O que entra desabilitado, com o motivo na dica:** o <c>btExportaEXCEL</c> (a planilha é da
-    /// pilha de exportação, que sai pelo app) e os modos <b>Agrupar Cabos Por Painel</b> e <b>Função da
-    /// Veia</b>, que no original mudam a montagem (<c>bSepara</c> e o
-    /// <c>CarregaFuncoesDaVeias4</c>) — a tela abre no modo padrão do designer.
+    /// **Como o construtor do original** (<c>frmRelatorio_Veias.cs:681</c>): <c>dgRevisao</c> e
+    /// <c>dgEquip</c> com colunas desde a abertura, <c>dgVeias</c> **sem colunas** até o
+    /// <c>btPesquisar</c> (o <c>formataDGCabos</c> roda ali, com o <c>CBComprimento</c> daquela hora),
+    /// <c>qTotal</c> vazio, <c>CKAgrupar</c> desmarcado e a única dica é a do <c>btPesquisar</c> (1411).
     ///
-    /// A revisão e o painel saem do primeiro item de cada coluna; num script, <c>POSITRON_REL_REVISAO</c>
-    /// e <c>POSITRON_REL_PAINEL</c> escolhem (a receita no RUNBOOK).
+    /// **O que entra desabilitado:** o <c>btExportaEXCEL</c> e os modos <b>Agrupar Cabos Por Painel</b>
+    /// e <b>Função da Veia</b>, que no original mudam a montagem (<c>bSepara</c> e o
+    /// <c>CarregaFuncoesDaVeias4</c>) — regras ainda não portadas; a tela usa o modo padrão do designer.
+    ///
+    /// A revisão e o painel saem do primeiro item de cada coluna. Como no original, a lista só sai no
+    /// <c>btPesquisar</c>; no harness, <c>POSITRON_REL_REVISAO</c>/<c>POSITRON_REL_PAINEL</c> escolhem e
+    /// rodam a mesma carga ao abrir (a receita no RUNBOOK).
     /// </summary>
     internal sealed class LigacaoDoFrmRelatorioVeias : LigacaoDeRelatorio
     {
@@ -57,14 +62,20 @@ namespace Positron.Plugin.Interface.Telas
             Button pesquisar = ControlesDaTela.Achar<Button>(janela, "btPesquisar");
 
             bool comComprimento = comprimento != null && comprimento.Checked;
-            Colunas(revisoes, equipamentos, grade, comComprimento);
+            Colunas(revisoes, equipamentos, grade);
             Motivos(janela);
+            Dica(janela, "btPesquisar", "Visualizador de Cabos");
             Texto(janela, "qTotal", string.Empty);
+
+            CheckBox agrupar = ControlesDaTela.Achar<CheckBox>(janela, "CKAgrupar");
+            if (agrupar != null)
+            {
+                agrupar.Checked = false;
+            }
 
             ConfiguracaoPositron config = Configuracao();
             if (config == null || string.IsNullOrEmpty(config.Banco))
             {
-                Plugin.Escrever("LVEI: " + Positron.Data.Interface.MensagensDoReverso.BancoNaoConfigurado);
                 return;
             }
 
@@ -83,8 +94,6 @@ namespace Positron.Plugin.Interface.Telas
 
             if (lista.Count == 0)
             {
-                Plugin.Escrever("LVEI: o Cabos4 não tem revisão nenhuma (o INT ainda não rodou neste "
-                    + "projeto); a tela abre vazia.");
                 return;
             }
 
@@ -102,20 +111,23 @@ namespace Positron.Plugin.Interface.Telas
 
             TrocarRevisao(janela, revisoes, equipamentos, grade, total, estado, config, comComprimento);
 
-            // Num script a tela não é *clicada*: sem esta carga a grade abriria como o original a
-            // deixa (vazia até o btPesquisar), e o harness não teria como medir a montagem.
-            Plugin.Escrever(Carregar(janela, equipamentos, grade, total, estado, config, comComprimento));
+            Ligar(pesquisar, (origem, evento) =>
+                Carregar(janela, equipamentos, grade, total, estado, config, comComprimento));
 
-            Ligar(pesquisar, (origem, evento) => Plugin.Escrever(
-                Carregar(janela, equipamentos, grade, total, estado, config, comComprimento)));
+            // Harness: um script não clica nem escolhe, então as variáveis `POSITRON_REL_*` escolhem a
+            // revisão/o painel e rodam a carga do `btPesquisar` ao abrir.
+            if (PainelPedido() != 0 || RevisaoPedida() != null)
+            {
+                Carregar(janela, equipamentos, grade, total, estado, config, comComprimento);
+            }
         }
 
         /// <summary>
         /// As três colunas do designer no original: o <c>formataDGRevisao</c> (Revisão/Criador/Data), o
         /// <c>formataDGEquip</c> (o índice escondido e os "Equipamentos  Painéis") e o
-        /// <c>formataDGCabos</c> — as catorze colunas e a do comprimento, quando ligado.
+        /// <c>formataDGCabos</c>, que só roda no <c>btPesquisar</c>: a grade abre sem colunas.
         /// </summary>
-        private static void Colunas(DataGridView revisoes, DataGridView equipamentos, DataGridView grade, bool comComprimento)
+        private static void Colunas(DataGridView revisoes, DataGridView equipamentos, DataGridView grade)
         {
             if (revisoes != null)
             {
@@ -140,38 +152,45 @@ namespace Positron.Plugin.Interface.Telas
             {
                 grade.Rows.Clear();
                 grade.Columns.Clear();
-                grade.Columns.Add(string.Empty, "TAG");
-                grade.Columns.Add(string.Empty, "FORMAÇÃO");
-                grade.Columns.Add(string.Empty, "FUNÇÃO");
-                grade.Columns.Add(string.Empty, "VEIAS");
-                grade.Columns.Add(string.Empty, "PAINEL");
-                grade.Columns.Add(string.Empty, "DISPOSITIVOS");
-                grade.Columns.Add(string.Empty, "BORNE");
-                grade.Columns.Add(string.Empty, "ATERRAR");
-                grade.Columns.Add(string.Empty, "PAINEL");
-                grade.Columns.Add(string.Empty, "DISPOSITIVOS");
-                grade.Columns.Add(string.Empty, "BORNE");
-                grade.Columns.Add(string.Empty, "ATERRAR");
-                grade.Columns.Add(string.Empty, "DOCUMENTO FUNCIONAL");
-                grade.Columns.Add(string.Empty, "PÁGINA");
-                if (comComprimento)
-                {
-                    grade.Columns.Add(string.Empty, "COMPRIMENTO");
-                }
             }
         }
 
-        /// <summary>O que a tela não porta, com o motivo na dica.</summary>
+        /// <summary>O <c>formataDGCabos</c>: as catorze colunas e a do comprimento, quando ligado.</summary>
+        private static void ColunasDosCabos(DataGridView grade, bool comComprimento)
+        {
+            grade.Rows.Clear();
+            grade.Columns.Clear();
+            grade.Columns.Add(string.Empty, "TAG");
+            grade.Columns.Add(string.Empty, "FORMAÇÃO");
+            grade.Columns.Add(string.Empty, "FUNÇÃO");
+            grade.Columns.Add(string.Empty, "VEIAS");
+            grade.Columns.Add(string.Empty, "PAINEL");
+            grade.Columns.Add(string.Empty, "DISPOSITIVOS");
+            grade.Columns.Add(string.Empty, "BORNE");
+            grade.Columns.Add(string.Empty, "ATERRAR");
+            grade.Columns.Add(string.Empty, "PAINEL");
+            grade.Columns.Add(string.Empty, "DISPOSITIVOS");
+            grade.Columns.Add(string.Empty, "BORNE");
+            grade.Columns.Add(string.Empty, "ATERRAR");
+            grade.Columns.Add(string.Empty, "DOCUMENTO FUNCIONAL");
+            grade.Columns.Add(string.Empty, "PÁGINA");
+            if (comComprimento)
+            {
+                grade.Columns.Add(string.Empty, "COMPRIMENTO");
+            }
+        }
+
+        /// <summary>O que a tela não porta: desabilitado (regra ainda não portada), sem dica — o original não tem.</summary>
         private static void Motivos(Form janela)
         {
-            Desabilitar(janela, "btExportaEXCEL",
-                "Exporta para o Excel: a planilha é da pilha de exportação do original, que sai pelo app");
-            Desabilitar(janela, "CKAgrupar",
-                "Agrupar Cabos Por Painel: a montagem agrupada (o bSepara do CarregaVeias4) ainda não está portada");
-            Desabilitar(janela, "RBFuncaoVeia",
-                "Função da Veia: o CarregaFuncoesDaVeias4 ainda não está portado — a coluna sai com a função do cabo");
-            Desabilitar(janela, "RBSheetDiferente",
-                "Worksheet Diferente: só vale para a exportação, que não está portada");
+            foreach (string nome in new[] { "btExportaEXCEL", "CKAgrupar", "RBFuncaoVeia", "RBSheetDiferente" })
+            {
+                Control controle = ControlesDaTela.Procurar(janela, nome);
+                if (controle != null)
+                {
+                    controle.Enabled = false;
+                }
+            }
         }
 
         /// <summary>Troca a revisão: lê o <c>Cabos4</c>/<c>Veias4</c>/<c>Interligacao4</c> dela e a coluna dos painéis.</summary>
@@ -240,7 +259,7 @@ namespace Positron.Plugin.Interface.Telas
         /// O clique do <c>btPesquisar</c> (e a carga da abertura): as linhas da <see cref="ListaDeVeias"/>
         /// para cada painel escolhido, com a faixa por cabo e o total de cabos distintos.
         /// </summary>
-        private static string Carregar(
+        private static void Carregar(
             Form janela,
             DataGridView equipamentos,
             DataGridView grade,
@@ -249,24 +268,21 @@ namespace Positron.Plugin.Interface.Telas
             ConfiguracaoPositron config,
             bool comComprimento)
         {
-            if (grade == null || equipamentos == null)
+            if (grade == null || equipamentos == null || string.IsNullOrEmpty(estado.Revisao))
             {
-                return "LVEI: a grade da lista de veias não está na tela.";
-            }
-
-            if (string.IsNullOrEmpty(estado.Revisao))
-            {
-                return "LVEI: escolha a revisão na coluna da esquerda.";
+                return;
             }
 
             List<int> escolhidos = PaineisEscolhidos(equipamentos);
             if (escolhidos.Count == 0)
             {
-                return "LVEI: escolha o painel na coluna do meio (a revisão \"" + estado.Revisao + "\") .";
+                return;
             }
 
-            grade.Rows.Clear();
-            List<LinhaDaListaDeVeias> todas = new List<LinhaDaListaDeVeias>();
+            // `formataDGCabos` roda aqui, com o `CBComprimento` desta hora.
+            CheckBox caixaComprimento = ControlesDaTela.Achar<CheckBox>(janela, "CBComprimento");
+            comComprimento = caixaComprimento != null && caixaComprimento.Checked;
+            ColunasDosCabos(grade, comComprimento);
             foreach (int painel in escolhidos)
             {
                 List<LinhaDaListaDeVeias> linhas = ListaDeVeias.Montar(
@@ -295,7 +311,6 @@ namespace Positron.Plugin.Interface.Telas
                     AdicionarLinha(grade, linha, comComprimento, destacar ? Color.AntiqueWhite : Color.Empty);
                 }
 
-                todas.AddRange(linhas);
             }
 
             // O `lCabosUnico` do original é uma lista **compartilhada** entre os painéis escolhidos:
@@ -316,13 +331,6 @@ namespace Positron.Plugin.Interface.Telas
             {
                 total.Text = cabos.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
             }
-
-            return "LVEI: " + grade.Rows.Count + " linha(s) na Lista de Veias da revisão \""
-                + estado.Revisao + "\" (" + cabos.Count + " cabo(s) distinto(s); painel(is) "
-                + string.Join(", ", escolhidos.ConvertAll(p => p.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray())
-                + " de " + estado.Cabos.Count + " cabo(s) e " + estado.Veias.Count + " veia(s) na revisão; "
-                + estado.Nomes.Count + " painel(is) no cadastro"
-                + (comComprimento ? "; coluna do comprimento ligada" : string.Empty) + ").";
         }
 
         /// <summary>Uma linha da grade, na ordem das colunas do <c>formataDGCabos</c>.</summary>
