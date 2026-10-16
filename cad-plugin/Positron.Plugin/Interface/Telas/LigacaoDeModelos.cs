@@ -41,7 +41,7 @@ namespace Positron.Plugin.Interface.Telas
             }
             catch (Exception erro)
             {
-                Plugin.Escrever("MODELOS: o catálogo não veio do banco — " + erro.Message);
+                Aviso.MsgBoxCritico(erro.Message, string.Empty);
                 return new List<MaterialDoCatalogo>();
             }
         }

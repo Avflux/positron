@@ -1,9 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using Positron.Data.Configuracao;
 using Positron.Data.Materiais;
 using Positron.Data.Modelos;
+using Positron.Plugin.Configuracao;
 using Positron.Plugin.Modelos;
 
 namespace Positron.Plugin.Interface.Telas
@@ -15,7 +18,11 @@ namespace Positron.Plugin.Interface.Telas
     /// - as caixas de texto do modelo (<c>TBModelo</c>, <c>TBTerminais</c>, <c>tbOrientacao</c>, <c>tbBlocoTopografico</c>, <c>tbBlocoLayout</c>);
     /// - o catálogo de materiais resolvendo os códigos LM1 e LM2 (<c>tbCodigo*</c>, <c>tbDescricaoResum*</c>, <c>tbModelo*</c>, <c>tbFabricante*</c>);
     /// - as caixas do contato auxiliar selecionado (<c>TBT1</c>, <c>TBT2</c>, <c>TBT3</c>, <c>tbOrientacaoTerminais</c>, <c>CBTipo</c>, <c>CBComportamento</c>);
-    /// - botões de edição, gravação e interop do Excel desabilitados com motivo explicativo na dica.
+    /// - como o construtor do original (<c>frmGerenciadorContatos.cs:1960</c>): banco inválido ou DWG sem
+    ///   cadastro → <c>MsgBox</c> 331; dicas pelas mMensagens; as grades só ganham colunas quando há linhas
+    ///   (<c>clsDispositivo.carregaModelosNoDG :2062</c>, <c>clsDispositivoAuxiliares.carregaContatosNoDG :667</c>),
+    ///   com as larguras de <c>AtualizaColunasDGModelos :2123</c> e <c>AtualizaColunasDGContatosAuxiliaresMODELO :1751</c>;
+    /// - os botões de edição, gravação e Excel ficam desabilitados (regra ainda não portada), com a dica do original.
     /// </summary>
     internal sealed class LigacaoDoFrmGerenciadorContatos : LigacaoDeModelos
     {
@@ -31,49 +38,77 @@ namespace Positron.Plugin.Interface.Telas
             ComboBox cbTipo = ControlesDaTela.Achar<ComboBox>(janela, "CBTipo");
             ComboBox cbComp = ControlesDaTela.Achar<ComboBox>(janela, "CBComportamento");
 
+            // Construtor do original: `clsAuxiliar.BancoValido()` e, sem o DWG cadastrado, a mMensagem 331.
+            if (!InicioDoDesenho.BancoValido(true))
+            {
+                janela.Dispose();
+                return;
+            }
+
+            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
+            if (config.Dwg == 0)
+            {
+                Aviso.MsgBox("Este arquivo ainda não foi cadastrado no banco do projeto!", string.Empty);
+                janela.Dispose();
+                return;
+            }
+
             TextosDoOriginal(janela);
             ConfigurarCombos(cbTipo, cbComp);
             DesabilitarAcoes(janela);
 
-            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
             Dictionary<int, MaterialDoCatalogo> catalogo = CatalogoIndexado(Catalogo(config));
+            ConfiguracaoDoCaderno caderno = ConfiguracaoDoDesenho.LerOuPadrao();
 
             List<ModeloContato> modelos = ContatosDoDesenho.LerModelos();
 
             if (dgModelo != null)
             {
-                dgModelo.Columns.Clear();
-                dgModelo.Columns.Add("IndiceModelo", "#");
-                dgModelo.Columns.Add("Nome", "Nome");
-                dgModelo.Columns.Add("Material1", "Material 1");
-                dgModelo.Columns.Add("Material2", "Material 2");
-                dgModelo.Columns.Add("Reserva1", "0");
-                dgModelo.Columns.Add("Topográfico", "Bloco Topográfico");
-                dgModelo.Columns.Add("Layout", "Bloco Layout");
-                dgModelo.Columns.Add("Plaquetas", "Plaquetas");
-                dgModelo.Columns.Add("Reserva2", "Reserva2");
-                dgModelo.Columns.Add("Terminais", "Terminais");
-                dgModelo.Columns.Add("Orientação", "Orientação");
-                dgModelo.Columns[4].Visible = false;
-                dgModelo.Columns[7].Visible = false;
-                dgModelo.Columns[8].Visible = false;
-                dgModelo.ColumnHeadersVisible = true;
-
+                // `carregaModelosNoDG`: sem modelos, a grade fica sem colunas.
                 dgModelo.Rows.Clear();
-                foreach (ModeloContato m in modelos)
+                dgModelo.Columns.Clear();
+                if (modelos.Count > 0)
                 {
-                    dgModelo.Rows.Add(
-                        m.Indice,
-                        m.Nome ?? string.Empty,
-                        m.Lm1,
-                        m.Lm2,
-                        0,
-                        m.BlocoTopografico ?? string.Empty,
-                        m.BlocoLayout ?? string.Empty,
-                        string.Empty,
-                        string.Empty,
-                        m.TerminaisDoDispositivo ?? string.Empty,
-                        m.Orientacao ?? string.Empty);
+                    dgModelo.Columns.Add("IndiceModelo", "#");
+                    dgModelo.Columns.Add("Nome", "Nome");
+                    dgModelo.Columns.Add("Material1", "LM1");
+                    dgModelo.Columns.Add("Material2", "LM2");
+                    dgModelo.Columns.Add("Reserva1", "Reserva1");
+                    dgModelo.Columns.Add("Topográfico", "Topográfico");
+                    dgModelo.Columns.Add("Layout", "Layout");
+                    dgModelo.Columns.Add("Plaquetas", "Plaquetas");
+                    dgModelo.Columns.Add("Reserva2", "Reserva2");
+                    dgModelo.Columns.Add("Terminais", "Terminais");
+                    dgModelo.Columns.Add("Orientação", "Orientação");
+                    dgModelo.ColumnHeadersVisible = true;
+
+                    foreach (ModeloContato m in modelos)
+                    {
+                        dgModelo.Rows.Add(
+                            m.Indice,
+                            m.Nome ?? string.Empty,
+                            m.Lm1,
+                            m.Lm2,
+                            0,
+                            m.BlocoTopografico ?? string.Empty,
+                            m.BlocoLayout ?? string.Empty,
+                            string.Empty,
+                            string.Empty,
+                            m.TerminaisDoDispositivo ?? string.Empty,
+                            m.Orientacao ?? string.Empty);
+                    }
+
+                    foreach (DataGridViewRow linha in dgModelo.Rows)
+                    {
+                        linha.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                    }
+
+                    LarguraDosModelos(dgModelo);
+                    janela.Resize += (origem, evento) =>
+                    {
+                        LarguraDosModelos(dgModelo);
+                        LarguraDosContatos(dgContato);
+                    };
                 }
 
                 Action atualizarModeloSelecionado = () =>
@@ -95,6 +130,9 @@ namespace Positron.Plugin.Interface.Telas
                     TextoDaCaixa(janela, "tbOrientacao", sel.Orientacao);
                     PreencherMaterial(janela, sel.Lm1, 1, catalogo);
                     PreencherMaterial(janela, sel.Lm2, 2, catalogo);
+                    // `mostraModelo`: cinza, e branco quando o diretório da simbologia existe.
+                    CorDoBloco(janela, "tbBlocoTopografico", caderno.DirSimbologiaTopografico);
+                    CorDoBloco(janela, "tbBlocoLayout", caderno.DirSimbologiaLayout);
                     TextoDaCaixa(janela, "tbBlocoTopografico", FormatacaoDeModelos.FormatarNomeDoBloco(sel.BlocoTopografico));
                     TextoDaCaixa(janela, "tbBlocoLayout", FormatacaoDeModelos.FormatarNomeDoBloco(sel.BlocoLayout));
 
@@ -125,15 +163,76 @@ namespace Positron.Plugin.Interface.Telas
                     atualizarModeloSelecionado();
                 }
             }
+        }
 
-            int auxPrimeiro = (modelos.Count > 0)
-                ? ContatosDoDesenho.LerAuxiliares(modelos[0].Indice).Count
-                : 0;
-            string nomePrimeiro = (modelos.Count > 0) ? modelos[0].Nome : "-";
+        /// <summary>`clsDispositivo.AtualizaColunasDGModelos`: 5/13/9/9/0/19/19/0/0/13/13% da largura.</summary>
+        private static void LarguraDosModelos(DataGridView grade)
+        {
+            if (grade == null || grade.RowCount == 0 || grade.Columns.Count < 11)
+            {
+                return;
+            }
 
-            Plugin.Escrever(string.Format(
-                "GERCONT: {0} modelo(s) de contato lido(s) do desenho ({1} auxiliar(es) no primeiro modelo \"{2}\"); {3} material(is) no catálogo; botões de edição desabilitados.",
-                modelos.Count, auxPrimeiro, nomePrimeiro, catalogo.Count));
+            int linhasVisiveis = (int)Math.Round(grade.Height / 23.0);
+            double util = grade.Width - (grade.RowCount < linhasVisiveis ? 4 : 21);
+            double[] fatores = { 0.05, 0.13, 0.09, 0.09, 0, 0.19, 0.19, 0, 0, 0.13, 0.13 };
+            for (int i = 0; i < 11; i++)
+            {
+                grade.Columns[i].Width = (int)Math.Round(util * fatores[i]);
+            }
+
+            grade.Columns[4].Visible = false;
+            grade.Columns[7].Visible = false;
+            grade.Columns[8].Visible = false;
+            grade.MultiSelect = false;
+        }
+
+        /// <summary>`AtualizaColunasDGContatosAuxiliaresMODELO`: a coluna 0 e as três últimas escondidas, o resto em sextos.</summary>
+        private static void LarguraDosContatos(DataGridView grade)
+        {
+            if (grade == null || grade.RowCount == 0 || grade.Columns.Count < 10)
+            {
+                return;
+            }
+
+            bool barra = false;
+            foreach (Control controle in grade.Controls)
+            {
+                VScrollBar b = controle as VScrollBar;
+                if (b != null && b.Visible)
+                {
+                    barra = true;
+                }
+            }
+
+            double util = grade.Width - (barra ? 21 : 5);
+            double[] fatores = { 0, 0.166, 0.166, 0.166, 0.167, 0.166, 0.166, 0, 0, 0 };
+            for (int i = 0; i < 10; i++)
+            {
+                grade.Columns[i].Width = (int)Math.Round(util * fatores[i]);
+                grade.Columns[i].SortMode = DataGridViewColumnSortMode.NotSortable;
+            }
+
+            grade.Columns[0].Visible = false;
+            grade.Columns[7].Visible = false;
+            grade.Columns[8].Visible = false;
+            grade.Columns[9].Visible = false;
+            grade.MultiSelect = false;
+            foreach (DataGridViewRow linha in grade.Rows)
+            {
+                linha.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            }
+        }
+
+        private static void CorDoBloco(Form janela, string nome, string diretorio)
+        {
+            TextBox caixa = ControlesDaTela.Achar<TextBox>(janela, nome);
+            if (caixa != null)
+            {
+                caixa.BackColor = !string.IsNullOrEmpty(diretorio) && Directory.Exists(diretorio)
+                    ? Color.White
+                    : Color.Silver;
+            }
         }
 
         private static void PreencherContatos(Form janela, DataGridView dgContato, List<ContatoAuxiliar> auxiliares)
@@ -143,7 +242,15 @@ namespace Positron.Plugin.Interface.Telas
                 return;
             }
 
+            // `carregaContatosNoDG`: sem contatos, a grade fica sem colunas.
+            dgContato.Rows.Clear();
             dgContato.Columns.Clear();
+            if (auxiliares.Count == 0)
+            {
+                LimparCaixasDoContato(janela);
+                return;
+            }
+
             dgContato.Columns.Add("IndiceModelo", "#");
             dgContato.Columns.Add("T1", "T1");
             dgContato.Columns.Add("T2", "T2");
@@ -151,12 +258,11 @@ namespace Positron.Plugin.Interface.Telas
             dgContato.Columns.Add("Orientação", "Orientação");
             dgContato.Columns.Add("Tipo", "Tipo");
             dgContato.Columns.Add("Comportamento", "Comportamento");
-            dgContato.Columns.Add("Uso", "Uso");
+            dgContato.Columns.Add("Uso", "ReservaUso");
             dgContato.Columns.Add("Pagina", "Página");
             dgContato.Columns.Add("Handle", "Handle");
             dgContato.ColumnHeadersVisible = true;
 
-            dgContato.Rows.Clear();
             foreach (ContatoAuxiliar c in auxiliares)
             {
                 dgContato.Rows.Add(
@@ -172,6 +278,7 @@ namespace Positron.Plugin.Interface.Telas
                     string.Empty);
             }
 
+            LarguraDosContatos(dgContato);
             LimparCaixasDoContato(janela);
 
             dgContato.SelectionChanged += (origem, evento) =>
@@ -247,7 +354,7 @@ namespace Positron.Plugin.Interface.Telas
         {
             Texto(janela, "GroupBoxModelos", "Modelos");
             Texto(janela, "lbNomeModelo", "Nome");
-            Texto(janela, "LbTerminais", "Terminais da Bobina");
+            Texto(janela, "LbTerminais", "Terminais");
             Texto(janela, "GroupBox2", "Modelo");
             Texto(janela, "GroupBox3", "Simbologia");
             Texto(janela, "GroupBox4", "Materiais");
@@ -264,22 +371,34 @@ namespace Positron.Plugin.Interface.Telas
             Texto(janela, "lbLayout", "Bloco de Layout");
         }
 
+        /// <summary>
+        /// As dicas do construtor do original (mMensagens 661–673, 1211, 1353, 1843). Os botões de edição,
+        /// gravação e Excel ficam desabilitados: a regra deles ainda não foi portada (fila do <c>ESTADO.md</c>).
+        /// As dicas do Excel levam o nome do modelo (916/917 + <c>TBModelo</c>) no original.
+        /// </summary>
         private static void DesabilitarAcoes(Form janela)
         {
-            Desabilitar(janela, "BTAdicionaModelo", "adição de modelo de contato não portada");
-            Desabilitar(janela, "BTEditaModelo", "edição de modelo de contato não portada");
-            Desabilitar(janela, "BTApagaModelo", "remoção de modelo de contato não portada");
-            Desabilitar(janela, "btApagaModelosSemUso", "limpeza de modelos sem uso não portada");
-            Desabilitar(janela, "BTNovo", "criação de contato não portada");
-            Desabilitar(janela, "BTAdicionaContato", "adição de contato auxiliar não portada");
-            Desabilitar(janela, "BTEditaContato", "edição de contato auxiliar não portada");
-            Desabilitar(janela, "BTApagaContaro", "remoção de contato auxiliar não portada");
-            Desabilitar(janela, "BTImportaEX", "interop Excel não portado");
-            Desabilitar(janela, "BTExportaEX", "interop Excel não portado");
-            Desabilitar(janela, "btSelecionaBlocoTopo", "seleção gráfica não portada");
-            Desabilitar(janela, "btSelecionaBlocoLayout", "seleção gráfica não portada");
-            Desabilitar(janela, "btPesquisaLM1", "pesquisa de material na tela não portada");
-            Desabilitar(janela, "btPesquisaLM2", "pesquisa de material na tela não portada");
+            Desabilitar(janela, "BTAdicionaModelo", "Adiciona Novo Modelo");
+            Desabilitar(janela, "BTEditaModelo", "Edita o Modelo");
+            Desabilitar(janela, "BTApagaModelo", "Apaga o Modelo");
+            Desabilitar(janela, "btApagaModelosSemUso", "Apagar Modelos não utilizados");
+            Desabilitar(janela, "BTNovo", "Sugere terminais de um novo contato");
+            Desabilitar(janela, "BTAdicionaContato", "Adicionar Novo Contato");
+            Desabilitar(janela, "BTEditaContato", "Editar Contato Selecionado");
+            Desabilitar(janela, "BTApagaContaro", "Apagar Contato Selecionado");
+            Desabilitar(janela, "BTImportaEX", "Importa do Excel contatos auxiliares para um modelo novo: ");
+            Desabilitar(janela, "BTExportaEX", "Exporta para o Excel os contatos auxiliares do modelo: ");
+            Desabilitar(janela, "btSelecionaBlocoTopo", "Procurar Bloco");
+            Desabilitar(janela, "btSelecionaBlocoLayout", "Procurar Bloco");
+            Desabilitar(janela, "btPesquisaLM1", "Pesquisar Materiais");
+            Desabilitar(janela, "btPesquisaLM2", "Pesquisar Materiais");
+
+            Dica(janela, "TBT1", "Terminal 1");
+            Dica(janela, "TBT2", "Terminal 2");
+            Dica(janela, "TBT3", "Terminal 3");
+            Dica(janela, "CBTipo", "Tipo NA, NF, RV");
+            Dica(janela, "CBComportamento", "Comportamento ST, TE, TD, BI, AM");
+            Dica(janela, "DGContatosInseridos", "Contatos Auxiliares já inseridos");
 
             TextBox tbTopo = ControlesDaTela.Achar<TextBox>(janela, "tbBlocoTopografico");
             if (tbTopo != null)
