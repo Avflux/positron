@@ -46,6 +46,7 @@ inventados — ver *Correção do básico* no `ESTADO.md`.
    (e `-Listas`/`-Acoplamento` se ajudar) para confirmar que ainda falta.
 3. `grep -n "<alvo>" docs/PLANO.md docs/recoder/` — se já houve triagem ("fora do recorte", "ambiente",
    "decisão do dono"), respeite-a ou registre por que mudou.
+4. **Se o alvo envolve tela/janela:** **sempre verificar se a janela já foi ajustada** antes de qualquer alteração (`grep -rn "<frmJanela>" docs/recoder/rodadas/ docs/recoder/ESTADO.md docs/PLANO.md`, `git log --grep="<frmJanela>"`). Identifique o que já foi entregue para não refazer trabalho nem desfazer correções anteriores.
 
 ## 2. Extrair o máximo do reverso (antes de escrever código)
 
@@ -63,9 +64,11 @@ que parece estranho.
    - mensagens ao usuário (texto exato — `MensagensDoReverso.cs`), `MsgBox`, ramos de cancelamento;
    - ramos condicionais (`switch` de layout/cliente: Eletrosul, CEMIG, Furnas…) e valores mágicos;
    - efeitos colaterais (o que mais ele apaga, recria, ativa).
-4. Se há tela: designer no `.cs` + `.resx` + captura `.png` (controles, rótulos, ordem das colunas, o que
-   fica desabilitado, o que é condicional a `Conf.*`/registro/`ativo.Tipo`). Compare **controle a controle**
-   com o que o plugin mostra hoje e liste as diferenças na ficha.
+4. **Se há tela/janela (conferir se estão conforme no recode e reverso):**
+   - **Verificar se já foi ajustada:** confirme no histórico (`docs/recoder/rodadas/`, `docs/recoder/ESTADO.md`, `docs/reverso-capturas.txt` e commits) se a janela já foi ajustada antes e qual foi o escopo.
+   - **Referência original:** confira a captura real em `cad-plugin/reverso/captura_das_janelas` (`C:\Users\rno\Desktop\APPs\positron\cad-plugin\reverso\captura_das_janelas\*.png`) cruzando com o mapeamento em `docs/reverso-capturas.txt`, o designer no `.cs` e o `.resx`.
+   - **Conferência no recode:** inspecione a janela correspondente reconstruída no recode/plugin (via comando `JANELA` / `POSITRON_JANELA=<janela>` ou renderizador) e compare **controle a controle** com a captura do reverso (títulos, textos de carga `mMensagem`, abas, ordem/visibilidade/largura das colunas em grades, botões, ícones, estados habilitado/desabilitado).
+   - Liste as diferenças na ficha da rodada antes de escrever o código.
 5. Confira `docs/recoder/conhecimento/` antes de redescobrir; **todo fato novo e reutilizável vai
    para lá** (ver §5).
 6. Escreva a **ficha** (seção *O que o reverso faz* do modelo) já no arquivo da rodada, antes do código.
@@ -74,6 +77,7 @@ que parece estranho.
 
 - **Regra pura em `cad-plugin/Positron.Data/<Área>/`** (testável sem CAD); **casca CAD em
   `cad-plugin/Positron.Plugin/`** (comando, leitura/gravação do desenho, tela).
+- **Ajuste de janelas/telas:** sempre verificar se a janela já foi ajustada antes de mexer. Qualquer ajuste deve garantir que as janelas fiquem estritamente conforme no recode e reverso (`cad-plugin/reverso/captura_das_janelas`), preservando correções consolidadas.
 - Procure antes o que já existe (`grep` por app name, dicionário, tabela): estenda o tipo dono,
   não duplique leitor de XData/dicionário.
 - Nomes e comentários seguem o código ao redor (português, cita `Classe.Metodo` do reverso).
@@ -99,7 +103,8 @@ Rode e copie os números para a rodada:
    usuário clica (fora de comando = sem lock automático), um **desenho novo** sem XData e a **troca de
    documento**. O que não der para automatizar vai para *Falta* como conferência do dono, com o passo a passo.
    ZWCAD é instância única: feche antes. AutoCAD: `scripts/instala-bundle.ps1 -Cad AutoCAD` após o build.
-4. Se mexeu em cobertura: rodar de novo `scripts/cobertura-do-reverso.ps1` e anotar os números.
+4. **Se toca tela/janela:** conferir visualmente se a janela no recode está conforme a captura correspondente em `cad-plugin/reverso/captura_das_janelas/*.png` e validar que ajustes anteriores permanecem íntegros.
+5. Se mexeu em cobertura: rodar de novo `scripts/cobertura-do-reverso.ps1` e anotar os números.
 
 Se algo não pôde ser medido (CAD indisponível etc.), escreva **"não medido: motivo"** — não maquie.
 

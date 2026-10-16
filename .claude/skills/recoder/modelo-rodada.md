@@ -17,6 +17,7 @@ Ficha do comportamento original, com `arquivo:linha` (caminhos relativos a
 - **Ramos e quirks:** `switch` por cliente/layout, valores mágicos, comportamento estranho mantido.
 - **Mensagens:** texto exato.
 - **Apelidos de ofuscados:** `xYz123` = o que faz.
+- **Tela / janela (se houver):** conferir se já foi ajustada (rodadas anteriores); captura em `cad-plugin/reverso/captura_das_janelas/` vs recode.
 
 ## O que foi feito
 
