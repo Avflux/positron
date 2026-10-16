@@ -50,6 +50,50 @@ Caminhos relativos a `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Eletr
 - Foco ofuscado resolvido: `../oADsu33FpCEasW73ADP/hDTV5h3NAKArXvSEL1u.cs:12-13`,
   `lwF3Qy6iqF` = user32 **SetFocus** para Window.Handle do documento, não um diálogo modal.
 
+## `Renumerar Páginas` com destino (`C8Op1CM1YgS`, rodada 186)
+
+- `uscPaginas.cs:2247-2390`: **desmarca** `dg.Rows[0]` se estiver selecionada e monta as duas listas num
+  laço só sobre `dg.Rows`, **na ordem da grade** (`array2` = selecionadas + o nome novo, `array` = as
+  outras). É a ordem da grade que casa página e nome novo — `dg.SelectedRows` (usado pelo `Inserir` e
+  pelo `Apagar`) daria outro par: a primeira medição saiu `(6->3, 2->4)` e o original produz
+  `(2->3, 6->4)`.
+- **Laço de prompt** (`:2286-2390`), SetFocus na janela, `PromptStringOptions("\n" + mMensagem[1,24] +
+  " ")`, `AllowSpaces = false`, **sem** `DefaultValue`; só `Status 5100` prossegue. Resposta
+  `ToUpper()` + `montaNumeroPagina`.
+- Recusas (todas voltam ao prompt): `checaCapa(alvo)` → mMensagem **57**; alvo entre as **selecionadas**
+  → **26**; alvo que já é outra página → **25**; espaço insuficiente → **27**.
+- O **limite** `p` = a primeira linha **não** selecionada, na ordem da grade, com página decimal maior
+  que a do destino; sem nenhuma, o sentinela `"1000000"`.
+- `calculaEspacoNumerico`/`calculaEspacoAlfaNumerico` (`Pagina.cs:305-350`) decidem o ramo; o original
+  testa `>= 0` contra o número de **selecionadas** (`UBound(array2, 2)`), então sem seleção o ramo
+  numérico sempre "cabe" e não renomeia nada — o prompt acontece igual (o laço está **fora** do
+  `If dg.SelectedRows.Count > 0`).
+- `definePaginasNumericas` (`:352-382`): do destino (ou `Floor(calculaPaginaDecimal) + 1` quando o
+  destino tem letra) de `Conf.PassoPagina` em diante, cada nome pelo `montaNumeroPagina`.
+- `definePaginasAlfaNumericas` (`:384-425`): `Asc` da última letra + o resto como número; em `Asc == 91`
+  volta a 64 (página "seca") e o número sobe — 27 páginas por número (26 letras + a seca). Destino vazio
+  ou com prefixo não numérico **estoura** (`Strings.Mid("", 0, 1)` / `Conversions.ToInteger`) e sai no
+  `MsgBox` crítico do `catch`, sem renomear.
+- `renumerarPaginasLote` (`:1964-2036`): lock + transação; `LayerTable.Has` e `Layer.Name = novo`; depois
+  `CarregaPaginas`, `OrdenaMatrizPaginas`, `AtualizaContTotFl`. **Não** toca nos elementos da página nem
+  no XData `Eletron` do layer (confirmado por dump LISP em AutoLISP no `Funcional.dwg`).
+- Fim do handler: `Y9op1KgeRgW` + `VSWp1ebyWra` reconstroem a grade, **desligam a multiseleção** e
+  reselecionam a linha de `ativo.Pagina`; a cascata de sincronizações roda (a mesma família do apagar,
+  menos o `ApagaContatosOrfaos`). `ativo.Pagina` **não** é recalculado aqui — só o combo o faz.
+
+## Combo `Folha` (`Es6p1Y15jTb`, rodada 186)
+
+- `uscPaginas.cs:2389-2455`, ligado ao **`TextChanged`** do `ToolStripComboBox` (que é editável), com a
+  guarda `fKqplRiGop5` em volta da escrita do texto dentro do `CarregaPG` (`:1326-1360`).
+- `switch` do literal, `TextCompare: true` e **sem `default`**: `12` → 0, `012` → 3, `0012` → 4,
+  `00012` → 5, `000012` → 6, `0000012` → 7. Texto fora dos seis **não** mexe na largura mas o corpo roda
+  igual (o `montaNumeroPagina` de cada linha e o `renumerarPaginasLote`).
+- Grava `XDataGeral.GravarXDataConfiguracao()` (o `Eletron`/`Config` do ModelSpace; a largura é o `1070`
+  da posição 34) — só isso faz o combo refletir a configuração no próximo `CarregaPG`.
+- Renomeia **todas** as linhas (não só as selecionadas) e no fim faz
+  `DeclaracoesGeral.ativo.Pagina = Pagina.LocalizaPaginaAtiva()`, `cmStrip1.Hide()` e
+  `Application.UpdateScreen()`. `CarregaPG` **não** é chamado (o texto digitado fica no campo).
+
 ## Restauração específica do editor (rodada 184)
 
 - `Pagina.restauraCampos` (`Pagina.cs:2050-2123`) não é a restauração pós-troca de formato:

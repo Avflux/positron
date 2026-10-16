@@ -1,0 +1,22 @@
+banco existente: C:\Users\RNO\Desktop\APP\positron\.tmp-smoke\provas\186.db
+DLL local (copia): C:/positron-smoke/cad/Positron.Plugin.AutoCAD.dll
+desenho (copia): C:\Users\RNO\AppData\Local\Temp\positron-desenho-20261015-235705.dwg
+rodando: C:\Program Files\Autodesk\AutoCAD 2020\accoreconsole.exe /i C:\Users\RNO\AppData\Local\Temp\positron-desenho-20261015-235705.dwg /s C:\Users\RNO\AppData\Local\Temp\positron-passo-20261015-235705.scr
+----- POSITRON_LOG (C:\Users\RNO\AppData\Local\Temp\positron-log-20261015-235705.txt) -----
+Positron carregado.
+Positron: DLL de 2026-10-15 23:56 — C:\positron-smoke\cad\Positron.Plugin.AutoCAD.dll
+Recursos: 4 template(s) DWG garantido(s) (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao).
+Barra: o ribbon ainda não existe nesta fase do arranque — a aba entra na primeira ociosidade do CAD (no accoreconsole, que não tem interface, não há ribbon).
+IniciarDWG: 16 página(s) do caderno — página ativa "23": 17 layer(s) desligado(s), 3 ligado(s), 0 alterado(s)
+IniciarDWG: camadas destravadas (0 travada(s) liberada(s)) — página ativa "23": 17 layer(s) desligado(s), 3 ligado(s), 0 alterado(s)
+IniciarDWG: estilo de texto Romans — já existia
+CorrecaoDisp: já corrigido neste desenho (marca 1 no XData CORRECAO).
+CorrecaoBornesVisiveis: já corrigido neste desenho (marca 2 no XData CORRECAO).
+correcaoTextosCircuitos: já corrigido neste desenho (marca 3 no XData CORRECAO).
+correcaoLines: já corrigido neste desenho (marca 4 no XData CORRECAO).
+corrigeOrdemBornes: já corrigido neste desenho (marca 5 no XData CORRECAO).
+pzFolhas: 16 página(s) na grade [0001 | 0002 | 0006 | 0007 | 0008 | 0015 | 0016 | 0017 | 0018 | 0019 | 0020 | 0021 | 0022 | 0023 | 0024 | 1000]; combo="0012" (antes: 16); seleção pedida [] (0 achada(s)); selecionada depois [0023]; ação "formato:0012" → formato "0012" → Folha: 16 de 16 página(s) renumerada(s) com a largura 4; configuração gravada no desenho.; colunas do formato nenhuma [ELET1_ausente | ELET2_ausente | ELET3_ausente | ELET4_ausente | ELET5_ausente]; interface: 5 colunas [Página | Unidade]; tbPagina=0023; multiseleção=False; controles=11
+pzFolhas: 16 página(s) na grade [0001 | 0002 | 0006 | 0007 | 0008 | 0015 | 0016 | 0017 | 0018 | 0019 | 0020 | 0021 | 0022 | 0023 | 0024 | 1000]; combo="0012" (antes: 16); seleção pedida [] (0 achada(s)); selecionada depois []; ação "formato:0012" → formato "0012" → ; colunas do formato nenhuma [ELET1_ausente | ELET2_ausente | ELET3_ausente | ELET4_ausente | ELET5_ausente]; interface: 5 colunas [Página | Unidade]; tbPagina=0023; multiseleção=False; controles=11
+Barra: o CAD não tem ribbon nesta sessão — nada a desmontar.
+-------------------------------
+OK: plugin carregado no AutoCAD 2020 (banco: C:\Users\RNO\Desktop\APP\positron\.tmp-smoke\provas\186.db).

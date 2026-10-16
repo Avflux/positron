@@ -1,0 +1,20 @@
+banco existente: C:\Users\RNO\Desktop\APP\positron\.tmp-smoke\provas\186.db
+DLL local (copia): C:/positron-smoke/cad/Positron.Plugin.AutoCAD.dll
+rodando: C:\Program Files\Autodesk\AutoCAD 2020\accoreconsole.exe /s C:\Users\RNO\AppData\Local\Temp\positron-passo-20261015-235725.scr
+----- POSITRON_LOG (C:\Users\RNO\AppData\Local\Temp\positron-log-20261015-235725.txt) -----
+Positron carregado.
+Positron: DLL de 2026-10-15 23:57 — C:\positron-smoke\cad\Positron.Plugin.AutoCAD.dll
+Recursos: 4 template(s) DWG garantido(s) (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao).
+Barra: o ribbon ainda não existe nesta fase do arranque — a aba entra na primeira ociosidade do CAD (no accoreconsole, que não tem interface, não há ribbon).
+IniciarDWG: camadas destravadas (0 travada(s) liberada(s)) — página ativa "0": 0 layer(s) desligado(s), 1 ligado(s), 0 alterado(s)
+IniciarDWG: estilo de texto Romans — criado
+CorrecaoDisp: CorrigeDisp: o desenho não tem o app name legado DISPOSITIVO. (marca 1 gravada).
+CorrecaoBornesVisiveis: CorrigeBornes: 0 de 0 borne(s) com a visibilidade corrigida. (marca 2 gravada).
+correcaoTextosCircuitos: 0 de 0 texto(s) auxiliar(es) de circuito alinhados (o VerticalMode 1 vira Baseline na mesma posição) (marca 3 gravada).
+correcaoLines: 0 de 0 Line(s) com o XData limpo (0 CONEXAO, 0 INTERLIGACAO) (marca 4 gravada).
+corrigeOrdemBornes: corrigeOrdemBornes: 0 de 0 borne(s) renumerado(s). (marca 5 gravada).
+RENUM186: sem menu (documento D/A/V ou sem páginas) — nada a clicar
+pzFolhas: 0 página(s) na grade []; combo="12"; ação "renumerar" → sem menu (documento D/A/V ou sem páginas) — nada a clicar; interface: 5 colunas [Página | Unidade]; tbPagina=; multiseleção=False; controles=11
+Barra: o CAD não tem ribbon nesta sessão — nada a desmontar.
+-------------------------------
+OK: plugin carregado no AutoCAD 2020 (banco: C:\Users\RNO\Desktop\APP\positron\.tmp-smoke\provas\186.db).

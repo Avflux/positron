@@ -37,4 +37,37 @@ namespace Positron.Plugin.Interface.Folhas
             return true;
         }
     }
+
+    /// <summary>
+    /// uscPaginas.C8Op1CM1YgS: o prompt "Mover para página?" (mMensagem 24) do item
+    /// **Renumerar Páginas** — `AllowSpaces = false`, sem valor padrão, e o foco vai para a janela
+    /// do documento antes de perguntar (o `lwF3Qy6iqF`), como na pergunta dos campos.
+    ///
+    /// É a única pergunta da paleta que o original **repete**: a resposta recusada volta ao prompt,
+    /// por isso o harness entrega uma fila (`POSITRON_MOVER_PARA`, separada por `;`).
+    /// </summary>
+    internal static class PerguntaDeRenumeracao
+    {
+        [DllImport("user32.dll", EntryPoint = "SetFocus")]
+        private static extern IntPtr SetFocus(IntPtr janela);
+
+        internal static bool Perguntar(out string escolhido)
+        {
+            escolhido = null;
+            if (RespostaDoHarness.Movimentacao(out escolhido)) return true;
+            // Fila esgotada no harness: cancela em vez de abrir o prompt (o laço não pode girar).
+            if (RespostaDoHarness.MovimentacaoAtiva) return false;
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            if (documento == null) return false;
+            SetFocus(documento.Window.Handle);
+            PromptStringOptions opcoes = new PromptStringOptions("\n" + MensagensDoReverso.MoverParaPagina + " ")
+            {
+                AllowSpaces = false,
+            };
+            PromptResult resposta = documento.Editor.GetString(opcoes);
+            if (resposta.Status != PromptStatus.OK) return false;
+            escolhido = resposta.StringResult;
+            return true;
+        }
+    }
 }

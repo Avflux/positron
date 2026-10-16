@@ -1,0 +1,36 @@
+Positron: autoload do AutoCAD instalado em 'C:\Users\RNO\AppData\Roaming\Autodesk\ApplicationPlugins\Positron.bundle'.
+  LEIA-ME.txt
+  PackageContents.xml
+  Positron.Contract.dll
+  Positron.Data.dll
+  Positron.lsp
+  Positron.Plugin.AutoCAD.dll
+  System.Data.SQLite.dll
+  x64\SQLite.Interop.dll
+  x86\SQLite.Interop.dll
+  confira na ABERTURA do AutoCAD (com POSITRON_LOG, o plugin escreve 'Positron carregado' no arquivo; a linha de comando fica muda, como no original).
+  (o accoreconsole NAO faz autoload - no headless a DLL entra por NETLOAD.)
+DLL do build: 10/16/2026 00:06:06
+ACAD_PID=13124
+COM OK; documentos=1; visivel=True
+Positron carregado.
+Positron: DLL de 2026-10-16 00:06 - C:\Users\RNO\AppData\Roaming\Autodesk\ApplicationPlugins\Positron.bundle\Positron.Plugin.AutoCAD.dll
+Recursos: 4 template(s) DWG garantido(s) (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao).
+Barra: o ribbon ainda n∆o existe nesta fase do arranque - a aba entra na primeira ociosidade do CAD (no accoreconsole, que n∆o tem interface, n∆o h† ribbon).
+IniciarDWG: 16 p†gina(s) do caderno - p†gina ativa "23": 17 layer(s) desligado(s), 3 ligado(s), 0 alterado(s)
+IniciarDWG: camadas destravadas (0 travada(s) liberada(s)) - p†gina ativa "23": 17 layer(s) desligado(s), 3 ligado(s), 0 alterado(s)
+IniciarDWG: estilo de texto Romans - j† existia
+CorrecaoDisp: j† corrigido neste desenho (marca 1 no XData CORRECAO).
+CorrecaoBornesVisiveis: j† corrigido neste desenho (marca 2 no XData CORRECAO).
+correcaoTextosCircuitos: j† corrigido neste desenho (marca 3 no XData CORRECAO).
+correcaoLines: j† corrigido neste desenho (marca 4 no XData CORRECAO).
+corrigeOrdemBornes: j† corrigido neste desenho (marca 5 no XData CORRECAO).
+Banco de Dados do Projeto: "Banco de Dados do Projeto" (frmConfiguracaoBDProjeto) aberta no CAD - 2 controle(s).
+Barra: aba "Positron" com 9 painel(is) - 121 bot∆o(‰es), 5 menu(s) com 39 item(ns), 1 liga/desliga, 1 lista e 1 campo; 34 linha(s), 86 quebra(s), 7 †rea(s) recolh°vel(is), 9 separador(es). Acion†veis: 126 ligado(s) (3 no comando do recoder), 35 desativado(s); tema escuro. Barra: desenho tipo "E" - 9 painel(is) ligado(s) [Configuraá∆o | Caderno | Dispositivos | Bornes | Fiaá∆o | Construtivo | Cabos e Veias | Utilit†rios | Help], 0 desligado(s), 0 intocado(s).
+pzFolhas: prova da renumeraá∆o agendada fora de comando (Timer da interface).
+RENUM186 UI: interface: 5 colunas [P†gina | Unidade]; tbPagina=23; multiseleá∆o=False; controles=11
+RENUM186 UI: seleá∆o pedida "2,6" (2 achada(s))
+RENUM186 UI: PASSOU - combo "000012"  Folha: 16 de 16 p†gina(s) renumerada(s) com a largura 6; configuraá∆o gravada no desenho.; p†ginas depois: [000001 | 000002 | 000006 | 000007 | 000008 | 000015 | 000016 | 000017 | 000018 | 000019 | 000020 | 000021 | 000022 | 000023 | 000024 | 001000]
+EXIT=27703998
+CAD_PROCESSOS=0
+LOG=C:\positron-smoke\r186\gui-plugin.log

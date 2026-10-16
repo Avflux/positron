@@ -102,6 +102,21 @@ namespace Positron.Data.Interface
         /// <summary>mMensagem 35 — o item que abre as cinco colunas.</summary>
         public const string Inserir = "Inserir";
 
+        /// <summary>
+        /// As mensagens da **renumeração com destino** (o `C8Op1CM1YgS`, o item `Renumerar Páginas`
+        /// do menu): o prompt (24) e as quatro recusas — a capa (57), o destino que já é uma
+        /// **selecionada** (26), o que já é outra página (25) e o que não cabe (27).
+        /// </summary>
+        public const string MoverParaPagina = "Mover para página?";
+
+        public const string EstaPaginaJaExisteInformeLivre = "Esta página já existe, informe uma página livre!";
+
+        public const string EstaPaginaFoiSelecionada = "Esta página foi selecionada, informe uma página livre!";
+
+        public const string NaoHaEspacoSuficiente = "Não há espaço suficiente!";
+
+        public const string NaoEPossivelMoverSobreACapa = "Não é possível mover sobre a Capa!";
+
         /// <summary>mMensagem 15/16 — prompts do menu uscPaginas.</summary>
         public const string InformeNovaUnidade = "Informe o novo valor de Unidade: ";
 

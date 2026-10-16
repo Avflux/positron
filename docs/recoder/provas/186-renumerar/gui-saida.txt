@@ -1,0 +1,45 @@
+Positron: autoload do AutoCAD instalado em 'C:\Users\RNO\AppData\Roaming\Autodesk\ApplicationPlugins\Positron.bundle'.
+  LEIA-ME.txt
+  PackageContents.xml
+  Positron.Contract.dll
+  Positron.Data.dll
+  Positron.lsp
+  Positron.Plugin.AutoCAD.dll
+  System.Data.SQLite.dll
+  x64\SQLite.Interop.dll
+  x86\SQLite.Interop.dll
+  confira na ABERTURA do AutoCAD (com POSITRON_LOG, o plugin escreve 'Positron carregado' no arquivo; a linha de comando fica muda, como no original).
+  (o accoreconsole NAO faz autoload - no headless a DLL entra por NETLOAD.)
+DLL do build: 10/15/2026 23:58:16
+ACAD_PID=4464
+COM OK; documentos=1; visivel=True
+respondendo: 1 (foco: \ Autodesk AutoCAD 2020 - [pz186-gui.dwg] \)
+respondendo: 7 (foco: \ Autodesk AutoCAD 2020 - [pz186-gui.dwg] \)
+respondendo: 2 (foco: \ Autodesk AutoCAD 2020 - [pz186-gui.dwg] \)
+respondendo: 7A (foco: \ Autodesk AutoCAD 2020 - [pz186-gui.dwg] \)
+Positron carregado.
+Positron: DLL de 2026-10-15 23:58 - C:\Users\RNO\AppData\Roaming\Autodesk\ApplicationPlugins\Positron.bundle\Positron.Plugin.AutoCAD.dll
+Recursos: 4 template(s) DWG garantido(s) (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao).
+Barra: o ribbon ainda nÆo existe nesta fase do arranque - a aba entra na primeira ociosidade do CAD (no accoreconsole, que nÆo tem interface, nÆo h  ribbon).
+IniciarDWG: 16 p gina(s) do caderno - p gina ativa "23": 17 layer(s) desligado(s), 3 ligado(s), 0 alterado(s)
+IniciarDWG: camadas destravadas (0 travada(s) liberada(s)) - p gina ativa "23": 17 layer(s) desligado(s), 3 ligado(s), 0 alterado(s)
+IniciarDWG: estilo de texto Romans - j  existia
+CorrecaoDisp: j  corrigido neste desenho (marca 1 no XData CORRECAO).
+CorrecaoBornesVisiveis: j  corrigido neste desenho (marca 2 no XData CORRECAO).
+correcaoTextosCircuitos: j  corrigido neste desenho (marca 3 no XData CORRECAO).
+correcaoLines: j  corrigido neste desenho (marca 4 no XData CORRECAO).
+corrigeOrdemBornes: j  corrigido neste desenho (marca 5 no XData CORRECAO).
+Banco de Dados do Projeto: "Banco de Dados do Projeto" (frmConfiguracaoBDProjeto) aberta no CAD - 2 controle(s).
+Barra: aba "Positron" com 9 painel(is) - 121 botÆo(äes), 5 menu(s) com 39 item(ns), 1 liga/desliga, 1 lista e 1 campo; 34 linha(s), 86 quebra(s), 7  rea(s) recolh¡vel(is), 9 separador(es). Acion veis: 126 ligado(s) (3 no comando do recoder), 35 desativado(s); tema escuro. Barra: desenho tipo "E" - 9 painel(is) ligado(s) [Configura‡Æo | Caderno | Dispositivos | Bornes | Fia‡Æo | Construtivo | Cabos e Veias | Utilit rios | Help], 0 desligado(s), 0 intocado(s).
+pzFolhas: prova da renumera‡Æo agendada fora de comando (Timer da interface).
+RENUM186 UI: interface: 5 colunas [P gina | Unidade]; tbPagina=23; multisele‡Æo=False; controles=11
+RENUM186 UI: sele‡Æo pedida "2,6" (2 achada(s))
+RENUM186 UI: clicando o menu - aguardando as respostas no prompt nativo.
+NÆo ‚ poss¡vel mover sobre a Capa!
+Esta p gina j  existe, informe uma p gina livre!
+Esta p gina foi selecionada, informe uma p gina livre!
+Renumerar P ginas - sincroniza‡äes: [1/3] CorrigeModelosDeContatos: nenhum contato fora da posi‡Æo (8 modelo(s) e 26 contato(s) no CONTATOS) - nada a corrigir. [2/3] FIA: falhou - SQLiteException: unable to open database file | at System.Data.SQLite.SQLite3.Open(String strFilename, String vfsName, SQLiteConnectionFlags connectionFlags, SQLiteOpenFlagsEnum openFlags, Int32 maxPoolSize, Boolean usePool) | at System.Data.SQLite.SQLiteConnection.Open() | at Positron.Data.ProjectStore.Abrir() | at Positron.Data.ProjectStore.InserirFiacao(IEnumerable`1 pontos) [3/3] INT: falhou - SQLiteException: unable to open database file | at System.Data.SQLite.SQLite3.Open(String strFilename, String vfsName, SQLiteConnectionFlags connectionFlags, SQLiteOpenFlagsEnum openFlags, Int32 maxPoolSize, Boolean usePool) | at System.Data.SQLite.SQLiteConnection.Open() | at Positron.Data.ProjectStore.Abrir() | at Positron.Data.ProjectStore.InserirInterligacao(IEnumerable`1 trechos)
+RENUM186 UI: PASSOU - Renumerar P ginas: 2 de 2 p gina(s) movida(s) a partir de "7A" (2->7A, 6->7B).; p gina ativa=23
+EXIT=-840123714
+CAD_PROCESSOS=0
+LOG=C:\positron-smoke\r186\gui-plugin.log

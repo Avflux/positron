@@ -14,9 +14,10 @@ namespace Positron.Plugin.Interface.Folhas
     /// chamam, sem passar pela interface: é o caminho do usuário sem o clique (que um script não dá).
     ///
     /// A entrada é toda do harness, e **só** daqui: <c>POSITRON_FOLHA_ACAO</c> (<c>nova</c>,
-    /// <c>inserir:N</c>, <c>apagar</c>, <c>multiselecao</c>; sem ela o comando só despeja o estado),
-    /// <c>POSITRON_FOLHA_SELECAO</c> (a linha selecionada; o padrão é <c>POSITRON_PAGINA</c>) e
-    /// <c>POSITRON_FOLHA_SELECIONADAS</c> (as linhas selecionadas, separadas por vírgula).
+    /// <c>inserir:N</c>, <c>apagar</c>, <c>multiselecao</c>, <c>renumerar</c>, <c>formato:LITERAL</c>;
+    /// sem ela o comando só despeja o estado), <c>POSITRON_FOLHA_SELECAO</c> (a linha selecionada; o
+    /// padrão é <c>POSITRON_PAGINA</c>) e <c>POSITRON_FOLHA_SELECIONADAS</c> (as linhas selecionadas,
+    /// separadas por vírgula).
     /// </summary>
     internal static class ProvaDaPaleta
     {
@@ -45,6 +46,11 @@ namespace Positron.Plugin.Interface.Folhas
                 {
                     AgendarProvaDaInterface();
                     return "pzFolhas: prova agendada fora de comando (Timer da interface).";
+                }
+                if (Environment.GetEnvironmentVariable("POSITRON_FOLHA_ACAO") == "renumerar-interface")
+                {
+                    AgendarRenumeracaoPelaInterface();
+                    return "pzFolhas: prova da renumeração agendada fora de comando (Timer da interface).";
                 }
                 FolhasControle controle = new FolhasControle();
                 int paginas = controle.Carregar();
@@ -174,6 +180,58 @@ namespace Positron.Plugin.Interface.Folhas
                 {
                     resultado = controle.ApagarSelecionadas();
                 }
+                else if (acao == "renumerar")
+                {
+                    // O caminho do usuário: o **clique no item do menu** (não a chamada direta do
+                    // handler) — é o que prova que o item está habilitado e ligado à regra.
+                    DataGridView grade = (DataGridView)controle.Controls["dg"];
+                    ToolStripMenuItem item = null;
+                    if (grade.ContextMenuStrip != null)
+                    {
+                        foreach (ToolStripItem candidato in grade.ContextMenuStrip.Items)
+                        {
+                            if (candidato.Text == Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas)
+                            {
+                                item = candidato as ToolStripMenuItem;
+                            }
+                        }
+                    }
+
+                    if (item == null)
+                    {
+                        // Documentos D/A/V não ganham menu no reverso (`dg.ContextMenuStrip = null`
+                        // no `VSWp1ebyWra`): não inventar o clique de um item que o usuário não vê.
+                        resultado = grade.ContextMenuStrip == null
+                            ? "sem menu (documento D/A/V ou sem páginas) — nada a clicar"
+                            : "o menu não tem o item \"" + Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas + "\"";
+                        Plugin.Escrever("RENUM186: " + resultado);
+                        Capturar(controle, "paginas");
+                        return "pzFolhas: " + controle.Paginas().Count + " página(s) na grade "
+                            + Lista(controle.Paginas()) + "; combo=\"" + controle.FormatoDaNumeracao()
+                            + "\"; ação \"renumerar\" → " + resultado + "; " + controle.DescreverInterface();
+                    }
+
+                    if (!item.Enabled)
+                    {
+                        throw new InvalidOperationException("O item \""
+                            + Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas + "\" está desabilitado.");
+                    }
+
+                    item.PerformClick();
+                    resultado = "clique no menu → " + controle.UltimaMensagem;
+                }
+                else if (acao.StartsWith("formato", StringComparison.Ordinal))
+                {
+                    string literal = "012";
+                    int doisPontos = acao.IndexOf(':');
+                    if (doisPontos > 0)
+                    {
+                        literal = acao.Substring(doisPontos + 1).Trim();
+                    }
+
+                    controle.EscolherFormatoDaNumeracao(literal);
+                    resultado = "formato \"" + literal + "\" → " + controle.UltimaMensagem;
+                }
                 else if (acao.StartsWith("inserir", StringComparison.Ordinal))
                 {
                     int indice = 1;
@@ -188,6 +246,7 @@ namespace Positron.Plugin.Interface.Folhas
 
                 Capturar(controle, "paginas");
                 return "pzFolhas: " + controle.Paginas().Count + " página(s) na grade " + Lista(controle.Paginas())
+                    + "; combo=\"" + controle.FormatoDaNumeracao() + "\""
                     + " (antes: " + paginas + ")"
                     + "; seleção pedida " + Lista(linhas) + " (" + achadas + " achada(s))"
                     + "; selecionada depois " + Lista(controle.Selecionadas())
@@ -311,6 +370,80 @@ namespace Positron.Plugin.Interface.Folhas
                 throw new InvalidOperationException("Menu ausente: " + texto);
             }
             finally { if (habilitar) preferencia.PerformClick(); }
+        }
+
+        /// <summary>
+        /// A prova da **renumeração pelo caminho do usuário**: a paleta aparece, a grade recebe a
+        /// seleção que o usuário faria, e o clique vai no **item do menu** — fora de comando (o
+        /// Timer do WinForms), com o prompt nativo do CAD respondido por quem opera a janela. Os
+        /// marcos do log ("clicando o menu") são o sinal para o script externo mandar a resposta.
+        /// </summary>
+        private static void AgendarRenumeracaoPelaInterface()
+        {
+            Timer timer = new Timer { Interval = 2000 };
+            timer.Tick += (origem, evento) =>
+            {
+                timer.Stop();
+                timer.Dispose();
+                try
+                {
+                    PaletaDeFolhas.Mostrar();
+                    FolhasControle controle = PaletaDeFolhas.Controle;
+                    Plugin.Escrever("RENUM186 UI: " + controle.DescreverInterface());
+                    List<string> alvos = new List<string>();
+                    string pedido = Environment.GetEnvironmentVariable("POSITRON_FOLHA_SELECIONADAS");
+                    if (!string.IsNullOrEmpty(pedido))
+                    {
+                        foreach (string parte in pedido.Split(','))
+                        {
+                            if (parte.Trim().Length > 0) alvos.Add(parte.Trim());
+                        }
+                    }
+
+                    if (alvos.Count > 1) controle.Multiselecao = true;
+                    int achadas = controle.Selecionar(alvos);
+                    Plugin.Escrever("RENUM186 UI: seleção pedida \"" + pedido + "\" (" + achadas + " achada(s))");
+
+                    // O outro caminho da paleta: escolher o formato no próprio combo (o
+                    // `Es6p1Y15jTb`), também fora de comando.
+                    string formato = Environment.GetEnvironmentVariable("POSITRON_FOLHA_FORMATO");
+                    if (!string.IsNullOrEmpty(formato))
+                    {
+                        Capturar(controle, "paginas-antes-do-formato");
+                        controle.EscolherFormatoDaNumeracao(formato);
+                        Plugin.Escrever("RENUM186 UI: PASSOU — combo \"" + formato + "\" → " + controle.UltimaMensagem
+                            + "; páginas depois: " + Lista(controle.Paginas()));
+                        Capturar(controle, "paginas-depois-do-formato");
+                        return;
+                    }
+
+                    DataGridView grade = (DataGridView)controle.Controls["dg"];
+                    ToolStripMenuItem item = null;
+                    foreach (ToolStripItem candidato in grade.ContextMenuStrip.Items)
+                    {
+                        if (candidato.Text == Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas)
+                        {
+                            item = candidato as ToolStripMenuItem;
+                        }
+                    }
+
+                    if (item == null || !item.Enabled)
+                    {
+                        throw new InvalidOperationException("O item \"Renumerar Páginas\" está ausente ou desabilitado.");
+                    }
+
+                    Capturar(controle, "paginas-antes-do-clique");
+                    Plugin.Escrever("RENUM186 UI: clicando o menu — aguardando as respostas no prompt nativo.");
+                    item.PerformClick();
+                    Plugin.Escrever("RENUM186 UI: PASSOU — " + controle.UltimaMensagem
+                        + "; página ativa=" + controle.PaginaAtiva);
+                }
+                catch (Exception erro)
+                {
+                    Plugin.Escrever("RENUM186 UI: FALHOU — " + erro);
+                }
+            };
+            timer.Start();
         }
 
         private static void AgendarProvaDaInterface()

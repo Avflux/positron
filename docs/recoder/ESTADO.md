@@ -4,15 +4,15 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-15, depois da rodada 185)
+## Estado (2026-10-15, depois da rodada 186)
 
 | | valor |
 |---|---|
-| última rodada | **185** |
+| última rodada | **186** |
 | comandos no plugin | **78** escritos à mão (53 do reverso + 25 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **21** com a ligação à regra; 19 que nenhum comando abre |
-| testes (console xUnit; adaptador de `plugin:test` indisponível) | **953** |
+| testes (console xUnit; adaptador de `plugin:test` indisponível) | **971** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
 | host CAD medido | AutoCAD 2020 (interface cheia + `accoreconsole`); o ZWCAD não está instalado nesta máquina (2026-10-15) |
@@ -56,7 +56,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    No original, "Inserir" insere colunas ELET1..5 (`uscPaginas.cs:2466-2565`) e "Nova Página" usa a
    linha selecionada (`:1888-1972`). Faltam a confirmação e as sincronizações do apagar (`:2157-2222`) e
    as teclas Insert/Delete (`:1858-1887`).
-3. **Paleta de folhas fiel ao `uscPaginas`** (`uscPaginas.cs:987-1497`, `paginas.png`, `paginas1.png`).
+3. ✅ *(rodadas 182/183/185/186; os recortes que sobraram estão no item 1 da fila)* **Paleta de folhas fiel ao `uscPaginas`** (`uscPaginas.cs:987-1497`, `paginas.png`, `paginas1.png`).
    - Sair: o rodapé inventado, a coluna `PgAtiva`, o negrito, as dicas e o Alternativo ligado por padrão
      (o original lê o registro `Altern`, padrão `"0"`).
    - Corrigir: a ordem Página | Unidade | Alternativo, o texto "Apagar Páginas" (mMensagem 21) e
@@ -74,16 +74,18 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
 
-1. **Fechar a rodada 183 (Páginas / Editar os Títulos):** GUI AutoCAD validada (menu, descarte,
-   aplicação fora de comando, Alternativo, novo DWG e retorno); falta repetir no ZWCAD e exercitar
-   título 4/D/A/V e todos os atalhos. `Pagina.restauraCampos` específico portado na **184**;
-   falta medir sem formato/rollback/colunas/configuração em fixture e investigar saída anômala
-   do AutoCAD GUI. Portar Excel ativo; completar Renumerar lote/inline,
-   combo de largura e status de conexões/progresso. Prompts Unidade/Alternativo em multiseleção
-   portados e medidos na **185** (core e GUI/fora de comando, cancelamento/padrão; novo DWG sem menu,
-   retorno MDI). Falta repetir edição após retorno e no ZWCAD; auditar preservação de extensões
-   no buffer Eletron/Unidade (o adapter atual recria quatro valores).
-   Prova e passos em `rodadas/183-paginas-editar-titulos.md`; não dar o item 3 do básico por encerrado.
+1. **Fechar a rodada 183 (Páginas / Editar os Títulos)** — o que sobrou:
+   - Excel ativo (`clsTextos.ExportaPaginas/ImportaTitulos`, exportar/importar por página/índice);
+   - **renumeração inline** da célula Página (primeira linha protegida) e o status do banco ligado ao
+     contador de conexões; progresso compartilhado pelas rotinas longas;
+   - título 4/D/A/V e os seis atalhos em GUI; repetir edição após o retorno MDI e no ZWCAD;
+   - auditar a preservação de extensões no buffer `Eletron`/`Unidade` (o adapter recria quatro valores);
+   - `medir a mMensagem 27` no CAD precisa de um desenho com 27 páginas (o `Funcional.dwg` tem 16);
+   - **saída anômala do `acad.exe`** no fim do ensaio de GUI (183/184/186: 51100350, 48151230,
+     -840123714, 27703998 — nunca zero): investigar a causa;
+   - o `frmConfiguracaoBDProjeto` abre no arranque (tipo E sem banco válido) e **rouba o foco** do prompt
+     nativo (medido na 186): no uso real é uma tela a mais antes de tudo.
+   Prova e passos em `rodadas/183-paginas-editar-titulos.md`, `184-…`, `185-…` e `186-…`.
 2. **`clsApagar.ApagarDerivados`** (`clsApagar.cs:9`), chamado pelo `ApagarElementosPagina` antes do
    `Erase` — a polyline irmã de interligação tipo 2, a máscara, a inserção do contato auxiliar e os
    contatos de modelo / complementar do dispositivo principal (saiu da rodada 182).
@@ -107,7 +109,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 185 | 2026-10-15 | *(este)* | prompts nativos Unidade/Alternativo pelo menu, 2 páginas/14 preservadas, 4 campos recalculados; 953 testes e builds sem avisos; GUI com novo DWG/retorno, host final exit 0 | `rodadas/185-unidade-alternativo-da-paleta.md` |
+| 186 | 2026-10-15 | *(este)* | `Renumerar Páginas` com destino (capa/selecionada/outra/não cabe, ramos numérico e alfanumérico, ordem da grade) e a ação do combo `Folha` (largura no XData + renormalizar); 971 testes, builds 0 avisos, core e GUI AutoCAD medidos | `rodadas/186-renumerar-paginas-e-combo.md` |
+| 185 | 2026-10-15 | `09de9a79` | prompts nativos Unidade/Alternativo pelo menu, 2 páginas/14 preservadas, 4 campos recalculados; 953 testes e builds sem avisos; GUI com novo DWG/retorno, host final exit 0 | `rodadas/185-unidade-alternativo-da-paleta.md` |
 | 184 | 2026-10-15 | `70c05d8a` | restauraCampos específico antes do editor, sem cadeia da troca de formato; 947 testes, core e paleta não modal medidos; limites de GUI/host registrados | `rodadas/184-restaurar-campos-do-editor.md` |
 | 183 | 2026-10-15 | `e959d0dd` | Páginas sem rodapé inventado; cabeçalho/atalhos/Altern; grade não modal Editar os Títulos, 15 páginas/51 textos medidos; GUI AutoCAD validada com clique, descarte e troca MDI; recortes funcionais pendentes | `rodadas/183-paginas-editar-titulos.md` |
 | 182 | 2026-10-15 | `d6d1466d` | folhas pela paleta: `Inserir` de colunas `ELET1..5`, `Nova Página` pela linha selecionada, `Apagar Páginas` com confirmação/capa/sincronizações, `LockDocument` e Insert/Delete | `rodadas/182-folhas-inserir-apagar.md` |
@@ -116,4 +119,3 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 | 179 | 2026-10-15 | `86907aaf` | `TROCTT`: troca DE → PARA em títulos 1..4, textos e multitextos das páginas escolhidas | `rodadas/179-edita-titulos-textos.md` |
 | 178 | 2026-10-15 | `e3c69237` | `PESQCAB`: cabos do catálogo (deste DWG e de outros), veias com o `OrdenaVeias`, ir até a veia; `TCHAVE` fora (licença) | `rodadas/178-pesquisa-cabos.md` |
 | 177 | 2026-10-15 | `e4f19340` | `PESQC`: veias indefinidas na grade, ir até a veia (página, zoom, realce) | `rodadas/177-pesquisa-veias-indefinidas.md` |
-| 176 | 2026-10-15 | `054b001a` | `EDCON`/`EDCONP`: seção e cor das conexões por seleção e por página, tela ligada | `rodadas/176-edicao-secao-cor-conexoes.md` |

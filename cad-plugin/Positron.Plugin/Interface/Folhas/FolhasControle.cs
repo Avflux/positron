@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using Positron.Data.Configuracao;
 using Positron.Data.Interface;
+using Positron.Plugin.Configuracao;
 using Positron.Data.Paginas;
 using Positron.Plugin.Paginas;
 #if AUTOCAD
@@ -222,13 +224,12 @@ namespace Positron.Plugin.Interface.Folhas
             excluir.Click += (origem, evento) => ExecutarNaTela(() => ApagarSelecionadas());
             menu.Items.Add(excluir);
 
-            // 7 - o `RENPAGA`: a mMensagem 22 diz "Renumerar", e é isso que a regra faz.
+            // 7 - o `Renumerar Páginas` (mMensagem 22): o `C8Op1CM1YgS` — pergunta o destino
+            // (mMensagem 24) e move as linhas **selecionadas** a partir dele. Não é o `RENPAGA`,
+            // que aplica sufixo ao caderno inteiro.
             ToolStripMenuItem renumerar = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas);
             Icone(renumerar, "Renomear");
-            renumerar.ToolTipText = "aplica o sufixo do campo ao lado nas páginas do caderno";
-            // C8Op1CM1YgS (lote a partir de número informado) ainda não portado.
-            // Não reutilizar o RENPAGA, que aplica sufixo e não é esta operação.
-            renumerar.Enabled = false;
+            renumerar.Click += (origem, evento) => ExecutarNaTela(() => RenumerarSelecionadas());
             menu.Items.Add(renumerar);
 
             menu.Items.Add(new ToolStripSeparator());
@@ -287,17 +288,26 @@ namespace Positron.Plugin.Interface.Folhas
             menu.Items.Add(new ToolStripSeparator());
 
             // 14 - o `Folha`: no original é um **combo** no menu, com os seis formatos literais.
+            // Escolher (ou digitar) um formato é o `Es6p1Y15jTb` (`uscPaginas.cs:2389`): grava a
+            // largura na configuração do desenho e renumera **todas** as páginas.
             ToolStripComboBox folha = _formatoDaNumeracao = new ToolStripComboBox
             {
                 Name = "FolhaToolStripMenuItem",
                 FlatStyle = FlatStyle.Standard,
                 BackColor = Color.LightGray,
-                ToolTipText = "o formato da folha (o original grava no layer da página; a regra não foi portada)",
             };
             foreach (string formato in Positron.Data.Interface.MensagensDoReverso.FormatosDeFolha)
             {
                 folha.Items.Add(formato);
             }
+
+            folha.TextChanged += (origem, evento) =>
+            {
+                // A carga da paleta escreve o texto do combo; o original tem a mesma guarda
+                // (o `fKqplRiGop5` em volta do `CarregaPG`).
+                if (_carregando) return;
+                ExecutarNaTela(() => AplicarFormatoDaNumeracao());
+            };
 
             menu.Items.Add(folha);
 
@@ -429,6 +439,128 @@ namespace Positron.Plugin.Interface.Folhas
                     ? "; o formato não tem essa coluna nas páginas " + string.Join(", ", semColuna.ToArray())
                     : string.Empty) + ".";
             return UltimaMensagem;
+        }
+
+        /// <summary>
+        /// O item **Renumerar Páginas** — o `C8Op1CM1YgS` do original (`uscPaginas.cs:2247-2390`):
+        /// tira a primeira linha da seleção, pergunta "Mover para página?" (mMensagem 24),
+        /// **volta a perguntar** enquanto a resposta é recusada, move as linhas selecionadas pela
+        /// regra pura (<see cref="RenumeracaoComDestino"/>) e roda as sincronizações do original.
+        /// </summary>
+        internal string RenumerarSelecionadas()
+        {
+            // O original tira a **primeira linha** da seleção antes de montar as duas listas
+            // (`dg.Rows[0].Selected = false`): ela volta para o lado das não selecionadas — o
+            // destino que já existe e o limite do espaço contam com ela (é a capa, que não se move).
+            if (_grade.Rows.Count > 0 && _grade.Rows[0].Selected)
+            {
+                _grade.Rows[0].Selected = false;
+            }
+
+            // As duas listas do original saem do mesmo laço sobre `dg.Rows` **na ordem da grade**
+            // (ao contrário do Inserir e do Apagar, que percorrem `dg.SelectedRows`): é essa ordem
+            // que casa cada página selecionada com o seu nome novo.
+            List<string> escolhidas = new List<string>();
+            List<string> outras = new List<string>();
+            foreach (DataGridViewRow linha in _grade.Rows)
+            {
+                if (linha.Cells.Count == 0)
+                {
+                    continue;
+                }
+
+                string pagina = Convert.ToString(linha.Cells[0].Value);
+                if (linha.Selected)
+                {
+                    escolhidas.Add(pagina);
+                }
+                else
+                {
+                    outras.Add(pagina);
+                }
+            }
+
+            Positron.Data.Configuracao.ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
+            string titulo = MensagensDoReverso.RenumerarPaginas;
+            while (true)
+            {
+                string resposta;
+                if (!PerguntaDeRenumeracao.Perguntar(out resposta))
+                {
+                    return UltimaMensagem = titulo + ": cancelado (nenhuma página foi movida).";
+                }
+
+                // A recusa estoura a exceção da regra (o destino que o original também não consegue
+                // converter) e sobe para o `MsgBox` crítico do handler, como lá.
+                RenumeracaoComDestino.Plano plano = RenumeracaoComDestino.Planejar(
+                    resposta, config.LarguraFixaPaginas, config.PassoPagina, escolhidas, outras);
+                if (!plano.Aplicar)
+                {
+                    // O `Interaction.MsgBox` do original está **dentro** do laço: avisa e pergunta de novo.
+                    Aviso.MsgBox(plano.Aviso, "Elétron");
+                    continue;
+                }
+
+                int renomeados = PaginasDoDesenho.Renomear(escolhidas, plano.Novas);
+                Carregar();
+
+                // A família de sincronizações do original (o mesmo stand-in do `Apagar Páginas`).
+                Plugin.Escrever(titulo + " — sincronizações: " + Comandos.SincronizacoesDoCaderno());
+                return UltimaMensagem = titulo + ": " + renomeados + " de " + escolhidas.Count
+                    + " página(s) movida(s) a partir de \"" + plano.Destino + "\"" + Pares(escolhidas, plano.Novas) + ".";
+            }
+        }
+
+        /// <summary>
+        /// O corpo do `Es6p1Y15jTb` — a escolha do formato no combo `Folha`
+        /// (`uscPaginas.cs:2389-2455`): grava a largura fixa no XData de configuração do desenho
+        /// (o `GravarXDataConfiguracao`), normaliza **todas** as páginas pelo `montaNumeroPagina` e
+        /// renomeia os layers. Um texto que não é um dos seis literais não mexe na largura (o
+        /// `switch` do original não tem `default`), mas a renumeração acontece igual.
+        /// </summary>
+        private string AplicarFormatoDaNumeracao()
+        {
+            string literal = _formatoDaNumeracao.Text;
+            int largura;
+            bool conhecido = RenumeracaoComDestino.LarguraDoFormatoLiteral(literal, out largura);
+            ConfiguracaoDoCaderno caderno = ConfiguracaoDoDesenho.LerOuPadrao();
+            if (caderno == null)
+            {
+                return UltimaMensagem = "Folha: sem desenho ativo.";
+            }
+
+            if (conhecido)
+            {
+                caderno.LarguraFixaPaginas = largura;
+            }
+
+            bool gravada = ConfiguracaoDoDesenho.GravarConfig(caderno);
+            List<string> antigas = PaginasDaGrade();
+            IReadOnlyList<string> novas = RenumeracaoComDestino.Normalizar(antigas, caderno.LarguraFixaPaginas);
+            int renomeados = PaginasDoDesenho.Renomear(antigas, novas);
+            Carregar();
+            AplicacaoDoCad.UpdateScreen();
+            return UltimaMensagem = "Folha: " + renomeados + " de " + antigas.Count
+                + " página(s) renumerada(s) com a largura " + caderno.LarguraFixaPaginas
+                + (conhecido ? string.Empty : " (o texto \"" + literal + "\" não é um formato do combo; a largura foi mantida)")
+                + (gravada ? "; configuração gravada no desenho." : "; a configuração NÃO pôde ser gravada.");
+        }
+
+        /// <summary>Os pares antigo→novo da movimentação, para o resumo do `pzFolhas`.</summary>
+        private static string Pares(IReadOnlyList<string> antigas, IReadOnlyList<string> novas)
+        {
+            if (antigas == null || novas == null || antigas.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            List<string> pares = new List<string>();
+            for (int i = 0; i < antigas.Count && i < novas.Count; i++)
+            {
+                pares.Add(antigas[i] + "->" + novas[i]);
+            }
+
+            return " (" + string.Join(", ", pares.ToArray()) + ")";
         }
 
         /// <summary>
@@ -633,6 +765,32 @@ namespace Positron.Plugin.Interface.Folhas
             }
 
             return achadas;
+        }
+
+        /// <summary>
+        /// O harness escolhe o formato **pelo próprio combo** (o caminho do usuário): o texto novo
+        /// dispara o mesmo `TextChanged` do `Es6p1Y15jTb`.
+        /// </summary>
+        internal string EscolherFormatoDaNumeracao(string literal)
+        {
+            int indice = _formatoDaNumeracao.Items.IndexOf(literal);
+            if (indice >= 0)
+            {
+                // O caminho do usuário: escolher o item da lista, não digitar no campo.
+                _formatoDaNumeracao.SelectedIndex = indice;
+            }
+            else
+            {
+                _formatoDaNumeracao.Text = literal;
+            }
+
+            return UltimaMensagem;
+        }
+
+        /// <summary>O texto atual do combo `Folha` (a prova confere se a carga o devolveu).</summary>
+        internal string FormatoDaNumeracao()
+        {
+            return _formatoDaNumeracao.Text;
         }
 
         /// <summary>A multiseleção da grade (o item do menu) — o harness liga pela prova das recusas.</summary>

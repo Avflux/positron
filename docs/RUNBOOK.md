@@ -777,6 +777,31 @@ Não rodar dois `cad-autocad-smoke.ps1` no mesmo segundo: os nomes temporários 
 precisão de segundo (log/script/cópia do desenho). Na rodada 183 as execuções paralelas colidiram e
 misturaram logs. Repetir isoladamente antes de atribuir a saída ao desenho ou à DLL testada.
 
+### Medir a paleta na GUI do AutoCAD: autoload, a janela do banco e as teclas (rodada 186)
+
+Quatro coisas medidas ao rodar a paleta com janela visível (o `pzFolhas` + Timer fora de comando, com
+as respostas do prompt nativo por `WScript.Shell.SendKeys`):
+
+- **Reinstale o bundle depois de CADA build.** A interface cheia carrega o plugin pelo **autoload** e o
+  `NETLOAD` de outro caminho **não** substitui o assembly já carregado no AppDomain (mesma identidade):
+  a sessão roda a DLL do pacote e o sintoma é um `POSITRON_FOLHA_ACAO` novo cair no caminho genérico
+  ("sem ação"). A conferência é a segunda linha do log (`Positron: DLL de <data> — <caminho>`): a data
+  tem de bater com a do `bin\Debug\AutoCAD\net472`. Corrija com
+  `scripts/instala-bundle.ps1 -Cad AutoCAD` **antes** de lançar o CAD.
+- **A janela "Banco de Dados do Projeto" (`frmConfiguracaoBDProjeto`) rouba o foco.** O arranque a abre
+  quando o desenho ainda não tem banco válido (o `IniciarDWG`, tipo `E`); se ela estiver na frente, os
+  `SendKeys` vão para ela (e "respondem" no formulário: medido — o `tbProjeto` recebeu o texto do prompt
+  e o desenho passou a apontar para o `.mdb`). Feche-a pelo título antes de mandar teclas
+  (`FindWindow(null, "Banco de Dados do Projeto")` + `PostMessage(0x0010)`) e confira o foco antes de
+  cada resposta (`GetForegroundWindow`/`GetWindowText` — o alvo é `Autodesk AutoCAD 2020 - [<dwg>]`).
+- **O handshake pelo log funciona.** O `Plugin.Escrever` usa `File.AppendAllText` (abre e fecha a cada
+  linha), então um script externo pode esperar um marco ("clicando o menu") antes de mandar a primeira
+  tecla, em vez de dormir um tempo fixo.
+- **`-Banco` fora do `%TEMP%`.** O `scripts/cad-autocad-smoke.ps1` cria o `.db` a partir do `schema.sql`
+  com o python do sidecar, que **não** tem permissão de escrita no `%TEMP%` (`unable to open database
+  file`): passe `-Banco` dentro da árvore do repo (`.tmp-smoke\provas\…`). O mesmo motivo já está no
+  cabeçalho do `cad-projeto-e2e.ps1`.
+
 ### `npm run plugin:test` sai 0 sem rodar teste nenhum (o adaptador do xunit não carrega)
 
 **Medido na rodada 148, com o SDK 10.0.100-rc e o `xunit.runner.visualstudio` 2.8.2:** o

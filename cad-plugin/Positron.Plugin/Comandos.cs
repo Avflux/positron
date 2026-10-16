@@ -1392,9 +1392,7 @@ namespace Positron.Plugin
                     + (recusadas.Count > 0 ? " Recusadas: " + string.Join("; ", recusadas.ToArray()) + "." : string.Empty);
 
                 // As sincronizações do apagar — o stand-in do recoder (ver o remarks).
-                retorno.Sincronizacoes = "[1/3] " + ExecutarCorrigirModelosDeContatos()
-                    + " [2/3] " + ExecutarFiacao()
-                    + " [3/3] " + ExecutarInterligacao();
+                retorno.Sincronizacoes = SincronizacoesDoCaderno();
 
                 return retorno;
             }
@@ -1403,6 +1401,24 @@ namespace Positron.Plugin
                 retorno.Resumo = "APAGAPAGINA: falhou — " + DescreverErro(erro) + ".";
                 return retorno;
             }
+        }
+
+        /// <summary>
+        /// O **stand-in** das sincronizações que o original roda depois de mexer no caderno — a
+        /// família <c>clsConexao.sincronizaCircuitos</c>, <c>clsInterligacao.SincronizaCruzamentoInterlig</c>,
+        /// <c>clsDePara.SincronizaDePara(false)</c>, <c>clsDispositivoAuxiliares.*</c> e
+        /// <c>clsPortas.SincronizaPortas</c> **não está portada** (é o mesmo "fora do recorte" dos
+        /// <c>SYNCD</c>/<c>SYNCV</c>/<c>RESTPROJ</c>): quem faz esse papel é o pipeline do
+        /// <c>SYNCD</c> — os modelos de contatos e a projeção (<c>FIA</c> + <c>INT</c>).
+        ///
+        /// Chamam-no o `Apagar Páginas` (`cPup1SWxSYc`) e o `Renumerar Páginas`
+        /// (`C8Op1CM1YgS`), que no original rodam a mesma família.
+        /// </summary>
+        internal static string SincronizacoesDoCaderno()
+        {
+            return "[1/3] " + ExecutarCorrigirModelosDeContatos()
+                + " [2/3] " + ExecutarFiacao()
+                + " [3/3] " + ExecutarInterligacao();
         }
 
         /// <summary>

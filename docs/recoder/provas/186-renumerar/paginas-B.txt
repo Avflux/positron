@@ -1,0 +1,18 @@
+PAGINA;0;xdata=ausente
+PAGINA;1;xdata=((1000 . Unidade) (1000 . CAPA) (1000 . ))
+PAGINA;7A;xdata=((1000 . Unidade) (1000 . ÍNDICE) (1000 . ))
+PAGINA;8;xdata=((1000 . Unidade) (1000 . TRIFILAR) (1000 . ))
+PAGINA;1000;xdata=((1000 . Unidade) (1000 . ) (1000 . ))
+PAGINA;15;xdata=((1000 . Unidade) (1000 . ALIMENT. 125Vcc) (1000 . ))
+PAGINA;20;xdata=((1000 . Unidade) (1000 . CMD 52-X2) (1000 . ))
+PAGINA;24;xdata=((1000 . Unidade) (1000 . PROG. CHAVE) (1000 . ))
+PAGINA;21;xdata=((1000 . Unidade) (1000 . SUPERVISÃO) (1000 . ))
+PAGINA;23;xdata=((1000 . Unidade) (1000 . ILUM. E AQUEC.) (1000 . ))
+PAGINA;7B;xdata=((1000 . Unidade) (1000 . UNIFILAR) (1000 . ))
+PAGINA;7;xdata=((1000 . Unidade) (1000 . UNIFILAR) (1000 . ))
+PAGINA;22;xdata=((1000 . Unidade) (1000 . SUPERVISÃO) (1000 . ))
+PAGINA;19;xdata=((1000 . Unidade) (1000 . CMD 52-X1) (1000 . ))
+PAGINA;16;xdata=((1000 . Unidade) (1000 . SELEÇÃO AUTOM.) (1000 . ))
+PAGINA;17;xdata=((1000 . Unidade) (1000 . SELEÇÃO DO GGE) (1000 . ))
+PAGINA;18;xdata=((1000 . Unidade) (1000 . SELEÇÃO  COMANDOS) (1000 . ))
+TOTAL;17

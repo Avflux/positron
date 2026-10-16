@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Positron.Data.Interface;
 using Positron.Data.Paginas;
 
@@ -20,6 +21,17 @@ namespace Positron.Plugin.Interface
         internal const string VariavelAlternativo = "POSITRON_ALTERNATIVO";
 
         internal const string PrefixoTitulo = "POSITRON_TITULO";
+
+        /// <summary>
+        /// A variável da pergunta **repetível** da renumeração (o `Mover para página?` do menu):
+        /// uma fila de respostas separadas por `;`, consumida uma por prompt — é assim que o
+        /// harness prova a recusa que **volta a perguntar** e a resposta seguinte que aplica.
+        /// </summary>
+        internal const string VariavelMoverPara = "POSITRON_MOVER_PARA";
+
+        private static readonly Queue<string> FilaDaMovimentacao = new Queue<string>();
+
+        private static bool _filaCarregada;
 
         /// <summary>O valor do campo pelo rótulo do form (os dois que a paleta edita).</summary>
         internal static bool Campo(string rotulo, out string valor)
@@ -48,6 +60,45 @@ namespace Positron.Plugin.Interface
 
             valor = doAmbiente;
             return true;
+        }
+
+        /// <summary>
+        /// A próxima resposta da fila do `Mover para página?`. Devolve <c>false</c> quando a fila
+        /// acabou (ou nunca existiu).
+        /// </summary>
+        internal static bool Movimentacao(out string valor)
+        {
+            valor = null;
+            if (!_filaCarregada)
+            {
+                _filaCarregada = true;
+                string doAmbiente = Environment.GetEnvironmentVariable(VariavelMoverPara);
+                if (doAmbiente != null)
+                {
+                    foreach (string parte in doAmbiente.Split(';'))
+                    {
+                        FilaDaMovimentacao.Enqueue(parte);
+                    }
+                }
+            }
+
+            if (FilaDaMovimentacao.Count == 0)
+            {
+                return false;
+            }
+
+            valor = FilaDaMovimentacao.Dequeue();
+            return true;
+        }
+
+        /// <summary>
+        /// O harness está no comando da pergunta repetível: com a variável definida (mesmo sem
+        /// resposta na fila) **não** se abre o prompt nativo — um script não tem quem o responda, e
+        /// o laço do original insistiria para sempre.
+        /// </summary>
+        internal static bool MovimentacaoAtiva
+        {
+            get { return Environment.GetEnvironmentVariable(VariavelMoverPara) != null; }
         }
 
         /// <summary>
