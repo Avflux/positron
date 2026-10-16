@@ -1,3 +1,5 @@
+﻿using System.Collections.Generic;
+using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
 using Positron.Data.Paginas;
 using Xunit;
@@ -54,6 +56,47 @@ namespace Positron.Data.Tests
             Assert.False(DerivadosDaExclusao.RotuloDoTrecho("", "2A3F"));
             Assert.False(DerivadosDaExclusao.RotuloDoTrecho("2A3F", null));
             Assert.False(DerivadosDaExclusao.RotuloDoTrecho(null, null));
+        }
+
+        private static List<TypedXData> Registro(string app, object tipo)
+        {
+            return new List<TypedXData> { new TypedXData(1001, app), new TypedXData(1000, tipo) };
+        }
+
+        [Theory]
+        [InlineData("P")]
+        [InlineData("A")]
+        [InlineData("M")]
+        [InlineData("E")]
+        public void Tipo_do_dispositivo_e_o_campo_1_do_xdata_dispositivo(string tipo)
+        {
+            Assert.Equal(tipo, DerivadosDaExclusao.TipoDoDispositivo(Registro("DISPOSITIVO", tipo), null));
+        }
+
+        [Fact]
+        public void Sem_dispositivo_o_importado_vira_I_e_sem_nenhum_e_vazio()
+        {
+            Assert.Equal("I", DerivadosDaExclusao.TipoDoDispositivo(null, Registro("IMPORTADO", "x")));
+            Assert.Equal(string.Empty, DerivadosDaExclusao.TipoDoDispositivo(null, null));
+        }
+
+        [Fact]
+        public void Dispositivo_prevalece_sobre_o_importado()
+        {
+            Assert.Equal("A", DerivadosDaExclusao.TipoDoDispositivo(Registro("DISPOSITIVO", "A"), Registro("IMPORTADO", "x")));
+        }
+
+        [Theory]
+        [InlineData("INSERCAO", true)]
+        [InlineData("insercaona", true)]
+        [InlineData("InsercaoNF", true)]
+        [InlineData("INSERCAOX", false)]
+        [InlineData("TAG", false)]
+        [InlineData("", false)]
+        [InlineData(null, false)]
+        public void Atributos_de_insercao(string tag, bool esperado)
+        {
+            Assert.Equal(esperado, DerivadosDaExclusao.AtributoDeInsercao(tag));
         }
     }
 }

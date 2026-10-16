@@ -162,7 +162,7 @@ namespace Positron.Plugin.Correcoes
         /// registro antigo (do <c>Modelo</c> ou do legado <c>MODELO</c>) e põe o novo
         /// no fim, preservando os outros app names do bloco.
         /// </summary>
-        private static IReadOnlyList<TypedXData> TrocandoOModelo(
+        internal static IReadOnlyList<TypedXData> TrocandoOModelo(
             IReadOnlyList<TypedXData> todos,
             BlocoModelo modelo)
         {

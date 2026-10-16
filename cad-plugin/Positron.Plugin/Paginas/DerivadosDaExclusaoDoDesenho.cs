@@ -1,6 +1,11 @@
 using System;
+using Positron.Data;
+using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
+using Positron.Data.Modelos;
 using Positron.Data.Paginas;
+using Positron.Plugin.Bornes;
+using Positron.Plugin.Correcoes;
 #if AUTOCAD
 using Autodesk.AutoCAD.DatabaseServices;
 #else
@@ -22,41 +27,110 @@ namespace Positron.Plugin.Paginas
     /// (<c>catch</c> vazio do <c>ApagarDerivados</c>): o derivado que não deu para apagar não impede
     /// a exclusão da página.
     ///
-    /// Os ramos do dispositivo (<c>promoveComplementar</c>/<c>ApagaContatosModeloDispositivo</c>), do
-    /// contato auxiliar (<c>limpaInsercaoTabela</c>) e da máscara (<c>ApagaAMascara</c>) não estão
-    /// portados (fila do <c>ESTADO.md</c>).
+    /// O ramo do **contato auxiliar** (tipo <c>A</c> do <c>verificaTipoDispositivo</c>) chama a
+    /// <c>clsDispositivoAuxiliares.limpaInsercaoTabela(handle)</c> (<c>:2656</c>): o primeiro bloco de
+    /// modelo cujo <c>HandleContatoAux</c> é o handle do contato apagado tem os atributos
+    /// <c>INSERCAO</c>/<c>INSERCAONA</c>/<c>INSERCAONF</c> zerados e o <c>HandleContatoAux</c> esvaziado.
+    ///
+    /// Os ramos do dispositivo (<c>promoveComplementar</c>/<c>ApagaContatosModeloDispositivo</c>) e da
+    /// máscara (<c>ApagaAMascara</c>) não estão portados (fila do <c>ESTADO.md</c>).
     /// </summary>
     internal static class DerivadosDaExclusaoDoDesenho
     {
         /// <summary>Apaga os derivados da entidade; devolve quantas entidades **extras** saíram.</summary>
         internal static int Apagar(Entity entidade, Transaction transacao, Database banco, BlockTableRecord espaco)
         {
-            Polyline polyline = entidade as Polyline;
-            if (polyline == null)
+            if (entidade == null)
             {
                 return 0;
             }
 
             try
             {
-                ResultBuffer xdata = polyline.GetXDataForApplication(InterligacaoXData.AppName);
-                InterligacaoXData interligacao;
-                if (xdata == null || !InterligacaoXData.Ler(XDataNeutro.Para(xdata), out interligacao))
+                Polyline polyline = entidade as Polyline;
+                if (polyline != null)
                 {
-                    return 0;
+                    return ApagarDaInterligacao(polyline, transacao, banco, espaco);
                 }
 
-                string handleDaIrma = DerivadosDaExclusao.HandleDaIrma(interligacao);
-                if (handleDaIrma == null)
+                ResultBuffer dispositivo = entidade.GetXDataForApplication(DispositivoFiacaoXData.AppName);
+                ResultBuffer importado = dispositivo == null
+                    ? entidade.GetXDataForApplication(DispositivoFiacaoXData.AppNameImportado)
+                    : null;
+                string tipo = DerivadosDaExclusao.TipoDoDispositivo(
+                    dispositivo == null ? null : XDataNeutro.Para(dispositivo),
+                    importado == null ? null : XDataNeutro.Para(importado));
+                if (string.Equals(tipo, DispositivoFiacaoXData.TipoAuxiliar, StringComparison.OrdinalIgnoreCase))
                 {
-                    return 0;
+                    LimparInsercaoDoModelo(entidade.Handle.ToString(), transacao, banco, espaco);
                 }
 
-                return ApagarIrma(handleDaIrma, transacao, banco, espaco);
+                return 0;
             }
             catch (Exception)
             {
                 return 0;
+            }
+        }
+
+        private static int ApagarDaInterligacao(Polyline polyline, Transaction transacao, Database banco, BlockTableRecord espaco)
+        {
+            ResultBuffer xdata = polyline.GetXDataForApplication(InterligacaoXData.AppName);
+            InterligacaoXData interligacao;
+            if (xdata == null || !InterligacaoXData.Ler(XDataNeutro.Para(xdata), out interligacao))
+            {
+                return 0;
+            }
+
+            string handleDaIrma = DerivadosDaExclusao.HandleDaIrma(interligacao);
+            return handleDaIrma == null ? 0 : ApagarIrma(handleDaIrma, transacao, banco, espaco);
+        }
+
+        /// <summary>
+        /// A <c>limpaInsercaoTabela</c>: o primeiro bloco de modelo cujo <c>HandleContatoAux</c> é
+        /// <paramref name="handleDoContato"/> perde o texto dos atributos de inserção e o handle.
+        /// </summary>
+        private static void LimparInsercaoDoModelo(string handleDoContato, Transaction transacao, Database banco, BlockTableRecord espaco)
+        {
+            foreach (ObjectId id in espaco)
+            {
+                if (id.IsErased)
+                {
+                    continue;
+                }
+
+                BlockReference bloco = transacao.GetObject(id, OpenMode.ForRead) as BlockReference;
+                if (bloco == null)
+                {
+                    continue;
+                }
+
+                ResultBuffer xdata = bloco.GetXDataForApplication(ModeloXData.AppName)
+                    ?? bloco.GetXDataForApplication(ModeloXData.AppNameLegado);
+                BlocoModelo modelo;
+                if (xdata == null
+                    || !ModeloXData.Ler(XDataNeutro.Para(xdata), out modelo)
+                    || !DerivadosDaExclusao.RotuloDoTrecho(modelo.HandleContatoAux, handleDoContato))
+                {
+                    continue;
+                }
+
+                foreach (ObjectId idAtributo in bloco.AttributeCollection)
+                {
+                    AttributeReference atributo = transacao.GetObject(idAtributo, OpenMode.ForWrite) as AttributeReference;
+                    if (atributo != null && DerivadosDaExclusao.AtributoDeInsercao(atributo.Tag))
+                    {
+                        atributo.TextString = string.Empty;
+                    }
+                }
+
+                modelo.HandleContatoAux = string.Empty;
+                BornesDaCorrecao.GarantirAppName(transacao, banco, ModeloXData.AppName);
+                ResultBuffer todos = bloco.XData;
+                bloco.UpgradeOpen();
+                bloco.XData = XDataNeutro.ParaResultBuffer(ContatosAuxiliaresDoDesenho.TrocandoOModelo(
+                    todos == null ? null : XDataNeutro.Para(todos), modelo));
+                return;
             }
         }
 

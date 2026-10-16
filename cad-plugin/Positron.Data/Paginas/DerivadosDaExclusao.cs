@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Positron.Data.Fiacao;
 using Positron.Data.Interligacao;
 
 namespace Positron.Data.Paginas
@@ -12,7 +14,10 @@ namespace Positron.Data.Paginas
     /// <c>INTERLIGACAO</c> de <c>Tipo == 2</c> leva consigo a polyline irmã cujo handle ela guarda
     /// (<c>clsInterligacao.ApagarPL :2087</c>) e os rótulos auxiliares dessa irmã
     /// (<c>ApagarTextosAuxiliaresVeias :2005</c>). Os ramos do dispositivo, do contato auxiliar e da
-    /// máscara ficam na fila do <c>ESTADO.md</c>.
+    /// máscara ficam na fila do <c>ESTADO.md</c> — o do **contato auxiliar** (tipo <c>A</c>,
+    /// <c>clsDispositivoAuxiliares.limpaInsercaoTabela :2656</c>) entra aqui também: a decisão do tipo
+    /// (<see cref="TipoDoDispositivo"/>) e os atributos de inserção que a limpeza zera
+    /// (<see cref="AtributoDeInsercao"/>).
     /// </summary>
     public static class DerivadosDaExclusao
     {
@@ -32,6 +37,32 @@ namespace Positron.Data.Paginas
 
             string handle = (interligacao.Handle ?? string.Empty).Trim();
             return handle.Length == 0 ? null : handle;
+        }
+
+        /// <summary>
+        /// O <c>XDataDispositivo.verificaTipoDispositivo</c> (<c>XDataDispositivo.cs:15</c>): o tipo
+        /// (campo +1) do XData <c>DISPOSITIVO</c>; sem ele, <c>"I"</c> se a entidade tem <c>IMPORTADO</c>;
+        /// vazio nos outros casos. <paramref name="dispositivo"/> e <paramref name="importado"/> são os
+        /// registros de cada app name (<c>null</c> quando a entidade não os tem).
+        /// </summary>
+        public static string TipoDoDispositivo(IReadOnlyList<TypedXData> dispositivo, IReadOnlyList<TypedXData> importado)
+        {
+            if (dispositivo != null)
+            {
+                return dispositivo.Count > 1 ? Convert.ToString(dispositivo[1].Valor) ?? string.Empty : string.Empty;
+            }
+
+            return importado != null ? "I" : string.Empty;
+        }
+
+        /// <summary>
+        /// É um dos atributos que a <c>limpaInsercaoTabela</c> zera (<c>INSERCAO</c>, <c>INSERCAONA</c> ou
+        /// <c>INSERCAONF</c>, em maiúsculas)?
+        /// </summary>
+        public static bool AtributoDeInsercao(string tag)
+        {
+            string maiusculo = (tag ?? string.Empty).ToUpperInvariant();
+            return maiusculo == "INSERCAO" || maiusculo == "INSERCAONA" || maiusculo == "INSERCAONF";
         }
 
         /// <summary>
