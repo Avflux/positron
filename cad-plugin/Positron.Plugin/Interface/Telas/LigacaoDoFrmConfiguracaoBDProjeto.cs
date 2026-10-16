@@ -100,10 +100,9 @@ namespace Positron.Plugin.Interface.Telas
                 Ligar(projeto.Text.Trim());
                 janela.Close();
             }
-            catch (Exception erro)
+            catch (Exception)
             {
-                // O original engole aqui (o `catch` vazio do `YX7yPFeedB`); a linha de comando registra.
-                Plugin.Escrever("Banco de Dados do Projeto: falhou — " + erro.Message + ".");
+                // O original engole aqui (o `catch` vazio do `YX7yPFeedB`).
             }
         }
 
@@ -116,20 +115,26 @@ namespace Positron.Plugin.Interface.Telas
             ConfiguracaoDoCaderno caderno = ConfiguracaoDoDesenho.LerOuPadrao();
             caderno.DirProjeto = arquivo ?? string.Empty;
             ConfiguracaoDoDesenho.GravarProjeto(caderno);
-            Plugin.Escrever("Banco de Dados do Projeto: o desenho passa a usar \"" + caderno.DirProjeto + "\".");
 
-            // O `yKiycL7IZh`: o índice do DWG pelo nome do arquivo (o `carregaDadosDWG`).
-            int indice = ConfiguracaoEfetiva.IndiceDoDwg(caderno.DirProjeto);
-            if (indice == 0)
+            // O `yKiycL7IZh`: o índice do DWG pelo nome do arquivo (o `carregaDadosDWG`); o erro vai ao
+            // usuário como `MsgBox` crítico.
+            try
             {
-                Aviso.MsgBox("Este arquivo ainda não foi cadastrado!", "Eletron");
-                return;
-            }
+                int indice = ConfiguracaoEfetiva.IndiceDoDwg(caderno.DirProjeto);
+                if (indice == 0)
+                {
+                    Aviso.MsgBox("Este arquivo ainda não foi cadastrado!", "Eletron");
+                    return;
+                }
 
-            string caminho = Path.GetDirectoryName(Application.DocumentManager.MdiActiveDocument.Name) ?? string.Empty;
-            int alterados = new ProjectStore(caderno.DirProjeto).AtualizarDwg(
-                indice, caminho.Length > 0 ? caminho + "\\" : caminho, Environment.UserName, DateTime.Now);
-            Plugin.Escrever("Banco de Dados do Projeto: DWG " + indice + " cadastrado — " + alterados + " linha(s) atualizada(s) (Caminho, Editor, Data).");
+                string caminho = Path.GetDirectoryName(Application.DocumentManager.MdiActiveDocument.Name) ?? string.Empty;
+                new ProjectStore(caderno.DirProjeto).AtualizarDwg(
+                    indice, caminho.Length > 0 ? caminho + "\\" : caminho, Environment.UserName, DateTime.Now);
+            }
+            catch (Exception erro)
+            {
+                Aviso.MsgBoxCritico(erro.Message, "Eletron");
+            }
         }
     }
 }

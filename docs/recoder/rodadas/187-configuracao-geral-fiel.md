@@ -1,6 +1,6 @@
 # Rodada 187 — Configuração geral fiel (frmConfiguracaoGeral)
 
-**Data:** 2026-10-16 · **Commit:** `*(este)*` · **Frente:** 12 — as 127 telas / Correção do básico (item 4) · **Situação:** ✅ completa
+**Data:** 2026-10-16 · **Commit:** `de0ce906` · **Frente:** 12 — as 127 telas / Correção do básico (item 4) · **Situação:** ✅ completa
 
 ## Alvo
 
