@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Positron.Contract;
 using Positron.Data;
@@ -894,17 +894,15 @@ namespace Positron.Plugin
             try
             {
                 ModoSecaoECor? modo = SecaoECorDasConexoesDoDesenho.PerguntarModo();
-                if (!modo.HasValue)
+                if (modo.HasValue)
                 {
-                    Plugin.Escrever("EDCON: cancelado — nada foi alterado.");
-                    return;
+                    SecaoECorDasConexoesDoDesenho.Executar(modo.Value, null);
                 }
-
-                Plugin.Escrever(SecaoECorDasConexoesDoDesenho.Executar(modo.Value, null).Resumo("EDCON"));
             }
             catch (System.Exception erro)
             {
-                Plugin.Escrever("EDCON: falhou — " + DescreverErro(erro) + ".");
+                // O `MsgBox(ex.Message, Information)` do `clsConexao.editarSecaoCor`.
+                Interface.Aviso.MsgBox(erro.Message, "Eletron");
             }
         }
 

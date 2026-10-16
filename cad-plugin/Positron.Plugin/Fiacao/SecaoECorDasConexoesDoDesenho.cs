@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Positron.Data.Fiacao;
@@ -22,7 +22,8 @@ namespace Positron.Plugin.Fiacao
     /// <see cref="SecaoECorDasConexoes"/>.
     ///
     /// Como no original: documento travado, uma transação só, e um cancelamento em qualquer
-    /// prompt não grava nada. O <c>MsgBox</c> do erro vira a linha de resumo.
+    /// prompt não grava nada. Como o original, não escreve nada na linha de comando; o erro vai
+    /// para o <c>MsgBox</c> de quem chama (<c>Aviso.MsgBox</c>).
     /// </summary>
     internal static class SecaoECorDasConexoesDoDesenho
     {
@@ -42,19 +43,6 @@ namespace Positron.Plugin.Fiacao
             internal int Conexoes { get; set; }
 
             internal int Textos { get; set; }
-
-            internal string Resumo(string comando)
-            {
-                if (Cancelado)
-                {
-                    return comando + ": cancelado — nada foi alterado.";
-                }
-
-                string valores = (SecaoECorDasConexoes.PedeSecao(Modo) ? " seção \"" + Secao + "\"" : string.Empty)
-                    + (SecaoECorDasConexoes.PedeCor(Modo) ? " cor \"" + Cor + "\"" : string.Empty);
-                return comando + ":" + valores + " — " + Potenciais + " potencial(is), " + Conexoes
-                    + " conexão(ões) regravada(s), " + Textos + " texto(s) auxiliar(es) reescrito(s).";
-            }
         }
 
         // O `hDTV5h3NAKArXvSEL1u.lwF3Qy6iqF` do original: devolve o foco à janela do desenho

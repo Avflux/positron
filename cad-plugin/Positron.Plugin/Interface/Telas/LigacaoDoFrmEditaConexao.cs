@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Positron.Data.Fiacao;
@@ -48,8 +48,6 @@ namespace Positron.Plugin.Interface.Telas
             {
                 editar.Click += (origem, evento) => Editar(grade);
             }
-
-            Plugin.Escrever("EDCONP: " + paginas.Count + " página(s) na grade.");
         }
 
         private static void Editar(DataGridView grade)
@@ -66,18 +64,15 @@ namespace Positron.Plugin.Interface.Telas
                 }
 
                 ModoSecaoECor? modo = SecaoECorDasConexoesDoDesenho.PerguntarModo();
-                if (!modo.HasValue)
+                if (modo.HasValue)
                 {
-                    Plugin.Escrever("EDCONP: cancelado — nada foi alterado.");
-                    return;
+                    SecaoECorDasConexoesDoDesenho.Executar(modo.Value, selecionadas);
                 }
-
-                Plugin.Escrever(SecaoECorDasConexoesDoDesenho.Executar(modo.Value, selecionadas).Resumo("EDCONP")
-                    + " (" + selecionadas.Count + " página(s) selecionada(s))");
             }
             catch (Exception erro)
             {
-                Plugin.Escrever("EDCONP: falhou — " + erro.Message + ".");
+                // O `MsgBox(ex.Message, Information)` do `clsConexao.editarSecaoCorPaginas`.
+                Aviso.MsgBox(erro.Message, "Eletron");
             }
         }
     }
