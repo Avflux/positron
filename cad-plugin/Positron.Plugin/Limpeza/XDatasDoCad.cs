@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Positron.Data.Limpeza;
 #if AUTOCAD
@@ -83,6 +83,9 @@ namespace Positron.Plugin.Limpeza
 
             int apagados = 0;
             Database banco = documento.Database;
+
+            // `ApagaxDatasSelecionados` (`clsApagaXdatas.cs:112`) trava o documento: a tela é não modal.
+            using (documento.LockDocument())
             using (Transaction transacao = banco.TransactionManager.StartTransaction())
             {
                 BlockTableRecord espaco = EspacoDeModelo(transacao, banco);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Positron.Data.Interface.Mapas;
@@ -18,12 +18,13 @@ namespace Positron.Plugin.Interface.Telas
     /// As telas que **não** estão aqui abrem com a casca fiel e sem comportamento: o que a rodada
     /// entrega é a formatação, e cada ligação entra quando a regra dela existe.
     ///
-    /// Duas diferenças deliberadas em relação ao original, as duas para não travar:
+    /// Uma diferença deliberada em relação ao original, para não travar:
     ///
-    /// - onde o original mostra um `MsgBox` de confirmação/resultado (o "N xData apagados"), o
-    ///   recoder **escreve na linha de comando** — um `MsgBox` num script não tem quem o feche;
     /// - onde o original lê o banco para montar a tela, aqui entra a **regra do recoder** (a mesma
     ///   que o comando equivalente já usa e que já foi medida no desenho real).
+    ///
+    /// Os `MsgBox` do original (o "N xData apagados") chegam ao usuário por <c>Aviso.MsgBox</c>, que só
+    /// no harness (<c>POSITRON_LOG</c>) deixa de abrir o diálogo.
     /// </summary>
     internal static class LigacoesDasTelas
     {

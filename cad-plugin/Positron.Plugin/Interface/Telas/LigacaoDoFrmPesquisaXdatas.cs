@@ -1,4 +1,7 @@
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using Positron.Data.Limpeza;
 
@@ -10,9 +13,8 @@ namespace Positron.Plugin.Interface.Telas
     /// original), o `BtPesquisa` recarrega e o `BtApaga` troca o XData dos escolhidos pela marca
     /// única (o `ApagaxDatasSelecionados`).
     ///
-    /// Este arquivo é o **molde** de uma ligação de tela: o `NomeDaTela` é o do `frm*` do original
-    /// (a chave do mapa) e o `Preencher` acha os controles pelo `Name` do designer e os liga à
-    /// regra do recoder.
+    /// Como o original (`frmPesquisaXdatas.cs`): `MinimumSize 320×500`, larguras 70/30%, e o
+    /// resultado do apagar num `MsgBox` ("N xData apagados").
     /// </summary>
     internal sealed class LigacaoDoFrmPesquisaXdatas : ILigacaoDeTela
     {
@@ -40,6 +42,10 @@ namespace Positron.Plugin.Interface.Telas
                 incluir.Checked = false;
                 incluir.Visible = false;
             }
+
+            // Do designer: largura presa em 320, altura de 500 a 1500.
+            janela.MinimumSize = new Size(320, 500);
+            janela.MaximumSize = new Size(320, 1500);
 
             if (pesquisar != null)
             {
@@ -73,43 +79,40 @@ namespace Positron.Plugin.Interface.Telas
                 grade.Rows.Add(contagem.Nome, contagem.Quantidade);
             }
 
-            // a medida fica na linha de comando: e por ela que o harness ve o que a tela leu
-            List<string> nomes = new List<string>();
-            int mostrados = 0;
-            foreach (ContagemDeXData contagem in contagens)
-            {
-                if (mostrados == 8)
-                {
-                    nomes.Add("...");
-                    break;
-                }
+            Larguras(grade);
+        }
 
-                nomes.Add(contagem.Nome + " (" + contagem.Quantidade + ")");
-                mostrados++;
+        /// <summary>
+        /// O `wRjp6jaJG6g`: 70% / 30% da largura menos 4 (ou menos 21 com a barra de rolagem).
+        /// </summary>
+        private static void Larguras(DataGridView grade)
+        {
+            if (grade.Columns.Count < 2)
+            {
+                return;
             }
 
-            Plugin.Escrever("APAGARXDATA: " + contagens.Count + " app name(s) de XData na grade"
-                + (incluirEletron ? " (incluindo os do Elétron)" : " (só os de terceiros)")
-                + (nomes.Count > 0 ? ": " + string.Join(", ", nomes.ToArray()) : string.Empty) + ".");
+            VScrollBar barra = grade.Controls.OfType<VScrollBar>().FirstOrDefault();
+            double util = grade.Width - (barra != null && barra.Visible ? 21 : 4);
+            grade.Columns[0].Width = (int)Math.Round(util * 0.7);
+            grade.Columns[1].Width = (int)Math.Round(util * 0.3);
         }
 
         private static void ApagarXDatas(DataGridView grade, CheckBox incluir)
         {
+            // O original varre as linhas pela ordem da grade (`Rows[i].Selected`).
             List<string> escolhidos = new List<string>();
-            foreach (DataGridViewRow linha in grade.SelectedRows)
+            foreach (DataGridViewRow linha in grade.Rows)
             {
-                if (linha.Cells.Count > 0 && linha.Cells[0].Value != null)
+                if (linha.Selected)
                 {
-                    escolhidos.Add(linha.Cells[0].Value.ToString());
+                    escolhidos.Add(Convert.ToString(linha.Cells[0].Value));
                 }
             }
 
             int apagados = Limpeza.XDatasDoCad.Apagar(escolhidos);
             CarregarXDatas(grade, incluir);
-
-            // O original fecha com um MsgBox ("N xData apagados"); aqui vai para a linha de
-            // comando, que o harness le.
-            Plugin.Escrever("APAGARXDATA: " + apagados + " xData apagado(s).");
+            Aviso.MsgBox(apagados + " xData apagados", string.Empty);
         }
     }
 }
