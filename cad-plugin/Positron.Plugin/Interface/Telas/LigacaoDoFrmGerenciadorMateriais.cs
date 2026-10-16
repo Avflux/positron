@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
@@ -32,19 +32,23 @@ namespace Positron.Plugin.Interface.Telas
     ///   adicionar, `E` = editar) vai para o banco **na ordem do original**, a grade é recarregada e
     ///   as caixas são limpas.
     ///
-    /// **Duas diferenças deliberadas** (as duas registradas no RUNBOOK, rodada 149): o original
-    /// pergunta "Salvar Alterações?" num `MsgBox` **ao fechar** a janela (e o `sim` chama o mesmo
-    /// `iaGppGHMjAT`) — o recoder **não salva ao fechar**, só avisa na linha de comando; e a linha
-    /// recém-acrescentada tem `0` na coluna do índice original, que o original joga na lista de
-    /// apagados ao ser removida da tela (`RemoveMaterial(0)`) — aqui o `0` **não** entra na lista,
-    /// porque apagar um material de código 0 seria apagar outro material.
+    /// **Como o original** (<c>frmGerenciadorMateriais.cs:834</c>): banco inválido ou DWG sem cadastro →
+    /// <c>MsgBox</c> 331; as ações dos botões são **silenciosas** (nenhuma mensagem); ao fechar com
+    /// alteração, "Salvar Alterações?" (<c>MsgBox</c> Sim/Não, título "Elétron") e o `Sim` salva. Aqui a
+    /// pergunta sai no <c>FormClosing</c> (o original a faz no finalizador, depois de fechada).
     ///
-    /// **Importar/Exportar do Excel** continuam **desabilitados com o motivo na dica** (interop).
+    /// **Uma diferença deliberada** (registrada no RUNBOOK, rodada 149): a linha recém-acrescentada
+    /// tem `0` na coluna do índice original, que o original joga na lista de apagados ao ser removida
+    /// da tela (`RemoveMaterial(0)`) — aqui o `0` **não** entra na lista, porque apagar um material de
+    /// código 0 seria apagar outro material.
+    ///
+    /// **Importar/Exportar do Excel** continuam **desabilitados** (interop), com a dica do original.
     ///
     /// **Como a tela é medida num script:** não há clique, então <c>POSITRON_LM_MATERIAL</c> (os seis
     /// campos, separados por `;`), <c>POSITRON_LM_ACAO</c> (`adicionar`, `editar` ou `apagar`) e
     /// <c>POSITRON_LM_SALVAR</c> (=1) rodam, ao abrir, a **mesma** ação do clique — o gancho do
-    /// harness, como o <c>POSITRON_ANALISAR</c> das telas de compilação. A receita está no RUNBOOK.
+    /// harness, como o <c>POSITRON_ANALISAR</c> das telas de compilação (e só ele escreve o resultado
+    /// na linha de comando). A receita está no RUNBOOK.
     /// </summary>
     internal sealed class LigacaoDoFrmGerenciadorMateriais : LigacaoDeMateriais
     {
@@ -66,22 +70,36 @@ namespace Positron.Plugin.Interface.Telas
             DataGridView grade = ControlesDaTela.Achar<DataGridView>(janela, "DGMateriais");
             Button salvar = ControlesDaTela.Achar<Button>(janela, "btSalvar");
 
-            TextosDoOriginal(janela);
+            // Construtor do original: `clsAuxiliar.BancoValido()` e, sem o DWG cadastrado, a mMensagem 331.
+            if (!InicioDoDesenho.BancoValido(true))
+            {
+                janela.Dispose();
+                return;
+            }
 
             ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
+            if (config.Dwg == 0)
+            {
+                Aviso.MsgBox("Este arquivo ainda não foi cadastrado no banco do projeto!", string.Empty);
+                janela.Dispose();
+                return;
+            }
+
+            TextosDoOriginal(janela);
+
             List<MaterialDoCatalogo> materiais = Catalogo(config);
             PreencherGrade(grade, materiais);
 
             EstadoDaGrade estado = new EstadoDaGrade();
 
             Ligar(ControlesDaTela.Achar<Button>(janela, "BTAdicionaMaterial"),
-                (origem, evento) => Plugin.Escrever(Adicionar(janela, grade, estado, salvar)));
+                (origem, evento) => Adicionar(janela, grade, estado, salvar));
             Ligar(ControlesDaTela.Achar<Button>(janela, "BTEditaMaterial"),
-                (origem, evento) => Plugin.Escrever(Editar(janela, grade, estado, salvar)));
+                (origem, evento) => Editar(janela, grade, estado, salvar));
             Ligar(ControlesDaTela.Achar<Button>(janela, "BTApagaMaterial"),
-                (origem, evento) => Plugin.Escrever(Apagar(janela, grade, estado, salvar)));
+                (origem, evento) => Apagar(janela, grade, estado, salvar));
             Ligar(salvar,
-                (origem, evento) => Plugin.Escrever(Gravar(janela, grade, estado, salvar, config)));
+                (origem, evento) => Gravar(janela, grade, estado, salvar, config));
 
             if (grade != null)
             {
@@ -100,16 +118,10 @@ namespace Positron.Plugin.Interface.Telas
             // O original pergunta ao fechar (o `MsgBox` do finalizador); o recoder não salva sozinho.
             if (janela != null)
             {
-                janela.FormClosing += (origem, evento) => AvisarAoFechar(estado);
+                janela.FormClosing += (origem, evento) => PerguntarAoFechar(janela, grade, estado, salvar, config);
             }
 
             Motivos(janela);
-
-            Plugin.Escrever("GERLM: " + materiais.Count + " material(is) no catálogo"
-                + (materiais.Count > 0 ? " (\"" + materiais[0].DescricaoResumida + "\" no código "
-                    + materiais[0].CodigoInterno + ")" : " — a tabela Materiais está vazia")
-                + "; grade com " + (grade == null ? 0 : grade.Columns.Count) + " coluna(s); "
-                + "Adiciona/Edita/Apaga/Salvar ligados, o Excel desabilitado.");
 
             GanchoDoHarness(janela, grade, estado, salvar, config);
         }
@@ -130,6 +142,14 @@ namespace Positron.Plugin.Interface.Telas
             Dica(janela, "BTEditaMaterial", "Edita Material Selecionado");
             Dica(janela, "BTApagaMaterial", "Apaga Material Selecionado");
             Dica(janela, "BTImportaEX", "Importa do Excel");
+            Dica(janela, "TBDescCompleta", "Pressione CTRL + ENTER para quebra de Linha");
+
+            TextBox completa = ControlesDaTela.Achar<TextBox>(janela, "TBDescCompleta");
+            if (completa != null)
+            {
+                completa.Multiline = true;
+                completa.AcceptsTab = true;
+            }
             Dica(janela, "BTExportaEX", "Exporta para o Excel");
         }
 
@@ -147,7 +167,7 @@ namespace Positron.Plugin.Interface.Telas
 
             grade.Columns.Clear();
             grade.Columns.Add("CodigoInterno", "#");
-            grade.Columns.Add("CodigoCliente", "Cod.Cliente");
+            grade.Columns.Add("CodigoCliente", "CodigoCliente");
             grade.Columns.Add("Modelo", "Modelo");
             grade.Columns.Add("Fabricante", "Fabricante");
             grade.Columns.Add("DescricaoResumida", "DescricaoResumida");
@@ -170,6 +190,31 @@ namespace Positron.Plugin.Interface.Telas
                     material.CodigoInterno,
                     string.Empty,
                     material.Indice);
+            }
+
+            // `AtualizaColunasDGMateriais`: 10/20/35/35% e as cinco últimas escondidas.
+            if (grade.RowCount > 0)
+            {
+                bool barra = false;
+                foreach (Control controle in grade.Controls)
+                {
+                    VScrollBar vertical = controle as VScrollBar;
+                    if (vertical != null && vertical.Visible)
+                    {
+                        barra = true;
+                    }
+                }
+
+                double util = grade.Width - (barra ? 21 : 4);
+                grade.Columns[0].Width = (int)Math.Round(util * 0.1);
+                grade.Columns[1].Width = (int)Math.Round(util * 0.2);
+                grade.Columns[2].Width = (int)Math.Round(util * 0.35);
+                grade.Columns[3].Width = (int)Math.Round(util * 0.35);
+                for (int coluna = 4; coluna <= 8; coluna++)
+                {
+                    grade.Columns[coluna].Width = 0;
+                    grade.Columns[coluna].Visible = false;
+                }
             }
         }
 
@@ -311,7 +356,7 @@ namespace Positron.Plugin.Interface.Telas
 
             if (config == null || string.IsNullOrEmpty(config.Banco))
             {
-                return "GERLM: " + Positron.Data.Interface.MensagensDoReverso.BancoNaoConfigurado;
+                return string.Empty;
             }
 
             List<OperacaoNoCatalogo> plano =
@@ -347,6 +392,7 @@ namespace Positron.Plugin.Interface.Telas
             }
             catch (Exception erro)
             {
+                Aviso.MsgBoxCritico(erro.Message, string.Empty);
                 return "GERLM: falhou ao gravar o catálogo — " + erro.Message;
             }
 
@@ -368,16 +414,33 @@ namespace Positron.Plugin.Interface.Telas
                 + " acrescentada(s), " + editados + " editada(s); a grade foi recarregada.";
         }
 
-        /// <summary>O aviso do fechamento — o `MsgBox` "Salvar Alterações?" do finalizador do original.</summary>
-        private static void AvisarAoFechar(EstadoDaGrade estado)
+        /// <summary>
+        /// O finalizador do original (`~frmGerenciadorMateriais`): com alteração, "Salvar Alterações?"
+        /// (mMensagem 1089 + "?", Sim/Não, título "Elétron"); o `Sim` roda o `iaGppGHMjAT`. No harness
+        /// (`POSITRON_LOG`) não há quem responda: não pergunta e não salva.
+        /// </summary>
+        private static void PerguntarAoFechar(
+            Form janela,
+            DataGridView grade,
+            EstadoDaGrade estado,
+            Button salvar,
+            ConfiguracaoPositron config)
         {
             if (estado == null || !estado.Alterado)
             {
                 return;
             }
 
-            Plugin.Escrever("GERLM: há alteração(ões) não salva(s) na grade — o original pergunta num "
-                + "MsgBox ao fechar; o recoder não salva sozinho (use Salvar).");
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(ConfiguracaoPositron.VariavelLog)))
+            {
+                return;
+            }
+
+            DialogResult resposta = MessageBox.Show("Salvar Alterações?", "Elétron", MessageBoxButtons.YesNo);
+            if (resposta == DialogResult.Yes)
+            {
+                Gravar(janela, grade, estado, salvar, config);
+            }
         }
 
         // ------------------------------------------------------------------ o gancho do harness
@@ -589,11 +652,11 @@ namespace Positron.Plugin.Interface.Telas
             return !string.IsNullOrEmpty(valor) && valor != "0";
         }
 
-        /// <summary>O que continua sem regra na tela: a importação/exportação do Excel (interop).</summary>
+        /// <summary>O que continua sem regra na tela: a importação/exportação do Excel (interop), com a dica do original.</summary>
         private static void Motivos(Form janela)
         {
-            Desabilitar(janela, "BTImportaEX", "Importa do Excel: usa o Excel (interop)");
-            Desabilitar(janela, "BTExportaEX", "Exporta para o Excel: usa o Excel (interop)");
+            Desabilitar(janela, "BTImportaEX", "Importa do Excel");
+            Desabilitar(janela, "BTExportaEX", "Exporta para o Excel");
         }
     }
 }
