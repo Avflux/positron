@@ -4,15 +4,15 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 207)
+## Estado (2026-10-16, depois da rodada 208)
 
 | | valor |
 |---|---|
-| última rodada | **207** |
+| última rodada | **208** |
 | comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
-| testes (console xUnit; adaptador de `plugin:test` indisponível) | **975** |
+| testes (console xUnit; adaptador de `plugin:test` indisponível) | **984** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
 | host CAD medido | AutoCAD (interface cheia + `accoreconsole`); o ZWCAD não está instalado nesta máquina (2026-10-16) |
@@ -86,9 +86,10 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    - o `frmConfiguracaoBDProjeto` abre no arranque (tipo E sem banco válido) e **rouba o foco** do prompt
      nativo (medido na 186): no uso real é uma tela a mais antes de tudo.
    Prova e passos em `rodadas/183-paginas-editar-titulos.md`, `184-…`, `185-…` e `186-…`.
-2. **`clsApagar.ApagarDerivados`** (`clsApagar.cs:9`), chamado pelo `ApagarElementosPagina` antes do
-   `Erase` — a polyline irmã de interligação tipo 2, a máscara, a inserção do contato auxiliar e os
-   contatos de modelo / complementar do dispositivo principal (saiu da rodada 182).
+2. **`clsApagar.ApagarDerivados`** — falta os quatro ramos (o da polyline de interligação saiu na 208): bloco `P` com
+   `indexModelo <= 0` → `promoveComplementar` (`clsDispositivo.cs:286`); `indexModelo > 0` →
+   `ApagaContatosModeloDispositivo` (`:151`); tipo `A` → `limpaInsercaoTabela` (`clsDispositivoAuxiliares.cs:2656`); tipo `M` →
+   `clsMascara.ApagaAMascara` (`:1264`). Medir também a exclusão no AutoCAD.
 3. **Telas só-casca mais baratas** cuja regra cabe numa rodada (lista: `cobertura-do-reverso.ps1 -Listas`):
    `frmEstatisticaDeCabos` (`ESTVCABOS`); depois, a próxima leva da lista `-Listas`.
 4. **Seção e cor ativas da barra** (`ListaDeSecao`/`CampoDeCor`, `Ribbon.cs:971,2264`; `My.Settings.Secao`/`Cor`):
@@ -108,7 +109,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 207 | 2026-10-16 | *(este)* | auditoria das telas feitas à mão (fecha o item 5): sai a janela inventada `FormularioCompilacao` e o comando `ELETCMP`; `JANELAS`/`JANELA` ficam como ferramenta de conferência; builds 0 avisos, testes não rodados (só remoção) | `rodadas/207-auditoria-telas-feitas-a-mao.md` |
+| 208 | 2026-10-16 | *(este)* | `ApagarDerivados`, ramo da polyline de interligação `Tipo 2` (irmã por handle + rótulos `AUXINTERLIG`/`ELETROSUL`), chamado na exclusão de página; +9 testes; 984 testes, builds 0 avisos | `rodadas/208-apagar-derivados-interligacao.md` |
+| 207 | 2026-10-16 | `32b3e207` | auditoria das telas feitas à mão (fecha o item 5): sai a janela inventada `FormularioCompilacao` e o comando `ELETCMP`; `JANELAS`/`JANELA` ficam como ferramenta de conferência; builds 0 avisos, testes não rodados (só remoção) | `rodadas/207-auditoria-telas-feitas-a-mao.md` |
 | 206 | 2026-10-16 | `720c09ec` | auditoria da `frmGerenciadorMatIndep` (última tela ligada): guarda `BancoValido`, ações silenciosas, erros em `MsgBox` crítico, sem dica inventada na pesquisa; saem as linhas `ATINDEP:`; builds 0 avisos, testes não rodados (só casca) | `rodadas/206-auditoria-gerenciador-matindep.md` |
 | 205 | 2026-10-16 | `6bac4a5d` | auditoria da `frmGerenciadorMateriais`: guarda 331, cabeçalho/larguras e colunas escondidas do original, ações silenciosas, "Salvar Alterações?" ao fechar, erro em `MsgBox`; saem as linhas `GERLM:` e dicas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/205-auditoria-gerenciador-materiais.md` |
 | 204 | 2026-10-16 | `96b17960` | auditoria da `frmRelatorio_Veias`: `dgVeias` sem colunas até o `btPesquisar`, dica do original, `CKAgrupar` desmarcado; saem dicas e linhas `LVEI:` inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/204-auditoria-relatorio-veias.md` |
@@ -117,4 +119,3 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 | 201 | 2026-10-16 | `3fee7071` | auditoria da `frmGerenciadorContatos`: guarda 331, grades sem colunas quando vazias e com cabeçalhos/larguras do original, dicas pelas mMensagens, `LbTerminais` e cor dos blocos; saem dicas e linhas inventadas (inclui `MODELOS:` da base); builds 0 avisos, testes não rodados (só casca) | `rodadas/201-auditoria-gerenciador-contatos.md` |
 | 200 | 2026-10-16 | `097fdc5c` | auditoria da `frmGerenciadorMascaras`: guarda 331, grades sem colunas quando vazias e com os cabeçalhos/larguras do original, dicas pelas mMensagens, cor dos blocos; saem dicas e linha inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/200-auditoria-gerenciador-mascaras.md` |
 | 199 | 2026-10-16 | `3e1e906d` | auditoria das três telas `frmCompilar*` (base `LigacaoDeCompilacao`): guarda 331, dicas pelas mMensagens, `dgRevisao` Revisão/Criador/Data, `dgERROS` vazia na abertura, 761 para revisão vazia; saem dicas e linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/199-auditoria-compilar-telas.md` |
-| 198 | 2026-10-16 | `95d3b85e` | auditoria da `frmPesquisaXdatas`: resultado do apagar em `MsgBox`, `LockDocument` no apagar, larguras 70/30 e limites de tamanho; sai a linha inventada; builds 0 avisos, testes não rodados (só casca) | `rodadas/198-auditoria-pesquisa-xdatas.md` |

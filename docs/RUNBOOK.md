@@ -826,6 +826,12 @@ TEMP='C:\Users\<voce>\AppData\Local\Temp' .tmp-smoke/xunit/tools/net472/xunit.co
 O `Path.GetTempPath()` do teste segue o `TEMP` do processo: num shell do Git Bash (onde `TEMP=/tmp`)
 as falhas são todas `unable to open database file`, não um defeito do código.
 
+**Cópia no `%TEMP%` (medido na rodada 208):** no pacote 2.9.2 do runner não existe o
+`xunit.execution.desktop.dll` (ele já está no `bin` do teste): copie o `bin` inteiro para o `%TEMP%` e por
+cima só `xunit.console.exe`, `xunit.console.exe.config`, `xunit.abstractions.dll`,
+`xunit.runner.utility.net452.dll` e `xunit.runner.reporters.net452.dll`. Resultado da rodada 208:
+`Total: 984, Errors: 0, Failed: 0`.
+
 **Acesso negado (medido na rodada 151):** se a árvore do repo estiver numa origem que o .NET Framework
 trata como **remota** (a mesma que obriga o `-PastaLocal` do harness do CAD — numa pasta do Desktop,
 por exemplo), o runner termina com `System.IO.FileLoadException: Não foi possível carregar arquivo ou

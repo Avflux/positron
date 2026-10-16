@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Positron.Data.Paginas;
 #if AUTOCAD
@@ -15,6 +15,9 @@ namespace Positron.Plugin.Paginas
     /// A parte que **apaga** a página: o <c>Pagina.ApagarElementosPagina</c> do reverso — toda
     /// entidade do ModelSpace no layer da página é apagada (<c>Erase</c>) — mais o **layer**, que o
     /// botão "Excluir Páginas" do original também chama o `RemoveLayer`, então o layer sai junto).
+    ///
+    /// Antes de apagar cada entidade roda o <c>clsApagar.ApagarDerivados</c>
+    /// (<see cref="DerivadosDaExclusaoDoDesenho"/>; só o ramo da polyline de interligação está portado).
     ///
     /// A decisão de poder apagar é pura (<see cref="ExclusaoDePagina.Recusa"/>); aqui só se varre e
     /// se apaga. **Nunca lança**: a ação é destrutiva e o comando reporta o que fez.
@@ -76,7 +79,17 @@ namespace Positron.Plugin.Paginas
 
                     foreach (ObjectId id in apagar)
                     {
+                        // Um derivado (a polyline irmã da interligação) pode já ter saído antes.
+                        if (id.IsErased)
+                        {
+                            continue;
+                        }
+
                         DBObject objeto = transacao.GetObject(id, OpenMode.ForWrite);
+
+                        // O `clsApagar.ApagarDerivados` do original, antes do `Erase` de cada entidade.
+                        resultado.Entidades += DerivadosDaExclusaoDoDesenho.Apagar(objeto as Entity, transacao, banco, espaco);
+
                         objeto.Erase();
                         resultado.Entidades++;
                     }
