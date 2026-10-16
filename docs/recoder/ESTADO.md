@@ -4,15 +4,15 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-15, depois da rodada 183)
+## Estado (2026-10-15, depois da rodada 184)
 
 | | valor |
 |---|---|
-| última rodada | **183** |
+| última rodada | **184** |
 | comandos no plugin | **78** escritos à mão (53 do reverso + 25 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **21** com a ligação à regra; 19 que nenhum comando abre |
-| testes (console xUnit; adaptador de `plugin:test` indisponível) | **941** |
+| testes (console xUnit; adaptador de `plugin:test` indisponível) | **947** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
 | host CAD medido | AutoCAD 2020 (interface cheia + `accoreconsole`); o ZWCAD não está instalado nesta máquina (2026-10-15) |
@@ -76,8 +76,9 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 1. **Fechar a rodada 183 (Páginas / Editar os Títulos):** GUI AutoCAD validada (menu, descarte,
    aplicação fora de comando, Alternativo, novo DWG e retorno); falta repetir no ZWCAD e exercitar
-   título 4/D/A/V e todos os atalhos. Portar `Pagina.restauraCampos` específico e Excel ativo;
-   completar Renumerar lote/inline,
+   título 4/D/A/V e todos os atalhos. `Pagina.restauraCampos` específico portado na **184**;
+   falta medir sem formato/rollback/colunas/configuração em fixture e investigar saída anômala
+   do AutoCAD GUI. Portar Excel ativo; completar Renumerar lote/inline,
    combo de largura, status de conexões/progresso e prompts Unidade/Alternativo em multiseleção.
    Prova e passos em `rodadas/183-paginas-editar-titulos.md`; não dar o item 3 do básico por encerrado.
 2. **`clsApagar.ApagarDerivados`** (`clsApagar.cs:9`), chamado pelo `ApagarElementosPagina` antes do
@@ -103,7 +104,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 183 | 2026-10-15 | *(este)* | Páginas sem rodapé inventado; cabeçalho/atalhos/Altern; grade não modal Editar os Títulos, 15 páginas/51 textos medidos; GUI AutoCAD validada com clique, descarte e troca MDI; recortes funcionais pendentes | `rodadas/183-paginas-editar-titulos.md` |
+| 184 | 2026-10-15 | *(este)* | restauraCampos específico antes do editor, sem cadeia da troca de formato; 947 testes, core e paleta não modal medidos; limites de GUI/host registrados | `rodadas/184-restaurar-campos-do-editor.md` |
+| 183 | 2026-10-15 | `e959d0dd` | Páginas sem rodapé inventado; cabeçalho/atalhos/Altern; grade não modal Editar os Títulos, 15 páginas/51 textos medidos; GUI AutoCAD validada com clique, descarte e troca MDI; recortes funcionais pendentes | `rodadas/183-paginas-editar-titulos.md` |
 | 182 | 2026-10-15 | `d6d1466d` | folhas pela paleta: `Inserir` de colunas `ELET1..5`, `Nova Página` pela linha selecionada, `Apagar Páginas` com confirmação/capa/sincronizações, `LockDocument` e Insert/Delete | `rodadas/182-folhas-inserir-apagar.md` |
 | 181 | 2026-10-15 | `0547e4c8` | resto do `IniciarDWG`: painéis da barra pelo tipo do desenho, `Romans`, as 5 correções com a marca `CORRECAO`, camadas destravadas e página ativa ao abrir | `rodadas/181-resto-do-iniciardwg.md` |
 | 180 | 2026-10-15 | `49d06e51` | projeto por desenho: sai o `positron.ini`; banco e DWG do desenho ativo; `DocumentActivated`; `frmConfiguracaoBDProjeto` ligada | `rodadas/180-projeto-por-desenho.md` |
@@ -112,4 +114,3 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 | 177 | 2026-10-15 | `e4f19340` | `PESQC`: veias indefinidas na grade, ir até a veia (página, zoom, realce) | `rodadas/177-pesquisa-veias-indefinidas.md` |
 | 176 | 2026-10-15 | `054b001a` | `EDCON`/`EDCONP`: seção e cor das conexões por seleção e por página, tela ligada | `rodadas/176-edicao-secao-cor-conexoes.md` |
 | 175 | 2026-10-15 | `5e067c41` | cadeia do `CAD` completa: `TrocaColunas`, `AtualizaRevSimplificada`, `attsync` | `RUNBOOK.md` (histórico) |
-| 174 | 2026-10-15 | `9e5135f9` | inserir/excluir página com `AtualizaContTotFl` e ativação segura | `RUNBOOK.md` (histórico) |

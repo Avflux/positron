@@ -74,6 +74,34 @@ namespace Positron.Data.Tests
             Assert.Null(titulos.De(5));
         }
 
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        public void Captura_da_grade_preserva_o_ultimo_texto_mesmo_apos_quatro_indices(int indice)
+        {
+            TitulosDaPagina titulos = new TitulosDaPagina();
+            for (int i = 1; i <= 4; i++) titulos.Definir(i, "original " + i);
+            // restauraCampos captura todos os textos, não para quando Completos fica true.
+            titulos.Definir(indice, "último TextString");
+            Assert.Equal("último TextString", titulos.De(indice));
+            Assert.Equal(4, titulos.Quantos);
+            Assert.True(titulos.Completos);
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(4)]
+        public void Captura_vazia_substitui_o_titulo_antigo_na_restauracao(int indice)
+        {
+            TitulosDaPagina titulos = new TitulosDaPagina();
+            titulos.Definir(indice, "antigo");
+            titulos.Definir(indice, "");
+            Assert.Equal("", titulos.De(indice));
+            Assert.Equal(1, titulos.Quantos);
+        }
+
         [Fact]
         public void O_mesmo_indice_nao_conta_duas_vezes()
         {

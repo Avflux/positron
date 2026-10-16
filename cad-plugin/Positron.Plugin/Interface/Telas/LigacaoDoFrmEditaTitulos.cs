@@ -21,6 +21,10 @@ namespace Positron.Plugin.Interface.Telas
         {
             DataGridView grade = ControlesDaTela.Achar<DataGridView>(janela, "dg");
             if (grade == null) throw new InvalidOperationException("dg");
+            // frmEditaTitulos chama restauraCampos antes de inspecionar o formato, inclusive
+            // quando depois não encontra títulos. Abertura pela paleta exige lock próprio.
+            try { RestauracaoDoFormatoDoDesenho.RestaurarCampos(); }
+            catch (Exception erro) { Aviso.MsgBox(erro.Message, "Elétron"); }
             bool[] existentes = TitulosETextosDoDesenho.LerTitulosExistentes();
             if (!existentes[1] && !existentes[2] && !existentes[3] && !existentes[4])
             {

@@ -33,6 +33,21 @@ Caminhos relativos a `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Eletr
 - `statusBanco` (`uscPaginas.cs:2600`) recebe contador de conexões >0; arquivo existente não é
   conexão. Menu D/A/V ausente e grade read-only (`:1488-1501`).
 
+## Restauração específica do editor (rodada 184)
+
+- `Pagina.restauraCampos` (`Pagina.cs:2050-2123`) não é a restauração pós-troca de formato:
+  captura títulos e revisões simplificadas, apaga/recria campos, devolve títulos/revisões e
+  recalcula CONT/FL/TOT. **Não** troca colunas, reconstrói definições de revisão, sincroniza
+  atributos, grava configuração ou ativa capa. Tem lock e transação abrangente.
+- `ApagarCamposPaginas` (`Pagina.cs:1118-1195`) remove todo DBText marcado com índice positivo,
+  não apenas títulos 1..4 nem apenas layers de página. Duplicados e campos obsoletos desaparecem;
+  recriam-se os campos dos atributos do formato. Textos comuns sem marca ficam.
+- `Revisao.capturaRevisoesSimplificadas` (`Revisao.cs:80-157`) lê **TextString**, último índice 8
+  da página vence. `AtualizaRevSimplificada` (`:159-243`) restaura texto **e XData**.
+- A chamada é anterior a `buscaTitulosExistentes` (`frmEditaTitulos.cs:557`): mesmo descartar a
+  grade pelo X não desfaz a **restauração estrutural já feita na abertura**. Descarte significa
+  não aplicar os valores editados localmente, não prometer desenho sem qualquer alteração.
+
 ## `EditaTitulosTextosDoDWG` (`TROCTT`, rodada 179)
 
 - Filtro de página: `List.Contains(Ent.Layer)`, que diferencia maiúsculas. `BlockReference` é pulado (atributos não entram).

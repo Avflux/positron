@@ -67,7 +67,32 @@ namespace Positron.Plugin.Interface.Folhas
                 string acao = (Environment.GetEnvironmentVariable("POSITRON_FOLHA_ACAO") ?? string.Empty).Trim().ToLowerInvariant();
                 string resultado = "(sem ação: só o estado da grade)";
 
-                if (acao == "titulos")
+                if (acao == "restaurar")
+                {
+                    Dictionary<string, TitulosDaPagina> antes = TitulosDaPaginaDoDesenho.LerGrade();
+                    List<RevisaoSimplificadaDaPagina> revisoes = RevisoesDoDesenho.LerSimplificadas();
+                    string ativa = PaginaAtivaDoDesenho.Ler();
+                    for (int passagem = 0; passagem < 2; passagem++)
+                    {
+                        using (Form janela = RenderizadorDeTelas.Montar(FormulariosDoReverso.Buscar("frmEditaTitulos")))
+                        {
+                            Dictionary<string, TitulosDaPagina> depois = TitulosDaPaginaDoDesenho.LerGrade();
+                            foreach (KeyValuePair<string, TitulosDaPagina> par in antes)
+                                for (int i = 1; i <= 4; i++)
+                                    if ((par.Value.De(i) ?? "") != (depois[par.Key].De(i) ?? ""))
+                                        throw new InvalidOperationException("Restauração alterou título " + i + " da página " + par.Key);
+                            List<RevisaoSimplificadaDaPagina> novas = RevisoesDoDesenho.LerSimplificadas();
+                            if (revisoes.Count != novas.Count) throw new InvalidOperationException("Quantidade de revisões alterada");
+                            for (int i = 0; i < revisoes.Count; i++)
+                                if (revisoes[i].Pagina != novas[i].Pagina || revisoes[i].Revisao != novas[i].Revisao)
+                                    throw new InvalidOperationException("Revisão simplificada alterada");
+                            if (ativa != PaginaAtivaDoDesenho.Ler()) throw new InvalidOperationException("Página ativa alterada");
+                        }
+                    }
+                    resultado = "PASSOU — duas aberturas/descarte; títulos de " + antes.Count
+                        + " página(s), " + revisoes.Count + " revisões e página ativa preservados";
+                }
+                else if (acao == "titulos")
                 {
                     using (Form janela = RenderizadorDeTelas.Montar(FormulariosDoReverso.Buscar("frmEditaTitulos")))
                     {

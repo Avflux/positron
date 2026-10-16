@@ -134,10 +134,7 @@ namespace Positron.Plugin.Paginas
 
                 BornesDaCorrecao.GarantirAppName(transacao, banco, TituloDaPaginaXData.AppName);
 
-                // 1) ApagarCamposPaginas: some com todo texto que tem o XData do título.
-                resultado.CamposApagados = ApagarCampos(transacao, espaco);
-
-                BlockReference formato = FormatoDoDesenho.Encontrar(transacao, espaco);
+                BlockReference formato = RecriarCampos(transacao, banco, espaco, paginas, resultado, out capa);
                 if (formato == null)
                 {
                     transacao.Commit();
@@ -145,29 +142,6 @@ namespace Positron.Plugin.Paginas
                 }
 
                 formatoDefId = formato.BlockTableRecord;
-                capa = LayerDaCapa(transacao, banco);
-
-                // 2) criaCamposTOT: o campo TOT nasce no layer do atributo (capa ou -1).
-                resultado.CamposTot = CriarCamposTot(transacao, banco, espaco, formato, capa);
-
-                // 3) criaCamposFormato de cada página: o layer de referência é o da capa na capa e
-                //    o -1 nas demais.
-                foreach (PaginaDoCaderno pagina in paginas)
-                {
-                    string layerRef = PaginaAtiva.ChecaCapa(pagina.Nome) ? capa : LayerDoCorpo;
-                    if (layerRef.Length == 0)
-                    {
-                        continue;
-                    }
-
-                    int criados = CriacaoDePaginaDoDesenho.CopiarCampos(
-                        transacao, banco, espaco, formato, layerRef, pagina.Nome);
-                    if (criados > 0)
-                    {
-                        resultado.Paginas++;
-                        resultado.CamposCriados += criados;
-                    }
-                }
 
                 transacao.Commit();
             }
@@ -232,6 +206,64 @@ namespace Positron.Plugin.Paginas
             }
 
             return resultado;
+        }
+
+        /// <summary>
+        /// Pagina.restauraCampos, chamado pelo editor antes de ler a grade. Não executa a cadeia
+        /// de troca de formato: mantém colunas, definições, configuração e página ativa.
+        /// A transação externa torna atômicas também as gravações dos adapters reutilizados.
+        /// </summary>
+        internal static Resultado RestaurarCampos()
+        {
+            Resultado resultado = new Resultado();
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            if (documento == null) return resultado;
+            using (documento.LockDocument())
+            using (Transaction transacao = documento.Database.TransactionManager.StartTransaction())
+            {
+                Database banco = documento.Database;
+                List<PaginaDoCaderno> paginas = LerPaginas(banco);
+                Dictionary<string, TitulosDaPagina> titulos = TitulosDaPaginaDoDesenho.LerGrade();
+                List<RevisaoSimplificadaDaPagina> revisoes = RevisoesDoDesenho.LerSimplificadas();
+                Dictionary<string, string> alternativos = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (PaginaDoCaderno pagina in paginas) alternativos[pagina.Nome] = pagina.Alternativo;
+
+                BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForWrite);
+                BornesDaCorrecao.GarantirAppName(transacao, banco, TituloDaPaginaXData.AppName);
+                string capa;
+                RecriarCampos(transacao, banco, espaco, paginas, resultado, out capa);
+                resultado.Titulos = TitulosDaPaginaDoDesenho.GravarGrade(titulos, alternativos);
+                resultado.RevSimplificadas = RevisoesDoDesenho.GravarSimplificadas(revisoes);
+                ConfiguracaoDoCaderno conf = ConfiguracaoDoDesenho.Ler();
+                resultado.ContTotFl = AtualizarContTotFl(banco, LerPaginas(banco), conf != null ? conf.IncluirColuna : 1);
+                transacao.Commit();
+            }
+            return resultado;
+        }
+
+        /// <summary>Trecho comum a restauraCampos e CriaCaderno; não restaura dados nem ativa páginas.</summary>
+        private static BlockReference RecriarCampos(
+            Transaction transacao, Database banco, BlockTableRecord espaco,
+            IReadOnlyList<PaginaDoCaderno> paginas, Resultado resultado, out string capa)
+        {
+            resultado.CamposApagados = ApagarCampos(transacao, espaco);
+            BlockReference formato = FormatoDoDesenho.Encontrar(transacao, espaco);
+            capa = LayerDaCapa(transacao, banco);
+            if (formato == null) return null;
+            resultado.CamposTot = CriarCamposTot(transacao, banco, espaco, formato, capa);
+            foreach (PaginaDoCaderno pagina in paginas)
+            {
+                string layerRef = PaginaAtiva.ChecaCapa(pagina.Nome) ? capa : LayerDoCorpo;
+                if (layerRef.Length == 0) continue;
+                int criados = CriacaoDePaginaDoDesenho.CopiarCampos(
+                    transacao, banco, espaco, formato, layerRef, pagina.Nome);
+                if (criados > 0)
+                {
+                    resultado.Paginas++;
+                    resultado.CamposCriados += criados;
+                }
+            }
+            return formato;
         }
 
         /// <summary>O <c>ApagarCamposPaginas</c>: apaga todo <c>DBText</c> com o XData do título.</summary>
