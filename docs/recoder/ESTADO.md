@@ -4,12 +4,12 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 206)
+## Estado (2026-10-16, depois da rodada 207)
 
 | | valor |
 |---|---|
-| última rodada | **206** |
-| comandos no plugin | **78** escritos à mão (53 do reverso + 25 nossos) + **115** gerados (só abrem a tela) |
+| última rodada | **207** |
+| comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
 | testes (console xUnit; adaptador de `plugin:test` indisponível) | **975** |
@@ -69,7 +69,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    - Ela grava o XData (`GravarXDataConfiguracao`/`2`) e o idioma no registro (`:3904-3910`).
    - Inclui o bloco SQL Server; tira o grupo "Projeto" (DWG/Revisão/Log).
    - Leva ao XData a norma IEC/ANSI, o Log Func e a representação cabo/veia, que hoje não chegam lá.
-5. 🟡 *(rodadas 188–206: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos`, `frmEstatisticaDeBornes` `frmEditaRevisaoSimplificada` `frmEditaRevisaoCompleta` `frmEditaTitulos` `frmPesquisaXdatas` as três `frmCompilar*` `frmGerenciadorMascaras` `frmGerenciadorContatos` `frmSplash` `frmRelatorio_Materiais` `frmRelatorio_Veias` `frmGerenciadorMateriais` e `frmGerenciadorMatIndep` feitas; as 21 telas ligadas estão auditadas, faltam as feitas à mão; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
+5. ✅ *(rodadas 188–207: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos`, `frmEstatisticaDeBornes` `frmEditaRevisaoSimplificada` `frmEditaRevisaoCompleta` `frmEditaTitulos` `frmPesquisaXdatas` as três `frmCompilar*` `frmGerenciadorMascaras` `frmGerenciadorContatos` `frmSplash` `frmRelatorio_Materiais` `frmRelatorio_Veias` `frmGerenciadorMateriais` e `frmGerenciadorMatIndep` feitas; as 21 telas ligadas estão auditadas, faltam as feitas à mão; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
    designer e a captura, atrás de invenções do mesmo tipo. O que aparecer vira item aqui.
 
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
@@ -108,7 +108,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 206 | 2026-10-16 | *(este)* | auditoria da `frmGerenciadorMatIndep` (última tela ligada): guarda `BancoValido`, ações silenciosas, erros em `MsgBox` crítico, sem dica inventada na pesquisa; saem as linhas `ATINDEP:`; builds 0 avisos, testes não rodados (só casca) | `rodadas/206-auditoria-gerenciador-matindep.md` |
+| 207 | 2026-10-16 | *(este)* | auditoria das telas feitas à mão (fecha o item 5): sai a janela inventada `FormularioCompilacao` e o comando `ELETCMP`; `JANELAS`/`JANELA` ficam como ferramenta de conferência; builds 0 avisos, testes não rodados (só remoção) | `rodadas/207-auditoria-telas-feitas-a-mao.md` |
+| 206 | 2026-10-16 | `720c09ec` | auditoria da `frmGerenciadorMatIndep` (última tela ligada): guarda `BancoValido`, ações silenciosas, erros em `MsgBox` crítico, sem dica inventada na pesquisa; saem as linhas `ATINDEP:`; builds 0 avisos, testes não rodados (só casca) | `rodadas/206-auditoria-gerenciador-matindep.md` |
 | 205 | 2026-10-16 | `6bac4a5d` | auditoria da `frmGerenciadorMateriais`: guarda 331, cabeçalho/larguras e colunas escondidas do original, ações silenciosas, "Salvar Alterações?" ao fechar, erro em `MsgBox`; saem as linhas `GERLM:` e dicas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/205-auditoria-gerenciador-materiais.md` |
 | 204 | 2026-10-16 | `96b17960` | auditoria da `frmRelatorio_Veias`: `dgVeias` sem colunas até o `btPesquisar`, dica do original, `CKAgrupar` desmarcado; saem dicas e linhas `LVEI:` inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/204-auditoria-relatorio-veias.md` |
 | 203 | 2026-10-16 | `116e7939` | auditoria da `frmRelatorio_Materiais`: grades sem colunas até haver dados, lista só no `btPesquisar`, dicas e controles escondidos como no construtor; saem dicas e linhas `EXPLM:` inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/203-auditoria-relatorio-materiais.md` |
@@ -117,4 +118,3 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 | 200 | 2026-10-16 | `097fdc5c` | auditoria da `frmGerenciadorMascaras`: guarda 331, grades sem colunas quando vazias e com os cabeçalhos/larguras do original, dicas pelas mMensagens, cor dos blocos; saem dicas e linha inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/200-auditoria-gerenciador-mascaras.md` |
 | 199 | 2026-10-16 | `3e1e906d` | auditoria das três telas `frmCompilar*` (base `LigacaoDeCompilacao`): guarda 331, dicas pelas mMensagens, `dgRevisao` Revisão/Criador/Data, `dgERROS` vazia na abertura, 761 para revisão vazia; saem dicas e linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/199-auditoria-compilar-telas.md` |
 | 198 | 2026-10-16 | `95d3b85e` | auditoria da `frmPesquisaXdatas`: resultado do apagar em `MsgBox`, `LockDocument` no apagar, larguras 70/30 e limites de tamanho; sai a linha inventada; builds 0 avisos, testes não rodados (só casca) | `rodadas/198-auditoria-pesquisa-xdatas.md` |
-| 197 | 2026-10-16 | `ddf3acf2` | auditoria da `frmEditaTitulos`: saem 2 linhas inventadas e a rolagem extra, `MsgBox` sem título como no original; builds 0 avisos, testes não rodados (só casca) | `rodadas/197-auditoria-edita-titulos.md` |

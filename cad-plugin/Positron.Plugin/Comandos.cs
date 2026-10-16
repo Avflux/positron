@@ -35,7 +35,7 @@ namespace Positron.Plugin
     /// Recorte atual: <c>ELET</c>, <c>FIA</c>, <c>INT</c>, <c>SYNCD</c> e
     /// <c>VERIF</c> — os nomes vêm do <c>COMANDOS.txt</c> do reverso — mais os que
     /// não existem como comando lá e foram criados como comando próprio
-    /// (<c>JMP</c>, <c>ELETCFG</c>, <c>ELETREL</c>, <c>ELETCMP</c> e <c>INDCABO</c>),
+    /// (<c>JMP</c>, <c>ELETCFG</c>, <c>ELETREL</c> e <c>INDCABO</c>),
     /// e as tabelas fora do recorte que ganharam fluxo próprio (<c>EPLQ</c> e
     /// <c>COMPLM</c>).
     ///
@@ -3137,45 +3137,6 @@ namespace Positron.Plugin
             {
                 Plugin.Escrever("ELETREL: falhou — " + DescreverErro(erro));
             }
-        }
-
-        /// <summary>
-        /// <c>ELETCMP</c> — abre a **tela de compilação** (a grid de erros do
-        /// `frmCompilarFiacao`/`Interligacao`) sobre a verificação da revisão. A tela
-        /// só mostra e salva; quem monta o conteúdo é <see cref="MontarRelatorio"/>,
-        /// o mesmo do `ELETREL`.
-        ///
-        /// **Modal** (como `ELETCFG`): não rode dentro de script — ninguém clica em OK
-        /// e o ZWCAD fica parado. Para script existe o `ELETREL`.
-        /// </summary>
-        [CommandMethod("ELETCMP")]
-        public void EletCmp()
-        {
-#if !POSITRON_SEM_WINFORMS
-            ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
-            if (string.IsNullOrEmpty(config.Banco))
-            {
-                Plugin.Escrever("ELETCMP: " + Positron.Data.Interface.MensagensDoReverso.BancoNaoConfigurado);
-                return;
-            }
-
-            try
-            {
-                RelatorioCompilacao relatorio = MontarRelatorio(config);
-                using (Relatorios.FormularioCompilacao tela = new Relatorios.FormularioCompilacao(relatorio, CaminhoDoRelatorio(config)))
-                {
-                    tela.ShowDialog();
-                    Plugin.Escrever("ELETCMP: " + relatorio.Linhas.Count + " problema(s) na tela"
-                        + (string.IsNullOrEmpty(tela.ArquivoSalvo) ? "." : " e salvos em " + tela.ArquivoSalvo + "."));
-                }
-            }
-            catch (System.Exception erro)
-            {
-                Plugin.Escrever("ELETCMP: falhou — " + DescreverErro(erro));
-            }
-#else
-            Plugin.Escrever("ELETCMP: compilado sem WinForms; use ELETREL para gravar o relatório.");
-#endif
         }
 
         /// <summary>Monta o relatório da revisão (o conteúdo que a tela e o arquivo mostram).</summary>
