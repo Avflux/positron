@@ -81,7 +81,19 @@ Depois do banco/índice (acima), ainda no `Iniciar.cs:61-195` e sempre por ativa
 - Como os desenhos do dono **já vêm com as marcas** do original, as correções não rodam duas vezes — é a
   compatibilidade de dado que mantém as duas implementações no mesmo desenho.
 
-## Projeto real desta máquina
+## Configuração Geral fiel (frmConfiguracaoGeral, rodada 187)
 
-O `Funcional.dwg` aponta para `J:\Eletrobras\Retrofit Serviços Auxiliares\SE Recife II\...\07_Banco de Dados
-Elétron\RCD.mdb` (Access, existe no `J:`), com as simbologias em `J:\Adm Tec\Onde Encontrar\Cadgraph\Simbologia Elétron 4\`.
+- **Comando original:** `CFG` (`Comandos.cs:95` → `new frmConfiguracaoGeral()`).
+- **Fontes de dados:**
+  - XData do ModelSpace `Eletron`/`Config` (41 valores) e `EletronProj`/`Projeto` (10 valores) via `XDataGeral.cs:153-290, 532-571`.
+  - Idioma: registro do Windows `HKCU\Software\Cadgraph\Eletron4`, chave `Idioma` (`[PT]` ou `[EN]`), gravado em `frmConfiguracaoGeral.cs:3904-3910`.
+- **Gravação ao Salvar (`GuKynurbxa`, :3823-3930):**
+  - Regrava `Eletron`/`Config` (41 valores) com `XDataGeral.GravarXDataConfiguracao`.
+  - Regrava `EletronProj`/`Projeto` (10 valores) com `XDataGeral.GravarXDataConfiguracao2`.
+  - Grava a chave `Idioma` no registro.
+- **110 controles fiéis em 3 abas:**
+  - Aba 1 (Banco de Dados): Idioma (`rbIdioma1`/`rbIdioma2`), Norma dos contatos auxiliares (`rbIEC`/`rbANSI`), Nome do caderno (`tbCaderno`), Tipo de Banco (`rbAccess`/`rbSQLite`/`rbSQLSVR`), Banco do Projeto (`tbProjeto`), e bloco SQL Server (`tbDataSource`, `tbBancoDeDados`, `tbUser`, `tbSenha`) que no original alterna posição `Top = 277` vs `381` e visibilidade.
+  - Aba 2 (Bibliotecas): caminhos de simbologia (`tbSimbologiaEletrica`, `tbSimbologiaTopografico`, `tbSimbologiaLayout`, `tbSimbologiaRelatorios`) com validação visual de existência de arquivo (`Color.LightCoral` se inexistente).
+  - Aba 3 (Geral): Cruzamento de Páginas (0..6), Caracteres/delimitadores (`tbTerminalIndefinido`, `tbSeparadorCaboVeia`, `tbSeparadorCruzamento`, `tbSeparadorCarimbo`, `tbSeparadorReguaBorne`), 3 Presets (`btEletronorte`, `btEletrosul`, `btChesf`), Fontes (circuitos, cruzamento, cabos), 4 layouts de Representação Interligação (`rbLayInter0..3`), 4 botões de cores CAD com diálogo ACI (`CadColorDialog`), Estilos de Linha e escala, Log Funcional externo (`tbPrefixoCruzamentoExterno`, `tbSufixoCruzamentoExterno`), e Modelo de Bobina (`rbBobina0`, `rbContato1`, `rbBobinaContato2`, `rbBobinaContatoES3`).
+- **Ganchos de harness:** `POSITRON_CFG_PRESET`, `POSITRON_CFG_IDIOMA`, `POSITRON_CFG_NORMA`, `POSITRON_CFG_BANCO`, `POSITRON_CFG_REPRESENTACAO`, `POSITRON_CFG_LOGFUNC`, `POSITRON_CFG_SALVAR`.
+

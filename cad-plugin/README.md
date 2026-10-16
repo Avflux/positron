@@ -98,7 +98,7 @@ Digitados na linha de comando do ZWCAD ou AutoCAD depois do `NETLOAD`:
 | `INDCABO` | **implementado** — a **ação** "Corrigir cabos" (`IndefineCabosNaoExistentes`) do verificador da interligação: o trecho cujo `Tag_Cabo` não está no catálogo (`Cabos`) perde o cabo e a veia no XData e o rótulo auxiliar (`AUXINTERLIG`) vira o caracter de terminal indefinido. Roda por script |
 | `EPLQ` | **implementado** — exporta as **plaquetas** do desenho para `Plaquetas4` (`clsDispositivoTacito.exportaPlaquetas`): lê o dicionário `CENG_PLAQUETA` do **próprio desenho** (um `Xrecord` por painel, registros de 7 valores) e resolve o **nome** de cada plaqueta pelo tipo — `P` = nome do painel (cadastro `Paineis`), `D` = `Nome1[/Nome2]` do bloco `M`/`P` pelo handle, `X` = primeira descrição não-vazia, `R` = nome da régua (`REGUAS/MODELOS2`). Entram só painéis **com fiação no desenho** e plaquetas com nome **e** descrição. Roda por script |
 | `COMPLM` | **implementado** — compila a **lista de material** do desenho para `ListaMateriais` (`clsLM.CompilaListaDeMateriais`): uma linha por LM da **máscara** (`M`) e do **dispositivo** (`P`), uma **agregada** por `(painel, régua, tipo, lm)` para cada **borne** (`B`) e as reservas das réguas somadas. A `OrdemLay` de cada linha é o **índice da tag** no `CENG_LAYOUT` do próprio desenho (10000 quando não está no layout) e a `Ordem` é renumerada 1..N por painel. Preserva os itens **avulsos** do app. Roda por script |
-| `ELETCFG` | tela de configuração **feita à mão** (será trocada pela `frmConfiguracaoGeral` fiel); grava só o XData do desenho (`Eletron`/`Config` + `EletronProj`/`Projeto`), como o original. **Modal**: não rode dentro de script |
+| `ELETCFG` | **implementado** — abre a tela de configuração fiel `frmConfiguracaoGeral` (comando `CFG` do reverso); grava o XData do desenho (`Eletron`/`Config` + `EletronProj`/`Projeto`) e o idioma no registro (`HKCU\Software\Cadgraph\Eletron4`). Roda interativo ou via harness |
 | `ELETREL` | **implementado** — grava o **relatório da verificação** em arquivo (a grid de erros das telas do original, sem tela). Roda por script |
 | `ELETCMP` | **implementado** — abre a **tela de compilação** (grid de erros) sobre o mesmo relatório do `ELETREL`, com botão Salvar. **Modal**: não rode dentro de script |
 | `ApagarTextosEmBranco` | **implementado** — frente 2 do §7.6, limpeza: apaga do ModelSpace os `DBText` cujo texto é só espaços **e** que **não** têm XData (`LimpezaDoDesenho.TextoEmBranco`). Roda por script |
@@ -180,8 +180,7 @@ As variáveis abaixo existem **só para o harness** (scripts de teste); vencem o
 o próprio layer) e `6` = `(layer)` + separador + alternativo. A **matriz de
 páginas** vem do desenho (`PaginaMatrix`/`PaginasDoDesenho`), montada da
 `LayerTable` como o `Pagina.CarregaPaginas`. A configuração vem do **desenho** (o
-XData `Eletron`/`Config` que a tela `ELETCFG` grava, como o `frmConfiguracaoGeral` do
-original), e o harness pode sobrepor por `POSITRON_INCLUIR_COLUNA` e `POSITRON_SEPARADOR_CRUZAMENTO`;
+XData `Eletron`/`Config` que o `CFG` / `ELETCFG` grava via `frmConfiguracaoGeral`, como o original), e o harness pode sobrepor por `POSITRON_INCLUIR_COLUNA` e `POSITRON_SEPARADOR_CRUZAMENTO`;
 a leitura é o `ConfiguracaoEfetiva.Carregar()` (`desenho < ambiente`).
 Vale para `Fiacao`, `Bornes4F`, `Dispositivos4F`, `Interligacao4` e `Bornes4I`.
 

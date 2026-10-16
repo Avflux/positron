@@ -474,38 +474,14 @@ namespace Positron.Plugin
         /// desenho ativo, que ainda não resolvemos).
         /// </summary>
         /// <summary>
-        /// <c>ELETCFG</c> — a tela de configuração geral feita à mão (a fiel, a <c>frmConfiguracaoGeral</c>
-        /// do <c>CFG</c>, entra no item 4 da correção do básico). Grava **só no desenho** (o XData
-        /// <c>Eletron</c>/<c>Config</c> e <c>EletronProj</c>/<c>Projeto</c>), como o <c>btSalvar</c> do
-        /// original; não há arquivo da máquina. Modal: **não** rode dentro de script.
+        /// <c>ELETCFG</c> — abre a <c>frmConfiguracaoGeral</c> fiel (comando <c>CFG</c> do reverso,
+        /// <c>Comandos.cs:95</c>). Grava no XData do ModelSpace e o idioma no registro.
         /// </summary>
         [CommandMethod("ELETCFG")]
         public void Configurar()
         {
 #if !POSITRON_SEM_WINFORMS
-            try
-            {
-                ConfiguracaoDoCaderno doDesenho = Configuracao.ConfiguracaoDoDesenho.LerOuPadrao();
-                ConfiguracaoPositron atual = ConfiguracaoEfetiva.Carregar(doDesenho);
-
-                using (Configuracao.FormularioConfiguracao tela = new Configuracao.FormularioConfiguracao(atual))
-                {
-                    if (tela.ShowDialog() != System.Windows.Forms.DialogResult.OK || tela.Resultado == null)
-                    {
-                        Plugin.Escrever("ELETCFG: configuração mantida.");
-                        return;
-                    }
-
-                    // Os campos que só existem no desenho (SCapa, Norma, DataSource…) ficam preservados.
-                    doDesenho.AplicarDe(tela.Resultado);
-                    Configuracao.ConfiguracaoDoDesenho.Gravar(doDesenho);
-                    Plugin.Escrever("ELETCFG: configuração gravada no XData do desenho (Eletron/Config e EletronProj/Projeto).");
-                }
-            }
-            catch (System.Exception erro)
-            {
-                Plugin.Escrever("ELETCFG: falhou — " + DescreverErro(erro));
-            }
+            Plugin.Escrever(Interface.Telas.JanelasDoOriginal.Abrir("CFG"));
 #else
             Plugin.Escrever("ELETCFG: compilado sem WinForms.");
 #endif

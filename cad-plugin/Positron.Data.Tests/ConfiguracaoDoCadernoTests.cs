@@ -227,5 +227,62 @@ namespace Positron.Data.Tests
             Assert.Equal("SQLite", ConfiguracaoDoCaderno.TipoDoCodigo("S"));
             Assert.Equal("SQL Server", ConfiguracaoDoCaderno.TipoDoCodigo("SV"));
         }
+
+        [Fact]
+        public void Norma_IEC_e_ANSI_sao_preservadas_no_XData()
+        {
+            ConfiguracaoDoCaderno iec = DoReverso();
+            iec.Norma = 0;
+            ConfiguracaoDoCaderno lidoIec = ConfiguracaoDoCaderno.Ler(iec.ParaValores());
+            Assert.Equal(0, lidoIec.Norma);
+
+            ConfiguracaoDoCaderno ansi = DoReverso();
+            ansi.Norma = 1;
+            ConfiguracaoDoCaderno lidoAnsi = ConfiguracaoDoCaderno.Ler(ansi.ParaValores());
+            Assert.Equal(1, lidoAnsi.Norma);
+        }
+
+        [Fact]
+        public void Delimitadores_de_Log_Func_sao_preservados_no_XData()
+        {
+            ConfiguracaoDoCaderno caderno = DoReverso();
+            caderno.PrefixoCruzExterno = "[";
+            caderno.SufixoCruzExterno = "]";
+
+            ConfiguracaoDoCaderno lido = ConfiguracaoDoCaderno.Ler(caderno.ParaValores());
+            Assert.Equal("[", lido.PrefixoCruzExterno);
+            Assert.Equal("]", lido.SufixoCruzExterno);
+        }
+
+        [Fact]
+        public void Interligacao_Layout_cobre_as_quatro_representacoes_cabo_veia()
+        {
+            for (int layout = 0; layout <= 3; layout++)
+            {
+                ConfiguracaoDoCaderno caderno = DoReverso();
+                caderno.InterligacaoLayout = layout;
+
+                ConfiguracaoDoCaderno lido = ConfiguracaoDoCaderno.Ler(caderno.ParaValores());
+                Assert.Equal(layout, lido.InterligacaoLayout);
+            }
+        }
+
+        [Fact]
+        public void Campos_do_SQL_Server_sao_preservados_no_buffer_config()
+        {
+            ConfiguracaoDoCaderno sql = DoReverso();
+            sql.Banco = ConfiguracaoDoCaderno.BancoSqlServer;
+            sql.DataSource = @"192.168.1.100\SQLEXPRESS";
+            sql.BancoDeDados = "PROJETO_2026";
+            sql.User = "admin";
+            sql.Senha = "p@ssword";
+
+            ConfiguracaoDoCaderno lido = ConfiguracaoDoCaderno.Ler(sql.ParaValores());
+            Assert.Equal(ConfiguracaoDoCaderno.BancoSqlServer, lido.Banco);
+            Assert.Equal(@"192.168.1.100\SQLEXPRESS", lido.DataSource);
+            Assert.Equal("PROJETO_2026", lido.BancoDeDados);
+            Assert.Equal("admin", lido.User);
+            Assert.Equal("p@ssword", lido.Senha);
+        }
     }
 }

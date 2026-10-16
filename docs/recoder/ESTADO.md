@@ -4,18 +4,18 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-15, depois da rodada 186)
+## Estado (2026-10-16, depois da rodada 187)
 
 | | valor |
 |---|---|
-| última rodada | **186** |
+| última rodada | **187** |
 | comandos no plugin | **78** escritos à mão (53 do reverso + 25 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
-| telas `frm*` do reverso | **127**; **21** com a ligação à regra; 19 que nenhum comando abre |
-| testes (console xUnit; adaptador de `plugin:test` indisponível) | **971** |
+| telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
+| testes (console xUnit; adaptador de `plugin:test` indisponível) | **975** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
-| host CAD medido | AutoCAD 2020 (interface cheia + `accoreconsole`); o ZWCAD não está instalado nesta máquina (2026-10-15) |
+| host CAD medido | AutoCAD (interface cheia + `accoreconsole`); o ZWCAD não está instalado nesta máquina (2026-10-16) |
 
 Números de cobertura: `powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1`.
 
@@ -28,7 +28,7 @@ Números de cobertura: `powershell -ExecutionPolicy Bypass -File scripts/cobertu
 | 3–9 — edição (réguas, dispositivos, fiação, cabos, materiais, exportação) | triadas (`PLANO.md` §7.6); portar comando a comando |
 | 10 — páginas e caderno | ✅ (cadeia do `CAD` fechada na 175) |
 | 11 — shell (arranque, paleta, barra, autoload) | ✅ |
-| 12 — as 127 telas | todas abrem; 20 com regra ligada |
+| 12 — as 127 telas | todas abrem; 22 com regra ligada |
 | relatórios (9b) · SQL Server (9c) | ⏳ decisão do dono |
 | **correção do básico** (projeto por desenho, folhas, configuração) | ⛔ prioridade — ver abaixo |
 
@@ -63,7 +63,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
      `MultiSelect=false`.
    - Entrar: a faixa de cima (`tbPagina`/Enter, `lb1..lb4`, status do banco, `btSalva`), a barra de
      progresso e o logo.
-4. **Configuração geral fiel.** O `CFG` da barra hoje abre o `ELETCFG`, feito à mão
+4. ✅ *(rodada 187; o que faltou está no item 5 e na fila)* **Configuração geral fiel.** O `CFG` da barra chamava o `ELETCFG`, feito à mão
    (`BarraDeFerramentas.cs:63`, `FormularioConfiguracao.cs`).
    - Ligar a `frmConfiguracaoGeral` (`frmConfiguracaoGeral.cs:2529-4600`; capturas `configuração geral 1-3.png`).
    - Ela grava o XData (`GravarXDataConfiguracao`/`2`) e o idioma no registro (`:3904-3910`).
@@ -109,7 +109,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 186 | 2026-10-15 | *(este)* | `Renumerar Páginas` com destino (capa/selecionada/outra/não cabe, ramos numérico e alfanumérico, ordem da grade) e a ação do combo `Folha` (largura no XData + renormalizar); 971 testes, builds 0 avisos, core e GUI AutoCAD medidos | `rodadas/186-renumerar-paginas-e-combo.md` |
+| 187 | 2026-10-16 | *(este)* | `frmConfiguracaoGeral` fiel (110 controles, 3 abas, cores CAD, presets, SQL Server); gravação XData `Eletron`/`Config` (41 valores) e `EletronProj`/`Projeto` e chave de registro `Idioma`; remoção da tela feita à mão e substituto da barra; 975 testes, builds 0 avisos, smoke accoreconsole medido | `rodadas/187-configuracao-geral-fiel.md` |
+| 186 | 2026-10-15 | `f3dbb7e1` | `Renumerar Páginas` com destino (capa/selecionada/outra/não cabe, ramos numérico e alfanumérico, ordem da grade) e a ação do combo `Folha` (largura no XData + renormalizar); 971 testes, builds 0 avisos, core e GUI AutoCAD medidos | `rodadas/186-renumerar-paginas-e-combo.md` |
 | 185 | 2026-10-15 | `09de9a79` | prompts nativos Unidade/Alternativo pelo menu, 2 páginas/14 preservadas, 4 campos recalculados; 953 testes e builds sem avisos; GUI com novo DWG/retorno, host final exit 0 | `rodadas/185-unidade-alternativo-da-paleta.md` |
 | 184 | 2026-10-15 | `70c05d8a` | restauraCampos específico antes do editor, sem cadeia da troca de formato; 947 testes, core e paleta não modal medidos; limites de GUI/host registrados | `rodadas/184-restaurar-campos-do-editor.md` |
 | 183 | 2026-10-15 | `e959d0dd` | Páginas sem rodapé inventado; cabeçalho/atalhos/Altern; grade não modal Editar os Títulos, 15 páginas/51 textos medidos; GUI AutoCAD validada com clique, descarte e troca MDI; recortes funcionais pendentes | `rodadas/183-paginas-editar-titulos.md` |

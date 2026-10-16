@@ -60,7 +60,6 @@ namespace Positron.Plugin.Interface.Barra
         private static readonly Dictionary<string, string> Substitutos =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { "CFG", "ELETCFG" },
                 { "VFIA", "VERIF" },
                 { "VINT", "VERIF" },
             };
