@@ -53,6 +53,13 @@ namespace Positron.Plugin.Interface.Telas
             IReadOnlyDictionary<int, string> nomesDeDwgs = store.LerNomesDeDwgs();
             IReadOnlyList<CaboNaPesquisa> lista = PesquisaDeCabos.Cabos(catalogo, config.Dwg);
 
+            // Do designer (`frmPesquisaCabos.cs:M31pvuFo6Vc`): tamanho preso em 430 de largura e
+            // `AllowUserToOrderColumns` nas duas grades.
+            janela.MinimumSize = new Size(430, 400);
+            janela.MaximumSize = new Size(430, 1000);
+            cabos.AllowUserToOrderColumns = true;
+            veias.AllowUserToOrderColumns = true;
+
             // O `formataDGCabos`: "Nome do Cabo" (mMensagem 1238) e o `Tipo` oculto.
             cabos.Rows.Clear();
             cabos.Columns.Clear();
@@ -85,35 +92,12 @@ namespace Positron.Plugin.Interface.Telas
             veias.KeyUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(veias, 3, true);
             veias.MouseUp += (origem, evento) => IrAteAVeiaDaGrade.Selecionadas(veias, 3, true);
 
-            int doCaderno = 0;
-            int deOutros = 0;
-            foreach (CaboNaPesquisa cabo in lista)
-            {
-                if (!cabo.Cabecalho && cabo.OutroCaderno)
-                {
-                    deOutros++;
-                }
-                else if (!cabo.Cabecalho)
-                {
-                    doCaderno++;
-                }
-            }
-
-            Plugin.Escrever("PESQCAB: " + doCaderno + " cabo(s) deste DWG (" + config.Dwg + ") e " + deOutros
-                + " de outros cadernos na grade; " + catalogo.Count + " veia(s) no catálogo.");
-
             // O `UBound(LeCabosVeiasTodos) == 0`: mMensagem 1284, e a tela fecha.
             if (catalogo.Count == 0)
             {
                 Aviso.MsgBox("O Projeto não possui Cabos", string.Empty);
                 janela.Dispose();
                 return;
-            }
-
-            // Sem clique no harness: a primeira linha é mostrada na linha de comando, como medida.
-            if (lista.Count > 0 && !lista[0].Cabecalho)
-            {
-                Plugin.Escrever("PESQCAB: " + Resumo(lista[0], PesquisaDeCabos.VeiasDoCabo(catalogo, nomesDeDwgs, lista[0])));
             }
         }
 
@@ -144,29 +128,6 @@ namespace Positron.Plugin.Interface.Telas
             {
                 veias.Rows[0].Selected = false;
             }
-
-            if (cabo != null)
-            {
-                Plugin.Escrever("PESQCAB: " + Resumo(cabo, linhas));
-            }
-        }
-
-        private static string Resumo(CaboNaPesquisa cabo, IReadOnlyList<VeiaDaPesquisa> linhas)
-        {
-            List<string> amostra = new List<string>();
-            foreach (VeiaDaPesquisa linha in linhas)
-            {
-                if (amostra.Count == 6)
-                {
-                    amostra.Add("...");
-                    break;
-                }
-
-                amostra.Add(linha.Texto + "@" + linha.Pagina + (linha.Handle.Length > 0 ? " [" + linha.Handle + "]" : string.Empty));
-            }
-
-            return "cabo \"" + cabo.Tag + "\"" + (cabo.OutroCaderno ? " (outro caderno)" : string.Empty) + " — "
-                + linhas.Count + " veia(s)" + (amostra.Count > 0 ? ": " + string.Join("; ", amostra.ToArray()) : string.Empty) + ".";
         }
 
         /// <summary>O <c>formataDGVeias</c>: Índice (915), Veias (1239), Página (772), Handle, Ordena.</summary>
