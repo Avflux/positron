@@ -61,6 +61,47 @@ namespace Positron.Data.Interface
         /// </remarks>
         public const string RenumerarPaginas = "Renumerar Páginas";
 
+        /// <summary>
+        /// Os textos do menu das folhas que a rodada 182 ligou (os itens da correção do básico):
+        /// o `Inserir` com os sub-itens das colunas, a `Nova Página` com as três recusas e o
+        /// `Apagar Páginas` com a confirmação e a capa. Índices da `mMensagem` no comentário.
+        /// </summary>
+        /// <summary>mMensagem 14 — o item que liga a seleção de várias linhas na grade.</summary>
+        public const string Multiselecao = "Multiseleção";
+
+        /// <summary>mMensagem 21 — o **texto visível** do item de apagar (o designer diz "Excluir Páginas").</summary>
+        public const string ApagarPaginas = "Apagar Páginas";
+
+        /// <summary>mMensagem 23 — a pergunta da confirmação do apagar.</summary>
+        public const string ApagarAsPaginasSelecionadas = "Apagar as páginas selecionadas?";
+
+        /// <summary>mMensagem 19 — a palavra-chave que confirma (a outra é a 20, "Não").</summary>
+        public const string Sim = "Sim";
+
+        /// <summary>mMensagem 20.</summary>
+        public const string Nao = "Não";
+
+        /// <summary>mMensagem 17 — o `MsgBox` crítico quando a capa cai na seleção do apagar.</summary>
+        public const string CapaNaoPodeSerApagada = "A Capa não pode ser apagada!";
+
+        /// <summary>mMensagem 29 — o item de criar página.</summary>
+        public const string NovaPagina = "Nova Página";
+
+        /// <summary>mMensagem 30 — a `Nova Página` com a grade em multiseleção.</summary>
+        public const string DesativeAMultiselecao = "Desative a multiseleção!";
+
+        /// <summary>mMensagem 31 — a página calculada não cabe (`PgNum == 0`).</summary>
+        public const string NaoHaEspacoParaUmaNovaPagina = "Não há espaço para uma nova página!";
+
+        /// <summary>mMensagem 32 — o `CriarLayer` devolveu `-1` (o layer já existe).</summary>
+        public const string EstaPaginaJaExiste = "Esta página já existe!";
+
+        /// <summary>mMensagem 33 — o `CriarLayer` devolveu `0` (não criou).</summary>
+        public const string NaoFoiPossivelCriarEstaPagina = "Não foi possível criar esta página!";
+
+        /// <summary>mMensagem 35 — o item que abre as cinco colunas.</summary>
+        public const string Inserir = "Inserir";
+
         public const string EditarUnidade = "Editar Unidade";
 
         public const string EditarAlternativo = "Editar Alternativo";

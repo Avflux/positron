@@ -88,6 +88,8 @@ namespace Positron.Plugin.Paginas
             }
 
             Database banco = documento.Database;
+            // A criacao vem da paleta (fora de comando): trava como o `Pagina.CriarLayer` do original.
+            using (documento.LockDocument())
             using (Transaction transacao = banco.TransactionManager.StartTransaction())
             {
                 LayerTable camadas = (LayerTable)transacao.GetObject(banco.LayerTableId, OpenMode.ForRead);

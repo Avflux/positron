@@ -1,8 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using Positron.Data.Interface;
 using Positron.Data.Paginas;
 using Positron.Plugin.Paginas;
+#if AUTOCAD
+using Autodesk.AutoCAD.ApplicationServices;
+using AplicacaoDoCad = Autodesk.AutoCAD.ApplicationServices.Application;
+#else
+using ZwSoft.ZwCAD.ApplicationServices;
+using AplicacaoDoCad = ZwSoft.ZwCAD.ApplicationServices.Application;
+#endif
 
 namespace Positron.Plugin.Interface.Folhas
 {
@@ -39,6 +48,14 @@ namespace Positron.Plugin.Interface.Folhas
         /// <summary>A página ativa do desenho (vazia quando a camada corrente não é página).</summary>
         internal string PaginaAtiva { get; private set; } = string.Empty;
 
+        /// <summary>O item `Inserir` (mMensagem 35) e os cinco sub-itens das colunas do formato.</summary>
+        private ToolStripMenuItem _inserir;
+
+        private readonly List<ToolStripMenuItem> _colunasDoInserir = new List<ToolStripMenuItem>();
+
+        /// <summary>As cinco colunas do formato do desenho (o `verificaLayerExtraNoFormato`).</summary>
+        private IReadOnlyList<ColunaDoFormato> _colunas = ColunasDoFormato.DosLayers(null);
+
         internal FolhasControle()
         {
             _grade = new DataGridView
@@ -49,7 +66,10 @@ namespace Positron.Plugin.Interface.Folhas
                 AllowUserToAddRows = false,
                 RowHeadersVisible = false,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                MultiSelect = true,
+                // O padrão do original é a multiseleção **desligada** (`uscPaginas.cs:1908`: sem ela o
+                // `TBNp1Uume8n` age; com ela, ele só avisa, mMensagem 30). O item `Multiseleção` do
+                // menu é quem a liga.
+                MultiSelect = false,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
             };
 
@@ -66,6 +86,7 @@ namespace Positron.Plugin.Interface.Folhas
             _grade.Columns[5].Visible = false;
 
             _grade.ContextMenuStrip = MenuDoReverso();
+            _grade.KeyDown += GradeKeyDown;
 
             // A barra de baixo: o sufixo do RENPAGA, o renomear (a regra pura) e o recarregar.
             Panel rodape = new Panel { Dock = DockStyle.Bottom, Height = 54 };
@@ -101,12 +122,13 @@ namespace Positron.Plugin.Interface.Folhas
             // 1 e 2 - os dois checáveis do designer. O `Alternativo` faz o que o original faz
             // (`uscPaginas.cs:2005`): liga/desliga a coluna e o item `Editar Alternativo`. O
             // `Multiseleção` fica checável como lá, mas o efeito dele não foi rastreado.
-            ToolStripMenuItem multiselecao = new ToolStripMenuItem("Multiseleção")
+            ToolStripMenuItem multiselecao = new ToolStripMenuItem(MensagensDoReverso.Multiselecao)
             {
                 CheckOnClick = true,
                 Checked = false,
-                ToolTipText = "o efeito deste item no original não foi portado",
+                ToolTipText = "liga a seleção de várias linhas (a Nova Página exige a multiseleção desligada)",
             };
+            multiselecao.CheckedChanged += (origem, evento) => _grade.MultiSelect = multiselecao.Checked;
             menu.Items.Add(multiselecao);
 
             ToolStripMenuItem alternativo = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.Alternativo)
@@ -119,28 +141,40 @@ namespace Positron.Plugin.Interface.Folhas
 
             menu.Items.Add(new ToolStripSeparator());
 
-            // 4 - Nova Página (o `CriarPaginaToolStripMenuItem`, ícone Pagina): a fatia 6 — cria a
-            // página depois da última, com o layer e os campos do formato (o `criarUmaNovaPagina`).
-            ToolStripMenuItem nova = new ToolStripMenuItem("Nova Página");
+            // 4 - Nova Página (o `CriarPaginaToolStripMenuItem`, ícone Pagina, mMensagem 29): o
+            // `TBNp1Uume8n` do original — parte da **linha selecionada** da grade, e é o mesmo
+            // handler da tecla Insert (`uscPaginas.cs:1888-1972`).
+            ToolStripMenuItem nova = new ToolStripMenuItem(MensagensDoReverso.NovaPagina);
             Icone(nova, "Pagina");
-            nova.ToolTipText = "cria a página depois da última, com o layer e os campos do formato";
-            nova.Click += (origem, evento) => CriarPagina();
+            nova.ToolTipText = "cria a página entre a linha selecionada e a seguinte (a tecla Insert faz o mesmo)";
+            nova.Click += (origem, evento) => NovaPagina();
             menu.Items.Add(nova);
 
-            // 5 - Inserir: no original são CINCO sub-itens preenchidos em execução; aqui a conta
-            // da página entre as duas entra pela regra do `NovaPaginaEntre`.
-            ToolStripMenuItem inserir = new ToolStripMenuItem("Inserir");
-            Icone(inserir, "Colunas2");
-            inserir.ToolTipText = "o original abre cinco sub-itens aqui, preenchidos em execução; este calcula a página entre a selecionada e a próxima";
-            inserir.Click += (origem, evento) => InserirPagina();
-            menu.Items.Add(inserir);
+            // 5 - Inserir (mMensagem 35): os **cinco sub-itens das colunas do formato**
+            // (`uscPaginas.cs:2466-2565`). O rótulo e a visibilidade de cada um saem da tabela de
+            // layers (o `Pagina.verificaLayerExtraNoFormato`), pelo `AtualizarInserir` a cada carga;
+            // sem nenhuma coluna o item inteiro fica **invisível** (como lá).
+            _inserir = new ToolStripMenuItem(MensagensDoReverso.Inserir);
+            Icone(_inserir, "Colunas2");
+            _inserir.ToolTipText = "insere as colunas ELET1..5 do formato nas páginas selecionadas";
+            for (int i = 1; i <= ColunasDoFormato.Quantidade; i++)
+            {
+                int indice = i;
+                ToolStripMenuItem coluna = new ToolStripMenuItem(string.Empty);
+                coluna.Click += (origem, evento) => InserirColuna(indice);
+                _colunasDoInserir.Add(coluna);
+                _inserir.DropDownItems.Add(coluna);
+            }
 
-            // 6 - Excluir Páginas (ícone Apagar): apaga os elementos e o layer das páginas
-            // selecionadas (o `ApagarElementosPagina` do original e o ok do dono, rodada 143).
-            ToolStripMenuItem excluir = new ToolStripMenuItem("Excluir Páginas");
+            menu.Items.Add(_inserir);
+
+            // 6 - Apagar Páginas (no designer é o `ExcluirPáginasToolStripMenuItem`, mas o texto que o
+            // usuário lê é a mMensagem 21): a confirmação, a capa recusada, as sincronizações e a
+            // seleção de volta — o `cPup1SWxSYc` (`uscPaginas.cs:2145-2222`).
+            ToolStripMenuItem excluir = new ToolStripMenuItem(MensagensDoReverso.ApagarPaginas);
             Icone(excluir, "Apagar");
-            excluir.ToolTipText = "apaga os elementos e o layer das páginas selecionadas (destrutivo)";
-            excluir.Click += (origem, evento) => ExcluirPaginas();
+            excluir.ToolTipText = "apaga os elementos e o layer das páginas selecionadas (destrutivo, com confirmação)";
+            excluir.Click += (origem, evento) => ApagarSelecionadas();
             menu.Items.Add(excluir);
 
             // 7 - o `RENPAGA`: a mMensagem 22 diz "Renumerar", e é isso que a regra faz.
@@ -285,49 +319,169 @@ namespace Positron.Plugin.Interface.Folhas
         }
 
         /// <summary>
-        /// O <c>Inserir</c> do menu: pega a página selecionada e a **próxima** da lista e calcula,
-        /// com a regra do reverso (<see cref="NovaPaginaEntre"/>), a página que cabe entre as duas.
-        /// A criação do layer e do formato entra na fatia 6 — aqui a conta é mostrada.
+        /// A **Nova Página** do menu e da tecla Insert — o `TBNp1Uume8n` do original
+        /// (`uscPaginas.cs:1888-1972`): com a grade em multiseleção ele **só avisa** (mMensagem 30);
+        /// sem ela, a referência é a **linha selecionada** e a posterior é a **linha seguinte** da
+        /// grade (o sentinela `1000000` na última). Cada recusa do original sai no seu `MsgBox`.
         /// </summary>
-        internal string InserirPagina()
+        internal string NovaPagina()
         {
+            if (_grade.MultiSelect)
+            {
+                UltimaMensagem = MensagensDoReverso.DesativeAMultiselecao;
+                Aviso.MsgBox(UltimaMensagem, "Elétron");
+                return UltimaMensagem;
+            }
+
             if (_grade.SelectedRows.Count == 0)
             {
-                UltimaMensagem = "Inserir: selecione a página anterior à nova.";
+                UltimaMensagem = MensagensDoReverso.NovaPagina + ": selecione na grade a página anterior à nova.";
                 return UltimaMensagem;
             }
 
-            int linha = _grade.SelectedRows[0].Index;
-            string anterior = _grade.Rows[linha].Cells[0].Value as string;
-            string posterior = linha + 1 < _grade.Rows.Count ? _grade.Rows[linha + 1].Cells[0].Value as string : string.Empty;
-
-            PaginaCalculada nova = NovaPaginaEntre.Calcular(anterior, posterior, PassoPagina());
-            if (!NovaPaginaEntre.Cabe(nova))
+            string anterior;
+            string posterior;
+            if (!GradeDeFolhas.ReferenciaDaNovaPagina(
+                PaginasDaGrade(), _grade.SelectedRows[0].Index, out anterior, out posterior))
             {
-                // O original (mensagem 31/32) não cria nada quando não cabe a página.
-                UltimaMensagem = "Inserir: não cabe página entre \"" + anterior + "\" e \"" + (posterior ?? "") + "\" — nada criado.";
+                UltimaMensagem = MensagensDoReverso.NovaPagina + ": a linha selecionada não é uma página.";
                 return UltimaMensagem;
             }
 
-            // A fatia 6: a página não é só calculada — o layer e os campos do formato são criados.
-            CriacaoDePaginaDoDesenho.Resultado resultado = CriacaoDePaginaDoDesenho.Executar(
-                nova.Pagina, LarguraFixa(), string.Empty, string.Empty, anterior);
+            Positron.Plugin.Comandos.ResultadoDaNovaPagina resultado =
+                Positron.Plugin.Comandos.ExecutarNovaPagina(anterior, posterior);
+            UltimaMensagem = resultado.Resumo;
             Carregar();
 
-            UltimaMensagem = "Inserir: entre \"" + anterior + "\" e \"" + (posterior ?? "") + "\" a nova página é \""
-                + nova.Pagina + "\" — " + (resultado.Criado
-                    ? "layer criado" + (resultado.TemFormato
-                        ? " + " + resultado.CamposCopiados + " campo(s) do formato copiado(s)"
-                        : " (o desenho não tem bloco de formato)")
-                        + (resultado.ContTotFlAtualizados > 0
-                            ? " + " + resultado.ContTotFlAtualizados + " CONT/FL/TOT recalculado(s)"
-                            : string.Empty)
-                    : (resultado.JaExistia ? "o layer já existia" : "não criada")) + ".";
+            // As recusas do original, cada uma no seu MsgBox de informação (`uscPaginas.cs:1948-1963`).
+            if (resultado.SemEspaco)
+            {
+                Aviso.MsgBox(MensagensDoReverso.NaoHaEspacoParaUmaNovaPagina, "Elétron");
+            }
+            else if (resultado.JaExistia)
+            {
+                Aviso.MsgBox(MensagensDoReverso.EstaPaginaJaExiste, "Elétron");
+            }
+            else if (resultado.NaoCriou)
+            {
+                Aviso.MsgBox(MensagensDoReverso.NaoFoiPossivelCriarEstaPagina, "Elétron");
+            }
+
             return UltimaMensagem;
         }
 
-        /// <summary>A exclusão das páginas selecionadas na grade (o item "Excluir Páginas").</summary>
-        private void ExcluirPaginas()
+        /// <summary>
+        /// Um dos cinco sub-itens do `Inserir` — a coluna do formato clonada em **cada linha
+        /// selecionada** (o `Pagina.InserirColuna` por linha, `uscPaginas.cs:2466-2565`).
+        /// </summary>
+        internal string InserirColuna(int indice)
+        {
+            ColunaDoFormato coluna = ColunaDe(indice);
+            if (coluna == null || !coluna.Visivel)
+            {
+                UltimaMensagem = MensagensDoReverso.Inserir + ": a coluna " + indice + " não existe no formato deste desenho.";
+                return UltimaMensagem;
+            }
+
+            List<string> escolhidas = PaginasSelecionadas();
+            if (escolhidas.Count == 0)
+            {
+                UltimaMensagem = MensagensDoReverso.Inserir + ": selecione a(s) página(s) na grade.";
+                return UltimaMensagem;
+            }
+
+            int entidades = 0;
+            List<string> semColuna = new List<string>();
+            foreach (string pagina in escolhidas)
+            {
+                int criadas = ColunasDoDesenho.Inserir(pagina, coluna.Tipo);
+                entidades += criadas;
+                if (criadas == 0)
+                {
+                    semColuna.Add(pagina);
+                }
+            }
+
+            UltimaMensagem = MensagensDoReverso.Inserir + ": coluna \"" + coluna.Tipo + "\" em "
+                + (escolhidas.Count - semColuna.Count) + " de " + escolhidas.Count + " página(s) — "
+                + entidades + " entidade(s) clonada(s) do formato"
+                + (semColuna.Count > 0
+                    ? "; o formato não tem essa coluna nas páginas " + string.Join(", ", semColuna.ToArray())
+                    : string.Empty) + ".";
+            return UltimaMensagem;
+        }
+
+        /// <summary>
+        /// O `Apagar Páginas` do menu e da tecla Delete — o `cPup1SWxSYc` do original
+        /// (`uscPaginas.cs:2145-2222`): pergunta (mMensagem 23, palavras `Sim`/`Não`), recusa a capa
+        /// (mMensagem 17, crítico), apaga o resto com as sincronizações do comando e devolve a
+        /// seleção à **linha anterior** (o `JaTp14wdVuV`).
+        /// </summary>
+        internal string ApagarSelecionadas()
+        {
+            List<string> escolhidas = PaginasSelecionadas();
+            if (escolhidas.Count == 0)
+            {
+                UltimaMensagem = MensagensDoReverso.ApagarPaginas + ": selecione a(s) página(s) na grade.";
+                return UltimaMensagem;
+            }
+
+            if (!ConfirmacaoDoUsuario.Perguntar(
+                MensagensDoReverso.ApagarAsPaginasSelecionadas, MensagensDoReverso.Sim, MensagensDoReverso.Nao))
+            {
+                UltimaMensagem = MensagensDoReverso.ApagarPaginas + ": cancelado (a resposta não foi \""
+                    + MensagensDoReverso.Sim + "\").";
+                return UltimaMensagem;
+            }
+
+            // A linha que fica selecionada sai da grade **antes** de apagar (o `JaTp14wdVuV`).
+            int linha = GradeDeFolhas.LinhaAposApagar(LinhasSelecionadas());
+
+            List<string> apagaveis = new List<string>();
+            foreach (string pagina in escolhidas)
+            {
+                if (Positron.Data.Paginas.PaginaAtiva.ChecaCapa(pagina))
+                {
+                    Aviso.MsgBoxCritico(MensagensDoReverso.CapaNaoPodeSerApagada, "Elétron");
+                    continue;
+                }
+
+                apagaveis.Add(pagina);
+            }
+
+            if (apagaveis.Count == 0)
+            {
+                UltimaMensagem = MensagensDoReverso.ApagarPaginas + ": nada apagado (a capa não se apaga).";
+                Carregar();
+                return UltimaMensagem;
+            }
+
+            Positron.Plugin.Comandos.ResultadoDaExclusao resultado =
+                Positron.Plugin.Comandos.ExecutarExclusaoDePaginas(apagaveis);
+            UltimaMensagem = resultado.Resumo;
+            foreach (string falha in resultado.Falhas)
+            {
+                Aviso.MsgBoxCritico(falha, "Elétron");
+            }
+
+            if (resultado.Sincronizacoes.Length > 0)
+            {
+                Plugin.Escrever(MensagensDoReverso.ApagarPaginas + " — sincronizações: " + resultado.Sincronizacoes);
+            }
+
+            Carregar();
+            SelecionarLinha(linha);
+            return UltimaMensagem;
+        }
+
+        /// <summary>As páginas selecionadas na grade (para o resumo do `pzFolhas`).</summary>
+        internal IReadOnlyList<string> Selecionadas()
+        {
+            return PaginasSelecionadas();
+        }
+
+        /// <summary>As páginas das linhas selecionadas, na ordem da grade.</summary>
+        private List<string> PaginasSelecionadas()
         {
             List<string> escolhidas = new List<string>();
             foreach (DataGridViewRow linha in _grade.SelectedRows)
@@ -338,42 +492,178 @@ namespace Positron.Plugin.Interface.Folhas
                 }
             }
 
-            UltimaMensagem = escolhidas.Count == 0
-                ? "Excluir Páginas: selecione a(s) página(s) na grade."
-                : Positron.Plugin.Comandos.ExecutarApagarPaginas(escolhidas);
-            Carregar();
+            return escolhidas;
         }
 
-        /// <summary>A criação da página do menu "Nova Página" (depois da última) e o recarregar da grade.</summary>
-        private void CriarPagina()
+        /// <summary>Os índices das linhas selecionadas (para o `JaTp14wdVuV`).</summary>
+        private List<int> LinhasSelecionadas()
         {
-            UltimaMensagem = Positron.Plugin.Comandos.ExecutarNovaPagina();
-            Carregar();
+            List<int> linhas = new List<int>();
+            foreach (DataGridViewRow linha in _grade.SelectedRows)
+            {
+                linhas.Add(linha.Index);
+            }
+
+            return linhas;
         }
 
-        /// <summary>A largura fixa do nome da página (o <c>Conf.LarguraFixaPaginas</c>; 0 quando não há configuração).</summary>
-        private static int LarguraFixa()
+        /// <summary>Os nomes da coluna Página, na ordem da grade (a referência da Nova Página).</summary>
+        private List<string> PaginasDaGrade()
         {
+            List<string> paginas = new List<string>();
+            foreach (DataGridViewRow linha in _grade.Rows)
+            {
+                paginas.Add(linha.Cells.Count > 0 && linha.Cells[0].Value != null
+                    ? linha.Cells[0].Value.ToString()
+                    : string.Empty);
+            }
+
+            return paginas;
+        }
+
+        /// <summary>Quantas páginas a grade mostra (o `Carregar` sem recarregar).</summary>
+        internal IReadOnlyList<string> Paginas()
+        {
+            return PaginasDaGrade();
+        }
+
+        /// <summary>As cinco colunas do formato da última carga (a prova do harness).</summary>
+        internal IReadOnlyList<ColunaDoFormato> Colunas()
+        {
+            return _colunas;
+        }
+
+        /// <summary>Seleciona e mostra a linha pedida — o fim do handler do original.</summary>
+        private void SelecionarLinha(int linha)
+        {
+            if (linha < 0 || linha >= _grade.Rows.Count)
+            {
+                return;
+            }
+
+            // O `ClearSelection` de um DataGridView fora da tela (sem Handle) deixa a `CurrentCell`
+            // na linha 0 e ela volta a selecionar a linha 0 quando se marca outra em `MultiSelect = false`.
+            // Movendo a `CurrentCell` para a linha alvo a seleção vale tanto na tela quanto no harness.
+            _grade.ClearSelection();
+            if (_grade.Rows[linha].Cells.Count > 0)
+            {
+                _grade.CurrentCell = _grade.Rows[linha].Cells[0];
+            }
+
+            _grade.Rows[linha].Selected = true;
             try
             {
-                return ConfiguracaoEfetiva.Carregar().LarguraFixaPaginas;
+                _grade.FirstDisplayedScrollingRowIndex = linha;
             }
-            catch (System.Exception)
+            catch (InvalidOperationException)
             {
-                return 0;
+                // Sem Handle criado o scroll não tem barra para rolar; a seleção já está na linha.
             }
         }
 
-        /// <summary>O passo do caderno (o <c>Conf.PassoPagina</c>; 1 quando não há configuração).</summary>
-        private static int PassoPagina()
+        /// <summary>
+        /// Seleciona na grade as páginas pedidas — o harness não tem quem clique (o `pzFolhas` usa
+        /// isto para pôr a grade no estado em que o usuário a deixaria). Devolve quantas achou.
+        /// </summary>
+        internal int Selecionar(IReadOnlyList<string> paginas)
         {
-            try
+            _grade.ClearSelection();
+            int achadas = 0;
+            if (paginas == null)
             {
-                return ConfiguracaoEfetiva.Carregar().PassoPagina;
+                return achadas;
             }
-            catch (System.Exception)
+
+            bool primeira = true;
+            foreach (string pagina in paginas)
             {
-                return 1;
+                foreach (DataGridViewRow linha in _grade.Rows)
+                {
+                    if (linha.Cells.Count == 0 || linha.Cells[0].Value == null)
+                    {
+                        continue;
+                    }
+
+                    if (string.Equals(linha.Cells[0].Value.ToString(), (pagina ?? string.Empty).Trim(), System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (primeira && linha.Cells.Count > 0)
+                        {
+                            // Tira a `CurrentCell` da linha 0 (mesma armadilha do `SelecionarLinha`).
+                            _grade.CurrentCell = linha.Cells[0];
+                            primeira = false;
+                        }
+
+                        linha.Selected = true;
+                        achadas++;
+                        break;
+                    }
+                }
+            }
+
+            return achadas;
+        }
+
+        /// <summary>A multiseleção da grade (o item do menu) — o harness liga pela prova das recusas.</summary>
+        internal bool Multiselecao
+        {
+            get { return _grade.MultiSelect; }
+            set { _grade.MultiSelect = value; }
+        }
+
+        /// <summary>A coluna do formato pelo número do sub-item (1..5), tal como a última carga a leu.</summary>
+        private ColunaDoFormato ColunaDe(int indice)
+        {
+            foreach (ColunaDoFormato coluna in _colunas)
+            {
+                if (coluna.Indice == indice)
+                {
+                    return coluna;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// O `Inserir` a cada carga (o `CarregaPG` do original, `uscPaginas.cs:1376-1393`): o rótulo
+        /// do sub-item é o resto do nome do layer e, sem nenhuma coluna, o item inteiro desaparece.
+        /// </summary>
+        private void AtualizarInserir()
+        {
+            _colunas = ColunasDoDesenho.Ler();
+            for (int i = 0; i < _colunasDoInserir.Count && i < _colunas.Count; i++)
+            {
+                _colunasDoInserir[i].Text = _colunas[i].Nome;
+                _colunasDoInserir[i].Visible = _colunas[i].Visivel;
+            }
+
+            if (_inserir != null)
+            {
+                _inserir.Visible = ColunasDoFormato.TemAlguma(_colunas);
+            }
+        }
+
+        /// <summary>
+        /// As teclas da grade (`wZ0p1XlFJ5o`, `uscPaginas.cs:1859-1884`): só no desenho do Elétron
+        /// (tipo `E`) o **Insert** cria a página e o **Delete** apaga as selecionadas — os mesmos
+        /// handlers dos itens do menu.
+        /// </summary>
+        private void GradeKeyDown(object origem, KeyEventArgs evento)
+        {
+            Document documento = AplicacaoDoCad.DocumentManager.MdiActiveDocument;
+            if (documento == null
+                || !string.Equals(InicioDoDesenho.TipoDoDesenho(documento), "E", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (evento.KeyCode == Keys.Insert)
+            {
+                NovaPagina();
+            }
+            else if (evento.KeyCode == Keys.Delete)
+            {
+                ApagarSelecionadas();
             }
         }
 
@@ -383,6 +673,9 @@ namespace Positron.Plugin.Interface.Folhas
             List<string> paginas = PaginasDoDesenho.Ler();
             PaginaAtiva = PaginaAtivaDoDesenho.Ler();
             _ativa.Text = "Página ativa: " + (PaginaAtiva.Length > 0 ? PaginaAtiva : "(nenhuma)");
+
+            // O `CarregaPG` bate os cinco sub-itens do `Inserir` a cada carga.
+            AtualizarInserir();
 
             _grade.Rows.Clear();
             for (int i = 0; i < paginas.Count; i++)

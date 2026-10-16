@@ -454,6 +454,17 @@ namespace Positron.Plugin
         }
 
         /// <summary>
+        /// <c>pzFolhas</c> — a prova do caminho da **paleta de folhas** (o par do `pzBarra`): monta o
+        /// controle e chama o mesmo handler do clique e da tecla, com a seleção da grade vinda do
+        /// harness (ver <see cref="Interface.Folhas.ProvaDaPaleta"/>).
+        /// </summary>
+        [CommandMethod("pzFolhas")]
+        public void ConferirFolhas()
+        {
+            Plugin.Escrever(Interface.Folhas.ProvaDaPaleta.Executar());
+        }
+
+        /// <summary>
         /// Compila a fiação: lê as <c>CONEXAO</c> do desenho e grava em
         /// <c>Fiacao</c> no banco do projeto. Equivale ao <c>FIA</c> do original
         /// (<c>frmCompilarFiacao</c>), sem a tela ainda.
@@ -1295,9 +1306,44 @@ namespace Positron.Plugin
             return ExecutarApagarPaginas(new List<string> { pagina });
         }
 
+        /// <summary>O que uma exclusão de páginas fez, para o resumo, as falhas e as sincronizações.</summary>
+        internal sealed class ResultadoDaExclusao
+        {
+            /// <summary>A linha de resumo (a mesma que o comando imprime).</summary>
+            internal string Resumo { get; set; } = string.Empty;
+
+            /// <summary>O que as sincronizações do apagar fizeram (linha separada, para não poluir o rótulo).</summary>
+            internal string Sincronizacoes { get; set; } = string.Empty;
+
+            /// <summary>Quantas páginas foram realmente apagadas.</summary>
+            internal int Apagadas { get; set; }
+
+            /// <summary>A mensagem do erro de cada página que não pôde ser apagada (o `MsgBox` do original).</summary>
+            internal List<string> Falhas { get; } = new List<string>();
+        }
+
         /// <summary>Apaga as páginas pedidas (o menu passa as selecionadas na grade) e resume. Nunca lança.</summary>
         internal static string ExecutarApagarPaginas(IReadOnlyList<string> paginasPedidas)
         {
+            return ExecutarExclusaoDePaginas(paginasPedidas).Resumo;
+        }
+
+        /// <summary>
+        /// O <c>Apagar Páginas</c> do menu das folhas (`uscPaginas.cs:2157-2222`): apaga o que passou no
+        /// crivo, roda as **sincronizações** do original e devolve o que fez. Nunca lança.
+        /// </summary>
+        /// <remarks>
+        /// **Fecha o pipeline do original:** depois do `AtualizaContTotFl` (dentro do apagar de cada
+        /// página), o original chama `clsConexao.sincronizaCircuitos`,
+        /// `clsInterligacao.SincronizaCruzamentoInterlig`, `clsDePara.SincronizaDePara(false)`,
+        /// `clsDispositivoAuxiliares.ApagaContatosOrfaos`, `clsDispositivoAuxiliares.SincronizaContatos`
+        /// e `clsPortas.SincronizaPortas`. Essa família **não está portada** (é o mesmo "fora do
+        /// recorte" dos `SYNCD`/`SYNCV`/`RESTPROJ`); o stand-in do recoder é o pipeline do `SYNCD` —
+        /// os modelos de contatos e a **projeção** (`FIA` + `INT`).
+        /// </remarks>
+        internal static ResultadoDaExclusao ExecutarExclusaoDePaginas(IReadOnlyList<string> paginasPedidas)
+        {
+            ResultadoDaExclusao retorno = new ResultadoDaExclusao();
             try
             {
                 List<string> doDesenho = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
@@ -1323,42 +1369,39 @@ namespace Positron.Plugin
                         layers++;
                     }
 
+                    if (!string.IsNullOrEmpty(resultado.Falha))
+                    {
+                        // O erro chega ao usuário (o `MsgBox(ex.Message, Critical)` do original).
+                        retorno.Falhas.Add("\"" + pedida.Trim() + "\": " + resultado.Falha);
+                        continue;
+                    }
+
                     apagadas.Add(pedida.Trim());
                 }
 
                 if (apagadas.Count == 0)
                 {
-                    return "APAGAPAGINA: nada apagado — " + string.Join("; ", recusadas.ToArray()) + ".";
+                    retorno.Resumo = "APAGAPAGINA: nada apagado — " + string.Join("; ", recusadas.ToArray()) + ".";
+                    return retorno;
                 }
 
-                string ativaAntes = Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ler();
-                bool ativaApagada = false;
-                foreach (string apagada in apagadas)
-                {
-                    if (string.Equals(apagada, ativaAntes, StringComparison.OrdinalIgnoreCase))
-                    {
-                        ativaApagada = true;
-                        break;
-                    }
-                }
-
-                string msgAtivacao = string.Empty;
-                if (ativaApagada)
-                {
-                    List<string> restantes = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
-                    string proximaAtiva = PaginasDoCaderno.EncontraProximaPagina(restantes, ativaAntes);
-                    Positron.Plugin.Paginas.PaginaAtivaDoDesenho.Ativar(proximaAtiva);
-                    msgAtivacao = "; página ativa passou para \"" + proximaAtiva + "\"";
-                }
-
-                return "APAGAPAGINA: " + apagadas.Count + " página(s) apagada(s) ("
+                retorno.Apagadas = apagadas.Count;
+                retorno.Resumo = "APAGAPAGINA: " + apagadas.Count + " página(s) apagada(s) ("
                     + string.Join(", ", apagadas.ToArray()) + ") — " + entidades + " entidade(s) do ModelSpace e "
-                    + layers + " layer(s)" + msgAtivacao + "."
+                    + layers + " layer(s)."
                     + (recusadas.Count > 0 ? " Recusadas: " + string.Join("; ", recusadas.ToArray()) + "." : string.Empty);
+
+                // As sincronizações do apagar — o stand-in do recoder (ver o remarks).
+                retorno.Sincronizacoes = "[1/3] " + ExecutarCorrigirModelosDeContatos()
+                    + " [2/3] " + ExecutarFiacao()
+                    + " [3/3] " + ExecutarInterligacao();
+
+                return retorno;
             }
             catch (System.Exception erro)
             {
-                return "APAGAPAGINA: falhou — " + DescreverErro(erro) + ".";
+                retorno.Resumo = "APAGAPAGINA: falhou — " + DescreverErro(erro) + ".";
+                return retorno;
             }
         }
 
@@ -1443,13 +1486,31 @@ namespace Positron.Plugin
             }
         }
 
-        /// <summary>A criação da página e a linha de resumo. Nunca lança.</summary>
+        /// <summary>
+        /// O que a criação de página fez — e **qual** das recusas do original ela encontrou (cada uma
+        /// tem o seu `MsgBox` no `TBNp1Uume8n`, `uscPaginas.cs:1948-1963`).
+        /// </summary>
+        internal sealed class ResultadoDaNovaPagina
+        {
+            internal string Resumo { get; set; } = string.Empty;
+
+            internal bool Criada { get; set; }
+
+            /// <summary>A página calculada não cabe (o `PgNum == 0` → mMensagem 31).</summary>
+            internal bool SemEspaco { get; set; }
+
+            /// <summary>O layer já existe (o `CriarLayer` devolvendo `-1` → mMensagem 32).</summary>
+            internal bool JaExistia { get; set; }
+
+            /// <summary>Não foi possível criar (o `CriarLayer` devolvendo `0` → mMensagem 33).</summary>
+            internal bool NaoCriou { get; set; }
+        }
+
+        /// <summary>A criação da página pela **página ativa** e a linha de resumo. Nunca lança.</summary>
         internal static string ExecutarNovaPagina()
         {
             try
             {
-                ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
-
                 List<string> paginas = Positron.Plugin.Paginas.PaginasDoDesenho.Ler();
                 if (paginas.Count == 0)
                 {
@@ -1472,39 +1533,79 @@ namespace Positron.Plugin
 
                 // A nova entra **depois da ativa**, como o original: a posterior é a próxima válida
                 // (e o fim quando a ativa é a última), para a página caber no meio.
-                string proxima = PaginasDoCaderno.ProximaValida(paginas, ativa);
-                PaginaCalculada nova = NovaPaginaEntre.Calcular(ativa, proxima, config.PassoPagina);
+                return ExecutarNovaPagina(ativa, PaginasDoCaderno.ProximaValida(paginas, ativa)).Resumo;
+            }
+            catch (System.Exception erro)
+            {
+                return "NOVAPAGINA: falhou — " + DescreverErro(erro) + ".";
+            }
+        }
+
+        /// <summary>
+        /// A criação com a **referência** e a **posterior** explícitas — o par que a grade das folhas
+        /// selecionou (o `TBNp1Uume8n` do original, `uscPaginas.cs:1893-1972`, que parte da linha
+        /// selecionada e da seguinte). Nunca lança.
+        /// </summary>
+        internal static ResultadoDaNovaPagina ExecutarNovaPagina(string referencia, string posterior)
+        {
+            ResultadoDaNovaPagina retorno = new ResultadoDaNovaPagina();
+            try
+            {
+                ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
+                string anterior = (referencia ?? string.Empty).Trim();
+                if (anterior.Length == 0)
+                {
+                    retorno.NaoCriou = true;
+                    retorno.Resumo = "NOVAPAGINA: sem página de referência — nada criado.";
+                    return retorno;
+                }
+
+                PaginaCalculada nova = NovaPaginaEntre.Calcular(anterior, posterior, config.PassoPagina);
                 if (!NovaPaginaEntre.Cabe(nova))
                 {
-                    return "NOVAPAGINA: não cabe página depois de \"" + ativa + "\" — nada criado.";
+                    retorno.SemEspaco = true;
+                    retorno.Resumo = "NOVAPAGINA: não cabe página depois de \"" + anterior + "\" — nada criado.";
+                    return retorno;
                 }
 
                 // Unidade/alternativo vazios, como o `criarUmaNovaPagina` do original (ele zera os
                 // dois antes do `CriarLayer`; quem os edita é a fatia 5).
                 Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Resultado resultado =
                     Positron.Plugin.Paginas.CriacaoDePaginaDoDesenho.Executar(
-                        nova.Pagina, config.LarguraFixaPaginas, string.Empty, string.Empty, ativa);
+                        nova.Pagina, config.LarguraFixaPaginas, string.Empty, string.Empty, anterior);
 
                 if (resultado.JaExistia)
                 {
-                    return "NOVAPAGINA: o layer \"" + resultado.Nome + "\" já existe — página não criada (depois de \""
-                        + ativa + "\" a nova seria \"" + nova.Pagina + "\", passo " + config.PassoPagina + ").";
+                    retorno.JaExistia = true;
+                    retorno.Resumo = "NOVAPAGINA: o layer \"" + resultado.Nome + "\" já existe — página não criada (depois de \""
+                        + anterior + "\" a nova seria \"" + nova.Pagina + "\", passo " + config.PassoPagina + ").";
+                    return retorno;
                 }
 
-                return "NOVAPAGINA: página \"" + resultado.Nome + "\" criada depois de \"" + ativa + "\" — layer"
+                if (resultado.Nome.Length == 0)
+                {
+                    retorno.NaoCriou = true;
+                    retorno.Resumo = "NOVAPAGINA: a página calculada \"" + nova.Pagina + "\" não pôde ser criada (nome vazio).";
+                    return retorno;
+                }
+
+                retorno.Criada = true;
+                retorno.Resumo = "NOVAPAGINA: página \"" + resultado.Nome + "\" criada depois de \"" + anterior + "\" — layer"
                     + (resultado.TemFormato
                         ? " + " + resultado.CamposCopiados + " campo(s) do formato copiado(s)"
                         : " (o desenho não tem bloco de formato: nenhum campo copiado)")
                     + (resultado.TitulosCopiados > 0
-                        ? " + " + resultado.TitulosCopiados + " título(s) herdado(s) de \"" + ativa + "\""
+                        ? " + " + resultado.TitulosCopiados + " título(s) herdado(s) de \"" + anterior + "\""
                         : string.Empty)
                     + (resultado.ContTotFlAtualizados > 0
                         ? " + " + resultado.ContTotFlAtualizados + " CONT/FL/TOT recalculado(s)."
                         : ".");
+                return retorno;
             }
             catch (System.Exception erro)
             {
-                return "NOVAPAGINA: falhou — " + DescreverErro(erro) + ".";
+                retorno.Resumo = "NOVAPAGINA: falhou — " + DescreverErro(erro) + ".";
+                return retorno;
             }
         }
 

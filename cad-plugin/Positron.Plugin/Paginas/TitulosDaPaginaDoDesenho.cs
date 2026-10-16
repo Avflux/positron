@@ -85,6 +85,9 @@ namespace Positron.Plugin.Paginas
 
             Database banco = documento.Database;
             int gravados = 0;
+            // A gravacao vem da paleta (fora de comando): trava como o original, que abre o
+            // `LockDocument` em cada rotina de escrita.
+            using (documento.LockDocument())
             using (Transaction transacao = banco.TransactionManager.StartTransaction())
             {
                 BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForWrite);

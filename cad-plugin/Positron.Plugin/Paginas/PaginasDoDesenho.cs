@@ -69,6 +69,8 @@ namespace Positron.Plugin.Paginas
             }
 
             int renomeados = 0;
+            // O `Renumerar Páginas` da paleta grava fora de comando: trava como o original.
+            using (documento.LockDocument())
             using (Transaction transacao = documento.Database.TransactionManager.StartTransaction())
             {
                 LayerTable tabela = (LayerTable)transacao.GetObject(

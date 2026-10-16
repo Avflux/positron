@@ -1,6 +1,6 @@
 # Rodada 181 — o resto do `IniciarDWG`: painéis pelo tipo, `Romans`, as cinco correções com marca e a página ativa
 
-**Data:** 2026-10-15 · **Commit:** *(este)* · **Frente:** correção do básico, item 1b · **Situação:** 🟡 parcial (o `ACorrecaoBD.CorrigeBD` e os dicionários de DWG/painel ficaram em *Falta*)
+**Data:** 2026-10-15 · **Commit:** `0547e4c8` · **Frente:** correção do básico, item 1b · **Situação:** 🟡 parcial (o `ACorrecaoBD.CorrigeBD` e os dicionários de DWG/painel ficaram em *Falta*)
 
 ## Alvo
 

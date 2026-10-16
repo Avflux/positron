@@ -4,15 +4,15 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-15, depois da rodada 181)
+## Estado (2026-10-15, depois da rodada 182)
 
 | | valor |
 |---|---|
-| última rodada | **181** |
-| comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
+| última rodada | **182** |
+| comandos no plugin | **78** escritos à mão (53 do reverso + 25 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **20** com a ligação à regra; 19 que nenhum comando abre |
-| testes (`npm run plugin:test`) | **921** |
+| testes (`npm run plugin:test`) | **929** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
 | host CAD medido | AutoCAD 2020 (interface cheia + `accoreconsole`); o ZWCAD não está instalado nesta máquina (2026-10-15) |
@@ -49,9 +49,9 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    - 1a. **Banco Access:** o projeto real (`RCD.mdb`) é Access e o plugin só lê SQLite — **decisão do dono** (ver abaixo).
    - 1b. ✅ *(rodada 181; falta o `ACorrecaoBD.CorrigeBD`, os dicionários de DWG/painel e os atalhos — ver a rodada)* **Resto do `IniciarDWG`** (`Iniciar.cs:61-195`): a barra ligada/desligada pelo tipo do desenho, as 5
      correções automáticas (`XDataCorrecao`), o estilo `Romans`, o `ACorrecaoBD.CorrigeBD` e a página ativa ao abrir.
-   - 1c. Ganchos `POSITRON_*` restantes em comandos (`POSITRON_PAGINA`, `POSITRON_TITULO1..4`, `POSITRON_UNIDADE`,
-     `POSITRON_FORMATO_TROCAR`): no original esses comandos perguntam ao usuário. Entram com o item 2.
-2. **Folhas: adicionar e apagar pela paleta.** As gravações não usam `LockDocument` e o erro vai para
+   - 1c. ✅ *(rodada 182; falta o `POSITRON_FORMATO_TROCAR` na confirmação do `CAD`)* Ganchos `POSITRON_*` restantes em comandos (`POSITRON_PAGINA`, `POSITRON_TITULO1..4`, `POSITRON_UNIDADE`,
+     `POSITRON_FORMATO_TROCAR`): no original esses comandos perguntam ao usuário.
+2. ✅ *(rodada 182; falta o `clsApagar.ApagarDerivados` e o `tbPagina.Text`, que entra no item 3 — ver a rodada)* **Folhas: adicionar e apagar pela paleta.** As gravações não usam `LockDocument` e o erro vai para
    `UltimaMensagem`, que ninguém lê. Ao apagar a página ativa, nenhuma página é reativada (`Comandos.cs:1369`).
    No original, "Inserir" insere colunas ELET1..5 (`uscPaginas.cs:2466-2565`) e "Nova Página" usa a
    linha selecionada (`:1888-1972`). Faltam a confirmação e as sincronizações do apagar (`:2157-2222`) e
@@ -69,18 +69,21 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    - Ela grava o XData (`GravarXDataConfiguracao`/`2`) e o idioma no registro (`:3904-3910`).
    - Inclui o bloco SQL Server; tira o grupo "Projeto" (DWG/Revisão/Log).
    - Leva ao XData a norma IEC/ANSI, o Log Func e a representação cabo/veia, que hoje não chegam lá.
-5. **Auditoria das 19 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
+5. **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
    designer e a captura, atrás de invenções do mesmo tipo. O que aparecer vira item aqui.
 
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
 
-1. **Telas só-casca mais baratas** cuja regra cabe numa rodada (lista: `cobertura-do-reverso.ps1 -Listas`):
+1. **`clsApagar.ApagarDerivados`** (`clsApagar.cs:9`), chamado pelo `ApagarElementosPagina` antes do
+   `Erase` — a polyline irmã de interligação tipo 2, a máscara, a inserção do contato auxiliar e os
+   contatos de modelo / complementar do dispositivo principal (saiu da rodada 182).
+2. **Telas só-casca mais baratas** cuja regra cabe numa rodada (lista: `cobertura-do-reverso.ps1 -Listas`):
    `frmEstatisticaDeCabos` (`ESTVCABOS`); depois, a próxima leva da lista `-Listas`.
-2. **Seção e cor ativas da barra** (`ListaDeSecao`/`CampoDeCor`, `Ribbon.cs:971,2264`; `My.Settings.Secao`/`Cor`):
+3. **Seção e cor ativas da barra** (`ListaDeSecao`/`CampoDeCor`, `Ribbon.cs:971,2264`; `My.Settings.Secao`/`Cor`):
    o padrão dos prompts do `EDCON`/`EDCONP` (hoje fixo em `1,5`/`PT`) e do `INSM`/`CON` — saiu da rodada 176.
-3. **Comandos de regra pura sem nada no plugin** (48) — pegar os que a triagem do `PLANO.md` §7.6
+4. **Comandos de regra pura sem nada no plugin** (48) — pegar os que a triagem do `PLANO.md` §7.6
    **não** marcou como fora do recorte/ambiente, começando pelos de edição das frentes 3–9.
-4. **Contínuo:** os 42 rótulos/ícones da barra (`../reverso-barra-do-original.txt`) entram na rodada
+5. **Contínuo:** os 42 rótulos/ícones da barra (`../reverso-barra-do-original.txt`) entram na rodada
    que portar o comando de cada um.
 
 ## Depende do dono (não começar sem decisão)
@@ -94,7 +97,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 181 | 2026-10-15 | *(este)* | resto do `IniciarDWG`: painéis da barra pelo tipo do desenho, `Romans`, as 5 correções com a marca `CORRECAO`, camadas destravadas e página ativa ao abrir | `rodadas/181-resto-do-iniciardwg.md` |
+| 182 | 2026-10-15 | *(este)* | folhas pela paleta: `Inserir` de colunas `ELET1..5`, `Nova Página` pela linha selecionada, `Apagar Páginas` com confirmação/capa/sincronizações, `LockDocument` e Insert/Delete | `rodadas/182-folhas-inserir-apagar.md` |
+| 181 | 2026-10-15 | `0547e4c8` | resto do `IniciarDWG`: painéis da barra pelo tipo do desenho, `Romans`, as 5 correções com a marca `CORRECAO`, camadas destravadas e página ativa ao abrir | `rodadas/181-resto-do-iniciardwg.md` |
 | 180 | 2026-10-15 | `49d06e51` | projeto por desenho: sai o `positron.ini`; banco e DWG do desenho ativo; `DocumentActivated`; `frmConfiguracaoBDProjeto` ligada | `rodadas/180-projeto-por-desenho.md` |
 | 179 | 2026-10-15 | `86907aaf` | `TROCTT`: troca DE → PARA em títulos 1..4, textos e multitextos das páginas escolhidas | `rodadas/179-edita-titulos-textos.md` |
 | 178 | 2026-10-15 | `e3c69237` | `PESQCAB`: cabos do catálogo (deste DWG e de outros), veias com o `OrdenaVeias`, ir até a veia; `TCHAVE` fora (licença) | `rodadas/178-pesquisa-cabos.md` |

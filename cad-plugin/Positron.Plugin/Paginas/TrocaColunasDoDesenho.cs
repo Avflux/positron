@@ -123,33 +123,10 @@ namespace Positron.Plugin.Paginas
 
                         foreach (ColunaDaPagina col in colunasUnicas)
                         {
-                            foreach (ObjectId id in formatoDef)
-                            {
-                                Entity modelo = transacao.GetObject(id, OpenMode.ForRead) as Entity;
-                                if (modelo == null)
-                                {
-                                    continue;
-                                }
-
-                                if (string.Equals(modelo.Layer, col.Tipo, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    Entity clone = modelo.Clone() as Entity;
-                                    if (clone != null)
-                                    {
-                                        clone.Layer = col.Pagina;
-                                        espaco.AppendEntity(clone);
-                                        transacao.AddNewlyCreatedDBObject(clone, true);
-
-                                        IReadOnlyList<TypedXData> xdataValores = ColunaDaPaginaXData.ParaValores(
-                                            col.Tipo,
-                                            Environment.UserName,
-                                            DateTime.Now.ToString());
-                                        clone.XData = BornesDaCorrecao.ParaResultBuffer(xdataValores);
-
-                                        resultado.EntidadesCriadas++;
-                                    }
-                                }
-                            }
+                            // O mesmo passo do `Pagina.InserirColuna`, agora no tipo dono da coluna
+                            // (o `Inserir` da paleta usa o mesmo corpo).
+                            resultado.EntidadesCriadas += ColunasDoDesenho.InserirColuna(
+                                transacao, espaco, formatoDef, banco, col.Pagina, col.Tipo);
                         }
                     }
 

@@ -1,4 +1,4 @@
-# Páginas — títulos e textos
+# Páginas — títulos, textos e a paleta (`uscPaginas`)
 
 Caminhos relativos a `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Eletron4/`.
 
@@ -22,3 +22,41 @@ Caminhos relativos a `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Eletr
   (`:258`), que regrava o XData, é de outro caminho.
 - Cada texto é gravado com lock + transação próprios (`clsTextos.AtualizarTexto`/`AtualizarMTexto`), dentro da
   transação de leitura, que não tem lock.
+
+## Paleta `uscPaginas`: `Inserir`, `Nova Página`, `Apagar Páginas` e as teclas (rodada 182)
+
+- **As cinco colunas do `Inserir`** (`uscPaginas.cs:1083, 1376-1393, 2466-2565`): o item
+  `InserirToolStripMenuItem` (`mMensagem[1,35]` = "Inserir") tem **cinco sub-itens**
+  (`ToolStripMenuItem1..5`). O rótulo e a visibilidade vêm de
+  `Pagina.verificaLayerExtraNoFormato(ref bLayers)` (`Pagina.cs:2315-2412`), que varre a **tabela de
+  layers** do desenho: cada nome que começa com `ELET1_`..`ELET5_` liga `bELETn` e guarda o resto do
+  nome (`name.Remove(0, 6)`) como texto do sub-item. Sem `blockFormatoID` válido a rotina sai antes
+  (tudo falso); com todos falsos o `Inserir` inteiro fica **invisível**. Quirk: quem decide é a ordem
+  de enumeração da tabela (o último `ELETn_*` lido fica). O clique chama
+  `Pagina.InserirColuna(pagina, "ELETn_" + ToolStripMenuItemN.Text)` (`Pagina.cs:2415-2478`, com
+  `LockDocument`) para **cada linha selecionada** da grade: toda entidade da **definição** do bloco de
+  formato com `Layer == sTipo` é clonada para o ModelSpace no layer da página e recebe o XData
+  `DiagLog`/`COLUNAS` (`XDataGeral.gravarXDataColuna`, `:1813`).
+- **`Nova Página` e a tecla Insert** (`TBNp1Uume8n`, `uscPaginas.cs:1888-1972`, e `wZ0p1XlFJ5o`,
+  `:1859-1884`): a tecla só age no desenho do Elétron (`ativo.Tipo == "E"`). Com `dg.MultiSelect`
+  ligado → `MsgBox(mMensagem[1,30])` = "Desative a multiseleção!" e sai (o padrão da grade é
+  `MultiSelect = false`; o item `Multiseleção` é que o liga, `:1974-1993`). Sem multiseleção, a
+  referência é a **linha selecionada** (`dg.Rows[index].Cells[0]`), com os títulos dela, e a posterior
+  é a **linha seguinte** (na última, o sentinela `"1000000"`). As três recusas têm cada uma o seu
+  `MsgBox` de informação, título "Elétron": `PgNum == 0` → 31 ("Não há espaço para uma nova página!");
+  `CriarLayer == "-1"` → 32 ("Esta página já existe!"); `CriarLayer == "0"` → 33 ("Não foi possível
+  criar esta página!").
+- **`Apagar Páginas` e a tecla Delete** (`cPup1SWxSYc`, `uscPaginas.cs:2157-2222`): o texto visível do
+  item é a `mMensagem[1,21]` = "Apagar Páginas" (o construtor sobrescreve o "Excluir Páginas" do
+  designer, `:1299`). Pergunta com `PromptKeywordOptions`: `mMensagem[1,23]` ("Apagar as páginas
+  selecionadas?"), palavras `Sim` (19) e `Não` (20). Por linha selecionada: `Pagina.checaCapa` (`:2595`,
+  `"1"`..`"0000001"`) → `MsgBox(mMensagem[1,17], Critical)` = "A Capa não pode ser apagada!" e pula a
+  página; senão `ApagarElementosPagina` + `RemoveLayer(text)` (`bAtivaPag = false`: a camada corrente
+  passa para o `"0"` e **fica lá** — só `frmExportarImportar.cs:1514` passa `bAtivaPag: true`). Antes
+  de apagar cada entidade o `ApagarElementosPagina` chama `clsApagar.ApagarDerivados` (`clsApagar.cs:9`).
+  Depois do laço rodam `CarregaPaginas`, `OrdenaMatrizPaginas`, `AtualizaContTotFl`,
+  `clsConexao.sincronizaCircuitos`, `clsInterligacao.SincronizaCruzamentoInterlig`,
+  `clsDePara.SincronizaDePara(false)`, `clsDispositivoAuxiliares.ApagaContatosOrfaos`,
+  `clsDispositivoAuxiliares.SincronizaContatos`, `clsPortas.SincronizaPortas`, e o handler fecha com
+  `CarregaPG()` e a seleção de volta na linha calculada por `JaTp14wdVuV` (`:2225`: a primeira linha
+  selecionada **menos um**, nunca abaixo de 0).

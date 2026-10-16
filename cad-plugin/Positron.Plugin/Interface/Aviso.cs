@@ -13,6 +13,17 @@ namespace Positron.Plugin.Interface
     {
         internal static void MsgBox(string texto, string titulo)
         {
+            Mostrar(texto, titulo, false);
+        }
+
+        /// <summary>O <c>MsgBoxStyle.Critical</c>: o ícone de erro do original (a capa do apagar).</summary>
+        internal static void MsgBoxCritico(string texto, string titulo)
+        {
+            Mostrar(texto, titulo, true);
+        }
+
+        private static void Mostrar(string texto, string titulo, bool critico)
+        {
             Plugin.Escrever(texto);
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(Positron.Data.Configuracao.ConfiguracaoPositron.VariavelLog)))
             {
@@ -21,7 +32,8 @@ namespace Positron.Plugin.Interface
 
 #if !POSITRON_SEM_WINFORMS
             System.Windows.Forms.MessageBox.Show(texto, titulo ?? string.Empty,
-                System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
+                System.Windows.Forms.MessageBoxButtons.OK,
+                critico ? System.Windows.Forms.MessageBoxIcon.Error : System.Windows.Forms.MessageBoxIcon.Information);
 #endif
         }
     }

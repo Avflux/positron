@@ -878,6 +878,17 @@ Três coisas que custam uma rodada cada se não forem sabidas (o
   vem pela applist. O `(entget e)` **sem** applist também não traz o `-3` no AutoCAD 2020 (mesma regra
   do ZWCAD 2026, acima).
 
+### `DataGridView` sem `Handle` (fora da tela): `ClearSelection()` volta a selecionar a linha 0 (medido na rodada 182)
+
+Ao medir um `UserControl` no `accoreconsole` (o `pzFolhas`, que monta o `FolhasControle` sem criar a
+janela), a grade tem `MultiSelect = false` (o padrão do original) e a primeira linha nasce com a
+`CurrentCell`. Chamar `_grade.ClearSelection()` e depois `linha.Selected = true` **sem** mover a
+`CurrentCell` deixa a linha 0 selecionada junto (ou toma de volta a seleção quando `Rows.Clear()` +
+`Rows.Add(...)` reconstrói a grade), e `FirstDisplayedScrollingRowIndex` lança
+`InvalidOperationException` por falta de barra de rolagem. Mova `_grade.CurrentCell = linha.Cells[0]`
+antes de marcar `Selected = true` e engula o `InvalidOperationException` da rolagem — na tela viva
+funciona igual e no harness a seleção mede a linha certa.
+
 ### Comando com prompts (`GetKeywords`/`GetSelection`/`GetString`) pelo harness
 
 O `-Comandos` do `cad-zwcad-smoke.ps1` vira **uma linha do `.scr` por item** e descarta item vazio,

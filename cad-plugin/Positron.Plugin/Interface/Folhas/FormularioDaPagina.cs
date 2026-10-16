@@ -47,6 +47,13 @@ namespace Positron.Plugin.Interface.Folhas
         /// <summary>Pergunta o valor e devolve <c>false</c> quando o usuario cancela.</summary>
         internal static bool Perguntar(string titulo, string rotulo, string pagina, string valor, out string escolhido)
         {
+            // O gancho do harness (1c): com POSITRON_UNIDADE/POSITRON_ALTERNATIVO definida a
+            // resposta vem do ambiente e o form não abre.
+            if (RespostaDoHarness.Campo(rotulo, out escolhido))
+            {
+                return true;
+            }
+
             using (FormularioDeCampoDaPagina form = new FormularioDeCampoDaPagina(titulo, rotulo, pagina, valor))
             {
                 if (form.ShowDialog() != DialogResult.OK)
@@ -117,6 +124,12 @@ namespace Positron.Plugin.Interface.Folhas
         /// <summary>Pergunta os quatro titulos e devolve <c>false</c> quando o usuario cancela.</summary>
         internal static bool Perguntar(string pagina, Positron.Data.Paginas.TitulosDaPagina atuais, out Positron.Data.Paginas.TitulosDaPagina escolhidos)
         {
+            // O gancho do harness: com qualquer POSITRON_TITULO1..4 definida o form não abre.
+            if (RespostaDoHarness.Titulos(atuais, out escolhidos))
+            {
+                return true;
+            }
+
             using (FormularioDeTitulosDaPagina form = new FormularioDeTitulosDaPagina(pagina, atuais))
             {
                 if (form.ShowDialog() != DialogResult.OK)

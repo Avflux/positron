@@ -26,6 +26,9 @@ namespace Positron.Plugin.Paginas
             /// <summary>O nome recusado (vazio quando a página foi apagada).</summary>
             internal string Recusa { get; set; }
 
+            /// <summary>A mensagem do erro que impediu o apagar (o `MsgBox(ex.Message, Critical)` do original).</summary>
+            internal string Falha { get; set; }
+
             /// <summary>Entidades apagadas do ModelSpace.</summary>
             internal int Entidades { get; set; }
 
@@ -48,48 +51,63 @@ namespace Positron.Plugin.Paginas
             }
 
             Database banco = documento.Database;
-            using (Transaction transacao = banco.TransactionManager.StartTransaction())
+            try
             {
-                BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForWrite);
-                List<ObjectId> apagar = new List<ObjectId>();
-                foreach (ObjectId id in espaco)
+                // O original trava em cada rotina (`Pagina.ApagarElementosPagina` e `Pagina.RemoveLayer`):
+                // a exclusao vem da paleta, que roda fora de comando.
+                using (documento.LockDocument())
+                using (Transaction transacao = banco.TransactionManager.StartTransaction())
                 {
-                    Entity entidade = transacao.GetObject(id, OpenMode.ForRead) as Entity;
-                    if (entidade == null)
+                    BlockTableRecord espaco = EspacoDeModelo(transacao, banco, OpenMode.ForWrite);
+                    List<ObjectId> apagar = new List<ObjectId>();
+                    foreach (ObjectId id in espaco)
                     {
-                        continue;
+                        Entity entidade = transacao.GetObject(id, OpenMode.ForRead) as Entity;
+                        if (entidade == null)
+                        {
+                            continue;
+                        }
+
+                        if (string.Equals(entidade.Layer, pagina, StringComparison.OrdinalIgnoreCase))
+                        {
+                            apagar.Add(id);
+                        }
                     }
 
-                    if (string.Equals(entidade.Layer, pagina, StringComparison.OrdinalIgnoreCase))
+                    foreach (ObjectId id in apagar)
                     {
-                        apagar.Add(id);
-                    }
-                }
-
-                foreach (ObjectId id in apagar)
-                {
-                    DBObject objeto = transacao.GetObject(id, OpenMode.ForWrite);
-                    objeto.Erase();
-                    resultado.Entidades++;
-                }
-
-                LayerTable camadas = (LayerTable)transacao.GetObject(banco.LayerTableId, OpenMode.ForRead);
-                if (camadas.Has(pagina))
-                {
-                    // Como no Pagina.RemoveLayer do original (linha 2225): se o layer a apagar for a camada
-                    // corrente (Clayer), mudar para o layer "0" antes de apagar, evitando exceção no CAD.
-                    if (banco.Clayer == camadas[pagina])
-                    {
-                        banco.Clayer = camadas["0"];
+                        DBObject objeto = transacao.GetObject(id, OpenMode.ForWrite);
+                        objeto.Erase();
+                        resultado.Entidades++;
                     }
 
-                    camadas.UpgradeOpen();
-                    LayerTableRecord layer = (LayerTableRecord)transacao.GetObject(camadas[pagina], OpenMode.ForWrite);
-                    layer.Erase();
-                    resultado.LayerApagado = true;
-                }
+                    LayerTable camadas = (LayerTable)transacao.GetObject(banco.LayerTableId, OpenMode.ForRead);
+                    if (camadas.Has(pagina))
+                    {
+                        // Como no Pagina.RemoveLayer do original (linha 2225): se o layer a apagar for a camada
+                        // corrente (Clayer), mudar para o layer "0" antes de apagar, evitando exceção no CAD.
+                        // O original deixa a camada corrente no "0" (o `bAtivaPag` do RemoveLayer é do
+                        // `frmExportarImportar`, não da paleta).
+                        if (banco.Clayer == camadas[pagina])
+                        {
+                            banco.Clayer = camadas["0"];
+                        }
 
-                transacao.Commit();
+                        camadas.UpgradeOpen();
+                        LayerTableRecord layer = (LayerTableRecord)transacao.GetObject(camadas[pagina], OpenMode.ForWrite);
+                        layer.Erase();
+                        resultado.LayerApagado = true;
+                    }
+
+                    transacao.Commit();
+                }
+            }
+            catch (Exception erro)
+            {
+                // O `MsgBox(ex.Message, Critical)` de cada linha do handler do original
+                // (`uscPaginas.cs:2194`): a falha sobe para quem chamou, que a mostra ao usuário.
+                resultado.Falha = erro.Message;
+                return resultado;
             }
 
             // Recalcula CONT, FL, TOT e ALTERNATIVO do caderno remanescente (o Pagina.AtualizaContTotFl do original).
