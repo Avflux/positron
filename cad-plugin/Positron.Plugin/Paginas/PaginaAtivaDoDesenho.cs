@@ -118,6 +118,7 @@ namespace Positron.Plugin.Paginas
             }
 
             string alvo = (pagina ?? string.Empty).Trim();
+            using (documento.LockDocument())
             using (Transaction transacao = documento.Database.TransactionManager.StartTransaction())
             {
                 LayerTable camadas = (LayerTable)transacao.GetObject(documento.Database.LayerTableId, OpenMode.ForRead);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Positron.Data.Paginas;
 using Positron.Plugin.Bornes;
 #if AUTOCAD
@@ -129,6 +130,63 @@ namespace Positron.Plugin.Paginas
                 transacao.Commit();
             }
 
+            return gravados;
+        }
+
+        /// <summary>Pagina.capturaTitulos: TextString, último índice vence; não usa o limite da edição individual.</summary>
+        internal static Dictionary<string, TitulosDaPagina> LerGrade()
+        {
+            Dictionary<string, TitulosDaPagina> linhas = new Dictionary<string, TitulosDaPagina>(StringComparer.OrdinalIgnoreCase);
+            foreach (string pagina in PaginasDoDesenho.Ler()) linhas[pagina] = new TitulosDaPagina();
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            if (documento == null) return linhas;
+            using (Transaction transacao = documento.Database.TransactionManager.StartTransaction())
+            {
+                foreach (ObjectId id in EspacoDeModelo(transacao, documento.Database, OpenMode.ForRead))
+                {
+                    DBText texto = transacao.GetObject(id, OpenMode.ForRead) as DBText;
+                    TitulosDaPagina titulos;
+                    int indice;
+                    string valor;
+                    if (texto != null && linhas.TryGetValue(texto.Layer, out titulos)
+                        && IndiceDoTitulo(texto, out indice, out valor) && indice >= 1 && indice <= 4)
+                        titulos.Definir(indice, texto.TextString);
+                }
+                transacao.Commit();
+            }
+            return linhas;
+        }
+
+        /// <summary>Pagina.AtualizaTitulos: todos os textos 1..4 e 9, numa transação com lock.</summary>
+        internal static int GravarGrade(IDictionary<string, TitulosDaPagina> linhas, IDictionary<string, string> alternativos)
+        {
+            Document documento = Application.DocumentManager.MdiActiveDocument;
+            if (documento == null) return 0;
+            int gravados = 0;
+            using (documento.LockDocument())
+            using (Transaction transacao = documento.Database.TransactionManager.StartTransaction())
+            {
+                BornesDaCorrecao.GarantirAppName(transacao, documento.Database, TituloDaPaginaXData.AppName);
+                foreach (ObjectId id in EspacoDeModelo(transacao, documento.Database, OpenMode.ForRead))
+                {
+                    DBText texto = transacao.GetObject(id, OpenMode.ForRead) as DBText;
+                    TitulosDaPagina titulos;
+                    int indice;
+                    string valor;
+                    if (texto == null || !linhas.TryGetValue(texto.Layer, out titulos)
+                        || !IndiceDoTitulo(texto, out indice, out valor)) continue;
+                    string novo;
+                    if (indice >= 1 && indice <= 4) novo = titulos.De(indice) ?? "";
+                    else if (indice == 9 && alternativos.TryGetValue(texto.Layer, out novo)) { }
+                    else continue;
+                    texto.UpgradeOpen();
+                    texto.TextString = novo;
+                    texto.XData = BornesDaCorrecao.ParaResultBuffer(TituloDaPaginaXData.ParaValores(
+                        indice, novo, Environment.UserName, DateTime.Now.ToString()));
+                    gravados++;
+                }
+                transacao.Commit();
+            }
             return gravados;
         }
 

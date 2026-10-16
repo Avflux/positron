@@ -11,6 +11,28 @@ Caminhos relativos a `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Eletr
   (`blockFormatoID`, o `BlockReference` com `DiagLog`/`Formato`) no layer `-1`: `TITULOnPAG` → título n, e
   **`PAINEL` → título 4**. No `Funcional.dwg` existem os títulos 1, 2 e 3 (rodada 179).
 
+## Grade `frmEditaTitulos` e faixa da paleta (rodada 183)
+
+- **Não confundir três caminhos:** `capturaTitulosDeUmaPagina`/`AtualizaTitulosDeUmaPagina`
+  usam o contrato individual (limite de quatro); a grade usa `capturaTitulos` (`Pagina.cs:722`) /
+  `AtualizaTitulos` (`:1653`). A grade lê **TextString** (não o valor do XData), último índice
+  duplicado vence; aplica a **todos** os DBText 1..4 e **9** (Alternativo), sem limite de quatro,
+  regravando texto e XData. `clsTextos.AtualizaUnidadeAlternativo` (`clsTextos.cs:1460`) grava o layer.
+- `frmEditaTitulos.cs:748-765` começa em **2** na matriz: a capa não aparece. Colunas Página,
+  Títulos 1..4, Unidade, Alternativo; só Página é read-only. Formato decide títulos visíveis;
+  registro decide Alternativo. Copiar usa buffer privado; Colar/Limpar/Substituir mudam apenas a
+  grade; somente **Editar DWG** aplica e fecha (`:774-870`). X fecha sem aplicar.
+- `frmEditaTitulos.cs:533-560` chama `Pagina.restauraCampos` **antes** de ler formato/títulos:
+  essa cadeia apaga/recria campos, preserva títulos/revisões e recalcula CONT/FL/TOT
+  (`Pagina.cs:2050-2098`). Não é equivalente a executar a cadeia inteira de **troca de formato**.
+- `uscPaginas.cs:1280-1324,1996-2026`: HKCU `Software/Cadgraph/Eletron4`, `Altern` string `0`/`1`,
+  padrão **0**. A grade tem Página | Unidade | Alternativo, Pg/PgDecimal invisíveis; não PgAtiva.
+- `btSalva` (`uscPaginas.cs:1510-1610`) **não salva o arquivo**: arma capturar a página corrente
+  no próximo clique em lb1..4. `Dicionario.cs:99-259`: NOD `CENG_ELET`, Xrecord `Atalhos`,
+  **seis strings DXF 1** (a UI usa quatro, mas as outras duas precisam ser preservadas).
+- `statusBanco` (`uscPaginas.cs:2600`) recebe contador de conexões >0; arquivo existente não é
+  conexão. Menu D/A/V ausente e grade read-only (`:1488-1501`).
+
 ## `EditaTitulosTextosDoDWG` (`TROCTT`, rodada 179)
 
 - Filtro de página: `List.Contains(Ent.Layer)`, que diferencia maiúsculas. `BlockReference` é pulado (atributos não entram).

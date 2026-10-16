@@ -23,6 +23,8 @@ namespace Positron.Plugin.Interface.Folhas
     {
         private static FolhasControle _controle;
 
+        internal static FolhasControle Controle { get { return _controle; } }
+
         /// <summary>Abre (criando na primeira vez) a paleta e devolve quantas páginas mostrou.</summary>
         internal static int Mostrar()
         {

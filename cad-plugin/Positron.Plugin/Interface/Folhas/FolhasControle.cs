@@ -15,32 +15,22 @@ using AplicacaoDoCad = ZwSoft.ZwCAD.ApplicationServices.Application;
 
 namespace Positron.Plugin.Interface.Folhas
 {
-    /// <summary>
-    /// O controle das **folhas do caderno** — o `uscPaginas` do reverso: a grade `dg` com as
-    /// colunas dele (`Pg` e `PgDecimal` são técnicas, como lá) e o **menu de contexto inteiro**, os
-    /// 14 itens do `cmStrip1` na ordem do designer, com os textos que o usuário lê (a `mMensagem`
-    /// do original, que o construtor grava por cima do literal do designer — o `Renumerar Páginas`
-    /// é a mMensagem 22) e os ícones do produto (`Pagina`, `Colunas2`, `Apagar`, `Renomear`,
-    /// `Editar_16`), mais o combo `Folha` com os seis formatos literais.
-    ///
-    /// Os itens cuja regra ainda não foi portada (as fatias 4 a 6 da frente 10) ficam
-    /// **desabilitados**, com o motivo no tooltip — a mesma regra da barra e da frente 12: a tela
-    /// é a do original, e o que funciona é o que está ligado (`Inserir` pela regra do
-    /// `NovaPaginaEntre` e o `Renumerar Páginas` pelo `RENPAGA`).
-    /// </summary>
+    /// <summary>Paleta uscPaginas: navegação e atalhos acima, grade, progresso e logo abaixo.</summary>
     internal sealed class FolhasControle : UserControl
     {
         private readonly DataGridView _grade;
 
-        private readonly TextBox _sufixo;
-
-        /// <summary>A linha da **página ativa** (o `LocalizaPaginaAtiva`), lida do desenho.</summary>
-        private readonly Label _ativa;
-
-        /// <summary>O estilo da linha da página ativa (ela sai em negrito na grade).</summary>
-        private readonly Font _negritoAtiva = new Font("Segoe UI", 9F, FontStyle.Bold);
-
-        private readonly Font _normal = new Font("Segoe UI", 9F, FontStyle.Regular);
+        private readonly TextBox _pagina;
+        private readonly Label[] _atalhos = new Label[4];
+        private readonly ProgressBar _progresso;
+        private readonly PictureBox _statusBanco;
+        private bool _capturarAtalho;
+        private bool _carregando;
+        private ToolStripMenuItem _multiselecao;
+        private ToolStripMenuItem _alternativo;
+        private ToolStripMenuItem _editarAlternativo;
+        private ContextMenuStrip _menu;
+        private ToolStripComboBox _formatoDaNumeracao;
 
         /// <summary>O resultado da última operação, para o chamador registrar.</summary>
         internal string UltimaMensagem { get; private set; } = string.Empty;
@@ -58,11 +48,21 @@ namespace Positron.Plugin.Interface.Folhas
 
         internal FolhasControle()
         {
+            Font = new Font("Microsoft Sans Serif", 8.25F);
+            AutoScaleDimensions = new SizeF(6F, 13F);
+            AutoScaleMode = AutoScaleMode.Font;
+            Size = new Size(180, 472);
             _grade = new DataGridView
             {
                 Name = "dg",
-                Dock = DockStyle.Fill,
-                ReadOnly = true,
+                Location = new Point(9, 51),
+                Size = new Size(Width - 18, Height - 103),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
+                BackgroundColor = SystemColors.Control,
+                AllowUserToDeleteRows = false,
+                AllowUserToResizeRows = false,
+                ScrollBars = ScrollBars.Vertical,
+                ReadOnly = false,
                 AllowUserToAddRows = false,
                 RowHeadersVisible = false,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
@@ -76,33 +76,73 @@ namespace Positron.Plugin.Interface.Folhas
             // As colunas do reverso: as três de conteúdo (da mMensagem) e as duas técnicas
             // (`Pg` e `PgDecimal`), que ficam escondidas como lá.
             _grade.Columns.Add("pagina", Positron.Data.Interface.MensagensDoReverso.Pagina);
-            _grade.Columns.Add("alternativo", Positron.Data.Interface.MensagensDoReverso.Alternativo);
             _grade.Columns.Add("unidade", Positron.Data.Interface.MensagensDoReverso.Unidade);
+            _grade.Columns.Add("alternativo", Positron.Data.Interface.MensagensDoReverso.Alternativo);
             _grade.Columns.Add("Pg", "Pg");
             _grade.Columns.Add("PgDecimal", "PgDecimal");
-            _grade.Columns.Add("ativa", "PgAtiva");
             _grade.Columns[3].Visible = false;
             _grade.Columns[4].Visible = false;
-            _grade.Columns[5].Visible = false;
-
-            _grade.ContextMenuStrip = MenuDoReverso();
+            foreach (DataGridViewColumn coluna in _grade.Columns)
+                coluna.SortMode = DataGridViewColumnSortMode.NotSortable;
+            _grade.Columns[0].ReadOnly = true; // A renumeração inline permanece fora desta rodada.
+            _grade.DefaultCellStyle.BackColor = SystemColors.Control;
+            _menu = MenuDoReverso();
+            _grade.ContextMenuStrip = _menu;
+            _grade.SelectionChanged += (origem, evento) =>
+            {
+                if (!_carregando && !_grade.MultiSelect && _grade.SelectedRows.Count == 1)
+                    ExecutarNaTela(() => AtivarPagina(PaginaSelecionada()));
+            };
+            _grade.CellEndEdit += (origem, evento) => ExecutarNaTela(() =>
+            {
+                if (evento.RowIndex < 0 || evento.ColumnIndex < 1 || evento.ColumnIndex > 2) return;
+                DataGridViewRow linha = _grade.Rows[evento.RowIndex];
+                string unidade = Convert.ToString(linha.Cells[1].Value).Trim();
+                string alternativo = Convert.ToString(linha.Cells[2].Value).Trim();
+                if (alternativo.Length > 20)
+                {
+                    alternativo = alternativo.Substring(0, 20);
+                    Aviso.MsgBox("Máximo de 20 caracteres", "Elétron");
+                }
+                linha.Cells[1].Value = unidade;
+                linha.Cells[2].Value = alternativo;
+                UnidadeDaPaginaDoDesenho.Gravar(Convert.ToString(linha.Cells[0].Value), unidade, alternativo);
+                if (evento.ColumnIndex == 2) AtualizarContagem();
+            });
             _grade.KeyDown += GradeKeyDown;
 
-            // A barra de baixo: o sufixo do RENPAGA, o renomear (a regra pura) e o recarregar.
-            Panel rodape = new Panel { Dock = DockStyle.Bottom, Height = 54 };
-            _sufixo = new TextBox { Left = 4, Top = 4, Width = 28, MaxLength = 1, Text = "A" };
-            _ativa = new Label { Left = 4, Top = 32, Width = 336, Text = "Página ativa: (nenhuma)" };
-            Button renomear = new Button { Left = 36, Top = 3, Width = 150, Text = Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas };
-            renomear.Click += (origem, evento) => RenomearPaginas();
-            Button recarregar = new Button { Left = 190, Top = 3, Width = 150, Text = "Recarregar do desenho" };
-            recarregar.Click += (origem, evento) => Carregar();
-            rodape.Controls.Add(_sufixo);
-            rodape.Controls.Add(renomear);
-            rodape.Controls.Add(recarregar);
-            rodape.Controls.Add(_ativa);
-
-            Controls.Add(_grade);
-            Controls.Add(rodape);
+            _pagina = new TextBox { Name = "tbPagina", Left = 9, Top = 25, Width = 45,
+                MaxLength = 7, CharacterCasing = CharacterCasing.Upper };
+            Button ir = new Button { Name = "btPagina", Left = 55, Top = 24, Size = new Size(25, 20),
+                FlatStyle = FlatStyle.Flat, ForeColor = SystemColors.Control, Image = IconesEmbutidos.BitmapDe("Enter_16") };
+            ir.Click += (origem, evento) => ExecutarNaTela(() => IrParaPagina(_pagina.Text));
+            _pagina.KeyDown += (origem, evento) =>
+            {
+                if (evento.KeyCode != Keys.Enter) return;
+                evento.SuppressKeyPress = true;
+                ExecutarNaTela(() => IrParaPagina(_pagina.Text));
+            };
+            Button salvar = new Button { Name = "btSalva", Left = 55, Top = 3, Size = new Size(25, 20),
+                FlatStyle = FlatStyle.Flat, ForeColor = SystemColors.Control, Image = IconesEmbutidos.BitmapDe("Record_16") };
+            salvar.Click += (origem, evento) => _capturarAtalho = true;
+            for (int i = 0; i < _atalhos.Length; i++)
+            {
+                int indice = i;
+                Label atalho = new Label { Name = "lb" + (i + 1), Left = 80 + (i % 2) * 48,
+                    Top = 7 + (i / 2) * 20, Size = new Size(46, 15), BorderStyle = BorderStyle.FixedSingle,
+                    Font = new Font("Tahoma", 8.25F), TextAlign = ContentAlignment.MiddleCenter };
+                atalho.Click += (origem, evento) => ExecutarNaTela(() => UsarAtalho(indice));
+                _atalhos[i] = atalho;
+                Controls.Add(atalho);
+            }
+            _statusBanco = new PictureBox { Name = "PictureBox2", Left = 16, Top = 7,
+                Size = new Size(31, 17), Image = IconesEmbutidos.BitmapDe("DB_DISCONNECTED") };
+            _progresso = new ProgressBar { Name = "ProgressBar1", Left = 9, Top = Height - 46,
+                Size = new Size(Width - 18, 7), Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right };
+            PictureBox logo = new PictureBox { Name = "PictureBox1", Left = 9, Top = Height - 33,
+                Size = new Size(162, 28), Anchor = AnchorStyles.Bottom | AnchorStyles.Left,
+                Image = IconesEmbutidos.BitmapDe("eletron_grande21") };
+            Controls.AddRange(new Control[] { _grade, _pagina, ir, salvar, _statusBanco, _progresso, logo });
 
             // O original le a pagina ativa quando a janela abre (o `LocalizaPaginaAtiva` do `PAG`);
             // o smoke do accoreconsole nao carrega o controle, entao a leitura so acontece com janela.
@@ -113,7 +153,7 @@ namespace Positron.Plugin.Interface.Folhas
         /// O menu de contexto do `cmStrip1` do reverso: os **14 itens, na ordem do designer**, com
         /// o **texto que o usuário lê** (o que o construtor do original grava por cima do literal
         /// do designer — a `mMensagem`) e os **ícones do produto**. Os itens cuja regra ainda não
-        /// foi portada ficam desabilitados, com o motivo no tooltip.
+        /// foi portada ficam desabilitados e registrados na rodada (sem dicas inventadas).
         /// </summary>
         private ContextMenuStrip MenuDoReverso()
         {
@@ -121,21 +161,26 @@ namespace Positron.Plugin.Interface.Folhas
 
             // 1 e 2 - os dois checáveis do designer. O `Alternativo` faz o que o original faz
             // (`uscPaginas.cs:2005`): liga/desliga a coluna e o item `Editar Alternativo`. O
-            // `Multiseleção` fica checável como lá, mas o efeito dele não foi rastreado.
-            ToolStripMenuItem multiselecao = new ToolStripMenuItem(MensagensDoReverso.Multiselecao)
+            // `Multiseleção` controla também a edição das células.
+            ToolStripMenuItem multiselecao = _multiselecao = new ToolStripMenuItem(MensagensDoReverso.Multiselecao)
             {
                 CheckOnClick = true,
                 Checked = false,
                 ToolTipText = "liga a seleção de várias linhas (a Nova Página exige a multiseleção desligada)",
             };
-            multiselecao.CheckedChanged += (origem, evento) => _grade.MultiSelect = multiselecao.Checked;
+            multiselecao.CheckedChanged += (origem, evento) =>
+            {
+                _grade.MultiSelect = multiselecao.Checked;
+                _grade.Columns[1].ReadOnly = multiselecao.Checked;
+                _grade.Columns[2].ReadOnly = multiselecao.Checked;
+                if (!multiselecao.Checked && !_carregando) SelecionarAtiva();
+            };
             menu.Items.Add(multiselecao);
 
-            ToolStripMenuItem alternativo = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.Alternativo)
+            ToolStripMenuItem alternativo = _alternativo = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.Alternativo)
             {
                 CheckOnClick = true,
-                Checked = true,
-                ToolTipText = "mostra ou esconde a coluna Alternativo",
+                Checked = PreferenciasDeFolhas.LerAlternativo(),
             };
             menu.Items.Add(alternativo);
 
@@ -147,7 +192,7 @@ namespace Positron.Plugin.Interface.Folhas
             ToolStripMenuItem nova = new ToolStripMenuItem(MensagensDoReverso.NovaPagina);
             Icone(nova, "Pagina");
             nova.ToolTipText = "cria a página entre a linha selecionada e a seguinte (a tecla Insert faz o mesmo)";
-            nova.Click += (origem, evento) => NovaPagina();
+            nova.Click += (origem, evento) => ExecutarNaTela(() => NovaPagina());
             menu.Items.Add(nova);
 
             // 5 - Inserir (mMensagem 35): os **cinco sub-itens das colunas do formato**
@@ -161,7 +206,7 @@ namespace Positron.Plugin.Interface.Folhas
             {
                 int indice = i;
                 ToolStripMenuItem coluna = new ToolStripMenuItem(string.Empty);
-                coluna.Click += (origem, evento) => InserirColuna(indice);
+                coluna.Click += (origem, evento) => ExecutarNaTela(() => InserirColuna(indice));
                 _colunasDoInserir.Add(coluna);
                 _inserir.DropDownItems.Add(coluna);
             }
@@ -174,14 +219,16 @@ namespace Positron.Plugin.Interface.Folhas
             ToolStripMenuItem excluir = new ToolStripMenuItem(MensagensDoReverso.ApagarPaginas);
             Icone(excluir, "Apagar");
             excluir.ToolTipText = "apaga os elementos e o layer das páginas selecionadas (destrutivo, com confirmação)";
-            excluir.Click += (origem, evento) => ApagarSelecionadas();
+            excluir.Click += (origem, evento) => ExecutarNaTela(() => ApagarSelecionadas());
             menu.Items.Add(excluir);
 
             // 7 - o `RENPAGA`: a mMensagem 22 diz "Renumerar", e é isso que a regra faz.
             ToolStripMenuItem renumerar = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas);
             Icone(renumerar, "Renomear");
             renumerar.ToolTipText = "aplica o sufixo do campo ao lado nas páginas do caderno";
-            renumerar.Click += (origem, evento) => RenomearPaginas();
+            // C8Op1CM1YgS (lote a partir de número informado) ainda não portado.
+            // Não reutilizar o RENPAGA, que aplica sufixo e não é esta operação.
+            renumerar.Enabled = false;
             menu.Items.Add(renumerar);
 
             menu.Items.Add(new ToolStripSeparator());
@@ -196,15 +243,15 @@ namespace Positron.Plugin.Interface.Folhas
                 ToolTipText = "regrava a unidade da página pelo XData Eletron do layer (POSITRON_UNIDADE)",
             };
             Icone(editarUnidade, "Editar_16");
-            editarUnidade.Click += (origem, evento) => EditarUnidade();
+            editarUnidade.Click += (origem, evento) => ExecutarNaTela(() => EditarUnidade());
             menu.Items.Add(editarUnidade);
 
-            ToolStripMenuItem editarAlternativo = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.EditarAlternativo)
+            ToolStripMenuItem editarAlternativo = _editarAlternativo = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.EditarAlternativo)
             {
                 ToolTipText = "regrava o alternativo da página pelo XData Eletron do layer (POSITRON_ALTERNATIVO)",
             };
             Icone(editarAlternativo, "Editar_16");
-            editarAlternativo.Click += (origem, evento) => EditarAlternativo();
+            editarAlternativo.Click += (origem, evento) => ExecutarNaTela(() => EditarAlternativo());
             menu.Items.Add(editarAlternativo);
 
             ToolStripMenuItem editarTitulos = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.EditarTitulos)
@@ -212,7 +259,7 @@ namespace Positron.Plugin.Interface.Folhas
                 ToolTipText = "regrava os quatro títulos da página (o XData TituloPagina dos textos do layer)",
             };
             Icone(editarTitulos, "Editar_16");
-            editarTitulos.Click += (origem, evento) => EditarTitulos();
+            editarTitulos.Click += (origem, evento) => ExecutarNaTela(() => EditarTitulos());
             menu.Items.Add(editarTitulos);
 
             ToolStripMenuItem revisoes = new ToolStripMenuItem(Positron.Data.Interface.MensagensDoReverso.EditarRevisoes)
@@ -240,7 +287,7 @@ namespace Positron.Plugin.Interface.Folhas
             menu.Items.Add(new ToolStripSeparator());
 
             // 14 - o `Folha`: no original é um **combo** no menu, com os seis formatos literais.
-            ToolStripComboBox folha = new ToolStripComboBox
+            ToolStripComboBox folha = _formatoDaNumeracao = new ToolStripComboBox
             {
                 Name = "FolhaToolStripMenuItem",
                 FlatStyle = FlatStyle.Standard,
@@ -257,11 +304,28 @@ namespace Positron.Plugin.Interface.Folhas
             // O que o original faz no clique do `Alternativo`.
             alternativo.CheckedChanged += (origem, evento) =>
             {
-                _grade.Columns["alternativo"].Visible = alternativo.Checked;
-                editarAlternativo.Visible = alternativo.Checked;
+                ExecutarNaTela(() =>
+                {
+                    PreferenciasDeFolhas.GravarAlternativo(alternativo.Checked);
+                    AtualizarAlternativo();
+                });
             };
 
+            // O original não tem dicas de implementação nos itens.
+            LimparDicas(menu.Items);
+            AtualizarAlternativo();
             return menu;
+        }
+
+        private static void LimparDicas(ToolStripItemCollection itens)
+        {
+            foreach (ToolStripItem item in itens)
+            {
+                item.ToolTipText = string.Empty;
+                item.AutoToolTip = false;
+                ToolStripMenuItem submenu = item as ToolStripMenuItem;
+                if (submenu != null) LimparDicas(submenu.DropDownItems);
+            }
         }
 
         /// <summary>O ícone do item, pelo nome do recurso do produto (o mesmo da barra).</summary>
@@ -272,50 +336,6 @@ namespace Positron.Plugin.Interface.Folhas
             {
                 item.Image = imagem;
             }
-        }
-
-        private static ToolStripMenuItem Desabilitado(string texto, string motivo)
-        {
-            return Desabilitado(texto, motivo, null);
-        }
-
-        private static ToolStripMenuItem Desabilitado(string texto, string motivo, string icone)
-        {
-            ToolStripMenuItem item = new ToolStripMenuItem(texto) { Enabled = false, ToolTipText = motivo };
-            if (!string.IsNullOrEmpty(icone))
-            {
-                Icone(item, icone);
-            }
-
-            return item;
-        }
-
-        /// <summary>
-        /// O <c>Renomear Páginas</c> do menu: aplica o sufixo do <c>RENPAGA</c> (a regra pura
-        /// valida e monta os nomes) e renomeia os layers; depois recarrega a grade.
-        /// </summary>
-        internal int RenomearPaginas()
-        {
-            string sufixo = _sufixo.Text;
-            if (!PaginasDoCaderno.SufixoValido(sufixo))
-            {
-                UltimaMensagem = "RENPAGA: o sufixo tem de ser um caractere (número ou A-Z).";
-                return 0;
-            }
-
-            List<string> antigos = PaginasDoDesenho.Ler();
-            if (!PaginasDoCaderno.TodasNumericas(antigos))
-            {
-                UltimaMensagem = "RENPAGA: as páginas não podem conter caracter alfabético para usar esta função.";
-                return 0;
-            }
-
-            IReadOnlyList<string> novos = PaginasDoCaderno.Renomear(antigos, sufixo);
-            int renomeados = PaginasDoDesenho.Renomear(antigos, novos);
-            Carregar();
-
-            UltimaMensagem = "RENPAGA: " + renomeados + " página(s) renomeada(s) com o sufixo \"" + sufixo + "\".";
-            return renomeados;
         }
 
         /// <summary>
@@ -469,7 +489,9 @@ namespace Positron.Plugin.Interface.Folhas
                 Plugin.Escrever(MensagensDoReverso.ApagarPaginas + " — sincronizações: " + resultado.Sincronizacoes);
             }
 
+            bool multiselecao = _grade.MultiSelect;
             Carregar();
+            Multiselecao = multiselecao;
             SelecionarLinha(linha);
             return UltimaMensagem;
         }
@@ -525,6 +547,16 @@ namespace Positron.Plugin.Interface.Folhas
         internal IReadOnlyList<string> Paginas()
         {
             return PaginasDaGrade();
+        }
+
+        internal string DescreverInterface()
+        {
+            List<string> colunas = new List<string>();
+            foreach (DataGridViewColumn coluna in _grade.Columns)
+                if (coluna.Visible) colunas.Add(coluna.HeaderText);
+            return "interface: " + _grade.Columns.Count + " colunas [" + string.Join(" | ", colunas.ToArray())
+                + "]; tbPagina=" + _pagina.Text + "; multiseleção=" + _grade.MultiSelect
+                + "; controles=" + Controls.Count;
         }
 
         /// <summary>As cinco colunas do formato da última carga (a prova do harness).</summary>
@@ -607,7 +639,7 @@ namespace Positron.Plugin.Interface.Folhas
         internal bool Multiselecao
         {
             get { return _grade.MultiSelect; }
-            set { _grade.MultiSelect = value; }
+            set { _multiselecao.Checked = value; }
         }
 
         /// <summary>A coluna do formato pelo número do sub-item (1..5), tal como a última carga a leu.</summary>
@@ -659,11 +691,11 @@ namespace Positron.Plugin.Interface.Folhas
 
             if (evento.KeyCode == Keys.Insert)
             {
-                NovaPagina();
+                ExecutarNaTela(() => NovaPagina());
             }
             else if (evento.KeyCode == Keys.Delete)
             {
-                ApagarSelecionadas();
+                ExecutarNaTela(() => ApagarSelecionadas());
             }
         }
 
@@ -672,31 +704,130 @@ namespace Positron.Plugin.Interface.Folhas
         {
             List<string> paginas = PaginasDoDesenho.Ler();
             PaginaAtiva = PaginaAtivaDoDesenho.Ler();
-            _ativa.Text = "Página ativa: " + (PaginaAtiva.Length > 0 ? PaginaAtiva : "(nenhuma)");
-
-            // O `CarregaPG` bate os cinco sub-itens do `Inserir` a cada carga.
-            AtualizarInserir();
-
-            _grade.Rows.Clear();
-            for (int i = 0; i < paginas.Count; i++)
+            _carregando = true;
+            try
             {
-                string unidade;
-                string alternativo;
-                UnidadeDaPaginaDoDesenho.Ler(paginas[i], out unidade, out alternativo);
-                double valor = PaginaNumerada.Decimal(paginas[i]);
-                bool ativa = PaginaAtiva.Length > 0 &&
-                    string.Equals(PaginaAtiva, paginas[i], System.StringComparison.OrdinalIgnoreCase);
-                _grade.Rows.Add(
-                    paginas[i],
-                    alternativo,
-                    unidade,
-                    paginas[i],
-                    valor.ToString("0.00"),
-                    ativa ? "ativa" : string.Empty);
-                _grade.Rows[i].DefaultCellStyle.Font = ativa ? _negritoAtiva : _normal;
-            }
+                _multiselecao.Checked = false;
+                _capturarAtalho = false;
+                _pagina.Text = PaginaAtiva;
+                string[] atalhos = AtalhosDePaginasDoDesenho.Ler();
+                for (int i = 0; i < _atalhos.Length; i++) _atalhos[i].Text = atalhos[i];
 
-            return paginas.Count;
+                AtualizarInserir();
+                int largura = ConfiguracaoEfetiva.Carregar().LarguraFixaPaginas;
+                _formatoDaNumeracao.Text = largura >= 3 && largura <= 7
+                    ? "12".PadLeft(largura, '0') : "12";
+                _progresso.Maximum = Math.Max(1, paginas.Count);
+                _progresso.Value = 0;
+                _grade.Rows.Clear();
+                for (int i = 0; i < paginas.Count; i++)
+                {
+                    string unidade;
+                    string alternativo;
+                    UnidadeDaPaginaDoDesenho.Ler(paginas[i], out unidade, out alternativo);
+                    _grade.Rows.Add(paginas[i], unidade, alternativo, paginas[i],
+                        PaginaNumerada.Decimal(paginas[i]).ToString("0.00"));
+                    _progresso.Increment(1);
+                }
+
+                SelecionarAtiva();
+                AtualizarAlternativo();
+                return paginas.Count;
+            }
+            finally
+            {
+                _progresso.Value = 0;
+                _carregando = false;
+            }
+        }
+
+        private void SelecionarAtiva()
+        {
+            for (int i = 0; i < _grade.Rows.Count; i++)
+                if (string.Equals(Convert.ToString(_grade.Rows[i].Cells[0].Value), PaginaAtiva, StringComparison.OrdinalIgnoreCase))
+                {
+                    SelecionarLinha(i);
+                    break;
+                }
+        }
+
+        private void AtualizarAlternativo()
+        {
+            if (_alternativo == null || _editarAlternativo == null) return;
+            Document documento = AplicacaoDoCad.DocumentManager.MdiActiveDocument;
+            string tipo = documento == null ? "" : InicioDoDesenho.TipoDoDesenho(documento);
+            bool outro = tipo == "D" || tipo == "A" || tipo == "V";
+            bool mostrar = _alternativo.Checked && !outro;
+            _grade.Columns[2].Visible = mostrar;
+            _editarAlternativo.Visible = _alternativo.Checked;
+            _grade.Columns[0].FillWeight = mostrar ? 1 : 2;
+            _grade.Columns[1].FillWeight = mostrar ? 1 : 3;
+            _grade.Columns[2].FillWeight = 1;
+            _grade.ReadOnly = outro;
+            if (_menu != null) _grade.ContextMenuStrip = outro ? null : _menu;
+        }
+
+        internal void IrParaPagina(string pagina)
+        {
+            Multiselecao = false;
+            string alvo = CriacaoDePagina.Normalizar((pagina ?? "").Trim().ToUpperInvariant(), ConfiguracaoEfetiva.Carregar().LarguraFixaPaginas);
+            foreach (string existente in PaginasDaGrade())
+                if (string.Equals(existente, alvo, StringComparison.OrdinalIgnoreCase))
+                {
+                    AtivarPagina(existente);
+                    SelecionarAtiva();
+                    return;
+                }
+            _pagina.Text = PaginaAtiva;
+        }
+
+        private void AtivarPagina(string pagina)
+        {
+            if (string.IsNullOrEmpty(pagina)) return;
+            PaginaAtivaDoDesenho.Ativar(pagina);
+            PaginaAtiva = PaginaAtivaDoDesenho.Ler();
+            _pagina.Text = PaginaAtiva;
+        }
+
+        private void UsarAtalho(int indice)
+        {
+            if (_capturarAtalho)
+            {
+                AtalhosDePaginasDoDesenho.Gravar(indice, PaginaAtivaDoDesenho.Ler());
+                _atalhos[indice].Text = PaginaAtivaDoDesenho.Ler();
+                _capturarAtalho = false;
+                return;
+            }
+            string alvo = _atalhos[indice].Text;
+            if (alvo.Length == 0) return;
+            IrParaPagina(alvo);
+            if (!string.Equals(PaginaAtiva, alvo, StringComparison.OrdinalIgnoreCase))
+            {
+                AtalhosDePaginasDoDesenho.Gravar(indice, "");
+                _atalhos[indice].Text = "";
+            }
+        }
+
+        internal void ProgressoIniciar(int quantidade)
+        {
+            _progresso.Value = 0;
+            _progresso.Maximum = Math.Max(0, quantidade);
+        }
+
+        internal void ProgressoPasso() { _progresso.Increment(1); }
+        internal void ProgressoFim() { _progresso.Value = 0; }
+
+        private static void AtualizarContagem()
+        {
+            Document documento = AplicacaoDoCad.DocumentManager.MdiActiveDocument;
+            if (documento == null) return;
+            using (documento.LockDocument()) RestauracaoDoFormatoDoDesenho.AtualizarContTotFl(documento.Database);
+        }
+
+        private static void ExecutarNaTela(Action acao)
+        {
+            try { acao(); }
+            catch (Exception erro) { Aviso.MsgBoxCritico(erro.Message, "Elétron"); }
         }
 
         /// <summary>A página selecionada na grade (todas as colunas têm o mesmo nome).</summary>
@@ -797,26 +928,16 @@ namespace Positron.Plugin.Interface.Folhas
             return UltimaMensagem;
         }
 
-        /// <summary>O `Editar Títulos` do menu: os quatro campos e a regravação do XData dos textos.</summary>
+        /// <summary>O `Editar Títulos` abre a grade não modal do caderno, não um diálogo de página.</summary>
         internal string EditarTitulos()
         {
-            string pagina = PaginaParaEditar();
-            if (pagina.Length == 0)
-            {
-                UltimaMensagem = "Editar Títulos: selecione a página na grade (ou ative uma página).";
-                return UltimaMensagem;
-            }
-
-            TitulosDaPagina atuais = TitulosDaPaginaDoDesenho.Ler(pagina);
-            TitulosDaPagina escolhidos;
-            if (!FormularioDeTitulosDaPagina.Perguntar(pagina, atuais, out escolhidos))
-            {
-                UltimaMensagem = "Editar Títulos: cancelado.";
-                return UltimaMensagem;
-            }
-
-            int gravados = TitulosDaPaginaDoDesenho.Gravar(pagina, escolhidos);
-            UltimaMensagem = "Editar Títulos: página \"" + pagina + "\" — " + gravados + " campo(s) regravado(s).";
+            foreach (Form janela in System.Windows.Forms.Application.OpenForms)
+                if (janela.Name == "frmEditaTitulos")
+                {
+                    janela.Activate();
+                    return UltimaMensagem;
+                }
+            UltimaMensagem = Telas.RenderizadorDeTelas.Abrir("frmEditaTitulos", "Editar os Títulos");
             return UltimaMensagem;
         }
 

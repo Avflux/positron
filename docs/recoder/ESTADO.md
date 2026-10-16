@@ -4,15 +4,15 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-15, depois da rodada 182)
+## Estado (2026-10-15, depois da rodada 183)
 
 | | valor |
 |---|---|
-| última rodada | **182** |
+| última rodada | **183** |
 | comandos no plugin | **78** escritos à mão (53 do reverso + 25 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
-| telas `frm*` do reverso | **127**; **20** com a ligação à regra; 19 que nenhum comando abre |
-| testes (`npm run plugin:test`) | **929** |
+| telas `frm*` do reverso | **127**; **21** com a ligação à regra; 19 que nenhum comando abre |
+| testes (console xUnit; adaptador de `plugin:test` indisponível) | **941** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
 | host CAD medido | AutoCAD 2020 (interface cheia + `accoreconsole`); o ZWCAD não está instalado nesta máquina (2026-10-15) |
@@ -74,16 +74,22 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
 
-1. **`clsApagar.ApagarDerivados`** (`clsApagar.cs:9`), chamado pelo `ApagarElementosPagina` antes do
+1. **Fechar a rodada 183 (Páginas / Editar os Títulos):** GUI AutoCAD validada (menu, descarte,
+   aplicação fora de comando, Alternativo, novo DWG e retorno); falta repetir no ZWCAD e exercitar
+   título 4/D/A/V e todos os atalhos. Portar `Pagina.restauraCampos` específico e Excel ativo;
+   completar Renumerar lote/inline,
+   combo de largura, status de conexões/progresso e prompts Unidade/Alternativo em multiseleção.
+   Prova e passos em `rodadas/183-paginas-editar-titulos.md`; não dar o item 3 do básico por encerrado.
+2. **`clsApagar.ApagarDerivados`** (`clsApagar.cs:9`), chamado pelo `ApagarElementosPagina` antes do
    `Erase` — a polyline irmã de interligação tipo 2, a máscara, a inserção do contato auxiliar e os
    contatos de modelo / complementar do dispositivo principal (saiu da rodada 182).
-2. **Telas só-casca mais baratas** cuja regra cabe numa rodada (lista: `cobertura-do-reverso.ps1 -Listas`):
+3. **Telas só-casca mais baratas** cuja regra cabe numa rodada (lista: `cobertura-do-reverso.ps1 -Listas`):
    `frmEstatisticaDeCabos` (`ESTVCABOS`); depois, a próxima leva da lista `-Listas`.
-3. **Seção e cor ativas da barra** (`ListaDeSecao`/`CampoDeCor`, `Ribbon.cs:971,2264`; `My.Settings.Secao`/`Cor`):
+4. **Seção e cor ativas da barra** (`ListaDeSecao`/`CampoDeCor`, `Ribbon.cs:971,2264`; `My.Settings.Secao`/`Cor`):
    o padrão dos prompts do `EDCON`/`EDCONP` (hoje fixo em `1,5`/`PT`) e do `INSM`/`CON` — saiu da rodada 176.
-4. **Comandos de regra pura sem nada no plugin** (48) — pegar os que a triagem do `PLANO.md` §7.6
+5. **Comandos de regra pura sem nada no plugin** (48) — pegar os que a triagem do `PLANO.md` §7.6
    **não** marcou como fora do recorte/ambiente, começando pelos de edição das frentes 3–9.
-5. **Contínuo:** os 42 rótulos/ícones da barra (`../reverso-barra-do-original.txt`) entram na rodada
+6. **Contínuo:** os 42 rótulos/ícones da barra (`../reverso-barra-do-original.txt`) entram na rodada
    que portar o comando de cada um.
 
 ## Depende do dono (não começar sem decisão)
@@ -97,7 +103,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 182 | 2026-10-15 | *(este)* | folhas pela paleta: `Inserir` de colunas `ELET1..5`, `Nova Página` pela linha selecionada, `Apagar Páginas` com confirmação/capa/sincronizações, `LockDocument` e Insert/Delete | `rodadas/182-folhas-inserir-apagar.md` |
+| 183 | 2026-10-15 | *(este)* | Páginas sem rodapé inventado; cabeçalho/atalhos/Altern; grade não modal Editar os Títulos, 15 páginas/51 textos medidos; GUI AutoCAD validada com clique, descarte e troca MDI; recortes funcionais pendentes | `rodadas/183-paginas-editar-titulos.md` |
+| 182 | 2026-10-15 | `d6d1466d` | folhas pela paleta: `Inserir` de colunas `ELET1..5`, `Nova Página` pela linha selecionada, `Apagar Páginas` com confirmação/capa/sincronizações, `LockDocument` e Insert/Delete | `rodadas/182-folhas-inserir-apagar.md` |
 | 181 | 2026-10-15 | `0547e4c8` | resto do `IniciarDWG`: painéis da barra pelo tipo do desenho, `Romans`, as 5 correções com a marca `CORRECAO`, camadas destravadas e página ativa ao abrir | `rodadas/181-resto-do-iniciardwg.md` |
 | 180 | 2026-10-15 | `49d06e51` | projeto por desenho: sai o `positron.ini`; banco e DWG do desenho ativo; `DocumentActivated`; `frmConfiguracaoBDProjeto` ligada | `rodadas/180-projeto-por-desenho.md` |
 | 179 | 2026-10-15 | `86907aaf` | `TROCTT`: troca DE → PARA em títulos 1..4, textos e multitextos das páginas escolhidas | `rodadas/179-edita-titulos-textos.md` |

@@ -1,0 +1,4 @@
+﻿pzFolhas UI: interface: 5 colunas [Página | Unidade]; tbPagina=23; multiseleção=False; controles=11
+pzFolhas UI: PASSOU — navegação pelo botão, atalho Xrecord, menu Editar Títulos, 0 linha(s), edição local sem gravação antecipada; Editar DWG fora de comando; texto e XData confirmados.
+pzFolhas UI: interface: 5 colunas [Página | Unidade]; tbPagina=23; multiseleção=False; controles=11
+pzFolhas UI: PASSOU — navegação pelo botão, atalho Xrecord, menu Editar Títulos, 15 linha(s), edição local sem gravação antecipada; Editar DWG fora de comando; texto e XData confirmados.

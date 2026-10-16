@@ -48,6 +48,7 @@ namespace Positron.Plugin.Interface.Telas
             new LigacaoDoFrmPesquisaVeiasIndefinidas(),
             new LigacaoDoFrmPesquisaCabos(),
             new LigacaoDoFrmEditaTitulosTextos(),
+            new LigacaoDoFrmEditaTitulos(),
             new LigacaoDoFrmConfiguracaoBDProjeto(),
         };
 

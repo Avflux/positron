@@ -757,6 +757,26 @@ bater com a do `cad-plugin\Positron.Plugin\bin\Debug\AutoCAD\net472\Positron.Plu
 O mesmo vale para a **paleta** e para qualquer correção testada por `NETLOAD`/`accoreconsole` (que
 carregam a DLL do `bin\`): o que o dono vê na interface do AutoCAD é sempre a cópia do pacote.
 
+### Captura WinForms no `accoreconsole` não comprova tela visível
+
+Medido na rodada 183: `Control.DrawToBitmap` em form não mostrado no `accoreconsole` produziu
+editor vazio apesar de a grade ter 15 linhas, e paleta sem alguns controles superiores. Não tratar
+esse PNG como prova visual nem remover controles para ajustá-lo. Conferir em host com GUI e janela
+visível. A primeira tentativa retornou `MK_E_UNAVAILABLE` (0x800401E3); a continuação resolveu:
+lançar `acad.exe /nologo <copia.dwg>` num job **BACKGROUND** e manter o pai esperando com
+`$processo.WaitForExit()`. Encerrar o script que iniciou o CAD pode deixar a árvore sujeita à
+limpeza do job; dormir 40 s e só depois buscar COM não corrige isso. Com o pai vivo, a rodada 183
+mediu clique real, Timer fora de comando e novo DWG/retorno, com capturas de desktop recortadas
+em `docs/recoder/provas/183-paginas/`. Só encerrar a instância de teste criada pelo harness.
+
+Nesta medição, `(setenv "POSITRON_FOLHA_ACAO" "interface")` via AutoLISP não mudou o que
+`Environment.GetEnvironmentVariable` do plugin leu. Definir `POSITRON_*` no ambiente **antes**
+de iniciar o CAD funcionou. Não confundir os dois mecanismos de ambiente.
+
+Não rodar dois `cad-autocad-smoke.ps1` no mesmo segundo: os nomes temporários usam carimbo com
+precisão de segundo (log/script/cópia do desenho). Na rodada 183 as execuções paralelas colidiram e
+misturaram logs. Repetir isoladamente antes de atribuir a saída ao desenho ou à DLL testada.
+
 ### `npm run plugin:test` sai 0 sem rodar teste nenhum (o adaptador do xunit não carrega)
 
 **Medido na rodada 148, com o SDK 10.0.100-rc e o `xunit.runner.visualstudio` 2.8.2:** o
