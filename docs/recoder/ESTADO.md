@@ -28,8 +28,8 @@ Números de cobertura: `powershell -ExecutionPolicy Bypass -File scripts/cobertu
 | 3–9 — edição (réguas, dispositivos, fiação, cabos, materiais, exportação) | triadas (`PLANO.md` §7.6); portar comando a comando |
 | 10 — páginas e caderno | ✅ (cadeia do `CAD` fechada na 175) |
 | 11 — shell (arranque, paleta, barra, autoload) | ✅ |
-| 12 — as 127 telas | todas abrem; 22 com regra ligada |
-| relatórios (9b) · SQL Server (9c) | ⏳ decisão do dono |
+| relatórios (9b) | ⏳ decisão do dono |
+| SQL Server multiusuário (9c) | ⏸️ adiado (decisão do dono em 2026-10-16: rever após o recode do plugin) |
 | **correção do básico** (projeto por desenho, folhas, configuração) | ⛔ prioridade — ver abaixo |
 
 ## Correção do básico (antes de qualquer item da fila)
@@ -101,9 +101,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 ## Depende do dono (não começar sem decisão)
 
 - Relatórios tabulares restantes (9b, `PLANO.md` §7.3).
-- **Banco Access do projeto:** o original lê o `.mdb`/`.accdb` direto; o plugin só lê SQLite. Ler o Access (OleDb/ACE no plugin) ou exigir a conversão para `.db`?
-- Banco multiusuário / SQL Server (9c). A tela de configuração fiel mostra os campos do SQL Server, como
-  o original; a conexão em si continua dependendo desta decisão.
+- **Banco Access do projeto (1a):** o original lê o `.mdb`/`.accdb` direto; o plugin só lê SQLite. Ler o Access (OleDb/ACE no plugin) ou exigir a conversão para `.db`?
+- **Banco multiusuário / SQL Server (9c):** ✅ **Decisão do dono (2026-10-16):** Adiado para depois da conclusão do recode do plugin. O foco da fase de teste e recode continua no banco de arquivo monousuário (SQLite/Access). A tela fiel `frmConfiguracaoGeral` continua gravando os campos no XData normalmente, sem conexão de dados ativa.
 
 ## Últimas rodadas
 
