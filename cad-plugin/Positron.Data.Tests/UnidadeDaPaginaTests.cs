@@ -18,6 +18,18 @@ namespace Positron.Data.Tests
             Assert.Equal("A1", alternativo);
         }
 
+        [Theory]
+        [InlineData("  unidade com espaços  ", "UNIDADE COM ESPAÇOS")]
+        [InlineData("  nome alternativo com mais de vinte caracteres  ", "NOME ALTERNATIVO COM MAIS DE VINTE CARACTERES")]
+        [InlineData("", "")]
+        [InlineData("   ", "")]
+        [InlineData(null, "")]
+        [InlineData("a  b", "A  B")]
+        public void MenuNormalizaRespostaSemTruncar(string resposta, string esperado)
+        {
+            Assert.Equal(esperado, UnidadeDaPaginaXData.NormalizarRespostaDoMenu(resposta));
+        }
+
         [Fact]
         public void Recusa_o_xdata_de_outra_marca()
         {

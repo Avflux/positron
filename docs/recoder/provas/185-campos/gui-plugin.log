@@ -1,0 +1,34 @@
+Positron carregado.
+Positron: DLL de 2026-10-15 23:36 — C:\positron-smoke\r185\Positron.Plugin.AutoCAD.dll
+Recursos: 4 template(s) DWG garantido(s) (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao).
+Barra: aba "Positron" com 9 painel(is) — 121 botão(ões), 5 menu(s) com 39 item(ns), 1 liga/desliga, 1 lista e 1 campo; 34 linha(s), 86 quebra(s), 7 área(s) recolhível(is), 9 separador(es). Acionáveis: 126 ligado(s) (3 no comando do recoder), 35 desativado(s); tema escuro. Barra: desenho tipo "E" — 9 painel(is) ligado(s) [Configuração | Caderno | Dispositivos | Bornes | Fiação | Construtivo | Cabos e Veias | Utilitários | Help], 0 desligado(s), 0 intocado(s).
+Barra: desenho tipo "E" — 9 painel(is) ligado(s) [Configuração | Caderno | Dispositivos | Bornes | Fiação | Construtivo | Cabos e Veias | Utilitários | Help], 0 desligado(s), 0 intocado(s).
+IniciarDWG: 16 página(s) do caderno — página ativa "23": 17 layer(s) desligado(s), 3 ligado(s), 0 alterado(s)
+IniciarDWG: camadas destravadas (0 travada(s) liberada(s)) — página ativa "23": 17 layer(s) desligado(s), 3 ligado(s), 0 alterado(s)
+IniciarDWG: estilo de texto Romans — já existia
+CorrecaoDisp: já corrigido neste desenho (marca 1 no XData CORRECAO).
+CorrecaoBornesVisiveis: já corrigido neste desenho (marca 2 no XData CORRECAO).
+correcaoTextosCircuitos: já corrigido neste desenho (marca 3 no XData CORRECAO).
+correcaoLines: já corrigido neste desenho (marca 4 no XData CORRECAO).
+corrigeOrdemBornes: já corrigido neste desenho (marca 5 no XData CORRECAO).
+Banco de Dados do Projeto: "Banco de Dados do Projeto" (frmConfiguracaoBDProjeto) aberta no CAD — 2 controle(s).
+pzFolhas: prova de campos agendada fora de comando.
+CAMPOS185: aguardando Escape no prompt Unidade.
+CAMPOS185: aguardando Unidade.
+CAMPOS185: aguardando Enter para aceitar Unidade padrão.
+CAMPOS185: aguardando Alternativo.
+CAMPOS185: PASSOU — menu; 2 páginas; demais 14 preservadas; caixa/espaços; Alternativo >20; seleção/ativa preservadas; sem seleção não grava; nativo=True
+Barra: desenho tipo "V" — 2 painel(is) ligado(s) [Configuração | Caderno], 6 desligado(s) [Dispositivos | Bornes | Fiação | Construtivo | Cabos e Veias | Utilitários], 1 intocado(s) [Help (ligado)].
+IniciarDWG: camadas destravadas (0 travada(s) liberada(s)) — página ativa "0": 0 layer(s) desligado(s), 1 ligado(s), 0 alterado(s)
+IniciarDWG: estilo de texto Romans — criado
+CorrecaoDisp: CorrigeDisp: o desenho não tem o app name legado DISPOSITIVO. (marca 1 gravada).
+CorrecaoBornesVisiveis: CorrigeBornes: 0 de 0 borne(s) com a visibilidade corrigida. (marca 2 gravada).
+correcaoTextosCircuitos: 0 de 0 texto(s) auxiliar(es) de circuito alinhados (o VerticalMode 1 vira Baseline na mesma posição) (marca 3 gravada).
+correcaoLines: 0 de 0 Line(s) com o XData limpo (0 CONEXAO, 0 INTERLIGACAO) (marca 4 gravada).
+corrigeOrdemBornes: corrigeOrdemBornes: 0 de 0 borne(s) renumerado(s). (marca 5 gravada).
+pzFolhas: prova de campos agendada fora de comando.
+CAMPOS185: PASSOU — desenho sem páginas; menu ausente; nenhuma pergunta/gravação.
+Barra: desenho tipo "E" — 9 painel(is) ligado(s) [Configuração | Caderno | Dispositivos | Bornes | Fiação | Construtivo | Cabos e Veias | Utilitários | Help], 0 desligado(s), 0 intocado(s).
+IniciarDWG: 16 página(s) do caderno — página ativa "23": 17 layer(s) desligado(s), 3 ligado(s), 0 alterado(s)
+Barra: desenho tipo "V" — 2 painel(is) ligado(s) [Configuração | Caderno], 6 desligado(s) [Dispositivos | Bornes | Fiação | Construtivo | Cabos e Veias | Utilitários], 1 intocado(s) [Help (ligado)].
+Barra: aba "Positron" desmontada — 1 aba(s), 9 painel(is).

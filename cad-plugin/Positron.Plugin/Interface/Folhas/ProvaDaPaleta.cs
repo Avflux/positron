@@ -24,6 +24,23 @@ namespace Positron.Plugin.Interface.Folhas
         {
             try
             {
+                if (Environment.GetEnvironmentVariable("POSITRON_FOLHA_ACAO") == "campos-interface")
+                {
+                    Timer timer = new Timer { Interval = 1500 };
+                    timer.Tick += (origem, evento) =>
+                    {
+                        timer.Stop();
+                        timer.Dispose();
+                        try
+                        {
+                            PaletaDeFolhas.Mostrar();
+                            ProvarCampos(PaletaDeFolhas.Controle, true);
+                        }
+                        catch (Exception erro) { Plugin.Escrever("CAMPOS185: FALHOU — " + erro); }
+                    };
+                    timer.Start();
+                    return "pzFolhas: prova de campos agendada fora de comando.";
+                }
                 if (Environment.GetEnvironmentVariable("POSITRON_FOLHA_ACAO") == "interface")
                 {
                     AgendarProvaDaInterface();
@@ -67,7 +84,12 @@ namespace Positron.Plugin.Interface.Folhas
                 string acao = (Environment.GetEnvironmentVariable("POSITRON_FOLHA_ACAO") ?? string.Empty).Trim().ToLowerInvariant();
                 string resultado = "(sem ação: só o estado da grade)";
 
-                if (acao == "restaurar")
+                if (acao == "campos")
+                {
+                    ProvarCampos(controle, false);
+                    resultado = "PASSOU — campos pelo menu";
+                }
+                else if (acao == "restaurar")
                 {
                     Dictionary<string, TitulosDaPagina> antes = TitulosDaPaginaDoDesenho.LerGrade();
                     List<RevisaoSimplificadaDaPagina> revisoes = RevisoesDoDesenho.LerSimplificadas();
@@ -177,6 +199,118 @@ namespace Positron.Plugin.Interface.Folhas
             {
                 return "pzFolhas: falhou — " + erro.GetType().Name + ": " + erro.Message;
             }
+        }
+
+        private static void ProvarCampos(FolhasControle controle, bool nativo)
+        {
+            DataGridView grade = (DataGridView)controle.Controls["dg"];
+            if (grade.Rows.Count == 0)
+            {
+                // D/A/V não têm menu no reverso; não inventar cliques num menu inexistente.
+                if (grade.ContextMenuStrip != null)
+                    throw new InvalidOperationException("Desenho vazio V deveria estar sem menu");
+                controle.EditarUnidade();
+                controle.EditarAlternativo();
+                Plugin.Escrever("CAMPOS185: PASSOU — desenho sem páginas; menu ausente; nenhuma pergunta/gravação.");
+                return;
+            }
+            string[] paginas = { "2", "6" };
+            Dictionary<string, string[]> antes = new Dictionary<string, string[]>();
+            foreach (string pagina in controle.Paginas())
+            {
+                string unidade, alternativo;
+                UnidadeDaPaginaDoDesenho.Ler(pagina, out unidade, out alternativo);
+                antes[pagina] = new[] { unidade, alternativo };
+            }
+            controle.Multiselecao = true;
+            if (controle.Selecionar(paginas) != 2) throw new InvalidOperationException("Páginas 2/6 ausentes");
+            string ativa = PaginaAtivaDoDesenho.Ler();
+            if (nativo)
+            {
+                Plugin.Escrever("CAMPOS185: aguardando Escape no prompt Unidade.");
+                ClicarCampo(grade, false);
+                foreach (string pagina in paginas)
+                {
+                    string unidade, alternativo;
+                    UnidadeDaPaginaDoDesenho.Ler(pagina, out unidade, out alternativo);
+                    if (unidade != antes[pagina][0] || alternativo != antes[pagina][1])
+                        throw new InvalidOperationException("Cancelamento gravou");
+                }
+            }
+            string esperadoUnidade = "UNIDADE COM ESPACOS 185";
+            string esperadoAlternativo = "NOME ALTERNATIVO COM MAIS DE VINTE CARACTERES 185";
+            string envUnidade = Environment.GetEnvironmentVariable(RespostaDoHarness.VariavelUnidade);
+            string envAlternativo = Environment.GetEnvironmentVariable(RespostaDoHarness.VariavelAlternativo);
+            try
+            {
+                if (!nativo)
+                {
+                    Environment.SetEnvironmentVariable(RespostaDoHarness.VariavelUnidade, "  unidade com espacos 185  ");
+                    Environment.SetEnvironmentVariable(RespostaDoHarness.VariavelAlternativo, "  nome alternativo com mais de vinte caracteres 185  ");
+                }
+                Plugin.Escrever("CAMPOS185: aguardando Unidade.");
+                ClicarCampo(grade, false);
+                foreach (string pagina in paginas)
+                {
+                    string unidade, alternativo;
+                    UnidadeDaPaginaDoDesenho.Ler(pagina, out unidade, out alternativo);
+                    if (unidade != esperadoUnidade || alternativo != antes[pagina][1])
+                        throw new InvalidOperationException("Unidade ou conservação do alternativo incorreta");
+                }
+                if (nativo)
+                {
+                    Plugin.Escrever("CAMPOS185: aguardando Enter para aceitar Unidade padrão.");
+                    ClicarCampo(grade, false);
+                }
+                Plugin.Escrever("CAMPOS185: aguardando Alternativo.");
+                ClicarCampo(grade, true);
+                foreach (KeyValuePair<string, string[]> par in antes)
+                {
+                    string unidade, alternativo;
+                    UnidadeDaPaginaDoDesenho.Ler(par.Key, out unidade, out alternativo);
+                    bool selecionada = Array.IndexOf(paginas, par.Key) >= 0;
+                    if (unidade != (selecionada ? esperadoUnidade : par.Value[0])
+                        || alternativo != (selecionada ? esperadoAlternativo : par.Value[1]))
+                        throw new InvalidOperationException("Campo final incorreto na página " + par.Key);
+                }
+                if (!controle.Multiselecao || grade.SelectedRows.Count != 2 || PaginaAtivaDoDesenho.Ler() != ativa)
+                    throw new InvalidOperationException("Multiseleção ou página ativa perdida");
+                grade.ClearSelection();
+                ClicarCampo(grade, false);
+                ClicarCampo(grade, true);
+                string finalUnidade, finalAlternativo;
+                UnidadeDaPaginaDoDesenho.Ler(ativa, out finalUnidade, out finalAlternativo);
+                if (finalUnidade != (Array.IndexOf(paginas, ativa) >= 0 ? esperadoUnidade : antes[ativa][0])
+                    || finalAlternativo != (Array.IndexOf(paginas, ativa) >= 0 ? esperadoAlternativo : antes[ativa][1]))
+                    throw new InvalidOperationException("Sem seleção alterou página ativa");
+                Plugin.Escrever("CAMPOS185: PASSOU — menu; 2 páginas; demais " + (antes.Count - 2)
+                    + " preservadas; caixa/espaços; Alternativo >20; seleção/ativa preservadas; sem seleção não grava; nativo=" + nativo);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable(RespostaDoHarness.VariavelUnidade, envUnidade);
+                Environment.SetEnvironmentVariable(RespostaDoHarness.VariavelAlternativo, envAlternativo);
+            }
+        }
+
+        private static void ClicarCampo(DataGridView grade, bool alternativo)
+        {
+            string texto = alternativo ? Positron.Data.Interface.MensagensDoReverso.EditarAlternativo
+                : Positron.Data.Interface.MensagensDoReverso.EditarUnidade;
+            ToolStripMenuItem preferencia = null;
+            foreach (ToolStripItem item in grade.ContextMenuStrip.Items)
+                if (item.Text == Positron.Data.Interface.MensagensDoReverso.Alternativo)
+                    preferencia = item as ToolStripMenuItem;
+            bool habilitar = alternativo && preferencia != null && !preferencia.Checked;
+            try
+            {
+                // Alternativo nasce oculto: o usuário primeiro liga a preferência pelo menu.
+                if (habilitar) preferencia.PerformClick();
+                foreach (ToolStripItem item in grade.ContextMenuStrip.Items)
+                    if (item.Text == texto) { item.PerformClick(); return; }
+                throw new InvalidOperationException("Menu ausente: " + texto);
+            }
+            finally { if (habilitar) preferencia.PerformClick(); }
         }
 
         private static void AgendarProvaDaInterface()

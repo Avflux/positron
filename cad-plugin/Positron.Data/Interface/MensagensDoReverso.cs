@@ -102,6 +102,11 @@ namespace Positron.Data.Interface
         /// <summary>mMensagem 35 — o item que abre as cinco colunas.</summary>
         public const string Inserir = "Inserir";
 
+        /// <summary>mMensagem 15/16 — prompts do menu uscPaginas.</summary>
+        public const string InformeNovaUnidade = "Informe o novo valor de Unidade: ";
+
+        public const string InformeNovoAlternativo = "Informe o novo valor do Nome Alternativo:";
+
         public const string EditarUnidade = "Editar Unidade";
 
         public const string EditarAlternativo = "Editar Alternativo";

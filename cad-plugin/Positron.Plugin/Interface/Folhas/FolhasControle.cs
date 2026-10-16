@@ -842,90 +842,47 @@ namespace Positron.Plugin.Interface.Folhas
             return valor == null ? string.Empty : valor.ToString();
         }
 
-        /// <summary>
-        /// A página que o item `Editar*` do menu edita: a linha selecionada na grade e, sem seleção,
-        /// a **página ativa** (o que o item do original edita quando nada está marcado).
-        /// </summary>
-        private string PaginaParaEditar()
+        /// <summary>uscPaginas.bt6p1Bww9xD: um prompt, todas as linhas selecionadas.</summary>
+        internal string EditarUnidade() { return EditarCampo(false); }
+
+        /// <summary>uscPaginas.T5Qp1VoBCME: também recalcula CONT/FL/TOT/Alternativo.</summary>
+        internal string EditarAlternativo() { return EditarCampo(true); }
+
+        private string EditarCampo(bool alternativo)
         {
-            string escolhida = PaginaSelecionada();
-            if (escolhida.Length > 0)
+            string titulo = alternativo ? MensagensDoReverso.EditarAlternativo : MensagensDoReverso.EditarUnidade;
+            if (_grade.SelectedRows.Count == 0)
+                return UltimaMensagem = titulo + ": nenhuma linha selecionada.";
+
+            // Captura as linhas antes do prompt; não recarrega a grade nem perde a multiseleção.
+            List<DataGridViewRow> linhas = new List<DataGridViewRow>();
+            foreach (DataGridViewRow linha in _grade.SelectedRows) linhas.Add(linha);
+            Document documento = AplicacaoDoCad.DocumentManager.MdiActiveDocument;
+            int coluna = alternativo ? 2 : 1;
+            string resposta;
+            if (!PerguntaDeCampoDaPagina.Perguntar(alternativo,
+                Convert.ToString(linhas[0].Cells[coluna].Value), out resposta))
+                return UltimaMensagem = titulo + ": cancelado.";
+            // Não aplicar uma seleção capturada de outro documento após um prompt modeless.
+            if (documento == null || documento != AplicacaoDoCad.DocumentManager.MdiActiveDocument)
+                return UltimaMensagem = titulo + ": documento alterado.";
+
+            string valor = UnidadeDaPaginaXData.NormalizarRespostaDoMenu(resposta);
+            foreach (DataGridViewRow linha in linhas)
             {
-                return escolhida;
+                string unidade = alternativo ? Convert.ToString(linha.Cells[1].Value) : valor;
+                string nomeAlternativo = alternativo ? valor : Convert.ToString(linha.Cells[2].Value);
+                if (!UnidadeDaPaginaDoDesenho.Gravar(Convert.ToString(linha.Cells[0].Value), unidade, nomeAlternativo))
+                    throw new InvalidOperationException("Layer da página não encontrado.");
+                linha.Cells[coluna].Value = valor;
             }
-
-            if (PaginaAtiva.Length > 0)
+            // Os leitores do recoder consultam o desenho, não mantêm mPaginas em cache.
+            if (alternativo)
             {
-                return PaginaAtiva;
+                AtualizarContagem();
+                AplicacaoDoCad.UpdateScreen();
             }
-
-            return string.Empty;
-        }
-
-        /// <summary>O `Editar Unidade` do menu: o campo do form e a regravação pelo XData do layer.</summary>
-        internal string EditarUnidade()
-        {
-            string pagina = PaginaParaEditar();
-            if (pagina.Length == 0)
-            {
-                UltimaMensagem = "Editar Unidade: selecione a página na grade (ou ative uma página).";
-                return UltimaMensagem;
-            }
-
-            string unidade;
-            string alternativo;
-            UnidadeDaPaginaDoDesenho.Ler(pagina, out unidade, out alternativo);
-
-            string escolhida;
-            if (!FormularioDeCampoDaPagina.Perguntar(
-                Positron.Data.Interface.MensagensDoReverso.EditarUnidade,
-                Positron.Data.Interface.MensagensDoReverso.Unidade,
-                pagina,
-                unidade,
-                out escolhida))
-            {
-                UltimaMensagem = "Editar Unidade: cancelado.";
-                return UltimaMensagem;
-            }
-
-            bool gravou = UnidadeDaPaginaDoDesenho.Gravar(pagina, escolhida ?? string.Empty, alternativo);
-            Carregar();
-            UltimaMensagem = "Editar Unidade: página \"" + pagina + "\" — unidade=\"" + (escolhida ?? string.Empty)
-                + "\"" + (gravou ? " regravada pelo XData Eletron do layer." : " — o layer da página não existe.");
-            return UltimaMensagem;
-        }
-
-        /// <summary>O `Editar Alternativo` do menu.</summary>
-        internal string EditarAlternativo()
-        {
-            string pagina = PaginaParaEditar();
-            if (pagina.Length == 0)
-            {
-                UltimaMensagem = "Editar Alternativo: selecione a página na grade (ou ative uma página).";
-                return UltimaMensagem;
-            }
-
-            string unidade;
-            string alternativo;
-            UnidadeDaPaginaDoDesenho.Ler(pagina, out unidade, out alternativo);
-
-            string escolhido;
-            if (!FormularioDeCampoDaPagina.Perguntar(
-                Positron.Data.Interface.MensagensDoReverso.EditarAlternativo,
-                Positron.Data.Interface.MensagensDoReverso.Alternativo,
-                pagina,
-                alternativo,
-                out escolhido))
-            {
-                UltimaMensagem = "Editar Alternativo: cancelado.";
-                return UltimaMensagem;
-            }
-
-            bool gravou = UnidadeDaPaginaDoDesenho.Gravar(pagina, unidade, escolhido ?? string.Empty);
-            Carregar();
-            UltimaMensagem = "Editar Alternativo: página \"" + pagina + "\" — alternativo=\"" + (escolhido ?? string.Empty)
-                + "\"" + (gravou ? " regravado pelo XData Eletron do layer." : " — o layer da página não existe.");
-            return UltimaMensagem;
+            return UltimaMensagem = titulo + ": " + linhas.Count + " página(s); valor=\"" + valor + "\".";
         }
 
         /// <summary>O `Editar Títulos` abre a grade não modal do caderno, não um diálogo de página.</summary>

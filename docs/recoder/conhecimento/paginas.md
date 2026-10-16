@@ -33,6 +33,23 @@ Caminhos relativos a `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Eletr
 - `statusBanco` (`uscPaginas.cs:2600`) recebe contador de conexões >0; arquivo existente não é
   conexão. Menu D/A/V ausente e grade read-only (`:1488-1501`).
 
+## Menu Editar Unidade / Alternativo (rodada 185)
+
+- `uscPaginas.cs:2054-2135`: sem SelectedRows **retorna**, não edita a página ativa como fallback.
+  PromptStringOptions com AllowSpaces e UseDefaultValue; padrão é a célula 1/2 de **SelectedRows[0]**
+  (ordem da coleção da grade, não necessariamente a primeira página). Só Status 5100/OK prossegue.
+- Mensagens 15 e 16 (`../Mensagens-PT.txt:16-17`); resposta **ToUpper().Trim()**, todos os selecionados
+  recebem a resposta, cada qual conserva seu outro campo. Atualiza a célula correspondente, não
+  recarrega CarregaPG: multiseleção permanece. Matriz mPaginas é relida/ordenada ao final.
+- Menu **não limita Alternativo a 20**: essa validação pertence à edição inline, não generalizar.
+  Alternativo chama `AtualizaContTotFl` (`Pagina.cs:1389`, inclui índice **9**) e UpdateScreen;
+  Unidade não chama. Recálculo altera TextString, **não** regrava valor de título no XData.
+- `XDataGeral.AlteraXDataUnidadeAlternativo` (`:1243-1325`) tem lock/transação por layer; sem Eletron
+  cria Unidade; com Unidade altera índices 2/3 **preservando o restante do buffer**. O adapter atual
+  do recoder já existia e recria quatro valores; preservação de extensões ainda é pendência de auditoria.
+- Foco ofuscado resolvido: `../oADsu33FpCEasW73ADP/hDTV5h3NAKArXvSEL1u.cs:12-13`,
+  `lwF3Qy6iqF` = user32 **SetFocus** para Window.Handle do documento, não um diálogo modal.
+
 ## Restauração específica do editor (rodada 184)
 
 - `Pagina.restauraCampos` (`Pagina.cs:2050-2123`) não é a restauração pós-troca de formato:

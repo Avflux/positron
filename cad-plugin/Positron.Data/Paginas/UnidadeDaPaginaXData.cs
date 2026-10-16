@@ -26,6 +26,12 @@ namespace Positron.Data.Paginas
 
         public const int QuantidadeValores = 4;
 
+        /// <summary>uscPaginas.bt6p1Bww9xD/T5Qp1VoBCME: só a resposta do menu, sem limite de 20.</summary>
+        public static string NormalizarRespostaDoMenu(string resposta)
+        {
+            return (resposta ?? string.Empty).ToUpper().Trim();
+        }
+
         public static IReadOnlyList<TypedXData> ParaValores(string unidade, string alternativo)
         {
             return new List<TypedXData>
