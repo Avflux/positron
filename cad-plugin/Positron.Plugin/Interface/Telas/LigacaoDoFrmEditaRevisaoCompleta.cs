@@ -1,17 +1,28 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
+using Positron.Data.Configuracao;
 using Positron.Data.Paginas;
+using Positron.Plugin.Configuracao;
 using Positron.Plugin.Paginas;
+#if AUTOCAD
+using Autodesk.AutoCAD.ApplicationServices;
+using Application = Autodesk.AutoCAD.ApplicationServices.Application;
+#else
+using ZwSoft.ZwCAD.ApplicationServices;
+using Application = ZwSoft.ZwCAD.ApplicationServices.Application;
+#endif
 
 namespace Positron.Plugin.Interface.Telas
 {
     /// <summary>
-    /// Ligação da tela <c>frmEditaRevisaoCompleta</c> à regra do recoder:
-    /// - preenche a grade com as páginas do caderno e a revisão completa lida do desenho CAD
-    ///   (<see cref="RevisoesDoDesenho.LerCompletas"/>);
-    /// - liga o menu de contexto: Copiar, Colar, Limpar, Substituir (com campos DE/PARA) e Editar (grava no desenho);
-    /// - a coluna 0 (Página) é somente leitura; as demais são editáveis.
+    /// Ligação da tela <c>frmEditaRevisaoCompleta</c> (comando <c>REVCOMP</c>), como o construtor do
+    /// original (<c>frmEditaRevisaoCompleta.cs:~330</c>): <c>Pagina.restauraCampos</c>, grade de 7
+    /// colunas (Página somente leitura) sem ordenação e com larguras 10/10/40/10/10/10/10% da grade
+    /// menos 30 (<c>limpaDG</c>, <c>tt4iDtS0Ar</c> a cada <c>Resize</c>), páginas de <c>CCapa</c> a
+    /// <c>CCorpo</c> (<c>zwRiJ8qk2J</c>); menu Copiar / Colar / Limpar / DE / PARA / Substituir /
+    /// Editar DWG, com DE e PARA em cinza claro e borda 3D.
     /// </summary>
     internal sealed class LigacaoDoFrmEditaRevisaoCompleta : ILigacaoDeTela
     {
@@ -35,6 +46,19 @@ namespace Positron.Plugin.Interface.Telas
                 return;
             }
 
+            // `Pagina.restauraCampos` antes de ler a grade (aberta pela paleta, o lock é nosso).
+            try
+            {
+                RestauracaoDoFormatoDoDesenho.RestaurarCampos();
+            }
+            catch (Exception erro)
+            {
+                Aviso.MsgBoxCritico(erro.Message, string.Empty);
+            }
+
+            // Do designer: `MinimumSize = 700×500`.
+            janela.MinimumSize = new Size(700, 500);
+
             ContextMenuStrip menu = grade.ContextMenuStrip;
             ToolStripMenuItem copiar = ControlesDaTela.AcharItem<ToolStripMenuItem>(menu, "CopiarToolStripMenuItem");
             ToolStripMenuItem colar = ControlesDaTela.AcharItem<ToolStripMenuItem>(menu, "ColarToolStripMenuItem");
@@ -43,6 +67,67 @@ namespace Positron.Plugin.Interface.Telas
             ToolStripTextBox paraBox = ControlesDaTela.AcharItem<ToolStripTextBox>(menu, "ParaToolStripTextBox");
             ToolStripMenuItem substituir = ControlesDaTela.AcharItem<ToolStripMenuItem>(menu, "SubstituirToolStripMenuItem");
             ToolStripMenuItem editar = ControlesDaTela.AcharItem<ToolStripMenuItem>(menu, "EditarToolStripMenuItem");
+
+            foreach (ToolStripTextBox caixa in new[] { deBox, paraBox })
+            {
+                if (caixa != null)
+                {
+                    caixa.BackColor = Color.LightGray;
+                    caixa.BorderStyle = BorderStyle.Fixed3D;
+                }
+            }
+
+            // `limpaDG`: sete colunas (mMensagem 39, 63..68), sem ordenação.
+            grade.Rows.Clear();
+            grade.Columns.Clear();
+            foreach (string titulo in new[] { "Página", "Revisão", "Descrição", "Data", "Elaborador", "Verificador", "Aprovador" })
+            {
+                int indice = grade.Columns.Add("", titulo);
+                grade.Columns[indice].SortMode = DataGridViewColumnSortMode.NotSortable;
+            }
+
+            Action larguras = () =>
+            {
+                if (grade.Columns.Count == 7)
+                {
+                    float util = grade.Width - 30;
+                    float[] percentuais = { 10f, 10f, 40f, 10f, 10f, 10f, 10f };
+                    for (int i = 0; i < 7; i++)
+                    {
+                        grade.Columns[i].Width = (int)Math.Round(util * percentuais[i] / 100f);
+                    }
+                }
+            };
+            larguras();
+            janela.Resize += (origem, evento) => larguras();
+
+            // `zwRiJ8qk2J`: de `CCapa` (1, senão 2) até `CCorpo` (a última, senão 1).
+            ConfiguracaoDoCaderno conf = ConfiguracaoDoDesenho.LerOuPadrao();
+            try
+            {
+                List<RevisaoCompletaDaPagina> revisoes = RevisoesDoDesenho.LerCompletas();
+                int primeira = conf.CCapa ? 1 : 2;
+                int ultima = conf.CCorpo ? revisoes.Count : 1;
+                for (int i = primeira; i <= ultima; i++)
+                {
+                    RevisaoCompletaDaPagina r = revisoes[i - 1];
+                    grade.Rows.Add(r.Pagina, r.Revisao, r.Descricao, r.Data, r.Elaborador, r.Verificador, r.Aprovador);
+                }
+                grade.Columns[0].ReadOnly = true;
+            }
+            catch (Exception erro)
+            {
+                Aviso.MsgBoxCritico(erro.Message, string.Empty);
+            }
+
+            // `APeih1WTWH` (Click da grade): Copiar só com uma célula selecionada.
+            grade.Click += (origem, evento) =>
+            {
+                if (copiar != null)
+                {
+                    copiar.Enabled = grade.SelectedCells.Count == 1;
+                }
+            };
 
             if (copiar != null)
             {
@@ -102,57 +187,38 @@ namespace Positron.Plugin.Interface.Telas
 
             if (editar != null)
             {
+                // `NX5idRlEeH`: nulos das colunas 1..6 viram vazio, grava (`AtualizaRevCompleta`, com
+                // o lock do documento) e fecha; o erro vira MsgBox crítico e a tela fica aberta.
                 editar.Click += (origem, evento) =>
                 {
-                    List<RevisaoCompletaDaPagina> lista = new List<RevisaoCompletaDaPagina>();
-                    foreach (DataGridViewRow linha in grade.Rows)
+                    try
                     {
-                        if (linha.Cells.Count >= 7)
+                        List<RevisaoCompletaDaPagina> lista = new List<RevisaoCompletaDaPagina>();
+                        foreach (DataGridViewRow linha in grade.Rows)
                         {
-                            string pag = Convert.ToString(linha.Cells[0].Value);
-                            if (!string.IsNullOrEmpty(pag))
-                            {
-                                lista.Add(new RevisaoCompletaDaPagina(
-                                    pag,
-                                    Convert.ToString(linha.Cells[1].Value),
-                                    Convert.ToString(linha.Cells[2].Value),
-                                    Convert.ToString(linha.Cells[3].Value),
-                                    Convert.ToString(linha.Cells[4].Value),
-                                    Convert.ToString(linha.Cells[5].Value),
-                                    Convert.ToString(linha.Cells[6].Value)
-                                ));
-                            }
+                            lista.Add(new RevisaoCompletaDaPagina(
+                                Convert.ToString(linha.Cells[0].Value),
+                                Convert.ToString(linha.Cells[1].Value) ?? string.Empty,
+                                Convert.ToString(linha.Cells[2].Value) ?? string.Empty,
+                                Convert.ToString(linha.Cells[3].Value) ?? string.Empty,
+                                Convert.ToString(linha.Cells[4].Value) ?? string.Empty,
+                                Convert.ToString(linha.Cells[5].Value) ?? string.Empty,
+                                Convert.ToString(linha.Cells[6].Value) ?? string.Empty));
                         }
-                    }
 
-                    RevisoesDoDesenho.ResultadoDaGravacaoDeRevisoes gravacao = RevisoesDoDesenho.GravarCompletas(lista);
-                    Plugin.Escrever("REVCOMP: " + gravacao.Paginas + " página(s) posicionada(s) — "
-                        + gravacao.Atualizados + " atualizada(s), " + gravacao.Criados + " criada(s) ("
-                        + gravacao.Deslocados + " deslocada(s)), " + gravacao.Apagados + " apagada(s)"
-                        + (gravacao.Estourou ? "; houve deslocamento por falta de posição" : "")
-                        + (gravacao.Definicoes > 0 ? "; " + gravacao.Definicoes + " definição(ões) Revisao_Capa/Corpo (re)criada(s)" : "")
-                        + (gravacao.Referencias > 0 ? "; " + gravacao.Referencias + " referência(s) ressincronizada(s)" : "")
-                        + (gravacao.SemDefinicao > 0 ? "; " + gravacao.SemDefinicao + " sem bloco de formato (Revisao_Capa/Corpo)" : "")
-                        + (gravacao.SemFormato > 0 ? "; " + gravacao.SemFormato + " página(s) sem posições no formato" : "")
-                        + ".");
-                    janela.Close();
+                        using (Application.DocumentManager.MdiActiveDocument.LockDocument())
+                        {
+                            RevisoesDoDesenho.GravarCompletas(lista);
+                        }
+
+                        janela.Close();
+                    }
+                    catch (Exception erro)
+                    {
+                        Aviso.MsgBoxCritico(erro.Message, string.Empty);
+                    }
                 };
             }
-
-            // Carga das páginas e revisões completas
-            grade.Rows.Clear();
-            List<RevisaoCompletaDaPagina> revisoes = RevisoesDoDesenho.LerCompletas();
-            foreach (RevisaoCompletaDaPagina r in revisoes)
-            {
-                grade.Rows.Add(r.Pagina, r.Revisao, r.Descricao, r.Data, r.Elaborador, r.Verificador, r.Aprovador);
-            }
-
-            if (grade.Columns.Count > 0)
-            {
-                grade.Columns[0].ReadOnly = true;
-            }
-
-            Plugin.Escrever("REVCOMP: " + revisoes.Count + " página(s) carregada(s) na grade.");
         }
     }
 }
