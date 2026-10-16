@@ -1,17 +1,27 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
+using Positron.Data.Configuracao;
 using Positron.Data.Paginas;
+using Positron.Plugin.Configuracao;
 using Positron.Plugin.Paginas;
+#if AUTOCAD
+using Autodesk.AutoCAD.ApplicationServices;
+using Application = Autodesk.AutoCAD.ApplicationServices.Application;
+#else
+using ZwSoft.ZwCAD.ApplicationServices;
+using Application = ZwSoft.ZwCAD.ApplicationServices.Application;
+#endif
 
 namespace Positron.Plugin.Interface.Telas
 {
     /// <summary>
-    /// Ligação da tela <c>frmEditaRevisaoSimplificada</c> à regra do recoder:
-    /// - preenche a grade com as páginas do caderno e a revisão lida do desenho CAD
-    ///   (<see cref="RevisoesDoDesenho.LerSimplificadas"/>);
-    /// - liga o menu de contexto: Copiar, Colar, Limpar e Editar (grava no desenho);
-    /// - a coluna 0 (Página) é somente leitura; a coluna 1 (Revisão) é editável.
+    /// Ligação da tela <c>frmEditaRevisaoSimplificada</c> (comando <c>REVSIMP</c>), como o construtor
+    /// do original (<c>frmEditaRevisaoSimplificada.cs:309</c>): <c>Pagina.restauraCampos</c>, grade
+    /// Página (somente leitura) | Revisão, sem ordenação, com as páginas de <c>SCapa</c> a
+    /// <c>SCorpo</c> (<c>uy7iNUG3AA :359</c>); menu Copiar / Colar / Limpar / Editar DWG; colunas
+    /// meio a meio da largura da grade menos 30, a cada redimensionamento (<c>:464</c>).
     /// </summary>
     internal sealed class LigacaoDoFrmEditaRevisaoSimplificada : ILigacaoDeTela
     {
@@ -35,11 +45,75 @@ namespace Positron.Plugin.Interface.Telas
                 return;
             }
 
+            // `Pagina.restauraCampos` antes de ler a grade (aberta pela paleta, o lock é nosso).
+            try
+            {
+                Positron.Plugin.Paginas.RestauracaoDoFormatoDoDesenho.RestaurarCampos();
+            }
+            catch (Exception erro)
+            {
+                Aviso.MsgBoxCritico(erro.Message, string.Empty);
+            }
+
+            // Do designer: `MinimumSize = 230×500`.
+            janela.MinimumSize = new Size(230, 500);
+
             ContextMenuStrip menu = grade.ContextMenuStrip;
             ToolStripMenuItem copiar = ControlesDaTela.AcharItem<ToolStripMenuItem>(menu, "CopiarToolStripMenuItem");
             ToolStripMenuItem colar = ControlesDaTela.AcharItem<ToolStripMenuItem>(menu, "ColarToolStripMenuItem");
             ToolStripMenuItem limpar = ControlesDaTela.AcharItem<ToolStripMenuItem>(menu, "LimparStripMenuItem");
             ToolStripMenuItem editar = ControlesDaTela.AcharItem<ToolStripMenuItem>(menu, "EditarToolStripMenuItem");
+
+            // `limpaDG`: duas colunas (mMensagem 39 e 62), sem ordenação, meio a meio.
+            grade.Rows.Clear();
+            grade.Columns.Clear();
+            grade.Columns.Add("", "Página");
+            grade.Columns.Add("", "Revisão");
+            foreach (DataGridViewColumn coluna in grade.Columns)
+            {
+                coluna.SortMode = DataGridViewColumnSortMode.NotSortable;
+            }
+
+            Action larguras = () =>
+            {
+                if (grade.Columns.Count == 2)
+                {
+                    int metade = (int)Math.Round((grade.Width - 30) / 2f);
+                    grade.Columns[0].Width = metade;
+                    grade.Columns[1].Width = metade;
+                }
+            };
+            larguras();
+            janela.Resize += (origem, evento) => larguras();
+
+            // `uy7iNUG3AA`: de `SCapa` (1, senão 2) até `SCorpo` (a última, senão 1).
+            ConfiguracaoDoCaderno conf = ConfiguracaoDoDesenho.LerOuPadrao();
+            bool incluiCapa = conf.SCapa;
+            bool incluiCorpo = conf.SCorpo;
+            try
+            {
+                List<RevisaoSimplificadaDaPagina> revisoes = RevisoesDoDesenho.LerSimplificadas();
+                int primeira = incluiCapa ? 1 : 2;
+                int ultima = incluiCorpo ? revisoes.Count : 1;
+                for (int i = primeira; i <= ultima; i++)
+                {
+                    grade.Rows.Add(revisoes[i - 1].Pagina, revisoes[i - 1].Revisao);
+                }
+                grade.Columns[0].ReadOnly = true;
+            }
+            catch (Exception erro)
+            {
+                Aviso.MsgBoxCritico(erro.Message, string.Empty);
+            }
+
+            // `jMviF3tmHg` (Click da grade): Copiar só com uma célula selecionada.
+            grade.Click += (origem, evento) =>
+            {
+                if (copiar != null)
+                {
+                    copiar.Enabled = grade.SelectedCells.Count == 1;
+                }
+            };
 
             if (copiar != null)
             {
@@ -82,42 +156,33 @@ namespace Positron.Plugin.Interface.Telas
 
             if (editar != null)
             {
+                // `C6GiKcqEd2`: revisão nula vira vazia, grava (`AtualizaRevSimplificada`, com o
+                // lock do documento) e fecha; o erro vira MsgBox crítico e a tela fica aberta.
                 editar.Click += (origem, evento) =>
                 {
-                    List<RevisaoSimplificadaDaPagina> lista = new List<RevisaoSimplificadaDaPagina>();
-                    foreach (DataGridViewRow linha in grade.Rows)
+                    try
                     {
-                        if (linha.Cells.Count >= 2)
+                        List<RevisaoSimplificadaDaPagina> lista = new List<RevisaoSimplificadaDaPagina>();
+                        foreach (DataGridViewRow linha in grade.Rows)
                         {
-                            string pag = Convert.ToString(linha.Cells[0].Value);
-                            string rev = Convert.ToString(linha.Cells[1].Value);
-                            if (!string.IsNullOrEmpty(pag))
-                            {
-                                lista.Add(new RevisaoSimplificadaDaPagina(pag, rev));
-                            }
+                            lista.Add(new RevisaoSimplificadaDaPagina(
+                                Convert.ToString(linha.Cells[0].Value),
+                                Convert.ToString(linha.Cells[1].Value) ?? string.Empty));
                         }
-                    }
 
-                    int gravados = RevisoesDoDesenho.GravarSimplificadas(lista);
-                    Plugin.Escrever("REVSIMP: " + gravados + " revisão(ões) simplificada(s) regravada(s) no desenho.");
-                    janela.Close();
+                        using (Application.DocumentManager.MdiActiveDocument.LockDocument())
+                        {
+                            RevisoesDoDesenho.GravarSimplificadas(lista);
+                        }
+
+                        janela.Close();
+                    }
+                    catch (Exception erro)
+                    {
+                        Aviso.MsgBoxCritico(erro.Message, string.Empty);
+                    }
                 };
             }
-
-            // Carga das páginas e revisões
-            grade.Rows.Clear();
-            List<RevisaoSimplificadaDaPagina> revisoes = RevisoesDoDesenho.LerSimplificadas();
-            foreach (RevisaoSimplificadaDaPagina rev in revisoes)
-            {
-                grade.Rows.Add(rev.Pagina, rev.Revisao);
-            }
-
-            if (grade.Columns.Count > 0)
-            {
-                grade.Columns[0].ReadOnly = true;
-            }
-
-            Plugin.Escrever("REVSIMP: " + revisoes.Count + " página(s) carregada(s) na grade.");
         }
     }
 }

@@ -4,11 +4,11 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 194)
+## Estado (2026-10-16, depois da rodada 195)
 
 | | valor |
 |---|---|
-| última rodada | **194** |
+| última rodada | **195** |
 | comandos no plugin | **78** escritos à mão (53 do reverso + 25 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
@@ -69,7 +69,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    - Ela grava o XData (`GravarXDataConfiguracao`/`2`) e o idioma no registro (`:3904-3910`).
    - Inclui o bloco SQL Server; tira o grupo "Projeto" (DWG/Revisão/Log).
    - Leva ao XData a norma IEC/ANSI, o Log Func e a representação cabo/veia, que hoje não chegam lá.
-5. 🟡 *(rodadas 188–194: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos` e `frmEstatisticaDeBornes` feitas; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
+5. 🟡 *(rodadas 188–195: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos`, `frmEstatisticaDeBornes` e `frmEditaRevisaoSimplificada` feitas; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
    designer e a captura, atrás de invenções do mesmo tipo. O que aparecer vira item aqui.
 
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
@@ -108,7 +108,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 194 | 2026-10-16 | *(este)* | auditoria da `frmEstatisticaDeBornes`: colunas, nome do painel, filtro, seleção e rodapé como no `clsReguasDeBornes`; guarda 331 e limites de tamanho; 975 testes, builds 0 avisos | `rodadas/194-auditoria-estatistica-de-bornes.md` |
+| 195 | 2026-10-16 | *(este)* | auditoria da `frmEditaRevisaoSimplificada`: faixa `SCapa`..`SCorpo`, `restauraCampos`, larguras, Copiar pelo `Click`, gravação com `LockDocument` e `MsgBox`; saem 2 linhas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/195-auditoria-edita-revisao-simplificada.md` |
+| 194 | 2026-10-16 | `2d7cddc4` | auditoria da `frmEstatisticaDeBornes`: colunas, nome do painel, filtro, seleção e rodapé como no `clsReguasDeBornes`; guarda 331 e limites de tamanho; 975 testes, builds 0 avisos | `rodadas/194-auditoria-estatistica-de-bornes.md` |
 | 193 | 2026-10-16 | `36c1de66` | auditoria da `frmEditaTitulosTextos`: avisos 53 e resultado viram `MsgBox`, saem linhas inventadas, entram limites de tamanho; 975 testes, builds 0 avisos | `rodadas/193-auditoria-edita-titulos-textos.md` |
 | 192 | 2026-10-16 | `1ed1c0ac` | auditoria da `frmPesquisaCabos`: saem 3 linhas inventadas do `PESQCAB`, entram limites de tamanho e ordem de colunas; 975 testes, builds 0 avisos | `rodadas/192-auditoria-pesquisa-cabos.md` |
 | 191 | 2026-10-16 | `6364c756` | auditoria da `frmPesquisaVeiasIndefinidas`: saem as linhas inventadas do `PESQC`/`PESQCAB`, entram `MinimumSize` e ordem de colunas; 975 testes, builds 0 avisos | `rodadas/191-auditoria-pesquisa-veias-indefinidas.md` |
@@ -117,12 +118,3 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 | 188 | 2026-10-16 | `7afed20a` | auditoria da `frmConfiguracaoBDProjeto`: tela confere; saem 3 mensagens inventadas e o erro do cadastro do DWG vira `MsgBox` crítico; 975 testes, builds 0 avisos | `rodadas/188-auditoria-bdprojeto.md` |
 | 187 | 2026-10-16 | `de0ce906` | `frmConfiguracaoGeral` fiel (110 controles, 3 abas, cores CAD, presets, SQL Server); gravação XData `Eletron`/`Config` (41 valores) e `EletronProj`/`Projeto` e chave de registro `Idioma`; remoção da tela feita à mão e substituto da barra; 975 testes, builds 0 avisos, smoke accoreconsole medido | `rodadas/187-configuracao-geral-fiel.md` |
 | 186 | 2026-10-15 | `f3dbb7e1` | `Renumerar Páginas` com destino (capa/selecionada/outra/não cabe, ramos numérico e alfanumérico, ordem da grade) e a ação do combo `Folha` (largura no XData + renormalizar); 971 testes, builds 0 avisos, core e GUI AutoCAD medidos | `rodadas/186-renumerar-paginas-e-combo.md` |
-| 185 | 2026-10-15 | `09de9a79` | prompts nativos Unidade/Alternativo pelo menu, 2 páginas/14 preservadas, 4 campos recalculados; 953 testes e builds sem avisos; GUI com novo DWG/retorno, host final exit 0 | `rodadas/185-unidade-alternativo-da-paleta.md` |
-| 184 | 2026-10-15 | `70c05d8a` | restauraCampos específico antes do editor, sem cadeia da troca de formato; 947 testes, core e paleta não modal medidos; limites de GUI/host registrados | `rodadas/184-restaurar-campos-do-editor.md` |
-| 183 | 2026-10-15 | `e959d0dd` | Páginas sem rodapé inventado; cabeçalho/atalhos/Altern; grade não modal Editar os Títulos, 15 páginas/51 textos medidos; GUI AutoCAD validada com clique, descarte e troca MDI; recortes funcionais pendentes | `rodadas/183-paginas-editar-titulos.md` |
-| 182 | 2026-10-15 | `d6d1466d` | folhas pela paleta: `Inserir` de colunas `ELET1..5`, `Nova Página` pela linha selecionada, `Apagar Páginas` com confirmação/capa/sincronizações, `LockDocument` e Insert/Delete | `rodadas/182-folhas-inserir-apagar.md` |
-| 181 | 2026-10-15 | `0547e4c8` | resto do `IniciarDWG`: painéis da barra pelo tipo do desenho, `Romans`, as 5 correções com a marca `CORRECAO`, camadas destravadas e página ativa ao abrir | `rodadas/181-resto-do-iniciardwg.md` |
-| 180 | 2026-10-15 | `49d06e51` | projeto por desenho: sai o `positron.ini`; banco e DWG do desenho ativo; `DocumentActivated`; `frmConfiguracaoBDProjeto` ligada | `rodadas/180-projeto-por-desenho.md` |
-| 179 | 2026-10-15 | `86907aaf` | `TROCTT`: troca DE → PARA em títulos 1..4, textos e multitextos das páginas escolhidas | `rodadas/179-edita-titulos-textos.md` |
-| 178 | 2026-10-15 | `e3c69237` | `PESQCAB`: cabos do catálogo (deste DWG e de outros), veias com o `OrdenaVeias`, ir até a veia; `TCHAVE` fora (licença) | `rodadas/178-pesquisa-cabos.md` |
-| 177 | 2026-10-15 | `e4f19340` | `PESQC`: veias indefinidas na grade, ir até a veia (página, zoom, realce) | `rodadas/177-pesquisa-veias-indefinidas.md` |
