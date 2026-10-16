@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Positron.Data;
@@ -72,6 +72,13 @@ namespace Positron.Plugin.Interface.Telas
             DataGridView paineis = ControlesDaTela.Achar<DataGridView>(janela, "dgPaineis");
             DataGridView grade = ControlesDaTela.Achar<DataGridView>(janela, "dgDisp");
 
+            // Construtor do original (`frmGerenciadorMatIndep.cs:747`): `clsAuxiliar.BancoValido()`.
+            if (!InicioDoDesenho.BancoValido(true))
+            {
+                janela.Dispose();
+                return;
+            }
+
             TextosDoOriginal(janela);
             MontarColunas(paineis, grade);
 
@@ -113,33 +120,23 @@ namespace Positron.Plugin.Interface.Telas
 
             // Os três botões que gravam a lista (o `jnTppR04rG4`, o `eK4ppmS0dUi` e o `eUVppXAWerf`).
             Ligar(ControlesDaTela.Achar<Button>(janela, "BTAdicionaLM"),
-                (origem, evento) => Plugin.Escrever(Adicionar(janela, grade, estado, catalogo, config)));
+                (origem, evento) => Adicionar(janela, grade, estado, catalogo, config));
             Ligar(ControlesDaTela.Achar<Button>(janela, "BTEditaLM"),
-                (origem, evento) => Plugin.Escrever(Editar(janela, grade, estado, catalogo, nomes, config)));
+                (origem, evento) => Editar(janela, grade, estado, catalogo, nomes, config));
             Ligar(ControlesDaTela.Achar<Button>(janela, "BTApagaLM"),
-                (origem, evento) => Plugin.Escrever(Apagar(janela, grade, estado, catalogo, config)));
+                (origem, evento) => Apagar(janela, grade, estado, catalogo, config));
 
             Motivos(janela);
 
             // A carga da primeira linha é explícita aqui: num script a tela não é *mostrada*, e a
             // seleção programática não dispara o `SelectionChanged` de um controle sem janela — o
             // original conta com o clique. Assim a tela abre com o painel 1 carregado, como no uso.
-            int doPrimeiro = 0;
-            string materialDoPrimeiro = string.Empty;
             if (doDesenho.Count > 0)
             {
                 estado.Painel = doDesenho[0];
-                doPrimeiro = CarregarDispositivos(grade, linhas, doDesenho[0], 0, catalogo);
-                materialDoPrimeiro = PreencherMaterial(janela, grade, catalogo);
+                CarregarDispositivos(grade, linhas, doDesenho[0], 0, catalogo);
+                PreencherMaterial(janela, grade, catalogo);
             }
-
-            Plugin.Escrever("ATINDEP: " + doDesenho.Count + " painel(is) na ListaMateriais do DWG " + dwg
-                + " (" + linhas.Count + " item(ns); " + doPrimeiro + " no painel "
-                + (doDesenho.Count == 0 ? "-" : doDesenho[0].ToString()) + ")"
-                + "; " + catalogo.Count + " material(is) no catálogo"
-                + (string.IsNullOrEmpty(materialDoPrimeiro) ? string.Empty : "; primeiro item: " + materialDoPrimeiro)
-                + "; " + ResumoDaPintura(grade)
-                + "; Adiciona/Edita/Apaga ligados, a pesquisa desabilitada.");
 
             GanchoDoHarness(janela, grade, estado, catalogo, nomes, config);
         }
@@ -211,7 +208,7 @@ namespace Positron.Plugin.Interface.Telas
             }
             catch (Exception erro)
             {
-                Plugin.Escrever("ATINDEP: a lista de materiais não veio do banco — " + erro.Message);
+                Aviso.MsgBoxCritico(erro.Message, "Elétron");
                 return new List<LinhaListaMaterial>();
             }
         }
@@ -229,7 +226,7 @@ namespace Positron.Plugin.Interface.Telas
             }
             catch (Exception erro)
             {
-                Plugin.Escrever("ATINDEP: o cadastro de painéis não veio do banco — " + erro.Message);
+                Aviso.MsgBoxCritico(erro.Message, "Elétron");
                 return new Dictionary<int, string>();
             }
         }
@@ -864,10 +861,17 @@ namespace Positron.Plugin.Interface.Telas
             return indice < campos.Length ? (campos[indice] ?? string.Empty) : string.Empty;
         }
 
-        /// <summary>O que continua sem regra na tela: a pesquisa do material (o `frmPesquisaMateriais`).</summary>
+        /// <summary>
+        /// O que continua sem regra na tela: a pesquisa do material (o `frmPesquisaMateriais`) — o botão
+        /// fica desabilitado, sem dica (o original não tem).
+        /// </summary>
         private static void Motivos(Form janela)
         {
-            Desabilitar(janela, "btPesquisaLM1", "Pesquisar: abre o frmPesquisaMateriais, que o recoder ainda não porta");
+            Control pesquisa = ControlesDaTela.Procurar(janela, "btPesquisaLM1");
+            if (pesquisa != null)
+            {
+                pesquisa.Enabled = false;
+            }
         }
     }
 }
