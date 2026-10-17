@@ -105,6 +105,29 @@
     <ProjectReference Include="..\Positron.CadStub\Positron.CadStub.csproj" />
   </ItemGroup>
 
+  <!--
+    O Excel ATIVO da tela frmEditaTitulos (o `clsTextos.ExportaPaginas`/`ImportaTitulos` do reverso)
+    fala com a instancia aberta do Excel pela PIA `Microsoft.Office.Interop.Excel` — a MESMA que o
+    original usa. A copia fica versionada em `lib\Excel` (scripts/prepare-excel-api.ps1, o padrao das
+    outras APIs vendorizadas); sem ela, e preciso a PIA do Office instalado (GAC).
+    `<EmbedInteropTypes>` embute os tipos usados: em tempo de execucao nao e preciso a PIA ao lado da
+    DLL (e o que o original tambem faz).
+  -->
+  <PropertyGroup>
+    <ExcelApiDir Condition="'$(ExcelApiDir)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\Excel\Microsoft.Office.Interop.Excel.dll')">$(MSBuildThisFileDirectory)..\lib\Excel</ExcelApiDir>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(ExcelApiDir)' != ''">
+    <Reference Include="Microsoft.Office.Interop.Excel">
+      <HintPath>$(ExcelApiDir)\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+      <Private>false</Private>
+    </Reference>
+    <!-- Com os tipos de interoperabilidade embutidos, ler uma propriedade `object` do Excel (o
+         `Range.Value`, por exemplo) exige o binder dinamico do compilador. -->
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Positron.Data\Positron.Data.csproj" />
   </ItemGroup>

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using Positron.Data.Paginas;
 using Positron.Plugin.Paginas;
+using Positron.Plugin.Interface.Excel;
 using Positron.Plugin.Interface.Folhas;
 #if AUTOCAD
 using AplicacaoDoCad = Autodesk.AutoCAD.ApplicationServices.Application;
@@ -37,6 +38,9 @@ namespace Positron.Plugin.Interface.Telas
             grade.BackgroundColor = Color.FromArgb(224, 224, 224);
             grade.AllowUserToDeleteRows = false;
             grade.AllowUserToResizeRows = false;
+            // `frmEditaTitulos.cs:444`: sem a linha nova no fim da grade (o RowCount do original é
+            // só o das páginas do desenho).
+            grade.AllowUserToAddRows = false;
             grade.Columns.Clear();
             string[] nomes = { "Página", "Título 1", "Título 2", "Título 3", "Título 4", "Unidade", "Alternativo" };
             foreach (string nome in nomes)
@@ -82,9 +86,10 @@ namespace Positron.Plugin.Interface.Telas
             Item(menu, "Colar", "Colar", () => Transformar(grade, c => EdicaoDaGradeDeTitulos.Colar(c.ColumnIndex, Convert.ToString(c.Value), copiado)));
             Item(menu, "Limpar", "Limpar", () => Transformar(grade, c => EdicaoDaGradeDeTitulos.Limpar(c.ColumnIndex, Convert.ToString(c.Value))));
             menu.Items.Add(new ToolStripSeparator());
-            // A ponte Excel é um recorte pendente; não oferecer ação sem implementação.
-            Item(menu, "Exportar", "ExportarStripMenuItem", () => { }).Enabled = false;
-            Item(menu, "Importar", "ImportarStripMenuItem", () => { }).Enabled = false;
+            // A ponte com o Excel ABERTO (`clsTextos.ExportaPaginas`/`ImportaTitulos`): o texto, a
+            // largura das colunas e as cores saem do plano de `ExcelDosTitulos`.
+            Item(menu, "Exportar", "ExportarStripMenuItem", () => Plugin.Escrever(Exportar(grade)));
+            Item(menu, "Importar", "ImportarStripMenuItem", () => Plugin.Escrever(Importar(grade)));
             menu.Items.Add(new ToolStripSeparator());
             ToolStripTextBox de = new ToolStripTextBox { Text = "DE", BackColor = Color.LightGray, BorderStyle = BorderStyle.Fixed3D };
             ToolStripTextBox para = new ToolStripTextBox { Text = "PARA", BackColor = Color.LightGray, BorderStyle = BorderStyle.Fixed3D };
@@ -126,7 +131,7 @@ namespace Positron.Plugin.Interface.Telas
                 DataGridViewCell celula = grade.Rows[evento.RowIndex].Cells[6];
                 string valor = Convert.ToString(celula.Value);
                 celula.Value = EdicaoDaGradeDeTitulos.Limitar(6, valor);
-                if (valor.Length > 20) Aviso.MsgBox("Máximo de 20 caracteres", string.Empty);
+                if (valor.Length > 20) Aviso.MsgBox(Positron.Data.Interface.MensagensDoReverso.MaximoDe20Caracteres, string.Empty);
             };
             string ativa = PaginaAtivaDoDesenho.Ler();
             foreach (DataGridViewRow linha in grade.Rows)
@@ -144,6 +149,103 @@ namespace Positron.Plugin.Interface.Telas
             System.Windows.Forms.Application.Idle += verificar;
             janela.FormClosed += (origem, evento) => System.Windows.Forms.Application.Idle -= verificar;
             janela.Disposed += (origem, evento) => System.Windows.Forms.Application.Idle -= verificar;
+            GanchoDoHarness(grade);
+        }
+
+        /// <summary>
+        /// O gancho do harness (um script não abre o menu de contexto):
+        /// <c>POSITRON_TITULOS_EXCEL=exportar</c> roda o mesmo que o item **Exportar** e
+        /// <c>=importar</c> o que o item **Importar**. É uma **fila** separada por `;` (como a
+        /// `POSITRON_MOVER_PARA` da renumeração): `importar;exportar` prova o que a importação deixou
+        /// na grade, sem a grade sair da tela. Sem a variável, nada acontece.
+        /// </summary>
+        private static void GanchoDoHarness(DataGridView grade)
+        {
+            string fila = Environment.GetEnvironmentVariable("POSITRON_TITULOS_EXCEL");
+            if (string.IsNullOrEmpty(fila))
+            {
+                return;
+            }
+
+            foreach (string acao in fila.Split(';'))
+            {
+                if (string.Equals(acao.Trim(), "exportar", StringComparison.OrdinalIgnoreCase))
+                {
+                    Plugin.Escrever(Exportar(grade));
+                }
+                else if (string.Equals(acao.Trim(), "importar", StringComparison.OrdinalIgnoreCase))
+                {
+                    Plugin.Escrever(Importar(grade));
+                }
+            }
+        }
+
+        /// <summary>As linhas da grade na forma da regra (0 = Página … 6 = Alternativo).</summary>
+        private static List<LinhaDeTitulosDaGrade> Linhas(DataGridView grade)
+        {
+            var linhas = new List<LinhaDeTitulosDaGrade>();
+            foreach (DataGridViewRow linha in grade.Rows)
+            {
+                var titulos = new TitulosDaPagina();
+                for (int i = 1; i <= TitulosDaPagina.UltimoIndice; i++)
+                {
+                    titulos.Definir(i, Convert.ToString(linha.Cells[i].Value));
+                }
+
+                linhas.Add(new LinhaDeTitulosDaGrade(
+                    Convert.ToString(linha.Cells[0].Value), titulos,
+                    Convert.ToString(linha.Cells[ExcelDosTitulos.ColunaDaUnidade].Value),
+                    Convert.ToString(linha.Cells[ExcelDosTitulos.ColunaDoAlternativo].Value)));
+            }
+
+            return linhas;
+        }
+
+        /// <summary>
+        /// O item **Exportar** do menu (`frmEditaTitulos.cs:875-888`): o Excel ativo, o cálculo
+        /// desligado, a aba limpa e o plano escrito — e a linha de resumo no log/comando.
+        /// </summary>
+        private static string Exportar(DataGridView grade)
+        {
+            bool[] titulos = TitulosETextosDoDesenho.LerTitulosExistentes();
+            bool alternativo = PreferenciasDeFolhas.LerAlternativo();
+            List<LinhaDeTitulosDaGrade> linhas = Linhas(grade);
+            PlanoDaPlanilha plano = ExcelAtivoDosTitulos.Exportar(linhas, titulos, alternativo);
+            int colunas = 0;
+            foreach (ColunaDaPlanilha coluna in plano.Colunas)
+            {
+                if (coluna.Visivel) colunas++;
+            }
+
+            return "EXCEL: " + linhas.Count + " página(s) exportada(s) para a aba ativa do Excel ("
+                + colunas + " coluna(s) com título; " + plano.TotalDePassos + " passo(s) na barra).";
+        }
+
+        /// <summary>
+        /// O item **Importar** do menu (`frmEditaTitulos.cs:890-936`): lê a aba ativa e muda na grade
+        /// só as células diferentes (sem caixa). Como no original, a importação **não** grava no
+        /// desenho — quem grava é o Editar DWG.
+        /// </summary>
+        private static string Importar(DataGridView grade)
+        {
+            if (grade.Rows.Count <= 0)
+            {
+                return "EXCEL: a grade está vazia — nada a importar.";
+            }
+
+            bool[] titulos = TitulosETextosDoDesenho.LerTitulosExistentes();
+            bool alternativo = PreferenciasDeFolhas.LerAlternativo();
+            LeituraDaPlanilha leitura = ExcelAtivoDosTitulos.Ler(titulos, alternativo);
+            IReadOnlyList<MudancaNaGrade> mudancas = ExcelDosTitulos.AplicarNaGrade(Linhas(grade), leitura.Titulos, titulos, alternativo);
+            foreach (MudancaNaGrade mudanca in mudancas)
+            {
+                grade.Rows[mudanca.Linha].Cells[mudanca.Coluna].Value = mudanca.Valor;
+            }
+
+            return "EXCEL: " + leitura.Titulos.Count + " entrada(s) lida(s) da aba ativa; "
+                + mudancas.Count + " célula(s) da grade atualizada(s)"
+                + (leitura.Avisos.Count > 0 ? "; " + leitura.Avisos.Count + " célula(s) de alternativo com mais de 20 caracteres" : string.Empty)
+                + ".";
         }
 
         private static void Transformar(DataGridView grade, Func<DataGridViewCell, string> transformar)

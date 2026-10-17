@@ -28,6 +28,9 @@ namespace Positron.Data.Interface
 
         public const string Unidade = "Unidade";
 
+        /// <summary>mMensagem 1927: o alternativo acima de 20 caracteres (`PintaCelula`/`MsgBox`).</summary>
+        public const string MaximoDe20Caracteres = "Máximo de 20 caracteres";
+
         /// <summary>Os títulos dos painéis da barra do original (mMensagem 109..112, 540, 559, 560, 1549).</summary>
         public const string PainelCaderno = "Caderno";
 

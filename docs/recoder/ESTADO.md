@@ -4,11 +4,11 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 214)
+## Estado (2026-10-16, depois da rodada 215)
 
 | | valor |
 |---|---|
-| última rodada | **214** |
+| última rodada | **215** (prova viva pendente: Office expirado nesta máquina) |
 | comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
@@ -77,7 +77,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 1. **Fechar a rodada 183 (Páginas / Editar os Títulos)** — o que sobrou:
    - edição inline da célula Página: falta o **clique físico** com a janela da paleta visível e
      repetir no ZWCAD quando ele voltar (o evento real e o CONT/FL/TOT foram medidos na 213);
-   - Excel ativo (`clsTextos.ExportaPaginas/ImportaTitulos`, exportar/importar por página/índice);
+   - Excel ativo: **código e testes prontos (rodada 215)**; falta a prova viva no AutoCAD+Excel, bloqueada até o Office desta máquina ser ativado (ver a rodada);
    - status do banco ligado ao contador de conexões; progresso compartilhado pelas rotinas longas;
    - título 4/D/A/V e os seis atalhos em GUI; repetir edição após o retorno MDI e no ZWCAD;
    - ✅ *(rodada 214)* a unidade/alternativo **conserva** o buffer `Eletron` do layer (o `Altera` troca só as posições 2/3; o adapter recriava os quatro valores);
@@ -114,6 +114,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
+| 215 | 2026-10-16 | *(não commitado)* | Excel ativo do `frmEditaTitulos`: exportar/importar pela PIA do Excel aberto (regra pura `ExcelDosTitulos` + adapter Interop + ligação do menu); +15 testes (1042 pelo runner xUnit), build AutoCAD 0 erros; **prova viva bloqueada**: o Office desta máquina está com a ativação expirada (`ClearContents` recusado) | `rodadas/215-excel-ativo-dos-titulos.md` |
 | 214 | 2026-10-16 | *(este)* | unidade/alternativo **conserva** o buffer XData `Eletron` do layer (`Atualizar`: sem XData cria os quatro; com a marca troca **só** as posições 2/3; outra marca não escreve) — como o `AlteraXDataUnidadeAlternativo` do reverso; +5 testes (1025), builds 0 avisos; medido no **AutoCAD 2020** com um `1000 EXTRA-214` + `1070 214` postos no layer `6` (sobrevivem à gravação) | `rodadas/214-unidade-buffer-eletron-preservado.md` |
 | 213 | 2026-10-16 | *(este)* | edição inline da célula Página: medido o **evento real** da grade (`inline-evento`: `BeginEdit`/`EndEdit` → `CellEndEdit`; o `Carregar()` dentro do evento não estoura) e o **CONT/FL/TOT** do rename com sentinelas (`6/5 → 7A`, `7/6 → 7A`, `7/7 → 1000`); 1020 testes, builds 0 avisos; sem regra nova | `rodadas/213-inline-evento-e-cont-fl-tot.md` |
 | 212 | 2026-10-16 | *(este)* | paleta `uscPaginas`, **edição inline da célula Página** (item 1 da fila): regra pura `RenomeacaoInlineDaPagina` (validação, `montaNumeroPagina`, `LayerValido`, mMensagem 28, capa e o quirk do vazio), rename pelo `PaginasDoDesenho.Renomear`, aviso em `MsgBox`; +12 testes (1020), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (rename 7→7A com dump independente do XData preservado, já-existe, capa e vazio) | `rodadas/212-edicao-inline-celula-pagina.md` |
