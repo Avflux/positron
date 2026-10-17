@@ -224,3 +224,24 @@ XData (app, índice e o texto que ele guarda) **fica como estava**.
 Com o `Conf.incluirColuna` em 3..5, o `CONT` e o `TOT` trocam a página pelo **alternativo** dela quando
 existe. Medido na cópia do `Funcional.dwg`: renomeando `7 → 7A`, uma sentinela `índice 5` no layer `6`
 vira `7A`, uma `índice 6` no layer `7` vira `7A` (o layer virou `7A`) e uma `índice 7` vira `1000`.
+
+## O XData `Eletron` do layer: **criar** e **atualizar** são caminhos diferentes (medido na rodada 214)
+
+A unidade e o alternativo de uma página moram no XData `Eletron` do `LayerTableRecord` e são gravados
+por **dois** caminhos do `XDataGeral.cs`, com resultados diferentes no buffer:
+
+| situação do layer | caminho do original | o buffer depois |
+|---|---|---|
+| **sem** `GetXDataForApplication("Eletron")` | `GravarXDataUnidadeAlternativo` (`:1085-1124`) | **novo**, com os **quatro** valores (`1001 "Eletron"`, `1000 "Unidade"`, `1000 unidade`, `1000 alternativo`) |
+| com o XData da marca **`Unidade`** (`array[1].ToUpper() == "UNIDADE"`) | `AlteraXDataUnidadeAlternativo` (`:1243-1296`) | o **mesmo** array, com **só** as posições 2 e 3 trocadas — as demais (inclusive valores de outro código de grupo: 1070/1040…) voltam intactas |
+| com o XData de **outra** marca | idem | **intocado**: o `if` não tem `else` e nada é escrito |
+
+- A varredura é pelo **nome do layer comparado sem caixa** (`Pagina: true`/`TextCompare`) e a checagem
+  da marca também é sem caixa (`"unidade"` vale).
+- Quem decide o caminho é a **existência do `ResultBuffer`** da marca, não a existência do layer.
+- Consequência prática (por que o recoder **não pode** recriar os quatro valores ao atualizar):
+  **desenhos reais têm valores além dos quatro** — um `1000 "EXTRA"` e um `1070` posto no layer `6` do
+  `Funcional.dwg` sobreviveram à gravação pelo caminho do `Altera`, e sumiriam pelo do `Gravar`.
+- A **leitura** (`LeXDataUnidadeAlternativo`, `:1136`) checa a marca em `array[1]` e então indexa
+  `array[2]`/`array[3]` **direto**: um buffer de menos de quatro valores estoura no original. No recoder
+  a atualização **completa** o buffer curto até os quatro (desvio declarado, fixado em teste).

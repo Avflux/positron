@@ -891,11 +891,18 @@ Get-ChildItem 'C:\','D:\' -Filter 'ZWCAD*.exe' -Recurse -Depth 4 | Select-Object
 where.exe acad.exe ; where.exe ZWCAD.exe
 ```
 
-Medido em **2026-10-16**: `acad.exe` só em `C:\Program Files\Autodesk\AutoCAD 2020\`; nenhum
-`ZWCAD*.exe` em `C:\`/`D:\` (profundidade 4, e `/c`+`/d` são as únicas unidades montadas); nenhuma
-chave `ZWSOFT` em `HKLM`/`HKLM\WOW6432Node`/`HKCU`; o registro de desinstalação só traz as entradas do
-AutoCAD 2020 (**não** há 2010/2011/2013). Valia a pena medir: o texto antigo desta seção afirmava o
-contrário e teria feito a rodada 212 medir num host "inexistente".
+Medido em **2026-10-16** (registro + pastas + `where`, re-medido ao anoitecer depois da rodada 213):
+`acad.exe` só em `C:\Program Files\Autodesk\AutoCAD 2020\`; nenhum `ZWCAD*.exe` em `C:\`/`D:\`
+(profundidade 4, e `/c`+`/d` são as únicas unidades montadas); nenhuma chave `ZWSOFT` em
+`HKLM`/`HKLM\WOW6432Node`/`HKCU`; o registro de desinstalação só traz as entradas do AutoCAD 2020
+(**não** há 2010/2011/2013). Valia a pena medir: o texto antigo desta seção afirmava o contrário e
+teria feito a rodada 212 medir num host "inexistente".
+
+**A ausência do ZWCAD não é estável — e é por isso que se mede.** A rodada **211**, do **mesmo dia**,
+mediu no **ZWCAD 2026** (`C:\Program Files\ZWSOFT\ZWCAD 2026`); a leitura desta seção, mais tarde no
+mesmo dia, já **não** o encontra. Não dá para saber daqui se ele foi desinstalado no meio do dia — e é
+exatamente o ponto: ausência e presença de host são **medições com data**, nunca estado herdado. Antes
+de escrever "não medido porque não há CAD X", rode os três comandos acima.
 
 ### Levantar o `CellEndEdit` real da grade no `accoreconsole` (rodada 213)
 
@@ -914,6 +921,29 @@ Os dumps escritos por `(write-line ...)` saem com **CRLF**: um `grep '^LAYER;'` 
 conferência por conteúdo pode passar batido. Foi o que escondeu três sentinelas **já recalculadas**
 nesta rodada — o `TextString` delas tinha virado `7A`/`7A`/`1000`, então `grep SENTINELA` deu a
 impressão de dump vazio até ler o arquivo inteiro.
+
+### Erro de LISP no `-Fixture` é silencioso — e pode matar os `defun` seguintes (rodada 214)
+
+O `(load ...)` que o harness põe no `.scr` roda **antes** do `NETLOAD`, e um estouro no meio do
+arquivo faz o load **parar ali**: tudo o que vem depois (inclusive os `defun` que o `.scr` chama)
+**não existe**. O sintoma é um dump **vazio/sem arquivo nenhum** — e o `grep` do log do plugin não
+mostra nada, porque o erro saiu no stdout do `accoreconsole`, que o harness **não** captura.
+
+Duas medidas que resolvem na hora:
+
+- **grave o progresso no load**: um `(defun pz:log (s) ...)` que faz `append` num arquivo, chamado
+  entre os passos, mostra **até onde** o load chegou;
+- **teste a expressão isolada** num driver que só usa `vl-princ-to-string` sobre o passo suspeito.
+
+O defeito medido nesta rodada: `(car (assoc -3 d))` **não é** o XData de um `entget` — `(assoc -3 d)`
+já é a lista `(-3 ("Eletron" ...))` e o `car` devolve a **chave** `-3`. Para o valor (a lista marcada
+com o app name) é `(cadr (assoc -3 d))`. Com o `-3` no lugar do valor, o `append` estourava e os
+`defun` do dump nem eram criados.
+
+```lisp
+(setq d (entget (tblobjname "LAYER" "6") '("Eletron")))
+(cadr (assoc -3 d))   ; -> ("Eletron" (1000 . "Unidade") (1000 . "UNIFILAR") (1000 . ""))
+```
 
 ### `entget` sem applist não devolve XData no ZWCAD 2026
 

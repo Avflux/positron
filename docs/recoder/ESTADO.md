@@ -4,15 +4,15 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 213)
+## Estado (2026-10-16, depois da rodada 214)
 
 | | valor |
 |---|---|
-| última rodada | **213** |
+| última rodada | **214** |
 | comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
-| testes (console xUnit; adaptador de `plugin:test` indisponível) | **1020** |
+| testes (console xUnit; adaptador de `plugin:test` indisponível) | **1025** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
 | host CAD medido | **AutoCAD 2020** — instalado e **verificado** em 2026-10-16 (registro + pastas + `where`; a nota do `RUNBOOK` que dizia o contrário foi corrigida); **ZWCAD ausente** nesta data, também verificado (medido na 211 quando estava) |
@@ -80,7 +80,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    - Excel ativo (`clsTextos.ExportaPaginas/ImportaTitulos`, exportar/importar por página/índice);
    - status do banco ligado ao contador de conexões; progresso compartilhado pelas rotinas longas;
    - título 4/D/A/V e os seis atalhos em GUI; repetir edição após o retorno MDI e no ZWCAD;
-   - auditar a preservação de extensões no buffer `Eletron`/`Unidade` (o adapter recria quatro valores);
+   - ✅ *(rodada 214)* a unidade/alternativo **conserva** o buffer `Eletron` do layer (o `Altera` troca só as posições 2/3; o adapter recriava os quatro valores);
    - `medir a mMensagem 27` no CAD precisa de um desenho com 27 páginas (o `Funcional.dwg` tem 16);
    - **saída anômala do `acad.exe`** no fim do ensaio de GUI (183/184/186: 51100350, 48151230,
      -840123714, 27703998 — nunca zero): investigar a causa;
@@ -98,6 +98,11 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    **não** marcou como fora do recorte/ambiente, começando pelos de edição das frentes 3–9.
 6. **Contínuo:** os 42 rótulos/ícones da barra (`../reverso-barra-do-original.txt`) entram na rodada
    que portar o comando de cada um.
+7. **Contínuo (ambiente):** **medir antes de afirmar ausência** de CAD, host ou arquivo do projeto —
+   registro + pastas + `where` (`RUNBOOK.md` → *Existe CAD nesta máquina?*, medido em 2026-10-16). Os
+   documentos de rodadas antigas que dizem "o AutoCAD 2020 não está instalado" levaram essa correção:
+   ele **está** (`C:\Program Files\Autodesk\AutoCAD 2020`) e a ausência **do ZWCAD** é medição desta
+   data, não afirmação permanente.
 
 ## Depende do dono (não começar sem decisão)
 
@@ -109,6 +114,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
+| 214 | 2026-10-16 | *(este)* | unidade/alternativo **conserva** o buffer XData `Eletron` do layer (`Atualizar`: sem XData cria os quatro; com a marca troca **só** as posições 2/3; outra marca não escreve) — como o `AlteraXDataUnidadeAlternativo` do reverso; +5 testes (1025), builds 0 avisos; medido no **AutoCAD 2020** com um `1000 EXTRA-214` + `1070 214` postos no layer `6` (sobrevivem à gravação) | `rodadas/214-unidade-buffer-eletron-preservado.md` |
 | 213 | 2026-10-16 | *(este)* | edição inline da célula Página: medido o **evento real** da grade (`inline-evento`: `BeginEdit`/`EndEdit` → `CellEndEdit`; o `Carregar()` dentro do evento não estoura) e o **CONT/FL/TOT** do rename com sentinelas (`6/5 → 7A`, `7/6 → 7A`, `7/7 → 1000`); 1020 testes, builds 0 avisos; sem regra nova | `rodadas/213-inline-evento-e-cont-fl-tot.md` |
 | 212 | 2026-10-16 | *(este)* | paleta `uscPaginas`, **edição inline da célula Página** (item 1 da fila): regra pura `RenomeacaoInlineDaPagina` (validação, `montaNumeroPagina`, `LayerValido`, mMensagem 28, capa e o quirk do vazio), rename pelo `PaginasDoDesenho.Renomear`, aviso em `MsgBox`; +12 testes (1020), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (rename 7→7A com dump independente do XData preservado, já-existe, capa e vazio) | `rodadas/212-edicao-inline-celula-pagina.md` |
 | 211 | 2026-10-16 | `f767cb6d` | medição no **ZWCAD 2026** dos três ramos do `ApagarDerivados` (interligação, contato auxiliar, máscara): fixture `cad-fixture-apagar-derivados.lsp`, todos conferem com o original; índices de leitura da máscara provados | `rodadas/211-medir-apagar-derivados-zwcad.md` |

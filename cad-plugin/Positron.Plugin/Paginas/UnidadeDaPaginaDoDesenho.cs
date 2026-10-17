@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Positron.Data.Fiacao;
 using Positron.Data.Paginas;
 using Positron.Plugin.Bornes;
 #if AUTOCAD
@@ -51,7 +53,14 @@ namespace Positron.Plugin.Paginas
             }
         }
 
-        /// <summary>Grava a unidade e o alternativo no layer da pagina. Devolve <c>false</c> sem o layer.</summary>
+        /// <summary>
+        /// Grava a unidade e o alternativo no layer da pagina. Devolve <c>false</c> sem o layer.
+        ///
+        /// O buffer do XData <c>Eletron</c> do layer e **conservado** (o
+        /// <c>AlteraXDataUnidadeAlternativo</c>): so as posicoes 2 e 3 mudam, e a marca e criada
+        /// apenas quando o XData ainda nao existe — os valores que o desenho ja tiver alem dos
+        /// quatro continuam la.
+        /// </summary>
         internal static bool Gravar(string pagina, string unidade, string alternativo)
         {
             Document documento = Application.DocumentManager.MdiActiveDocument;
@@ -75,8 +84,16 @@ namespace Positron.Plugin.Paginas
 
                 camadas.UpgradeOpen();
                 LayerTableRecord layer = (LayerTableRecord)transacao.GetObject(camadas[pagina], OpenMode.ForWrite);
-                BornesDaCorrecao.GarantirAppName(transacao, banco, UnidadeDaPaginaXData.AppName);
-                layer.XData = BornesDaCorrecao.ParaResultBuffer(UnidadeDaPaginaXData.ParaValores(unidade, alternativo));
+                ResultBuffer xdata = layer.GetXDataForApplication(UnidadeDaPaginaXData.AppName);
+                IReadOnlyList<TypedXData> valores = UnidadeDaPaginaXData.Atualizar(
+                    xdata == null ? null : XDataNeutro.Para(xdata), unidade, alternativo);
+                // Com outra marca o original nao escreve nada (o `if` dele nao tem `else`).
+                if (valores != null)
+                {
+                    BornesDaCorrecao.GarantirAppName(transacao, banco, UnidadeDaPaginaXData.AppName);
+                    layer.XData = BornesDaCorrecao.ParaResultBuffer(valores);
+                }
+
                 transacao.Commit();
             }
 
