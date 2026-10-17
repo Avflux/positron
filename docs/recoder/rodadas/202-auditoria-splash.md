@@ -27,7 +27,7 @@ Diferenças da ligação anterior: fechava a tela por clique, ESC, Enter e Espa�
 
 - `plugin:test`: não rodado: só casca; runner xUnit ausente. Última contagem: 975.
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD; tela não aberta. O RUNBOOK cita as mensagens removidas do `OFFSPL` (receita antiga); nenhum script as lia.
+- CAD: não medido: sem ZWCAD (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); tela não aberta. O RUNBOOK cita as mensagens removidas do `OFFSPL` (receita antiga); nenhum script as lia.
 
 ## Falta
 

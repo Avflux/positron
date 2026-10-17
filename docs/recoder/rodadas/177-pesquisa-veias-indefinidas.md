@@ -79,12 +79,12 @@ página 12, o X menor antes no mesmo Y e o Y menor por último; a do tipo 3 vai 
 (origem em branco). A última linha é o `KeyUp` da grade (o Enter do harness move a seleção para a
 2ª linha): ativação, zoom e realce rodaram no CAD.
 
-- AutoCAD: **não medido**, o AutoCAD 2020 não está instalado nesta máquina. A build compila.
+- AutoCAD: **não medido** nesta rodada — e a justificativa dela **estava errada**: o **AutoCAD 2020 está instalado** (**verificado em 2026-10-16** por registro + pastas + `where`; `C:\Program Files\Autodesk\AutoCAD 2020`). Ausência de CAD é uma **medição, com data** (`RUNBOOK.md` → *Existe CAD nesta máquina?*). O recorte segue **não medido** no AutoCAD; a build compila.
 
 ## Falta
 
 - [ ] Conferência visual do realce/zoom com clique de mouse: dono.
-- [ ] Medir no AutoCAD quando ele estiver instalado.
+- [ ] Medir no AutoCAD (**instalado** — verificado em 2026-10-16, ao contrário do que esta rodada afirmou).
 
 ## Conhecimento registrado
 

@@ -116,7 +116,7 @@ EXIT=0
 
 - [ ] Demais recortes da 183/184: Excel ativo; renumerar lote/inline/combo; conexões/progresso;
   título 4/D/A/V/atalhos; rollback/sem formato/colunas/configuração e saída anômala do host.
-- [ ] ZWCAD não instalado nesta máquina; repetir prompts/menu fora de comando nesse host.
+- [ ] ZWCAD ausente nesta máquina (medido; a ausência é uma medição com data: `RUNBOOK.md` → *Existe CAD nesta máquina?*); repetir prompts/menu fora de comando nesse host.
 - [ ] Repetir edição completa depois do retorno MDI (o retorno nesta rodada foi confirmado por COM).
 - [ ] Auditar extensões/marcas diferentes no XData Eletron: o adapter preexistente recria quatro
   valores, enquanto AlteraXDataUnidadeAlternativo conserva o buffer e só altera marca Unidade.

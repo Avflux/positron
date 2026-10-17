@@ -28,7 +28,7 @@ Diferenças da ligação anterior: `dgVeias` já abria com as 14/15 colunas; lia
 
 - `plugin:test`: não rodado: só casca; runner xUnit ausente. Última contagem: 975.
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD; tela não aberta. A receita do RUNBOOK (linha ~1315–1324) que esperava a carga automática sem as variáveis `POSITRON_REL_*` fica desatualizada.
+- CAD: não medido: sem ZWCAD (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); tela não aberta. A receita do RUNBOOK (linha ~1315–1324) que esperava a carga automática sem as variáveis `POSITRON_REL_*` fica desatualizada.
 
 ## Falta
 

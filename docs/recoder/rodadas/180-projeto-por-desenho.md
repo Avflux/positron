@@ -112,7 +112,7 @@ PESQCAB: "Pesquisar Cabos e Veias" (frmPesquisaCabos) não aberta.
 
 - **Harness de sempre** (`npm run cad:projeto`, com `POSITRON_*`): `=== OK: ciclo completo ===`, `VERIF` **249**
   contra a linha de base, os mesmos números de antes.
-- AutoCAD: **não medido** (o AutoCAD 2020 não está instalado). A build compila.
+- AutoCAD: **não medido** nesta rodada — e a justificativa dela **estava errada**: o **AutoCAD 2020 está instalado** (**verificado em 2026-10-16** por registro + pastas + `where`; `C:\Program Files\Autodesk\AutoCAD 2020`). Ausência de CAD é uma **medição, com data** (`RUNBOOK.md` → *Existe CAD nesta máquina?*). A build compila.
 
 ## Falta
 

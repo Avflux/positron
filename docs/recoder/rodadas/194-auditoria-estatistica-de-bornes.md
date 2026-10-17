@@ -31,7 +31,7 @@ Diferenças: a ligação **inventava as colunas** (`Régua`, `Painel`, `Nome`, `
 
 - `plugin:test`: **975** aprovados, 0 falhas (sem teste novo: só casca; a conta por régua não mudou).
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD nesta máquina; a tela não foi aberta no AutoCAD nesta rodada.
+- CAD: não medido: sem ZWCAD nesta máquina (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); a tela não foi aberta no AutoCAD nesta rodada.
 
 ## Falta
 

@@ -33,7 +33,7 @@ Diferenças do original: a transação é a da exclusão (não uma própria); o 
 
 - `plugin:test` (console xUnit na cópia do `%TEMP%`): **1008** aprovados, 0 falhas (997 + 11).
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD; apagar uma página com máscara não foi rodado no AutoCAD.
+- CAD: não medido: sem ZWCAD (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); apagar uma página com máscara não foi rodado no AutoCAD.
 
 ## Falta
 

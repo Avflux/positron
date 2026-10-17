@@ -100,7 +100,7 @@ RESTAURA184;falhas=0;titulo1=1;rev=1;antigos-rev-obsoleto-apagados=sim;texto-com
 
 ## Falta
 
-- [ ] ZWCAD não medido: host não instalado nesta máquina (estado vigente).
+- [ ] ZWCAD não medido: ausente nesta máquina (medido; a ausência é uma medição com data: `RUNBOOK.md` → *Existe CAD nesta máquina?*).
 - [ ] Desenho novo foi criado/vazio e houve retorno MDI medido, mas abertura do editor sem formato
   e conferência visual da paleta vazia **não foram repetidas** nesta rodada. Conferência: abrir DWG
   novo, mostrar Páginas, verificar grade/atalhos vazios e tentar Editar os Títulos (mensagem 53),

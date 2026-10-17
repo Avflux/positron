@@ -30,7 +30,7 @@ Diferenças da ligação anterior: sem `restauraCampos`; carregava **todas** as 
 
 - `plugin:test`: não rodado: só casca (a regra de leitura/gravação não mudou); runner xUnit ausente nesta máquina. Última contagem: 975.
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD nesta máquina; a tela não foi aberta no AutoCAD nesta rodada.
+- CAD: não medido: sem ZWCAD nesta máquina (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); a tela não foi aberta no AutoCAD nesta rodada.
 
 ## Falta
 

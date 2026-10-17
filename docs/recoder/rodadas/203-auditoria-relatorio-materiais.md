@@ -27,7 +27,7 @@ Diferenças da ligação anterior: grades já com colunas na abertura; escolhia 
 
 - `plugin:test`: não rodado: só casca; runner xUnit ausente. Última contagem: 975.
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD; tela não aberta. Receitas antigas do RUNBOOK que liam as linhas `EXPLM:` ou esperavam a carga automática sem `POSITRON_REL_PAINEL` ficam desatualizadas.
+- CAD: não medido: sem ZWCAD (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); tela não aberta. Receitas antigas do RUNBOOK que liam as linhas `EXPLM:` ou esperavam a carga automática sem `POSITRON_REL_PAINEL` ficam desatualizadas.
 
 ## Falta
 

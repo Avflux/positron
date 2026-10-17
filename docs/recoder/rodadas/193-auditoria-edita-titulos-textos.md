@@ -32,7 +32,7 @@ Diferenças: o aviso 53 e o resultado iam só para a linha de comando (não eram
 
 - `plugin:test`: **975** aprovados, 0 falhas (sem teste novo: só casca).
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD nesta máquina e a mudança é de casca (texto/diálogo).
+- CAD: não medido: sem ZWCAD nesta máquina (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); a mudança é de casca (texto/diálogo).
 
 ## Falta
 

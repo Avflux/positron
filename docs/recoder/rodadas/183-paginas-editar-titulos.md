@@ -185,7 +185,7 @@ edição local sem gravação antecipada; Editar DWG fora de comando; texto e XD
   ligado/desligado e novo documento/retorno. Evidências e limites na subseção abaixo.
 - [x] Prova Timer fora de comando: **PASSOU**, 15 linhas; título/unidade/alternativo relidos.
   Os quatro slots e os atalhos 5/6 ainda não foram exercitados individualmente.
-- [ ] Repetir no ZWCAD (não instalado nesta máquina).
+- [ ] Repetir no ZWCAD — ausente nesta máquina (medido; a ausência é uma medição com data: `RUNBOOK.md` → *Existe CAD nesta máquina?*).
 - [ ] `Pagina.restauraCampos` específico do editor (sem efeitos da troca de formato).
 - [ ] Excel ativo: Exportar/Importar por página/índice (`clsTextos.ExportaPaginas/ImportaTitulos`).
 - [ ] Paleta: C8Op1CM1YgS (Renumerar lote), renomear página inline (primeira protegida), combo de

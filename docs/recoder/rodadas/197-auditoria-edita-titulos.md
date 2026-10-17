@@ -28,7 +28,7 @@ Diferenças: 2 linhas inventadas `Editar os Títulos: …` na linha de comando; 
 
 - `plugin:test`: não rodado: só casca; runner xUnit ausente. Última contagem: 975.
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD; tela não aberta nesta rodada.
+- CAD: não medido: sem ZWCAD (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); tela não aberta nesta rodada.
 
 ## Falta
 

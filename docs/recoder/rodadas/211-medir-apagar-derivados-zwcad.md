@@ -6,6 +6,13 @@
 
 O ZWCAD 2026 voltou a estar instalado nesta máquina (`C:\Program Files\ZWSOFT\ZWCAD 2026`). Esta rodada **mede no CAD** o que as rodadas 208 (polyline de interligação), 209 (contato auxiliar) e 210 (máscara) deixaram em *Falta*. Nenhuma regra nova: só a fixture, a medição e o registro.
 
+> **Re-medido em 2026-10-16 (à noite, depois da rodada 213):** o ZWCAD **não** foi encontrado nesta
+> máquina (sem `C:\Program Files\ZWSOFT`, sem chave `ZWSOFT` em `HKLM`/`WOW6432Node`/`HKCU`, sem
+> `ZWCAD*.exe` em `C:`/`D:`, `where ZWCAD.exe` vazio; o registro traz só o AutoCAD 2020). As duas
+> leituras são do **mesmo dia** e é isso que fica registrado: **ausência de CAD é uma medição, com
+> data** (receita no `RUNBOOK.md` → *Existe CAD nesta máquina?*) — a sessão desta rodada aconteceu, e
+> quem for repetir precisa **medir de novo** antes de concluir que o host não existe.
+
 ## O que foi feito
 
 | arquivo | o quê |

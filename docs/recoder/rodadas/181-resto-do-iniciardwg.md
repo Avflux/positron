@@ -100,9 +100,11 @@ Caminhos relativos a `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Eletr
 - `plugin:test`: **921** (895 + 26 novos), `Total: 921, Errors: 0, Failed: 0` pelo **console runner do
   xunit** (o `npm run plugin:test` sai 0 sem rodar nada neste SDK — ver *RUNBOOK*).
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- **AutoCAD 2020** — o ZWCAD não está instalado nesta máquina (2026-10-15; a API só existe em
-  `cad-plugin/lib/ZWCAD/2026`), então a medição foi pelo par `accoreconsole` (headless) + **interface
-  cheia** (`acad.exe`, o único host com ribbon).
+- **AutoCAD 2020** — o **ZWCAD não está** nesta máquina (**verificado em 2026-10-16** por registro +
+  pastas + `where`; receita no `RUNBOOK.md` → *Existe CAD nesta máquina?* — medir de novo antes de
+  concluir qualquer ausência; a leitura de 2026-10-15 valia naquela data), então a medição foi pelo par
+  `accoreconsole` (headless) + **interface cheia** (`acad.exe`, o único host com ribbon). O **AutoCAD
+  2020 está instalado** — ao contrário do que as rodadas 176–180 afirmaram (corrigidas lá).
 
 **(A) `Funcional.dwg` real** (`accoreconsole`, cópia): as marcas **que o original deixou** nos desenhos
 do dono são lidas e as correções **não** rodam de novo — é a compatibilidade com o dado de verdade; a
@@ -208,7 +210,7 @@ agora também são refeitos a cada troca.
   correção do básico (a paleta fiel ao `uscPaginas`).
 - [ ] **Ganchos `POSITRON_*` restantes** (`POSITRON_PAGINA`, `POSITRON_TITULO1..4`, `POSITRON_UNIDADE`,
   `POSITRON_FORMATO_TROCAR`): entram com o item 2 (as folhas).
-- [ ] **Host ZWCAD não medido** — não está instalado nesta máquina (2026-10-15). O caminho da barra no
+- [ ] **Host ZWCAD não medido** — **verificado em 2026-10-16** que não há ZWCAD nesta máquina (registro + pastas + `where`); a ausência é uma medição **com data**, a repetir antes de concluir (`RUNBOOK.md` → *Existe CAD nesta máquina?*). O caminho da barra no
   ZWCAD é o do `ConstruirAba()` no load (a aba já existe quando o `IniciarDWG` roda), que é o caso mais
   simples; e a `pzBarra` mede o mesmo. Conferência do dono quando houver ZWCAD.
 

@@ -25,7 +25,7 @@ Item 2 da fila do `ESTADO.md`, segundo ramo do `ApagarDerivados` (`clsApagar.cs:
 
 - `plugin:test` (console xUnit na cópia do `%TEMP%`): **997** aprovados, 0 falhas (984 + 13).
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD; apagar uma página com contato auxiliar não foi rodado no AutoCAD.
+- CAD: não medido: sem ZWCAD (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); apagar uma página com contato auxiliar não foi rodado no AutoCAD.
 
 ## Falta
 

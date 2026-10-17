@@ -92,13 +92,13 @@ não modal); a regra que ele chama foi rodada direto da `Positron.Data.dll` sobr
 A tabela `DWG` desse banco está vazia (o cadastro de DWGs é decisão do dono), então as páginas de outros
 cadernos saem sem o nome do caderno.
 
-- AutoCAD: **não medido**, o AutoCAD 2020 não está instalado nesta máquina. A build compila.
+- AutoCAD: **não medido** nesta rodada — e a justificativa dela **estava errada**: o **AutoCAD 2020 está instalado** (**verificado em 2026-10-16** por registro + pastas + `where`; `C:\Program Files\Autodesk\AutoCAD 2020`). Ausência de CAD é uma **medição, com data** (`RUNBOOK.md` → *Existe CAD nesta máquina?*). O recorte segue **não medido** no AutoCAD; a build compila.
 
 ## Falta
 
 - [ ] Conferência visual das duas grades e dos cliques com mouse: dono.
 - [ ] Nome do caderno nas veias de outros DWGs: depende do cadastro de DWGs (decisão do dono).
-- [ ] Medir no AutoCAD quando ele estiver instalado.
+- [ ] Medir no AutoCAD (**instalado** — verificado em 2026-10-16, ao contrário do que esta rodada afirmou).
 
 ## Conhecimento registrado
 

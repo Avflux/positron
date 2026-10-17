@@ -29,7 +29,7 @@ Desvios mantidos (já registrados no RUNBOOK): o Analisar do recoder roda o pipe
 
 - `plugin:test`: não rodado: só casca; runner xUnit ausente. Última contagem: 975.
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD; telas não abertas. As linhas `COMPILAR:` só aparecem no RUNBOOK (receita antiga); nenhum script as lia.
+- CAD: não medido: sem ZWCAD (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); telas não abertas. As linhas `COMPILAR:` só aparecem no RUNBOOK (receita antiga); nenhum script as lia.
 
 ## Falta
 

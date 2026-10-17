@@ -34,6 +34,10 @@ Desvios do original (com motivo), se houver.
 - `plugin:test`: **N** (+n) — total conferido > 0.
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
 - CAD (`<host>`, `<desenho>`): linha de resumo do comando colada abaixo — ou *não medido: motivo*.
+- **Ausência é afirmação medida:** ao escrever "não medido" por falta de CAD/host/arquivo, **meça
+  antes** (registro + pastas + `where`; `RUNBOOK.md` → *Existe CAD nesta máquina?*) e escreva a
+  ausência **com data**. Nunca herde "não existe" de uma rodada anterior — inclusive do `RUNBOOK`
+  (as rodadas 176–180 afirmaram que o AutoCAD 2020 não estava instalado e ele **está**).
 
 ```
 <saída>

@@ -81,12 +81,12 @@ TITULO;2;DIAG FUNCIONAL
 
 O formato do desenho tem os títulos 1, 2 e 3, então o "Título 4" abre desabilitado.
 
-- AutoCAD: **não medido**, o AutoCAD 2020 não está instalado nesta máquina. A build compila.
+- AutoCAD: **não medido** nesta rodada — e a justificativa dela **estava errada**: o **AutoCAD 2020 está instalado** (**verificado em 2026-10-16** por registro + pastas + `where`; `C:\Program Files\Autodesk\AutoCAD 2020`). Ausência de CAD é uma **medição, com data** (`RUNBOOK.md` → *Existe CAD nesta máquina?*). O recorte segue **não medido** no AutoCAD; a build compila.
 
 ## Falta
 
 - [ ] Conferência visual da tela com mouse (seleção de páginas, caixas desabilitadas): dono.
-- [ ] Medir no AutoCAD quando ele estiver instalado.
+- [ ] Medir no AutoCAD (**instalado** — verificado em 2026-10-16, ao contrário do que esta rodada afirmou).
 
 ## Conhecimento registrado
 

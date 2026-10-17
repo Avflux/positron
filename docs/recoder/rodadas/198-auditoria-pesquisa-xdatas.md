@@ -29,7 +29,7 @@ Diferenças: o resultado ia só para a linha de comando (a nota em `LigacoesDasT
 
 - `plugin:test`: não rodado: só casca; runner xUnit ausente. Última contagem: 975.
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD; tela não aberta. Nenhum script do harness lia as linhas `APAGARXDATA:` (grep em `scripts/` e `cad-plugin/`).
+- CAD: não medido: sem ZWCAD (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); tela não aberta. Nenhum script do harness lia as linhas `APAGARXDATA:` (grep em `scripts/` e `cad-plugin/`).
 
 ## Falta
 

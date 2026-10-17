@@ -30,7 +30,7 @@ Desvios: a pergunta ao fechar sai no `FormClosing` (o original, no finalizador);
 
 - `plugin:test`: não rodado: só casca; runner xUnit ausente. Última contagem: 975.
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD; tela não aberta. Receitas do RUNBOOK da rodada 149 que liam as linhas `GERLM:` dos botões só valem pelo gancho do harness (`POSITRON_LM_*`), que continua escrevendo o resultado.
+- CAD: não medido: sem ZWCAD (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); tela não aberta. Receitas do RUNBOOK da rodada 149 que liam as linhas `GERLM:` dos botões só valem pelo gancho do harness (`POSITRON_LM_*`), que continua escrevendo o resultado.
 
 ## Falta
 

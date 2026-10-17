@@ -91,14 +91,14 @@ TEXTO;OUTRO-HANDLE;OUTRO-HANDLE
 TEXTO;TIPO1;TIPO1
 ```
 
-- AutoCAD: **não medido**, porque o AutoCAD 2020 não está instalado nesta máquina hoje (só o 2011/2013 e o TrueView 2027, que não carregam net472). A build compila.
+- AutoCAD: **não medido** nesta rodada — e a justificativa dela **estava errada**: dizia que o AutoCAD 2020 "não está instalado nesta máquina" (citando 2011/2013 e TrueView 2027 como os únicos). **Verificado em 2026-10-16** por registro de desinstalação + pastas + `where`: o **AutoCAD 2020 está instalado** em `C:\Program Files\Autodesk\AutoCAD 2020`, e o registro só traz essa versão. Ausência de CAD é uma **medição, com data** — receita no `RUNBOOK.md` → *Existe CAD nesta máquina?*. O recorte segue **não medido** no AutoCAD; a build compila.
 - O clique do `btEditar` da `EDCONP` não é scriptável (janela não modal). A tela foi medida abrindo e carregando as 16 páginas; a regra que o botão chama é a mesma medida pelo `EDCON`, só que com as páginas no lugar da seleção.
 
 ## Falta
 
 - [ ] **Seção e cor ativas da barra** (a `ListaDeSecao`/`CampoDeCor` do `Ribbon.cs:971,2264`, o `ativoRibbon`): hoje desabilitadas na barra. Quando entrarem, o padrão dos prompts do `EDCON`/`EDCONP` passa a vir delas (também usadas pelo `INSM`/`CON`).
 - [ ] Clique real do `btEditar` da `EDCONP` no CAD com mouse: conferência visual do dono.
-- [ ] Medir no AutoCAD quando ele estiver instalado.
+- [ ] Medir no AutoCAD (**instalado** — verificado em 2026-10-16, ao contrário do que esta rodada afirmou).
 - [ ] (limpeza) Há 14 cópias privadas de `ParaResultBuffer` no plugin. O `XDataNeutro.ParaResultBuffer` novo pode substituí-las numa rodada de consolidação.
 
 ## Conhecimento registrado

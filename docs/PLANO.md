@@ -186,6 +186,12 @@ rodada 58.
 > AutoCAD está vendorizada em `cad-plugin/lib/AutoCAD/2020`, então `plugin:build:autocad` compila
 > contra a **API real** (não mais no stub). O parágrafo acima fica como registro da rodada 58; o
 > estado vivo está no topo deste documento e a receita, no RUNBOOK §"AutoCAD 2020".
+>
+> **Medido de novo em 2026-10-16** (registro de desinstalação + pastas + `where`; receita no
+> `RUNBOOK.md` → *Existe CAD nesta máquina?*): **AutoCAD 2020 presente** (`C:\Program Files\Autodesk\AutoCAD
+> 2020`) e **ZWCAD ausente**. As rodadas 176–180 afirmaram o contrário sobre o AutoCAD 2020
+> ("não está instalado nesta máquina") e foram **corrigidas**: **ausência de CAD é uma medição, com
+> data** — nunca uma afirmação herdada de outra rodada.
 
 **Projeção — matriz do A/B contra o banco do produto** (`Funcional.dwg`, DWG 63;
 receita no `RUNBOOK.md`):

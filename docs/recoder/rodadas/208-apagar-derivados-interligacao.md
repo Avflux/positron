@@ -38,7 +38,7 @@ Desvio: roda dentro da transação da exclusão (o original abre uma aninhada po
 
 - `plugin:test` (console xUnit na cópia do `%TEMP%`): **984** aprovados, 0 falhas (975 + 9).
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD; a exclusão de uma página com polyline `Tipo 2` não foi rodada no AutoCAD nem no `Funcional.dwg`.
+- CAD: não medido: sem ZWCAD (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); a exclusão de uma página com polyline `Tipo 2` não foi rodada no AutoCAD nem no `Funcional.dwg`.
 
 ## Falta
 

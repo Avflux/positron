@@ -226,7 +226,7 @@ XData `Eletron` preservado. É a persistência do XData de configuração provad
   tem 16 páginas — coberta por teste unitário (`Sem_espaco_alfanumerico_a_movimentacao_e_recusada`).
 - [ ] Combinação `finalize` (repetir a edição depois de um retorno MDI) e a troca de documento durante o
   prompt: o guarda existe (não aplica seleção de outro documento), mas não foi exercitado no CAD.
-- [ ] ZWCAD não está instalado nesta máquina (2026-10-15): repetir menu/combo nesse host.
+- [ ] ZWCAD ausente nesta máquina (medido; a ausência é uma medição com data: `RUNBOOK.md` → *Existe CAD nesta máquina?*; leitura de 2026-10-15): repetir menu/combo nesse host.
 - [ ] Excel ativo (`clsTextos.ExportaPaginas/ImportaTitulos`) e a **renumeração inline** da célula Página
   continuam fora (fila 1 da `183`).
 - [ ] Saída anômala do `acad.exe` no fim do ensaio (183/184/186) — investigar.

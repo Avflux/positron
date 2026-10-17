@@ -31,7 +31,7 @@ Diferenças da ligação anterior: sem a guarda do `BancoValido`; cada botão e 
 
 - `plugin:test`: não rodado: só casca; runner xUnit ausente. Última contagem: 975.
 - builds ZWCAD / AutoCAD: 0 avisos, 0 erros.
-- CAD: não medido: sem ZWCAD; tela não aberta. Receitas do RUNBOOK (rodada 148) que liam as linhas `ATINDEP:` da abertura/dos botões só valem pelo gancho do harness.
+- CAD: não medido: sem ZWCAD (medido; ausência = medição com data — ver RUNBOOK.md → *Existe CAD nesta máquina?*); tela não aberta. Receitas do RUNBOOK (rodada 148) que liam as linhas `ATINDEP:` da abertura/dos botões só valem pelo gancho do harness.
 
 ## Falta
 
