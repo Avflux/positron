@@ -77,7 +77,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 1. **Fechar a rodada 183 (Páginas / Editar os Títulos)** — o que sobrou:
    - edição inline da célula Página: falta o **clique físico** com a janela da paleta visível e
      repetir no ZWCAD quando ele voltar (o evento real e o CONT/FL/TOT foram medidos na 213);
-   - Excel ativo: **código e testes prontos (rodada 215)**; a prova viva no AutoCAD+Excel **está desbloqueada** — o dono ativou o Office desta máquina em 2026-10-16 (ver a rodada);
+   - ✅ *(rodada 215, prova viva em 2026-10-16)* Excel ativo do `frmEditaTitulos`: exportação (15 páginas, 6 colunas com título) e importação medidas no AutoCAD 2020 com o Excel aberto (1 célula na 1ª importação e **0** na 2ª — a grade convergiu; a aba devolve o valor importado). O que faltou virou item próprio na fila;
    - status do banco ligado ao contador de conexões; progresso compartilhado pelas rotinas longas;
    - título 4/D/A/V e os seis atalhos em GUI; repetir edição após o retorno MDI e no ZWCAD;
    - ✅ *(rodada 214)* a unidade/alternativo **conserva** o buffer `Eletron` do layer (o `Altera` troca só as posições 2/3; o adapter recriava os quatro valores);
@@ -89,10 +89,9 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    Prova e passos em `rodadas/183-paginas-editar-titulos.md`, `184-…`, `185-…` e `186-…`.
 2. ✅ *(rodada 216, medido no AutoCAD 2020; falta o clique da paleta e o ZWCAD, se voltar)* **`clsApagar.ApagarDerivados`** — ramos portados: polyline (208), contato auxiliar (209), máscara (210) e, na 216, o dispositivo principal `P` (`promoveComplementar` `:286` e `ApagaContatosModeloDispositivo` `:151`).
 3. **Telas só-casca mais baratas** cuja regra cabe numa rodada (lista: `cobertura-do-reverso.ps1 -Listas`):
-   ✅ *(rodada 217, `frmEstatisticaDeCabos`)*; falta o **exportar para Excel** dela
-   (`Relatorios_EstatisticaCaboEXCEL`, botão na tela sem ação; o Excel desta máquina foi ativado em
-   2026-10-16, então dá para provar vivo) e a conferência **visual** contra
-   `estimativa de cabos utilizados por formação.png`; depois, a próxima leva da lista `-Listas`.
+   ✅ *(rodada 217, `frmEstatisticaDeCabos`)*; falta a conferência **visual** contra
+   `estimativa de cabos utilizados por formação.png` e, do mesmo item, a ponte de Excel (ver o item 8);
+   depois, a próxima leva da lista `-Listas`.
 4. **Seção e cor ativas da barra** (`ListaDeSecao`/`CampoDeCor`, `Ribbon.cs:971,2264`; `My.Settings.Secao`/`Cor`):
    o padrão dos prompts do `EDCON`/`EDCONP` (hoje fixo em `1,5`/`PT`) e do `INSM`/`CON` — saiu da rodada 176.
 5. **Comandos de regra pura sem nada no plugin** (48) — pegar os que a triagem do `PLANO.md` §7.6
@@ -104,6 +103,10 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    documentos de rodadas antigas que dizem "o AutoCAD 2020 não está instalado" levaram essa correção:
    ele **está** (`C:\Program Files\Autodesk\AutoCAD 2020`) e a ausência **do ZWCAD** é medição desta
    data, não afirmação permanente.
+8. **Ponte de Excel que ainda falta:** o `btExportaEXCEL` das estatísticas (`Relatorios_EstatisticaCaboEXCEL`,
+   botão na tela sem ação — rodada 217) e os demais botões de Excel do produto. A ponte do `frmEditaTitulos`
+   **já está provada viva** (rodada 215, 2026-10-16); a receita da medição (Excel visível, duas sessões de
+   `accoreconsole` e a convergência de duas importações) está no `RUNBOOK.md`.
 
 ## Depende do dono (não começar sem decisão)
 
@@ -117,7 +120,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 |---|---|---|---|---|
 | 217 | 2026-10-16 | *(este)* | `frmEstatisticaDeCabos` (`ESTVCABOS`) ligada à regra: `EstatisticaDeCabos` (cabos com veia em uso, um por tag, agrupamento por formação/função/trajeto, soma do comprimento do cabo — o `LeTodosOsCabosEmUso` + `Hpgk6bJ1Ce`) e a ligação com os três radios (habilitados só com linha) e as larguras 90/70%/30%; +7 testes (1056), builds 0 avisos; medido no **AutoCAD 2020** nos três agrupamentos e no radio desabilitado; cobertura 23 de 127 telas com regra | `rodadas/217-estatistica-de-cabos.md` |
 | 216 | 2026-10-16 | `29ed6889` | ramos do dispositivo principal `P` do `ApagarDerivados` (`promoveComplementar` e `ApagaContatosModeloDispositivo`): regra pura `ApagarDispositivo` + casca; +7 testes (1049); builds 0 avisos; medido no **AutoCAD 2020** (promoção, contatos por tipo e painel, complementar de outro nome fica) | `rodadas/216-apagar-derivados-dispositivo-principal.md` |
-| 215 | 2026-10-16 | `2edf4696` | Excel ativo do `frmEditaTitulos`: exportar/importar pela PIA do Excel aberto (regra pura `ExcelDosTitulos` + adapter Interop + ligação do menu); +15 testes (1042 pelo runner xUnit), build AutoCAD 0 erros; **prova viva bloqueada**: o Office desta máquina está com a ativação expirada (`ClearContents` recusado) | `rodadas/215-excel-ativo-dos-titulos.md` |
+| 215 | 2026-10-16 | `2edf4696` + *(este)* | Excel ativo do `frmEditaTitulos`: exportar/importar pela PIA do Excel aberto (regra pura `ExcelDosTitulos` + adapter Interop + ligação do menu); +15 testes (1042 pelo runner xUnit), build AutoCAD 0 erros; **prova viva feita** depois de o dono ativar o Office (exportação de 15 páginas na aba; importação com 1 célula e depois **0** — a grade convergiu; ciclo Excel → grade → Excel fechado) | `rodadas/215-excel-ativo-dos-titulos.md` |
 | 214 | 2026-10-16 | `58236768` | unidade/alternativo **conserva** o buffer XData `Eletron` do layer (`Atualizar`: sem XData cria os quatro; com a marca troca **só** as posições 2/3; outra marca não escreve) — como o `AlteraXDataUnidadeAlternativo` do reverso; +5 testes (1025), builds 0 avisos; medido no **AutoCAD 2020** com um `1000 EXTRA-214` + `1070 214` postos no layer `6` (sobrevivem à gravação) | `rodadas/214-unidade-buffer-eletron-preservado.md` |
 | 213 | 2026-10-16 | `402dcf97` | edição inline da célula Página: medido o **evento real** da grade (`inline-evento`: `BeginEdit`/`EndEdit` → `CellEndEdit`; o `Carregar()` dentro do evento não estoura) e o **CONT/FL/TOT** do rename com sentinelas (`6/5 → 7A`, `7/6 → 7A`, `7/7 → 1000`); 1020 testes, builds 0 avisos; sem regra nova | `rodadas/213-inline-evento-e-cont-fl-tot.md` |
 | 212 | 2026-10-16 | `402dcf97` | paleta `uscPaginas`, **edição inline da célula Página** (item 1 da fila): regra pura `RenomeacaoInlineDaPagina` (validação, `montaNumeroPagina`, `LayerValido`, mMensagem 28, capa e o quirk do vazio), rename pelo `PaginasDoDesenho.Renomear`, aviso em `MsgBox`; +12 testes (1020), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (rename 7→7A com dump independente do XData preservado, já-existe, capa e vazio) | `rodadas/212-edicao-inline-celula-pagina.md` |

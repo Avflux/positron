@@ -2382,6 +2382,26 @@ POSITRON_ESTATISTICA=formacao powershell -ExecutionPolicy Bypass -File scripts/c
 O radio desabilitado sai na mesma linha (`habilitados:`), entao a regra do construtor
 (`lista.Count > 0`) e medida junto. Medido no **AutoCAD 2020** em 2026-10-16.
 
+**A ponte com o Excel ativo (`frmEditaTitulos`, rodada 215 medida em 2026-10-16).** Tres coisas para a
+medicao sair, todas aprendidas medindo:
+
+1. **O Excel tem de estar aberto e VISIVEL com um livro.** O `ExcelAberto()` do original conta o processo
+   `EXCEL`, mas um Excel **invisivel** (sobra de automacao) faz o plugin **matar o processo**
+   (`process.Kill()`) e criar instancia nova pelo CLSID — a aba das duas sessoes deixa de ser a mesma.
+   Abra pelo `Start-Process 'EXCEL.EXE'` e confirme com `[Runtime.InteropServices.Marshal]::GetActiveObject('Excel.Application')`.
+2. **Duas sessoes de `accoreconsole` na MESMA aba:** a 1a exporta (`POSITRON_TITULOS_EXCEL=exportar`) e a
+   2a importa (`=importar;exportar`) — o Excel fica aberto entre elas (o `JANELA` prende o script, entao a
+   ligacao e o gancho rodam no `Montar` e o comando nao retorna; ver o achado do `JANELA` acima).
+3. **A convergencia e a prova de que a IMPORTACAO mudou a grade:** `POSITRON_TITULOS_EXCEL='importar;importar'`
+   tem de dar `1 célula` e depois `0 célula`. Sem isso a linha da exportacao nao distingue "a importacao
+   escreveu na grade" de "a grade ja estava igual". Medido em 2026-10-16: `75 entrada(s) lida(s) da aba`,
+   `1 célula(s) da grade atualizada(s)`, depois `0 célula(s)` — com o valor vindo **da aba** (posto por COM).
+
+**Se o `LIGACAO` falhar com "a licença para usar este aplicativo expirou", o problema e do OFFICE, nao do
+plugin:** o mesmo teste fora do CAD ja denuncia — `Range('A1').ClearContents()` e `EntireRow.Delete()` no
+Excel aberto. Nesta maquina (Office ativado em 2026-10-16) os tres passam (escrita, `ClearContents`,
+`EntireRow.Delete`); antes da ativacao os dois ultimos falhavam com essa mensagem (rodada 215).
+
 **O painel ganhou a linha da ligacao.** O `scripts/cobertura-do-reverso.ps1` lia "a regra existe" e
 nao sabia da ligacao — listava como "falta so a ligacao" telas que ja a tinham. Agora ele le o
 `NomeDaTela` de cada `Interface/Telas/Ligacao*.cs` e imprime `com a ligacao na tela: 5 (...)`,

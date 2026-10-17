@@ -1,6 +1,6 @@
 # Rodada 215 — Excel ativo: exportar/importar os títulos do `frmEditaTitulos`
 
-**Data:** 2026-10-16 · **Commit:** *(não commitado)* · **Frente:** correção do básico, item 3 (paleta fiel) · **Situação:** 🟡 código e testes prontos; prova viva no Excel **bloqueada pelo ambiente**
+**Data:** 2026-10-16 · **Commit:** `2edf4696` (código) + *(este)* (prova viva) · **Frente:** correção do básico, item 3 (paleta fiel) · **Situação:** ✅ completa (a prova viva saiu em 2026-10-16, depois de o dono ativar o Office — ver *Prova*)
 
 ## Alvo
 
@@ -57,20 +57,72 @@ Caminhos relativos a `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Eletr
   aplicativo expirou.` A mensagem vem do **Office** desta máquina: a janela do Excel mostra "Falha na
   Ativação do Produto" e `Range.ClearContents` falha com o mesmo texto (a escrita de valor funciona).
   **Não há gate de licença no plugin** (`Comandos.cs:56`). A exportação usa `EntireRow.Delete`/`ClearContents`
-  e vai falhar do mesmo jeito neste computador.
+  e falhava do mesmo jeito neste computador — **superado** pela prova viva abaixo (2026-10-16, Office ativado).
+
+### Prova viva (2026-10-16, com o Office ativado pelo dono)
+
+- **Antes de tudo, o ambiente:** o mesmo teste do diagnóstico passou — `Escrita: OK`, `ClearContents: OK`,
+  `EntireRow.Delete: OK` (os dois últimos falhavam na medição original), Excel **16.0 build 14334**.
+- **Exportar** (`POSITRON_JANELA=frmEditaTitulos`, `POSITRON_TITULOS_EXCEL=exportar`, `JANELA` no
+  AutoCAD 2020 com um Excel visível aberto):
+
+```text
+EXCEL: 15 página(s) exportada(s) para a aba ativa do Excel (6 coluna(s) com título; 14 passo(s) na barra).
+```
+
+  e a **aba** (lida por COM depois) tem conteúdo de verdade — `$A$1:$G$16`, cabeçalho
+  `Página | Título 1 | Título 2 | Título 3 | (vazia) | Unidade | Alternativo` e uma linha por página
+  (L2 `2 | PNL-GGE | DIAGRAMA FUNCIONAL | ÍNDICE GERAL | | ÍNDICE |`, L3 `6 | …`, …).
+- **Importar** (`POSITRON_TITULOS_EXCEL='importar;exportar'` com a fixture
+  `scripts/cad-fixture-titulo-importar.lsp`, que troca o `TextString` do título 1 da página "6" para
+  `TITULO1-MEDIDO-215` antes do plugin carregar):
+
+```text
+(dump da fixture)  TROCADO indice 1 -> TITULO1-MEDIDO-215
+EXCEL: 75 entrada(s) lida(s) da aba ativa; 1 célula(s) da grade atualizada(s).
+EXCEL: 15 página(s) exportada(s) para a aba ativa do Excel (6 coluna(s) com título; 14 passo(s) na barra).
+```
+
+  Uma **só** célula diferiu entre a grade e a aba depois de a fixture mexer no desenho — e a exportação
+  que veio em seguida devolveu o valor da **aba** (a importação escreve na grade, não no desenho).
+- **A convergência, que prova que a importação muda a grade:** com a aba contendo um valor que só existe
+  nela (página 6, Título 1 = `TITULO1-DO-EXCEL-215`, posto por COM) e **sem** a fixture,
+  `POSITRON_TITULOS_EXCEL='importar;importar;exportar'`:
+
+```text
+EXCEL: 75 entrada(s) lida(s) da aba ativa; 1 célula(s) da grade atualizada(s).
+EXCEL: 75 entrada(s) lida(s) da aba ativa; 0 célula(s) da grade atualizada(s).
+EXCEL: 15 página(s) exportada(s) para a aba ativa do Excel (6 coluna(s) com título; 14 passo(s) na barra).
+```
+
+  A **segunda** importação dá **0 células**: o estado da grade mudou na primeira (o valor do Excel entrou
+  nela) e a comparação convergiu. Depois da exportação a aba mostra `6 | TITULO1-DO-EXCEL-215 | …` — o
+  ciclo Excel → grade → Excel fechado.
+
+**Não medido:** se a importação grava no desenho. Por código ela **não** grava (só as células da grade,
+`LigacaoDoFrmEditaTitulos.Importar`), como o original; a conferência no desenho é do dono, ao clicar
+**Editar DWG**.
 
 ## Falta
 
-- [ ] Prova viva da exportação e da importação (sessão 1 `POSITRON_TITULOS_EXCEL=exportar`; sessão 2
-      `importar;exportar` com a fixture) — **bloqueada** até o Office desta máquina ser ativado.
-- [ ] Ativar o Office (ação do dono da máquina; não foi tentado contornar a ativação).
-- [ ] Commit da rodada, após a prova viva ou com a limitação declarada.
+- [ ] Conferir no **desenho** o resultado de uma importação seguida do **Editar DWG** (a importação não
+      grava; quem grava é o Editar DWG) — conferência do dono.
+- [ ] Os demais botões/rotinas de Excel do produto (o `btExportaEXCEL` das estatísticas, por exemplo)
+      continuam **sem** a ponte — vão para a fila (item 8).
+- [ ] Repetir no **ZWCAD 2026** quando ele voltar a ser instalado (ausente nesta máquina em 2026-10-16).
 
 ## Conhecimento registrado
 
+- A ponte com o Excel ativo (as duas direções, a convergência como prova, o `ExcelAberto()` que mata um
+  Excel invisível e as colunas da aba) → `docs/recoder/conhecimento/paginas.md`.
+- A receita da medição (Excel **visível** com livro, as duas sessões de `accoreconsole` e a convergência de
+  duas importações) → `RUNBOOK.md` → *Troubleshooting*.
 - A licença que bloqueia o comando vem do **Office**, não do Positron: "Este comando não está disponível
   porque a licença para usar este aplicativo expirou" aparece no `LIGACAO` quando o Excel COM recusa a
-  operação. Diagnóstico: `Range('A1').ClearContents()` no Excel aberto.
-- `dotnet test` (VSTest) não carrega o xunit neste projeto; usar o `pz-test-runner` em `%TEMP%`.
+  operação. Diagnóstico: `Range('A1').ClearContents()` no Excel aberto — **resolvido em 2026-10-16** com a
+  ativação do Office pelo dono.
+- `dotnet test` (VSTest) não carrega o xunit neste projeto; usar o runner de console em `%TEMP%`, com o
+  `bin` copiado para lá (a árvore do repo dá "Acesso negado").
 - O runner xUnit procura `schema.sql` no próprio diretório: copiar `services/sidecar/src/sidecar/db/schema.sql`
-  para `bin/Debug/net472` do runner.
+  para o diretório do runner.
+

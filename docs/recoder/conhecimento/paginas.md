@@ -245,3 +245,31 @@ por **dois** caminhos do `XDataGeral.cs`, com resultados diferentes no buffer:
 - A **leitura** (`LeXDataUnidadeAlternativo`, `:1136`) checa a marca em `array[1]` e então indexa
   `array[2]`/`array[3]` **direto**: um buffer de menos de quatro valores estoura no original. No recoder
   a atualização **completa** o buffer curto até os quatro (desvio declarado, fixado em teste).
+
+## O Excel ativo dos títulos (`frmEditaTitulos`) — as duas direções (rodadas 215 e a prova viva de 2026-10-16)
+
+Lê/escreve o **Excel aberto** pela PIA (`Microsoft.Office.Interop.Excel`), não um arquivo nosso.
+
+- **Exportar** (`frmEditaTitulos.cs:875-888`) = `VerificaExcelAtivo` → `DesativaCalculoExcel` →
+  `clsTextos.ExportaPaginas` → `AtivaCalculOExcel`; **Importar** (`:890-917`) acrescenta
+  `dg.RowCount <= 0` como saída antecipada.
+- **A direção importa:** a importação lê a aba e **escreve na grade** — o desenho **não** muda (quem grava
+  é o Editar DWG). Consequência medida: uma importação seguida de exportação devolve à aba o valor que a
+  importação leu (o ciclo é Excel → grade → Excel), então a prova de que a importação mexeu na grade é a
+  **convergência** — a segunda importação seguida dá **0 célula** (medido: `75 entrada(s) lida(s)`, `1` e
+  depois `0` célula).
+- **`DesativaCalculoExcel` (`ExcFuncoesExcel.cs:395-416`)**: `ScreenUpdating = false` e `Calculation = Manual`
+  **exceto** com o CAD em `A_2025`/`A_2026`/`A_2027`, quando chama o `AtivaCalculOExcel` (cálculo **ligado**).
+- **`VerificaExcelAtivo` (`:122-162`)**: com Excel aberto usa a instância ativa (livro e aba ativos; cria um
+  livro se não houver, e desminimiza); sem Excel, cria pelo CLSID `00024500-0000-0000-C000-000000000046`.
+  O `ExcelAberto()` (`:374-394`) conta o processo `EXCEL` mas trata um Excel **invisível** como **não aberto**
+  e o **mata** (`process.Kill()`) — por isso a medição exige um Excel visível com livro.
+- **Colunas da aba:** `Página` (com apóstrofo, para o Excel tratar como texto), `Título 1..4` (só os ligados
+  em `buscaTitulosExistentes`), `Unidade` e `Alternativo` (este só com o `Altern` do registro ligado).
+  Largura 0 = coluna escondida; `A1:G{n}` com fonte 10 centralizada e `E2:G{n}` com quebra.
+- **A importação** lê da linha 2 até a última da coluna A; o `G` com mais de 20 caracteres é truncado e
+  pintado com a mensagem 1927 (cor 3). Casa página e índice **sem caixa** e escreve só o que muda.
+- **Bloqueio de ambiente (2026-10-16, resolvido):** a falha `LIGACAO: "frmEditaTitulos" falhou — a licença
+  para usar este aplicativo expirou` era do **Office** desta máquina (não há gate de licença no plugin):
+  `Range.ClearContents`/`EntireRow.Delete` falhavam fora do CAD com a mesma mensagem e, depois da ativação
+  do Office pelo dono, os três testes passam.
