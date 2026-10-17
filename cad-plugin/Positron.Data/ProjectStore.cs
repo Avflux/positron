@@ -43,13 +43,32 @@ namespace Positron.Data
         /// <summary>
         /// Abre uma conexão já em WAL. Sem WAL, uma conexão longa do app bloquearia
         /// o plugin no meio de um comando (e vice-versa).
+        ///
+        /// É o <b>único</b> ponto de abertura do plugin, então é aqui que o contador de conexões do
+        /// original entra: o <c>monitorConexao++</c> + <c>statusBanco</c> logo depois do <c>Open()</c>
+        /// (<c>AcessoSQLite.cs:99-104</c>) e o <c>monitorConexao--</c> + <c>statusBanco</c> no
+        /// <c>fechaConexao()</c> (<c>:33-43</c>). O fechamento vem do <c>Disposed</c> da conexão —
+        /// todos os usos daqui são <c>using</c>, e o Dispose é o <c>Close()</c> do original.
         /// </summary>
         private SQLiteConnection Abrir()
         {
             SQLiteConnection conexao = new SQLiteConnection("Data Source=" + _caminho + ";Version=3;");
             conexao.Open();
-            DefinirPragma(conexao, "PRAGMA journal_mode=WAL");
-            DefinirPragma(conexao, "PRAGMA busy_timeout=5000");
+            MonitorDeConexao.Atual.Incrementar();
+            conexao.Disposed += (origem, evento) => MonitorDeConexao.Atual.Decrementar();
+            try
+            {
+                DefinirPragma(conexao, "PRAGMA journal_mode=WAL");
+                DefinirPragma(conexao, "PRAGMA busy_timeout=5000");
+            }
+            catch
+            {
+                // Sem isto a conexão que não chegou ao caller vazaria com o contador incrementado
+                // (o `Dispose` é quem o devolve a zero).
+                conexao.Dispose();
+                throw;
+            }
+
             return conexao;
         }
 

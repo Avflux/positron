@@ -840,6 +840,16 @@ cima só `xunit.console.exe`, `xunit.console.exe.config`, `xunit.abstractions.dl
 `xunit.runner.utility.net452.dll` e `xunit.runner.reporters.net452.dll`. Resultado da rodada 208:
 `Total: 984, Errors: 0, Failed: 0`.
 
+**Teste que lê um contador global da suíte fica intermitente (medido na rodada 219):** estado estático do
+plugin (o `MonitorDeConexao.Atual`, o contador de conexões) é **da sessão**, e as classes do xUnit rodam
+**em paralelo** (cada classe é a sua própria coleção, não há `DisableTestParallelization`): comparar os
+**valores** do contador antes/depois de uma operação do `ProjectStore` falha de forma intermitente —
+medido: 1 falha em 2 execuções, com o valor esperado deslocado por outra classe abrindo e fechando
+conexão no meio. O determinístico é o que a **própria thread** provoca: filtre os avisos por
+`Thread.CurrentThread.ManagedThreadId` e afirme a **contagem** (dois avisos por leitura) e o estado na
+abertura. Contador que precisa ser medido isolado mora numa **instância** (o `MonitorDeConexao` tem a
+instância e o `Atual` da sessão).
+
 **Acesso negado (medido na rodada 151):** se a árvore do repo estiver numa origem que o .NET Framework
 trata como **remota** (a mesma que obriga o `-PastaLocal` do harness do CAD — numa pasta do Desktop,
 por exemplo), o runner termina com `System.IO.FileLoadException: Não foi possível carregar arquivo ou

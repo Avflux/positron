@@ -273,3 +273,32 @@ Lê/escreve o **Excel aberto** pela PIA (`Microsoft.Office.Interop.Excel`), não
   para usar este aplicativo expirou` era do **Office** desta máquina (não há gate de licença no plugin):
   `Range.ClearContents`/`EntireRow.Delete` falhavam fora do CAD com a mesma mensagem e, depois da ativação
   do Office pelo dono, os três testes passam.
+
+## O status do banco na paleta: `monitorConexao` + `statusBanco` (rodada 219)
+
+O `PictureBox2` do rodapé da paleta (31 × 17 em (16, 7), nascendo `DB_DISCONNECTED`,
+`uscPaginas.cs:1209-1214`) **não** é "o banco está configurado": é o **contador de conexões abertas**.
+
+- O contador é `DeclaracoesGeral.monitorConexao` (`DeclaracoesGeral.cs:566`, zerado no construtor
+  estático em `:610`) — `public static int`.
+- Quem o move é cada `Acesso*`, no par abrir/fechar, **sempre** seguido do aviso:
+  `AcessoSQLite.cs:99-104` incrementa no `Open()` **só** quando o estado era `Closed` (e
+  `fechaConexao()`, `:33-43`, decrementa **só** quando estava `Open`); o mesmo em `AcessoAccess.cs`
+  (6 métodos) e `AcessoSQLServer.cs`.
+- **`AcessoExcel` NÃO conta**: abre e fecha `OleDbConnection` (`AcessoExcel.cs:22,55,93,129,…`) sem
+  nunca chamar `statusBanco`/`monitorConexao` — uma leitura de Excel aberto não mexe no ícone.
+- O teste de provedores do Access (`AcessoAccess.cs:95-97`) também abre/fecha conexão de sondagem
+  sem contar.
+- A decisão: `uscPaginas.statusBanco(string valor)` (`:2606-2617`) faz
+  `Conversions.ToDouble(valor) > 0` → `DB_CONNECTED`, senão `DB_DISCONNECTED`, e
+  `Application.DoEvents()` no fim. É o **número**, não o arquivo.
+- O reset é do arranque: `Iniciar.IniciarDWG` (`Iniciar.cs:178-179`) faz `monitorConexao = 0` e
+  `statusBanco("0")`, e a linha fica **fora** do `if (!lDwgRegen.Contains(...))` — logo roda em toda
+  ativação de documento, não só na primeira.
+- **`CarregaPG`/`CarregaPaginas` não chamam `statusBanco`** (o grep do decompilado só acha as três
+  famílias `Acesso*`, o `Iniciar.cs:179` e a própria definição em `uscPaginas.cs`): a carga da paleta
+  não mexe no ícone, e o recoder não sincroniza o ícone ao carregar.
+
+No recoder: `Positron.Data/MonitorDeConexao` (o contador, com o monitor da sessão em `Atual`),
+`ProjectStore.Abrir()` incrementando e o `Disposed` da conexão decrementando,
+`FolhasControle` trocando a imagem no aviso e `InicioDoDesenho.Iniciar()` reiniciando por ativação.

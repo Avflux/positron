@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Positron.Plugin.Interface.Telas;
+using Positron.Data;
 using Positron.Data.Interface.Mapas;
 using Positron.Plugin.Paginas;
 using Positron.Data.Paginas;
@@ -15,7 +16,7 @@ namespace Positron.Plugin.Interface.Folhas
     ///
     /// A entrada é toda do harness, e **só** daqui: <c>POSITRON_FOLHA_ACAO</c> (<c>nova</c>,
     /// <c>inserir:N</c>, <c>apagar</c>, <c>multiselecao</c>, <c>renumerar</c>, <c>formato:LITERAL</c>,
-    /// <c>inline</c>, <c>inline-evento</c>; sem ela o comando só despeja o estado), <c>POSITRON_FOLHA_SELECAO</c> (a linha
+    /// <c>inline</c>, <c>inline-evento</c>, <c>banco</c>; sem ela o comando só despeja o estado), <c>POSITRON_FOLHA_SELECAO</c> (a linha
     /// selecionada; o padrão é <c>POSITRON_PAGINA</c>), <c>POSITRON_FOLHA_SELECIONADAS</c> (as linhas
     /// selecionadas, separadas por vírgula) e <c>POSITRON_FOLHA_INLINE</c> (o texto que a edição
     /// inline da célula Página digita; ausente é a célula vazia).
@@ -156,6 +157,77 @@ namespace Positron.Plugin.Interface.Folhas
                                 throw new InvalidOperationException("Título gravado difere do pedido");
                         }
                     }
+                }
+                else if (acao == "banco")
+                {
+                    // O status do banco pelo **contador de conexões** — o `monitorConexao` que o
+                    // `AcessoSQLite` incrementa ao abrir e decrementa no `fechaConexao`
+                    // (`AcessoSQLite.cs:99-104,33-43`) e o `statusBanco` que troca o ícone
+                    // (`uscPaginas.cs:2606-2617`).
+                    //
+                    // A primeira medida é o **caminho real**: sem `POSITRON_DWG` (variável que só
+                    // existe no harness) a carga da paleta resolve o índice do DWG pelo banco do
+                    // projeto — o `ConfiguracaoEfetiva.IndiceDoDwg` lê a tabela `DWG` e a conexão
+                    // abre e fecha **dentro** da própria carga.
+                    string dwgDoHarness = Environment.GetEnvironmentVariable("POSITRON_DWG");
+                    bool inicial = controle.BancoConectado();
+                    List<string> duranteACarga = new List<string>();
+                    EventHandler observadorCarga = (origem, evento) =>
+                        duranteACarga.Add(controle.BancoConectado() ? "conectado" : "desconectado");
+                    MonitorDeConexao.Atual.Mudou += observadorCarga;
+                    try
+                    {
+                        Environment.SetEnvironmentVariable("POSITRON_DWG", null);
+                        controle.Carregar();
+                    }
+                    finally
+                    {
+                        MonitorDeConexao.Atual.Mudou -= observadorCarga;
+                        Environment.SetEnvironmentVariable("POSITRON_DWG", dwgDoHarness);
+                    }
+
+                    bool depoisDaCarga = controle.BancoConectado();
+
+                    // A segunda, com resultado visível: a leitura direta do banco do projeto com o
+                    // ícone acompanhando o contador.
+                    string banco = ConfiguracaoEfetiva.Carregar().Banco;
+                    List<string> duranteALeitura = new List<string>();
+                    EventHandler observadorLeitura = (origem, evento) =>
+                        duranteALeitura.Add(controle.BancoConectado() ? "conectado" : "desconectado");
+                    int dwgs;
+                    int paineis;
+                    MonitorDeConexao.Atual.Mudou += observadorLeitura;
+                    try
+                    {
+                        ProjectStore loja = new ProjectStore(banco);
+                        dwgs = loja.LerNomesDeDwgs().Count;
+                        paineis = loja.LerIndicesDePaineis().Count;
+                    }
+                    finally
+                    {
+                        MonitorDeConexao.Atual.Mudou -= observadorLeitura;
+                    }
+
+                    // A terceira: o `monitorConexao = 0` + `statusBanco("0")` do `IniciarDWG`
+                    // (`Iniciar.cs:178-179`), que roda em toda ativação de documento. O
+                    // `accoreconsole` não abre um segundo documento, então o caminho é exercitado
+                    // chamando o **mesmo** `Iniciar()` que o `DocumentActivated` chama
+                    // (`InicioDoDesenho.AoAtivar`).
+                    MonitorDeConexao.Atual.Incrementar();
+                    bool solta = controle.BancoConectado();
+                    Positron.Plugin.InicioDoDesenho.Iniciar();
+                    int depoisDoIniciar = MonitorDeConexao.Atual.Abertas;
+                    bool iconeDepoisDoIniciar = controle.BancoConectado();
+
+                    resultado = "banco \"" + banco + "\": ícone inicial=" + Estado(inicial)
+                        + "; carga da paleta sem POSITRON_DWG → " + duranteACarga.Count + " aviso(s) ["
+                        + string.Join(" | ", duranteACarga.ToArray()) + "], depois=" + Estado(depoisDaCarga)
+                        + "; leitura direta = " + dwgs + " DWG(s) e " + paineis + " painel(is), avisos ["
+                        + string.Join(" | ", duranteALeitura.ToArray()) + "], agora="
+                        + Estado(controle.BancoConectado())
+                        + "; conexão aberta fora do par → ícone=" + Estado(solta)
+                        + "; depois do IniciarDWG: contador=" + depoisDoIniciar
+                        + ", ícone=" + Estado(iconeDepoisDoIniciar);
                 }
                 else if (acao == "ler-titulos")
                 {
@@ -628,6 +700,11 @@ namespace Positron.Plugin.Interface.Folhas
                 controle.DrawToBitmap(imagem, new System.Drawing.Rectangle(0, 0, controle.Width, controle.Height));
                 imagem.Save(System.IO.Path.Combine(pasta, nome + ".png"), System.Drawing.Imaging.ImageFormat.Png);
             }
+        }
+
+        private static string Estado(bool conectado)
+        {
+            return conectado ? "conectado" : "desconectado";
         }
 
         private static string Lista(IReadOnlyList<string> nomes)

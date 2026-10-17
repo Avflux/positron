@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using Positron.Data;
 using Positron.Data.Configuracao;
 using Positron.Data.Interface;
 using Positron.Plugin.Configuracao;
@@ -122,8 +123,12 @@ namespace Positron.Plugin.Interface.Folhas
                 _atalhos[i] = atalho;
                 Controls.Add(atalho);
             }
+            // O `PictureBox2` do designer do original: 31 × 17 em (16, 7), nascendo `DB_DISCONNECTED`
+            // (`uscPaginas.cs:1209-1214`) — e quem o troca é o `statusBanco` (`:2606-2617`), avisado a
+            // cada mudança do contador de conexões (`DeclaracoesGeral.monitorConexao`).
             _statusBanco = new PictureBox { Name = "PictureBox2", Left = 16, Top = 7,
                 Size = new Size(31, 17), Image = IconesEmbutidos.BitmapDe("DB_DISCONNECTED") };
+            MonitorDeConexao.Atual.Mudou += AoMudarAsConexoes;
             _progresso = new ProgressBar { Name = "ProgressBar1", Left = 9, Top = Height - 46,
                 Size = new Size(Width - 18, 7), Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right };
             PictureBox logo = new PictureBox { Name = "PictureBox1", Left = 9, Top = Height - 33,
@@ -680,6 +685,40 @@ namespace Positron.Plugin.Interface.Folhas
         internal IReadOnlyList<ColunaDoFormato> Colunas()
         {
             return _colunas;
+        }
+
+        /// <summary>
+        /// O `statusBanco` do reverso (`uscPaginas.cs:2606-2617`): o ícone é o de **conectado**
+        /// enquanto houver conexão aberta no contador, e o de desconectado quando ele volta a zero.
+        /// O aviso do contador chega de qualquer rotina que leia o banco, dentro ou fora de comando.
+        /// </summary>
+        private void AoMudarAsConexoes(object origem, EventArgs evento)
+        {
+            _statusBanco.Image = IconesEmbutidos.BitmapDe(
+                MonitorDeConexao.Atual.Conectado ? "DB_CONNECTED" : "DB_DISCONNECTED");
+            // O `Application.DoEvents()` do fim do `statusBanco` do original: o ícone aparece já no
+            // meio de uma rotina longa, não só quando ela devolve o controle.
+            System.Windows.Forms.Application.DoEvents();
+        }
+
+        /// <summary>O estado do ícone do banco (a prova do harness): o `DB_CONNECTED` está posto?</summary>
+        internal bool BancoConectado()
+        {
+            return ReferenceEquals(_statusBanco.Image, IconesEmbutidos.BitmapDe("DB_CONNECTED"));
+        }
+
+        /// <summary>
+        /// O aviso do contador é estático: a paleta sai da lista ao ser descartada (a janela do CAD
+        /// pode ser recriada na sessão) para não deixar imagem viva pendurada no evento.
+        /// </summary>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                MonitorDeConexao.Atual.Mudou -= AoMudarAsConexoes;
+            }
+
+            base.Dispose(disposing);
         }
 
         /// <summary>Seleciona e mostra a linha pedida — o fim do handler do original.</summary>

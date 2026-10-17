@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Positron.Data;
 using Positron.Data.Correcoes;
 using Positron.Data.Configuracao;
 #if AUTOCAD
@@ -35,8 +36,9 @@ namespace Positron.Plugin
     ///
     /// A configuração (o <c>LerXDataConfiguracao</c>/<c>2</c>) não fica guardada: cada comando relê o
     /// desenho ativo (<see cref="ConfiguracaoEfetiva"/>). O que o <c>IniciarDWG</c> faz e ainda não
-    /// entrou (o <c>ACorrecaoBD.CorrigeBD</c>, os dicionários de DWG/painel, o status do banco na
-    /// paleta) está na rodada 181 (*Falta*).
+    /// entrou (o <c>ACorrecaoBD.CorrigeBD</c> e os dicionários de DWG/painel) está na rodada 181
+    /// (*Falta*); o <b>status do banco na paleta</b> entrou na rodada 219
+    /// (<see cref="Positron.Data.MonitorDeConexao"/>).
     /// </summary>
     internal static class InicioDoDesenho
     {
@@ -98,6 +100,12 @@ namespace Positron.Plugin
             }
 
             Interface.Folhas.PaletaDeFolhas.Mostrar();
+
+            // O `monitorConexao = 0` + `statusBanco("0")` do `IniciarDWG` (`Iniciar.cs:178-179`): no
+            // original a linha está **fora** do `lDwgRegen` (o `if (!lDwgRegen.Contains(...))`), logo
+            // roda em toda ativação de documento, e não só na primeira — é o que devolve o ícone do
+            // banco ao desconectado ao trocar de desenho.
+            MonitorDeConexao.Atual.Reiniciar();
 
             if (!Iniciados.Add(documento.Name))
             {
