@@ -171,3 +171,38 @@ Layouts que o `ApagaAMascara` regrava (`XDataDispositivosMaster.cs`); app name `
 
 Classes: `Positron.Data/Paginas/ApagarMascara.cs` (`EstadoDaMascara`, `EstadoDaPorta`, `EstadoDaDefinicao`).
 `EditaUmAtributoDeUmBloco(handle, tag, valor, bliga)` (`clsBlocos.cs:391`): grava o texto só se mudou, **`Visible = bliga`**, `AdjustAlignment` e `Draw`.
+
+## Paleta `uscPaginas`: a edição inline da célula Página (rodada 212)
+
+`dg.CellEndEdit` → `j9Sp1mKZkcD` (`uscPaginas.cs:1733-1846`), ligado no designer em `:220`. O mesmo
+handler trata a Unidade (`case 1`, só regrava o XData) e o Alternativo (`case 2`, com o limite de 20 =
+mMensagem 1927, `CarregaPaginas`, `OrdenaMatrizPaginas` e `AtualizaContTotFl`). A coluna Página (`case 0`)
+**não** é `ReadOnly` no designer.
+
+- **Coluna `Pg` (`Cells[3]`)** guarda o nome **carregado** da linha (a coluna `PgDecimal`, `Cells[4]`, é o
+  decimal): é de onde o original tira o nome antigo para reverter. A coluna `Pg` some da edição inline
+  só porque não é a editada.
+- **Normalização:** `Trim()`; na coluna 0, `ToUpper()` quando não vazio. **Vazio** → escreve
+  `DeclaracoesGeral.ativo.Pagina` (a **página ativa**) na célula e **retorna** — sem renomear. Esse teste
+  vem **antes** do teste da capa, então vale para a linha 0 também. Na prática a ativa é a própria linha
+  (a seleção a ativa), então o quirk quase sempre coincide com reverter.
+- **Linha 0 (a capa):** escreve de volta `Cells[3]` e sai. É a **única** proteção da primeira linha —
+  não há `ReadOnly` na linha nem no designer; o que há é reversão.
+- **Validação (linhas ≥ 1):** não numérico com **um** caractere → reverte; com mais, **todo caractere
+  menos o último** tem de ser dígito (o último pode ser a letra do alfanumérico) — qualquer outro →
+  reverte. Depois `Pagina.montaNumeroPagina` (`Pagina.cs:1819`) e `Pagina.LayerValido` (`:240`).
+- **`Pagina.renumerarPagina` (`Pagina.cs:1841-1902`):** percorre `mPaginas`; se o nome novo já é página,
+  `MsgBox` de informação da mMensagem **28** (`Esta página já existe!`, o mesmo texto da 32 do
+  `CriarLayer`) e devolve **false** (não renomeia). Senão `alteraNomeLayer` (`:1903`, `LockDocument` +
+  transação, **só** o `Name` do layer — o XData `Eletron` e os elementos ficam), atualiza a matriz,
+  `OrdenaMatrizPaginas` e `AtualizaContTotFl`.
+- **Fim do handler:** no sucesso, `Y9op1KgeRgW()` (reconstrói a grade) + `VSWp1ebyWra()` (multiseleção
+  desligada, linha da ativa) e `tbPagina.Text = text2` (mesmo se a página renomeada **não** é a ativa: o
+  original não recalcula `ativo.Pagina` aqui). A família de sincronizações
+  (`clsConexao.sincronizaCircuitos`, `clsInterligacao.SincronizaCruzamentoInterlig`,
+  `clsDePara.SincronizaDePara(false)`, `clsDispositivoAuxiliares.SincronizaContatos`,
+  `clsPortas.SincronizaPortas`) roda em **todo** ramo que chega ao fim do `case 0` — inclusive quando o
+  `LayerValido` recusa — mas **não** quando o handler sai antes (vazio, capa, um caractere não numérico,
+  prefixo inválido, nome inalterado). Exceção → `MsgBox` crítico.
+- A existência é conferida contra o **`mPaginas`**, não contra a grade: a célula em edição já carrega o
+  nome digitado e não pode contar como página existente.

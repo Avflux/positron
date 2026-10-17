@@ -93,7 +93,11 @@ namespace Positron.Data.Interface
         /// <summary>mMensagem 31 — a página calculada não cabe (`PgNum == 0`).</summary>
         public const string NaoHaEspacoParaUmaNovaPagina = "Não há espaço para uma nova página!";
 
-        /// <summary>mMensagem 32 — o `CriarLayer` devolveu `-1` (o layer já existe).</summary>
+        /// <summary>
+        /// mMensagem 32 — o `CriarLayer` devolveu `-1` (o layer já existe). O **mesmo texto** é a
+        /// mMensagem 28, que o `Pagina.renumerarPagina` mostra na edição inline da célula Página
+        /// quando o nome já é uma página do caderno (as duas entradas da tabela trazem o texto igual).
+        /// </summary>
         public const string EstaPaginaJaExiste = "Esta página já existe!";
 
         /// <summary>mMensagem 33 — o `CriarLayer` devolveu `0` (não criou).</summary>

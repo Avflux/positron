@@ -86,7 +86,6 @@ namespace Positron.Plugin.Interface.Folhas
             _grade.Columns[4].Visible = false;
             foreach (DataGridViewColumn coluna in _grade.Columns)
                 coluna.SortMode = DataGridViewColumnSortMode.NotSortable;
-            _grade.Columns[0].ReadOnly = true; // A renumeração inline permanece fora desta rodada.
             _grade.DefaultCellStyle.BackColor = SystemColors.Control;
             _menu = MenuDoReverso();
             _grade.ContextMenuStrip = _menu;
@@ -95,22 +94,8 @@ namespace Positron.Plugin.Interface.Folhas
                 if (!_carregando && !_grade.MultiSelect && _grade.SelectedRows.Count == 1)
                     ExecutarNaTela(() => AtivarPagina(PaginaSelecionada()));
             };
-            _grade.CellEndEdit += (origem, evento) => ExecutarNaTela(() =>
-            {
-                if (evento.RowIndex < 0 || evento.ColumnIndex < 1 || evento.ColumnIndex > 2) return;
-                DataGridViewRow linha = _grade.Rows[evento.RowIndex];
-                string unidade = Convert.ToString(linha.Cells[1].Value).Trim();
-                string alternativo = Convert.ToString(linha.Cells[2].Value).Trim();
-                if (alternativo.Length > 20)
-                {
-                    alternativo = alternativo.Substring(0, 20);
-                    Aviso.MsgBox("Máximo de 20 caracteres", "Elétron");
-                }
-                linha.Cells[1].Value = unidade;
-                linha.Cells[2].Value = alternativo;
-                UnidadeDaPaginaDoDesenho.Gravar(Convert.ToString(linha.Cells[0].Value), unidade, alternativo);
-                if (evento.ColumnIndex == 2) AtualizarContagem();
-            });
+            _grade.CellEndEdit += (origem, evento) =>
+                ExecutarNaTela(() => EditarCelula(evento.RowIndex, evento.ColumnIndex));
             _grade.KeyDown += GradeKeyDown;
 
             _pagina = new TextBox { Name = "tbPagina", Left = 9, Top = 25, Width = 45,
@@ -923,6 +908,125 @@ namespace Positron.Plugin.Interface.Folhas
             _grade.Columns[2].FillWeight = 1;
             _grade.ReadOnly = outro;
             if (_menu != null) _grade.ContextMenuStrip = outro ? null : _menu;
+        }
+
+        /// <summary>
+        /// O fim da edição de uma célula da grade — o `j9Sp1mKZkcD` do reverso
+        /// (`uscPaginas.cs:1733-1846`): a coluna Página renomeia a página (ou reverte), a Unidade e
+        /// o Alternativo regravam o XData `Eletron` do layer.
+        /// </summary>
+        private void EditarCelula(int linha, int coluna)
+        {
+            if (linha < 0 || linha >= _grade.Rows.Count || coluna < 0 || coluna > 2)
+            {
+                return;
+            }
+
+            if (coluna == 0)
+            {
+                RenomearPaginaInline(linha);
+                return;
+            }
+
+            DataGridViewRow linhaDaGrade = _grade.Rows[linha];
+            string unidade = Convert.ToString(linhaDaGrade.Cells[1].Value).Trim();
+            string alternativo = Convert.ToString(linhaDaGrade.Cells[2].Value).Trim();
+            if (alternativo.Length > 20)
+            {
+                alternativo = alternativo.Substring(0, 20);
+                Aviso.MsgBox("Máximo de 20 caracteres", "Elétron");
+            }
+
+            linhaDaGrade.Cells[1].Value = unidade;
+            linhaDaGrade.Cells[2].Value = alternativo;
+            UnidadeDaPaginaDoDesenho.Gravar(Convert.ToString(linhaDaGrade.Cells[0].Value), unidade, alternativo);
+            if (coluna == 2) AtualizarContagem();
+        }
+
+        /// <summary>
+        /// A **edição inline da célula Página** (o ramo `ColumnIndex == 0` do `j9Sp1mKZkcD`,
+        /// `uscPaginas.cs:1733-1846`): o texto que ficou na célula passa pela regra pura
+        /// (<see cref="RenomeacaoInlineDaPagina"/>) e, quando vale, o layer é renomeado pelo
+        /// `Pagina.renumerarPagina` — com o aviso da mMensagem 28 quando o nome já é página. Na
+        /// recusa a célula volta ao nome carregado (a coluna técnica `Pg`), inclusive na **primeira
+        /// linha** (a capa). A grade é reconstruída e a linha da ativa volta marcada (o
+        /// `Y9op1KgeRgW`/`VSWp1ebyWra` do original). O harness chama este método: é o mesmo caminho
+        /// que o `CellEndEdit` da grade dispara.
+        /// </summary>
+        internal string RenomearPaginaInline(int linha)
+        {
+            if (linha < 0 || linha >= _grade.Rows.Count)
+            {
+                return UltimaMensagem;
+            }
+
+            DataGridViewRow linhaDaGrade = _grade.Rows[linha];
+            string original = Convert.ToString(linhaDaGrade.Cells[3].Value);
+            int largura = ConfiguracaoEfetiva.Carregar().LarguraFixaPaginas;
+            // As páginas do caderno saem do **desenho** (o `mPaginas` que o `renumerarPagina`
+            // percorre), não da grade: a célula em edição já carrega o nome digitado e não conta.
+            PlanoDaRenomeacaoInline plano = RenomeacaoInlineDaPagina.Planejar(
+                Convert.ToString(linhaDaGrade.Cells[0].Value), original,
+                PaginaAtivaDoDesenho.Ler(), largura, PaginasDoDesenho.Ler(), linha == 0);
+
+            linhaDaGrade.Cells[0].Value = plano.Nome;
+            if (plano.Aviso != null)
+            {
+                // O `Interaction.MsgBox(..., Information)` do `renumerarPagina` (mMensagem 28).
+                Aviso.MsgBox(plano.Aviso, "Elétron");
+            }
+
+            string nomeNovo = plano.Nome;
+            if (plano.Acao == AcaoDaRenomeacaoInline.Renomear)
+            {
+                int renomeados = PaginasDoDesenho.Renomear(new[] { original }, new[] { nomeNovo });
+                if (renomeados == 0)
+                {
+                    // O `alteraNomeLayer` que devolve false: a célula volta ao nome original.
+                    linhaDaGrade.Cells[0].Value = original;
+                    nomeNovo = original;
+                    UltimaMensagem = MensagensDoReverso.Pagina + ": não foi possível renomear \"" + original + "\".";
+                }
+                else
+                {
+                    // O `AtualizaContTotFl` do `renumerarPagina` e o `tbPagina.Text = text2` do handler.
+                    AtualizarContagem();
+                    Carregar();
+                    _pagina.Text = nomeNovo;
+                    UltimaMensagem = MensagensDoReverso.Pagina + ": \"" + original + "\" → \"" + nomeNovo + "\"; "
+                        + renomeados + " layer(s) renomeado(s).";
+                }
+            }
+            else if (plano.Acao == AcaoDaRenomeacaoInline.JaExiste)
+            {
+                UltimaMensagem = MensagensDoReverso.Pagina + ": " + plano.Aviso;
+            }
+            else if (plano.Acao == AcaoDaRenomeacaoInline.EscreverAtiva)
+            {
+                UltimaMensagem = MensagensDoReverso.Pagina + ": célula vazia — escrita a página ativa \""
+                    + plano.Nome + "\" (sem renomear).";
+            }
+            else if (plano.Acao == AcaoDaRenomeacaoInline.Escrever)
+            {
+                UltimaMensagem = MensagensDoReverso.Pagina + ": \"" + nomeNovo + "\" (nome inalterado).";
+            }
+            else if (linha == 0)
+            {
+                UltimaMensagem = MensagensDoReverso.Pagina + ": a primeira linha (a capa) não se renomeia; \""
+                    + original + "\" mantido.";
+            }
+            else
+            {
+                UltimaMensagem = MensagensDoReverso.Pagina + ": \"" + original + "\" não é página válida; mantido.";
+            }
+
+            if (plano.RodarSincronizacoes)
+            {
+                // O mesmo stand-in do Apagar Páginas/Renumerar Páginas (a família clsConexao/… não está portada).
+                Plugin.Escrever(MensagensDoReverso.Pagina + " — sincronizações: " + Comandos.SincronizacoesDoCaderno());
+            }
+
+            return UltimaMensagem;
         }
 
         internal void IrParaPagina(string pagina)

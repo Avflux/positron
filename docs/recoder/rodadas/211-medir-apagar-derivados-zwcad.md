@@ -1,6 +1,6 @@
 # Rodada 211 — medir no ZWCAD 2026 o `ApagarDerivados` (ramos das rodadas 208–210)
 
-**Data:** 2026-10-16 · **Commit:** `*(este)*` · **Frente:** 10 — páginas e caderno · **Situação:** ✅ medido (os três ramos); o bloco `P` segue na fila
+**Data:** 2026-10-16 · **Commit:** `f767cb6d` · **Frente:** 10 — páginas e caderno · **Situação:** ✅ medido (os três ramos); o bloco `P` segue na fila
 
 ## Alvo
 

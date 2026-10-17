@@ -14,10 +14,11 @@ namespace Positron.Plugin.Interface.Folhas
     /// chamam, sem passar pela interface: é o caminho do usuário sem o clique (que um script não dá).
     ///
     /// A entrada é toda do harness, e **só** daqui: <c>POSITRON_FOLHA_ACAO</c> (<c>nova</c>,
-    /// <c>inserir:N</c>, <c>apagar</c>, <c>multiselecao</c>, <c>renumerar</c>, <c>formato:LITERAL</c>;
-    /// sem ela o comando só despeja o estado), <c>POSITRON_FOLHA_SELECAO</c> (a linha selecionada; o
-    /// padrão é <c>POSITRON_PAGINA</c>) e <c>POSITRON_FOLHA_SELECIONADAS</c> (as linhas selecionadas,
-    /// separadas por vírgula).
+    /// <c>inserir:N</c>, <c>apagar</c>, <c>multiselecao</c>, <c>renumerar</c>, <c>formato:LITERAL</c>,
+    /// <c>inline</c>; sem ela o comando só despeja o estado), <c>POSITRON_FOLHA_SELECAO</c> (a linha
+    /// selecionada; o padrão é <c>POSITRON_PAGINA</c>), <c>POSITRON_FOLHA_SELECIONADAS</c> (as linhas
+    /// selecionadas, separadas por vírgula) e <c>POSITRON_FOLHA_INLINE</c> (o texto que a edição
+    /// inline da célula Página digita; ausente é a célula vazia).
     /// </summary>
     internal static class ProvaDaPaleta
     {
@@ -219,6 +220,41 @@ namespace Positron.Plugin.Interface.Folhas
 
                     item.PerformClick();
                     resultado = "clique no menu → " + controle.UltimaMensagem;
+                }
+                else if (acao == "inline")
+                {
+                    // A edição inline da célula Página (o ramo `ColumnIndex == 0` do `j9Sp1mKZkcD`,
+                    // `uscPaginas.cs:1733-1846`): o harness escreve o texto que o usuário digitaria
+                    // e chama o **mesmo** método que o `CellEndEdit` da grade dispara.
+                    DataGridView grade = (DataGridView)controle.Controls["dg"];
+                    string valor = Environment.GetEnvironmentVariable("POSITRON_FOLHA_INLINE");
+                    if (valor == null)
+                    {
+                        valor = string.Empty;
+                    }
+
+                    string alvoInline = linhas.Count > 0 ? linhas[0] : string.Empty;
+                    int indice = -1;
+                    for (int i = 0; i < grade.Rows.Count; i++)
+                    {
+                        if (string.Equals(Convert.ToString(grade.Rows[i].Cells[0].Value), alvoInline, StringComparison.OrdinalIgnoreCase))
+                        {
+                            indice = i;
+                        }
+                    }
+
+                    if (indice < 0)
+                    {
+                        throw new InvalidOperationException("Linha \"" + alvoInline + "\" ausente para a edição inline.");
+                    }
+
+                    grade.Rows[indice].Cells[0].Value = valor;
+                    string resumo = controle.RenomearPaginaInline(indice);
+                    string celula = indice < grade.Rows.Count
+                        ? Convert.ToString(grade.Rows[indice].Cells[0].Value)
+                        : string.Empty;
+                    resultado = "edição inline \"" + valor + "\" na linha " + indice + " (página " + alvoInline
+                        + ") → " + resumo + "; célula=\"" + celula + "\"";
                 }
                 else if (acao.StartsWith("formato", StringComparison.Ordinal))
                 {

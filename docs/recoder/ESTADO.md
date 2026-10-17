@@ -4,18 +4,18 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 211)
+## Estado (2026-10-16, depois da rodada 212)
 
 | | valor |
 |---|---|
-| última rodada | **211** |
+| última rodada | **212** |
 | comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
-| testes (console xUnit; adaptador de `plugin:test` indisponível) | **1008** |
+| testes (console xUnit; adaptador de `plugin:test` indisponível) | **1020** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
-| host CAD medido | AutoCAD (interface cheia + `accoreconsole`) e **ZWCAD 2026** (instalado nesta máquina em 2026-10-16; rodada 211) |
+| host CAD medido | **AutoCAD 2020** (`accoreconsole` + interface cheia); na rodada 212 o `C:\Program Files\ZWSOFT` não existia mais nesta máquina (ZWCAD medido na 211) |
 
 Números de cobertura: `powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1`.
 
@@ -75,9 +75,11 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
 
 1. **Fechar a rodada 183 (Páginas / Editar os Títulos)** — o que sobrou:
+   - edição inline da célula Página: medir pelo **clique real** (`CellEndEdit` do WinForms) com a
+     interface cheia e no ZWCAD quando ele voltar; o CONT/FL/TOT do rename não foi re-medido com
+     sentinelas (rodada 212);
    - Excel ativo (`clsTextos.ExportaPaginas/ImportaTitulos`, exportar/importar por página/índice);
-   - **renumeração inline** da célula Página (primeira linha protegida) e o status do banco ligado ao
-     contador de conexões; progresso compartilhado pelas rotinas longas;
+   - status do banco ligado ao contador de conexões; progresso compartilhado pelas rotinas longas;
    - título 4/D/A/V e os seis atalhos em GUI; repetir edição após o retorno MDI e no ZWCAD;
    - auditar a preservação de extensões no buffer `Eletron`/`Unidade` (o adapter recria quatro valores);
    - `medir a mMensagem 27` no CAD precisa de um desenho com 27 páginas (o `Funcional.dwg` tem 16);
@@ -108,7 +110,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 211 | 2026-10-16 | *(este)* | medição no **ZWCAD 2026** dos três ramos do `ApagarDerivados` (interligação, contato auxiliar, máscara): fixture `cad-fixture-apagar-derivados.lsp`, todos conferem com o original; índices de leitura da máscara provados | `rodadas/211-medir-apagar-derivados-zwcad.md` |
+| 212 | 2026-10-16 | *(este)* | paleta `uscPaginas`, **edição inline da célula Página** (item 1 da fila): regra pura `RenomeacaoInlineDaPagina` (validação, `montaNumeroPagina`, `LayerValido`, mMensagem 28, capa e o quirk do vazio), rename pelo `PaginasDoDesenho.Renomear`, aviso em `MsgBox`; +12 testes (1020), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (rename 7→7A com dump independente do XData preservado, já-existe, capa e vazio) | `rodadas/212-edicao-inline-celula-pagina.md` |
+| 211 | 2026-10-16 | `f767cb6d` | medição no **ZWCAD 2026** dos três ramos do `ApagarDerivados` (interligação, contato auxiliar, máscara): fixture `cad-fixture-apagar-derivados.lsp`, todos conferem com o original; índices de leitura da máscara provados | `rodadas/211-medir-apagar-derivados-zwcad.md` |
 | 210 | 2026-10-16 | `bac5de5e` | `ApagarDerivados`, ramo da máscara (`ApagaAMascara`): sucessora promovida com o estado da apagada, demais apontam para ela, portas/definições saem ou reapontam; layouts de XData de 29/18/5 valores; +11 testes; 1008 testes, builds 0 avisos | `rodadas/210-apagar-derivados-mascara.md` |
 | 209 | 2026-10-16 | `5171df2e` | `ApagarDerivados`, ramo do contato auxiliar (tipo `A`): `limpaInsercaoTabela` zera os atributos `INSERCAO*` e o `HandleContatoAux` do modelo; +13 testes; 997 testes, builds 0 avisos | `rodadas/209-apagar-derivados-contato-auxiliar.md` |
 | 208 | 2026-10-16 | `8bc77678` | `ApagarDerivados`, ramo da polyline de interligação `Tipo 2` (irmã por handle + rótulos `AUXINTERLIG`/`ELETROSUL`), chamado na exclusão de página; +9 testes; 984 testes, builds 0 avisos | `rodadas/208-apagar-derivados-interligacao.md` |
@@ -117,4 +120,3 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 | 205 | 2026-10-16 | `6bac4a5d` | auditoria da `frmGerenciadorMateriais`: guarda 331, cabeçalho/larguras e colunas escondidas do original, ações silenciosas, "Salvar Alterações?" ao fechar, erro em `MsgBox`; saem as linhas `GERLM:` e dicas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/205-auditoria-gerenciador-materiais.md` |
 | 204 | 2026-10-16 | `96b17960` | auditoria da `frmRelatorio_Veias`: `dgVeias` sem colunas até o `btPesquisar`, dica do original, `CKAgrupar` desmarcado; saem dicas e linhas `LVEI:` inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/204-auditoria-relatorio-veias.md` |
 | 203 | 2026-10-16 | `116e7939` | auditoria da `frmRelatorio_Materiais`: grades sem colunas até haver dados, lista só no `btPesquisar`, dicas e controles escondidos como no construtor; saem dicas e linhas `EXPLM:` inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/203-auditoria-relatorio-materiais.md` |
-| 202 | 2026-10-16 | `bb4b3a34` | auditoria da `frmSplash`: saem o fechamento por clique/tecla e as mensagens do `OFFSPL`, que o original não tem; builds 0 avisos, testes não rodados (só casca) | `rodadas/202-auditoria-splash.md` |
