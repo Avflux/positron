@@ -32,6 +32,7 @@ namespace Positron.Plugin.Interface.Telas
         {
             new LigacaoDoFrmPesquisaXdatas(),
             new LigacaoDoFrmEstatisticaDeBornes(),
+            new LigacaoDoFrmEstatisticaDeCabos(),
             new LigacaoDoFrmCompilarFiacao(),
             new LigacaoDoFrmCompilarInterligacao(),
             new LigacaoDoFrmCompilarJumperExt(),

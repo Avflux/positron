@@ -4,15 +4,15 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 216)
+## Estado (2026-10-16, depois da rodada 217)
 
 | | valor |
 |---|---|
-| última rodada | **216** (prova viva da 215 pendente: Office expirado nesta máquina) |
+| última rodada | **217** |
 | comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
-| comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
-| telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
-| testes (console xUnit; adaptador de `plugin:test` indisponível) | **1049** |
+| comandos do reverso sem nada no plugin | **48** (todas regra pura; triagem em `../PLANO.md` §7.6) |
+| telas `frm*` do reverso | **127**; **23** com a ligação à regra; 19 que nenhum comando abre |
+| testes (console xUnit; adaptador de `plugin:test` indisponível) | **1056** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
 | host CAD medido | **AutoCAD 2020** — instalado e **verificado** em 2026-10-16 (registro + pastas + `where`; a nota do `RUNBOOK` que dizia o contrário foi corrigida); **ZWCAD ausente** nesta data, também verificado (medido na 211 quando estava) |
@@ -69,7 +69,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    - Ela grava o XData (`GravarXDataConfiguracao`/`2`) e o idioma no registro (`:3904-3910`).
    - Inclui o bloco SQL Server; tira o grupo "Projeto" (DWG/Revisão/Log).
    - Leva ao XData a norma IEC/ANSI, o Log Func e a representação cabo/veia, que hoje não chegam lá.
-5. ✅ *(rodadas 188–207: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos`, `frmEstatisticaDeBornes` `frmEditaRevisaoSimplificada` `frmEditaRevisaoCompleta` `frmEditaTitulos` `frmPesquisaXdatas` as três `frmCompilar*` `frmGerenciadorMascaras` `frmGerenciadorContatos` `frmSplash` `frmRelatorio_Materiais` `frmRelatorio_Veias` `frmGerenciadorMateriais` e `frmGerenciadorMatIndep` feitas; as 21 telas ligadas estão auditadas, faltam as feitas à mão; faltam as outras)* **Auditoria das 20 telas ligadas e das telas feitas à mão**, comparando controle a controle com o
+5. ✅ *(rodadas 188–207: `frmConfiguracaoBDProjeto`, `frmEstimativaVeiasLivres`, `frmEditaConexao`, `frmPesquisaVeiasIndefinidas`, `frmPesquisaCabos`, `frmEditaTitulosTextos`, `frmEstatisticaDeBornes` `frmEditaRevisaoSimplificada` `frmEditaRevisaoCompleta` `frmEditaTitulos` `frmPesquisaXdatas` as três `frmCompilar*` `frmGerenciadorMascaras` `frmGerenciadorContatos` `frmSplash` `frmRelatorio_Materiais` `frmRelatorio_Veias` `frmGerenciadorMateriais` e `frmGerenciadorMatIndep` feitas; as 21 telas ligadas então estão auditadas, faltam as feitas à mão; as ligadas depois da 207 — as 23 de hoje — ainda não)* **Auditoria das telas ligadas e das telas feitas à mão**, comparando controle a controle com o
    designer e a captura, atrás de invenções do mesmo tipo. O que aparecer vira item aqui.
 
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
@@ -77,7 +77,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 1. **Fechar a rodada 183 (Páginas / Editar os Títulos)** — o que sobrou:
    - edição inline da célula Página: falta o **clique físico** com a janela da paleta visível e
      repetir no ZWCAD quando ele voltar (o evento real e o CONT/FL/TOT foram medidos na 213);
-   - Excel ativo: **código e testes prontos (rodada 215)**; falta a prova viva no AutoCAD+Excel, bloqueada até o Office desta máquina ser ativado (ver a rodada);
+   - Excel ativo: **código e testes prontos (rodada 215)**; a prova viva no AutoCAD+Excel **está desbloqueada** — o dono ativou o Office desta máquina em 2026-10-16 (ver a rodada);
    - status do banco ligado ao contador de conexões; progresso compartilhado pelas rotinas longas;
    - título 4/D/A/V e os seis atalhos em GUI; repetir edição após o retorno MDI e no ZWCAD;
    - ✅ *(rodada 214)* a unidade/alternativo **conserva** o buffer `Eletron` do layer (o `Altera` troca só as posições 2/3; o adapter recriava os quatro valores);
@@ -89,7 +89,10 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
    Prova e passos em `rodadas/183-paginas-editar-titulos.md`, `184-…`, `185-…` e `186-…`.
 2. ✅ *(rodada 216, medido no AutoCAD 2020; falta o clique da paleta e o ZWCAD, se voltar)* **`clsApagar.ApagarDerivados`** — ramos portados: polyline (208), contato auxiliar (209), máscara (210) e, na 216, o dispositivo principal `P` (`promoveComplementar` `:286` e `ApagaContatosModeloDispositivo` `:151`).
 3. **Telas só-casca mais baratas** cuja regra cabe numa rodada (lista: `cobertura-do-reverso.ps1 -Listas`):
-   `frmEstatisticaDeCabos` (`ESTVCABOS`); depois, a próxima leva da lista `-Listas`.
+   ✅ *(rodada 217, `frmEstatisticaDeCabos`)*; falta o **exportar para Excel** dela
+   (`Relatorios_EstatisticaCaboEXCEL`, botão na tela sem ação; o Excel desta máquina foi ativado em
+   2026-10-16, então dá para provar vivo) e a conferência **visual** contra
+   `estimativa de cabos utilizados por formação.png`; depois, a próxima leva da lista `-Listas`.
 4. **Seção e cor ativas da barra** (`ListaDeSecao`/`CampoDeCor`, `Ribbon.cs:971,2264`; `My.Settings.Secao`/`Cor`):
    o padrão dos prompts do `EDCON`/`EDCONP` (hoje fixo em `1,5`/`PT`) e do `INSM`/`CON` — saiu da rodada 176.
 5. **Comandos de regra pura sem nada no plugin** (48) — pegar os que a triagem do `PLANO.md` §7.6
@@ -112,13 +115,13 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 216 | 2026-10-16 | *(não commitado)* | ramos do dispositivo principal `P` do `ApagarDerivados` (`promoveComplementar` e `ApagaContatosModeloDispositivo`): regra pura `ApagarDispositivo` + casca; +7 testes (1049); builds 0 avisos; medido no **AutoCAD 2020** (promoção, contatos por tipo e painel, complementar de outro nome fica) | `rodadas/216-apagar-derivados-dispositivo-principal.md` |
+| 217 | 2026-10-16 | *(este)* | `frmEstatisticaDeCabos` (`ESTVCABOS`) ligada à regra: `EstatisticaDeCabos` (cabos com veia em uso, um por tag, agrupamento por formação/função/trajeto, soma do comprimento do cabo — o `LeTodosOsCabosEmUso` + `Hpgk6bJ1Ce`) e a ligação com os três radios (habilitados só com linha) e as larguras 90/70%/30%; +7 testes (1056), builds 0 avisos; medido no **AutoCAD 2020** nos três agrupamentos e no radio desabilitado; cobertura 23 de 127 telas com regra | `rodadas/217-estatistica-de-cabos.md` |
+| 216 | 2026-10-16 | `29ed6889` | ramos do dispositivo principal `P` do `ApagarDerivados` (`promoveComplementar` e `ApagaContatosModeloDispositivo`): regra pura `ApagarDispositivo` + casca; +7 testes (1049); builds 0 avisos; medido no **AutoCAD 2020** (promoção, contatos por tipo e painel, complementar de outro nome fica) | `rodadas/216-apagar-derivados-dispositivo-principal.md` |
 | 215 | 2026-10-16 | `2edf4696` | Excel ativo do `frmEditaTitulos`: exportar/importar pela PIA do Excel aberto (regra pura `ExcelDosTitulos` + adapter Interop + ligação do menu); +15 testes (1042 pelo runner xUnit), build AutoCAD 0 erros; **prova viva bloqueada**: o Office desta máquina está com a ativação expirada (`ClearContents` recusado) | `rodadas/215-excel-ativo-dos-titulos.md` |
-| 214 | 2026-10-16 | *(este)* | unidade/alternativo **conserva** o buffer XData `Eletron` do layer (`Atualizar`: sem XData cria os quatro; com a marca troca **só** as posições 2/3; outra marca não escreve) — como o `AlteraXDataUnidadeAlternativo` do reverso; +5 testes (1025), builds 0 avisos; medido no **AutoCAD 2020** com um `1000 EXTRA-214` + `1070 214` postos no layer `6` (sobrevivem à gravação) | `rodadas/214-unidade-buffer-eletron-preservado.md` |
-| 213 | 2026-10-16 | *(este)* | edição inline da célula Página: medido o **evento real** da grade (`inline-evento`: `BeginEdit`/`EndEdit` → `CellEndEdit`; o `Carregar()` dentro do evento não estoura) e o **CONT/FL/TOT** do rename com sentinelas (`6/5 → 7A`, `7/6 → 7A`, `7/7 → 1000`); 1020 testes, builds 0 avisos; sem regra nova | `rodadas/213-inline-evento-e-cont-fl-tot.md` |
-| 212 | 2026-10-16 | *(este)* | paleta `uscPaginas`, **edição inline da célula Página** (item 1 da fila): regra pura `RenomeacaoInlineDaPagina` (validação, `montaNumeroPagina`, `LayerValido`, mMensagem 28, capa e o quirk do vazio), rename pelo `PaginasDoDesenho.Renomear`, aviso em `MsgBox`; +12 testes (1020), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (rename 7→7A com dump independente do XData preservado, já-existe, capa e vazio) | `rodadas/212-edicao-inline-celula-pagina.md` |
+| 214 | 2026-10-16 | `58236768` | unidade/alternativo **conserva** o buffer XData `Eletron` do layer (`Atualizar`: sem XData cria os quatro; com a marca troca **só** as posições 2/3; outra marca não escreve) — como o `AlteraXDataUnidadeAlternativo` do reverso; +5 testes (1025), builds 0 avisos; medido no **AutoCAD 2020** com um `1000 EXTRA-214` + `1070 214` postos no layer `6` (sobrevivem à gravação) | `rodadas/214-unidade-buffer-eletron-preservado.md` |
+| 213 | 2026-10-16 | `402dcf97` | edição inline da célula Página: medido o **evento real** da grade (`inline-evento`: `BeginEdit`/`EndEdit` → `CellEndEdit`; o `Carregar()` dentro do evento não estoura) e o **CONT/FL/TOT** do rename com sentinelas (`6/5 → 7A`, `7/6 → 7A`, `7/7 → 1000`); 1020 testes, builds 0 avisos; sem regra nova | `rodadas/213-inline-evento-e-cont-fl-tot.md` |
+| 212 | 2026-10-16 | `402dcf97` | paleta `uscPaginas`, **edição inline da célula Página** (item 1 da fila): regra pura `RenomeacaoInlineDaPagina` (validação, `montaNumeroPagina`, `LayerValido`, mMensagem 28, capa e o quirk do vazio), rename pelo `PaginasDoDesenho.Renomear`, aviso em `MsgBox`; +12 testes (1020), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (rename 7→7A com dump independente do XData preservado, já-existe, capa e vazio) | `rodadas/212-edicao-inline-celula-pagina.md` |
 | 211 | 2026-10-16 | `f767cb6d` | medição no **ZWCAD 2026** dos três ramos do `ApagarDerivados` (interligação, contato auxiliar, máscara): fixture `cad-fixture-apagar-derivados.lsp`, todos conferem com o original; índices de leitura da máscara provados | `rodadas/211-medir-apagar-derivados-zwcad.md` |
 | 210 | 2026-10-16 | `bac5de5e` | `ApagarDerivados`, ramo da máscara (`ApagaAMascara`): sucessora promovida com o estado da apagada, demais apontam para ela, portas/definições saem ou reapontam; layouts de XData de 29/18/5 valores; +11 testes; 1008 testes, builds 0 avisos | `rodadas/210-apagar-derivados-mascara.md` |
 | 209 | 2026-10-16 | `5171df2e` | `ApagarDerivados`, ramo do contato auxiliar (tipo `A`): `limpaInsercaoTabela` zera os atributos `INSERCAO*` e o `HandleContatoAux` do modelo; +13 testes; 997 testes, builds 0 avisos | `rodadas/209-apagar-derivados-contato-auxiliar.md` |
 | 208 | 2026-10-16 | `8bc77678` | `ApagarDerivados`, ramo da polyline de interligação `Tipo 2` (irmã por handle + rótulos `AUXINTERLIG`/`ELETROSUL`), chamado na exclusão de página; +9 testes; 984 testes, builds 0 avisos | `rodadas/208-apagar-derivados-interligacao.md` |
-| 207 | 2026-10-16 | `32b3e207` | auditoria das telas feitas à mão (fecha o item 5): sai a janela inventada `FormularioCompilacao` e o comando `ELETCMP`; `JANELAS`/`JANELA` ficam como ferramenta de conferência; builds 0 avisos, testes não rodados (só remoção) | `rodadas/207-auditoria-telas-feitas-a-mao.md` |

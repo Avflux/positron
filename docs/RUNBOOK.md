@@ -2367,6 +2367,21 @@ modeless prende o script. Medido tambem numa tela **sem** ligacao (`frmConfigura
 que acontece no `Montar`, roda antes) e a varredura das ligacoes e pelo `pzTelas`, que monta sem
 mostrar.
 
+**A tela `frmEstatisticaDeCabos` (`ESTVCABOS`) medida num script (rodada 217).** O gancho e
+`POSITRON_ESTATISTICA=<formacao|funcao|trajeto>`: ao montar a tela ele marca o radio e escreve a grade
+na linha de comando (como o `POSITRON_ANALISAR` das telas de compilacao). Banco de teste com Cabos e
+Veias (`Uso`) — a receita:
+
+```bash
+POSITRON_ESTATISTICA=formacao powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 \
+  -Comandos "ESTVCABOS" -Desenho cad-plugin/reverso/Teste_projeto_real/Funcional.dwg \
+  -Dwg 63 -Revisao R0 -Banco ".tmp-smoke/r217-estcabos.db"
+# -> ESTCABOS: Formação — 2 linha(s); habilitados: Formação, Função, Trajeto; grade: 2x4=1/4 | 3x2,5=2/15
+```
+
+O radio desabilitado sai na mesma linha (`habilitados:`), entao a regra do construtor
+(`lista.Count > 0`) e medida junto. Medido no **AutoCAD 2020** em 2026-10-16.
+
 **O painel ganhou a linha da ligacao.** O `scripts/cobertura-do-reverso.ps1` lia "a regra existe" e
 nao sabia da ligacao — listava como "falta so a ligacao" telas que ja a tinham. Agora ele le o
 `NomeDaTela` de cada `Interface/Telas/Ligacao*.cs` e imprime `com a ligacao na tela: 5 (...)`,

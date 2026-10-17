@@ -55,3 +55,31 @@ Lê o **banco**, não o desenho. Recoder: `PesquisaDeCabos` (`Positron.Data/Inte
 - Apelidos: `MI1pvipBDIv` = veias do cabo selecionado; `vp1pvC6nLi1` = ir até a veia (igual ao `wkpp6H6CivH`);
   `JBgaA5p5W7h1TRpQ5uHE` = (índice, nome) do DWG.
 - `arqAtivo.Indice` no recoder = `ConfiguracaoPositron.Dwg` (`POSITRON_DWG`).
+
+## A tela `frmEstatisticaDeCabos` (`ESTVCABOS`) — a estatística por formação/função/trajeto (rodada 217)
+
+Lê o **banco**, não o desenho. Recoder: `EstatisticaDeCabos` (`Positron.Data/Interligacao/`) + a ligação
+`LigacaoDoFrmEstatisticaDeCabos`.
+
+- `CDadosAccessInterligacao.LeTodosOsCabosEmUso` (`CDadosAccessInterligacao.cs:266`): SQL
+  `SELECT C.Tag, C.Formacao, C.Funcao, C.Comprimento, c.Trajeto, V.Tag, V.Uso FROM Cabos C, Veias V
+  WHERE V.Uso=@bUso AND C.Tag=V.Tag` com `@bUso = true`. Só entra cabo com **alguma veia em uso**, **uma
+  vez por tag** (a lista de tags já vistas); o comprimento guardado é o **do cabo**, não por veia.
+- As três listas de valores (formação/função/trajeto) pulam valor nulo/vazio (`clsTextos.TiraDBNull`) e
+  levam `Sort()` no fim (`:344-346`) — a ordem da grade.
+- O comando é `new frmEstatisticaDeCabos()` direto (`Comandos.cs:955`): **sem** checagem de banco ou de DWG
+  cadastrado antes de abrir.
+- Construtor (`frmEstatisticaDeCabos.cs:352-411`): os três radios começam **desabilitados** e cada um só
+  habilita se a lista dele tiver linha; título `mMensagem[1, 1756]` = "Estatística de Cabos Utilizados",
+  trocado por `1757` ("Estatística de Cabos Utilizados por: ") + o nome do agrupamento ao escolher o radio.
+- Colunas do `formataDGCabos` (`:418`): `"# " + 514` ("# Cabos"), o agrupamento (`1285` Formação,
+  `1244` Função, `1248` Trajeto) e `1246` (Comprimento). Larguras do `qnPkkbgPBU` (`:452`): 90 px fixos na
+  coluna 0 e o resto em **70%/30%** (descontada a barra vertical, quando visível —
+  `haG8HN1M755FJ2bc2NW.ARP1IVj2So`); `MultiSelect = true`, nenhuma coluna oculta.
+- A conta do `Hpgk6bJ1Ce` (`:473-600`): por valor do agrupamento, soma 1 na quantidade e o comprimento;
+  a linha nasce no primeiro cabo do grupo e **só se o valor não for vazio**. Comparação **sem caixa**
+  (`CompareString`, `TextCompare: true`).
+- `formataDGCabos` engole exceção (`catch` vazio); o comprimento sai **cru** na grade (`Conversions.ToString`).
+- Apelidos: `OlbkdikPqi` = troca de agrupamento (título + `ikdkQu3CIi`), `Hpgk6bJ1Ce` = grade + conta,
+  `qnPkkbgPBU` = larguras, `BnnktwdI2n` = `Resize`, `poxkjhv2fW` = `btExportaEXCEL` →
+  `Relatorios_EstatisticaCaboEXCEL.ExportaEstatisticaExcel(dg, ikdkQu3CIi)`.
