@@ -4,11 +4,11 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-16, depois da rodada 212)
+## Estado (2026-10-16, depois da rodada 213)
 
 | | valor |
 |---|---|
-| última rodada | **212** |
+| última rodada | **213** |
 | comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todos regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **22** com a ligação à regra; 19 que nenhum comando abre |
@@ -75,9 +75,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 ## Fila (depois da correção do básico; uma rodada por item, na ordem)
 
 1. **Fechar a rodada 183 (Páginas / Editar os Títulos)** — o que sobrou:
-   - edição inline da célula Página: medir pelo **clique real** (`CellEndEdit` do WinForms) com a
-     interface cheia e no ZWCAD quando ele voltar; o CONT/FL/TOT do rename não foi re-medido com
-     sentinelas (rodada 212);
+   - edição inline da célula Página: falta o **clique físico** com a janela da paleta visível e
+     repetir no ZWCAD quando ele voltar (o evento real e o CONT/FL/TOT foram medidos na 213);
    - Excel ativo (`clsTextos.ExportaPaginas/ImportaTitulos`, exportar/importar por página/índice);
    - status do banco ligado ao contador de conexões; progresso compartilhado pelas rotinas longas;
    - título 4/D/A/V e os seis atalhos em GUI; repetir edição após o retorno MDI e no ZWCAD;
@@ -110,6 +109,7 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
+| 213 | 2026-10-16 | *(este)* | edição inline da célula Página: medido o **evento real** da grade (`inline-evento`: `BeginEdit`/`EndEdit` → `CellEndEdit`; o `Carregar()` dentro do evento não estoura) e o **CONT/FL/TOT** do rename com sentinelas (`6/5 → 7A`, `7/6 → 7A`, `7/7 → 1000`); 1020 testes, builds 0 avisos; sem regra nova | `rodadas/213-inline-evento-e-cont-fl-tot.md` |
 | 212 | 2026-10-16 | *(este)* | paleta `uscPaginas`, **edição inline da célula Página** (item 1 da fila): regra pura `RenomeacaoInlineDaPagina` (validação, `montaNumeroPagina`, `LayerValido`, mMensagem 28, capa e o quirk do vazio), rename pelo `PaginasDoDesenho.Renomear`, aviso em `MsgBox`; +12 testes (1020), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (rename 7→7A com dump independente do XData preservado, já-existe, capa e vazio) | `rodadas/212-edicao-inline-celula-pagina.md` |
 | 211 | 2026-10-16 | `f767cb6d` | medição no **ZWCAD 2026** dos três ramos do `ApagarDerivados` (interligação, contato auxiliar, máscara): fixture `cad-fixture-apagar-derivados.lsp`, todos conferem com o original; índices de leitura da máscara provados | `rodadas/211-medir-apagar-derivados-zwcad.md` |
 | 210 | 2026-10-16 | `bac5de5e` | `ApagarDerivados`, ramo da máscara (`ApagaAMascara`): sucessora promovida com o estado da apagada, demais apontam para ela, portas/definições saem ou reapontam; layouts de XData de 29/18/5 valores; +11 testes; 1008 testes, builds 0 avisos | `rodadas/210-apagar-derivados-mascara.md` |
@@ -119,4 +119,3 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 | 206 | 2026-10-16 | `720c09ec` | auditoria da `frmGerenciadorMatIndep` (última tela ligada): guarda `BancoValido`, ações silenciosas, erros em `MsgBox` crítico, sem dica inventada na pesquisa; saem as linhas `ATINDEP:`; builds 0 avisos, testes não rodados (só casca) | `rodadas/206-auditoria-gerenciador-matindep.md` |
 | 205 | 2026-10-16 | `6bac4a5d` | auditoria da `frmGerenciadorMateriais`: guarda 331, cabeçalho/larguras e colunas escondidas do original, ações silenciosas, "Salvar Alterações?" ao fechar, erro em `MsgBox`; saem as linhas `GERLM:` e dicas inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/205-auditoria-gerenciador-materiais.md` |
 | 204 | 2026-10-16 | `96b17960` | auditoria da `frmRelatorio_Veias`: `dgVeias` sem colunas até o `btPesquisar`, dica do original, `CKAgrupar` desmarcado; saem dicas e linhas `LVEI:` inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/204-auditoria-relatorio-veias.md` |
-| 203 | 2026-10-16 | `116e7939` | auditoria da `frmRelatorio_Materiais`: grades sem colunas até haver dados, lista só no `btPesquisar`, dicas e controles escondidos como no construtor; saem dicas e linhas `EXPLM:` inventadas; builds 0 avisos, testes não rodados (só casca) | `rodadas/203-auditoria-relatorio-materiais.md` |

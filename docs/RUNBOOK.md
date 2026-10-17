@@ -874,6 +874,24 @@ Duas armadilhas da cópia: o runner precisa do `xunit.execution.desktop.dll` **n
 não o resolve pela pasta do teste) e as DLLs do xunit no `bin` do teste são de versões **diferentes**
 (as 2.9.0 do adaptador) — copie as do runner **depois** das do teste, ou só as do `Positron.*`.
 
+### Levantar o `CellEndEdit` real da grade no `accoreconsole` (rodada 213)
+
+O `accoreconsole` não tem paleta nem janela, mas o **evento real** do WinForms funciona nele: crie um
+`Form` fora da tela (`ShowInTaskbar = false`, `FormBorderStyle.None`, `Location = (-3000, -3000)`),
+adicione o controle, `Show()`, `Application.DoEvents()`, e então
+`grade.CurrentCell = linha.Cells[0]; grade.BeginEdit(true); grade.EditingControl.Text = valor; grade.EndEdit();`.
+Medido: `BeginEdit=True; EndEdit=True` e o `CellEndEdit` disparou (o `Carregar()` que reconstrói a
+grade **dentro** do evento não estourou — era o risco em aberto da rodada 212). Tire o controle do
+formulário com `Controls.Remove` antes do `Close()`, senão ele é descartado junto e o resto do harness
+(que ainda imprime/captura) quebra.
+
+### O `\r` do dump LISP engana a conferência por linha (rodada 213)
+
+Os dumps escritos por `(write-line ...)` saem com **CRLF**: um `grep '^LAYER;'` casa, mas uma
+conferência por conteúdo pode passar batido. Foi o que escondeu três sentinelas **já recalculadas**
+nesta rodada — o `TextString` delas tinha virado `7A`/`7A`/`1000`, então `grep SENTINELA` deu a
+impressão de dump vazio até ler o arquivo inteiro.
+
 ### `entget` sem applist não devolve XData no ZWCAD 2026
 
 `(entget e)` **não** trouxe o grupo `-3` no desenho real (o dump dizia "nenhuma

@@ -15,7 +15,7 @@ namespace Positron.Plugin.Interface.Folhas
     ///
     /// A entrada é toda do harness, e **só** daqui: <c>POSITRON_FOLHA_ACAO</c> (<c>nova</c>,
     /// <c>inserir:N</c>, <c>apagar</c>, <c>multiselecao</c>, <c>renumerar</c>, <c>formato:LITERAL</c>,
-    /// <c>inline</c>; sem ela o comando só despeja o estado), <c>POSITRON_FOLHA_SELECAO</c> (a linha
+    /// <c>inline</c>, <c>inline-evento</c>; sem ela o comando só despeja o estado), <c>POSITRON_FOLHA_SELECAO</c> (a linha
     /// selecionada; o padrão é <c>POSITRON_PAGINA</c>), <c>POSITRON_FOLHA_SELECIONADAS</c> (as linhas
     /// selecionadas, separadas por vírgula) e <c>POSITRON_FOLHA_INLINE</c> (o texto que a edição
     /// inline da célula Página digita; ausente é a célula vazia).
@@ -255,6 +255,67 @@ namespace Positron.Plugin.Interface.Folhas
                         : string.Empty;
                     resultado = "edição inline \"" + valor + "\" na linha " + indice + " (página " + alvoInline
                         + ") → " + resumo + "; célula=\"" + celula + "\"";
+                }
+                else if (acao == "inline-evento")
+                {
+                    // O **evento real** da grade (o `CellEndEdit` do WinForms) e não o método por trás
+                    // dele: é o recorte que a rodada 212 não conseguiu medir (o `accoreconsole` não
+                    // tinha janela onde a grade entrasse em edição). A grade vai para um formulário
+                    // fora da tela, entra em edição e **confirma** — o evento dispara como no clique.
+                    DataGridView grade = (DataGridView)controle.Controls["dg"];
+                    string valor = Environment.GetEnvironmentVariable("POSITRON_FOLHA_INLINE");
+                    if (valor == null)
+                    {
+                        valor = string.Empty;
+                    }
+
+                    string alvoEvento = linhas.Count > 0 ? linhas[0] : string.Empty;
+                    int indice = -1;
+                    for (int i = 0; i < grade.Rows.Count; i++)
+                    {
+                        if (string.Equals(Convert.ToString(grade.Rows[i].Cells[0].Value), alvoEvento, StringComparison.OrdinalIgnoreCase))
+                        {
+                            indice = i;
+                        }
+                    }
+
+                    if (indice < 0)
+                    {
+                        throw new InvalidOperationException("Linha \"" + alvoEvento + "\" ausente para o evento.");
+                    }
+
+                    bool entrou;
+                    bool fim;
+                    using (Form hospedeiro = new Form())
+                    {
+                        hospedeiro.ShowInTaskbar = false;
+                        hospedeiro.FormBorderStyle = FormBorderStyle.None;
+                        hospedeiro.StartPosition = FormStartPosition.Manual;
+                        hospedeiro.Location = new System.Drawing.Point(-3000, -3000);
+                        hospedeiro.Size = new System.Drawing.Size(260, 520);
+                        hospedeiro.Controls.Add(controle);
+                        hospedeiro.Show();
+                        System.Windows.Forms.Application.DoEvents();
+
+                        grade.CurrentCell = grade.Rows[indice].Cells[0];
+                        entrou = grade.BeginEdit(true);
+                        if (entrou && grade.EditingControl != null)
+                        {
+                            grade.EditingControl.Text = valor;
+                        }
+
+                        fim = grade.EndEdit();
+                        System.Windows.Forms.Application.DoEvents();
+                        hospedeiro.Controls.Remove(controle);
+                        hospedeiro.Close();
+                    }
+
+                    string celula = indice < grade.Rows.Count
+                        ? Convert.ToString(grade.Rows[indice].Cells[0].Value)
+                        : string.Empty;
+                    resultado = "evento real (CellEndEdit): BeginEdit=" + entrou + "; EndEdit=" + fim
+                        + "; edição inline \"" + valor + "\" na página " + alvoEvento + " → "
+                        + controle.UltimaMensagem + "; célula=\"" + celula + "\"";
                 }
                 else if (acao.StartsWith("formato", StringComparison.Ordinal))
                 {

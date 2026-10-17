@@ -206,3 +206,21 @@ mMensagem 1927, `CarregaPaginas`, `OrdenaMatrizPaginas` e `AtualizaContTotFl`). 
   prefixo inválido, nome inalterado). Exceção → `MsgBox` crítico.
 - A existência é conferida contra o **`mPaginas`**, não contra a grade: a célula em edição já carrega o
   nome digitado e não pode contar como página existente.
+
+## `AtualizaContTotFl`: o que ele reescreve (medido na rodada 213)
+
+O passo fecha o `Pagina.renumerarPagina` (e o `Apagar`/`Renumerar Páginas`): varre os `DBText` do
+ModelSpace que têm o XData `DiagLog`/`TituloPagina` com índice e escreve **só o `TextString`** — o
+XData (app, índice e o texto que ele guarda) **fica como estava**.
+
+| índice | campo | texto que recebe |
+|---|---|---|
+| 5 | `CONT` | a **próxima** página válida daquele layer (o `BuscaProximaPaginaValida`) |
+| 6 | `FL` | o **próprio layer** da entidade (portanto o nome novo, quando o layer foi renomeado) |
+| 7 | `TOT` | a **última** página do caderno |
+| 9 | `ALTERNATIVO` | o alternativo da própria página |
+| 8 | `REV` | **não** é tocado |
+
+Com o `Conf.incluirColuna` em 3..5, o `CONT` e o `TOT` trocam a página pelo **alternativo** dela quando
+existe. Medido na cópia do `Funcional.dwg`: renomeando `7 → 7A`, uma sentinela `índice 5` no layer `6`
+vira `7A`, uma `índice 6` no layer `7` vira `7A` (o layer virou `7A`) e uma `índice 7` vira `1000`.
