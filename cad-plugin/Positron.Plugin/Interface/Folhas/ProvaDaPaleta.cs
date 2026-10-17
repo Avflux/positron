@@ -65,6 +65,11 @@ namespace Positron.Plugin.Interface.Folhas
                     AgendarCliqueNosAtalhos();
                     return "pzFolhas: cliques físicos nos atalhos agendados fora de comando.";
                 }
+                if (Environment.GetEnvironmentVariable("POSITRON_FOLHA_ACAO") == "aviso")
+                {
+                    AgendarProvaDosAvisos();
+                    return "pzFolhas: prova dos diálogos de aviso agendada fora de comando.";
+                }
                 FolhasControle controle = new FolhasControle();
                 int paginas = controle.Carregar();
 
@@ -1044,6 +1049,250 @@ namespace Positron.Plugin.Interface.Folhas
                 }
             };
             timer.Start();
+        }
+
+        /// <summary>
+        /// A prova dos **diálogos de aviso na tela**: o ensaio roda **sem** `POSITRON_LOG` — nesse
+        /// modo o <see cref="Aviso"/> abre o `MsgBox` de verdade — e o roteiro externo acha a janela
+        /// `#32770` do CAD, lê o texto e clica o OK. O harness registra o estado antes e depois no
+        /// arquivo de `POSITRON_PROVA_SAIDA`, porque sem o log não há outra evidência.
+        ///
+        /// Modos (`POSITRON_AVISO_MODO`): <c>capa</c> — "Apagar Páginas" com a capa selecionada
+        /// (mMensagem 17, crítico, título "Elétron"); <c>mover</c> — "Renumerar Páginas" com o
+        /// destino na capa (mMensagem 57, informação, **sem título**); <c>mais20</c> — o Alternativo
+        /// acima de 20 caracteres na célula (mMensagem 1927, **sem ícone**), com o clique e a
+        /// digitação físicos.
+        /// </summary>
+        private static void AgendarProvaDosAvisos()
+        {
+            Timer timer = new Timer { Interval = 1500 };
+            int passo = 0;
+            int linha = -1;
+            bool enterEnviado = false;
+            FolhasControle paleta = null;
+            string modo = (Environment.GetEnvironmentVariable("POSITRON_AVISO_MODO") ?? "capa").Trim().ToLowerInvariant();
+            string alvo = Environment.GetEnvironmentVariable("POSITRON_FOLHA_SELECAO");
+            if (string.IsNullOrEmpty(alvo))
+            {
+                alvo = modo == "capa" ? "1" : modo == "mover" ? "7" : "2";
+            }
+
+            string texto = Environment.GetEnvironmentVariable("POSITRON_FOLHA_INLINE");
+            if (string.IsNullOrEmpty(texto))
+            {
+                texto = "NOME ALTERNATIVO 223 COM VINTE E CINCO";
+            }
+
+            bool ocupado = false;
+            timer.Tick += (origem, evento) =>
+            {
+                // O `MessageBox` abre um **laço aninhado** que despacha o `WM_TIMER`: sem a guarda, o
+                // mesmo passo roda de novo enquanto o diálogo está na tela (medido nesta rodada — o
+                // clique no menu se repetia a cada 1,5 s).
+                if (ocupado)
+                {
+                    return;
+                }
+
+                ocupado = true;
+                try
+                {
+                    if (passo == 0)
+                    {
+                        PaletaDeFolhas.Mostrar();
+                        paleta = PaletaDeFolhas.Controle;
+                        if (paleta == null)
+                        {
+                            throw new InvalidOperationException("A paleta não existe nesta sessão.");
+                        }
+
+                        Registrar("AVISO223: paleta — " + paleta.DescreverInterface()
+                            + "; páginas " + Lista(paleta.Paginas()) + "; modo=" + modo);
+                        if (paleta.Selecionar(new[] { alvo }) != 1)
+                        {
+                            throw new InvalidOperationException("Página \"" + alvo + "\" ausente na grade.");
+                        }
+
+                        Registrar("AVISO223: página \"" + alvo + "\" selecionada; ativa=\""
+                            + PaginaAtivaDoDesenho.Ler() + "\"");
+
+                        if (modo == "capa" || modo == "mover")
+                        {
+                            string rotulo = modo == "capa"
+                                ? Positron.Data.Interface.MensagensDoReverso.ApagarPaginas
+                                : Positron.Data.Interface.MensagensDoReverso.RenumerarPaginas;
+                            ToolStripMenuItem item = ItemDoMenu(paleta, rotulo);
+                            if (item == null || !item.Enabled)
+                            {
+                                throw new InvalidOperationException("O item \"" + rotulo + "\" está ausente ou desabilitado.");
+                            }
+
+                            Registrar("AVISO223: clicando \"" + item.Text + "\" — o diálogo abre no clique.");
+                            item.PerformClick();
+                            Registrar("AVISO223: PASSOU — depois do aviso: " + paleta.UltimaMensagem
+                                + "; páginas " + Lista(paleta.Paginas()));
+                            Capturar(paleta, "aviso-" + modo + "-depois");
+                            timer.Stop();
+                            timer.Dispose();
+                            return;
+                        }
+
+                        DataGridView grade = (DataGridView)paleta.Controls["dg"];
+                        for (int i = 0; i < grade.Rows.Count; i++)
+                        {
+                            if (string.Equals(Convert.ToString(grade.Rows[i].Cells[0].Value), alvo, StringComparison.OrdinalIgnoreCase))
+                            {
+                                linha = i;
+                            }
+                        }
+
+                        if (linha < 0)
+                        {
+                            throw new InvalidOperationException("Linha \"" + alvo + "\" ausente para a edição.");
+                        }
+
+                        // O Alternativo nasce oculto: o usuário primeiro liga a preferência no menu.
+                        if (!grade.Columns[2].Visible)
+                        {
+                            ToolStripMenuItem preferencia = ItemDoMenu(paleta, Positron.Data.Interface.MensagensDoReverso.Alternativo);
+                            if (preferencia == null)
+                            {
+                                throw new InvalidOperationException("O item \"" + Positron.Data.Interface.MensagensDoReverso.Alternativo + "\" não existe no menu.");
+                            }
+
+                            preferencia.PerformClick();
+                            Registrar("AVISO223: coluna Alternativo ligada pelo menu; visível=" + grade.Columns[2].Visible);
+                        }
+
+                        grade.FirstDisplayedScrollingRowIndex = linha;
+                        Capturar(paleta, "aviso-mais20-antes");
+                    }
+                    else if (passo == 1)
+                    {
+                        DataGridView grade = (DataGridView)paleta.Controls["dg"];
+                        System.Drawing.Rectangle celula = grade.GetCellDisplayRectangle(2, linha, false);
+                        System.Drawing.Point ponto = grade.PointToScreen(new System.Drawing.Point(
+                            celula.Left + celula.Width / 2, celula.Top + celula.Height / 2));
+                        Registrar("AVISO223: clique físico em (" + ponto.X + "," + ponto.Y + "), célula Alternativo "
+                            + celula + ", foco antes=\"" + EntradaFisicaDaProva.Foco() + "\"");
+                        EntradaFisicaDaProva.ClicarEm(ponto, 1, grade);
+                    }
+                    else if (passo == 2)
+                    {
+                        DataGridView grade = (DataGridView)paleta.Controls["dg"];
+                        bool atual = grade.CurrentCell != null && grade.CurrentCell.RowIndex == linha
+                            && grade.CurrentCell.ColumnIndex == 2;
+                        if (!atual)
+                        {
+                            throw new InvalidOperationException("O clique não pôs a célula Alternativo da linha "
+                                + linha + " como atual — nada foi digitado.");
+                        }
+
+                        string erro = EntradaFisicaDaProva.Digitar(texto, false);
+                        if (erro != null)
+                        {
+                            throw new InvalidOperationException(erro);
+                        }
+
+                        Registrar("AVISO223: digitando " + texto.Length + " caracteres no teclado físico (o aviso sai ao confirmar).");
+                    }
+                    else if (passo == 3)
+                    {
+                        DataGridView grade = (DataGridView)paleta.Controls["dg"];
+                        if (!grade.IsCurrentCellInEditMode)
+                        {
+                            throw new InvalidOperationException("A digitação física não abriu a edição da célula Alternativo.");
+                        }
+
+                        if (!enterEnviado)
+                        {
+                            EntradaFisicaDaProva.Digitar(string.Empty, true);
+                            enterEnviado = true;
+                            Registrar("AVISO223: Enter físico — aguardando o aviso.");
+                        }
+                    }
+                    else
+                    {
+                        // O `CellEndEdit` está **dentro** do diálogo: enquanto ele não é fechado, a
+                        // célula continua com os 25 caracteres e em edição.
+                        DataGridView grade = (DataGridView)paleta.Controls["dg"];
+                        string valor = Convert.ToString(grade.Rows[linha].Cells[2].Value);
+                        if (!grade.IsCurrentCellInEditMode && valor.Length <= 20)
+                        {
+                            string unidade;
+                            string alternativo;
+                            UnidadeDaPaginaDoDesenho.Ler(alvo, out unidade, out alternativo);
+                            if (alternativo != texto.Substring(0, 20))
+                            {
+                                throw new InvalidOperationException("O Alternativo gravado ficou \"" + alternativo + "\".");
+                            }
+
+                            Registrar("AVISO223: PASSOU — célula=\"" + valor + "\" (" + valor.Length
+                                + " caracteres) e XData \"" + alternativo + "\" na página \"" + alvo + "\"; "
+                                + paleta.UltimaMensagem);
+                            Capturar(paleta, "aviso-mais20-depois");
+                            timer.Stop();
+                            timer.Dispose();
+                        }
+                    }
+
+                    passo++;
+                }
+                catch (Exception erro)
+                {
+                    Registrar("AVISO223: FALHOU — " + erro);
+                    timer.Stop();
+                    timer.Dispose();
+                }
+                finally
+                {
+                    ocupado = false;
+                }
+            };
+            timer.Start();
+        }
+
+        /// <summary>O item do menu de contexto da grade pelo texto que o usuário lê.</summary>
+        private static ToolStripMenuItem ItemDoMenu(FolhasControle paleta, string texto)
+        {
+            DataGridView grade = (DataGridView)paleta.Controls["dg"];
+            if (grade.ContextMenuStrip == null)
+            {
+                return null;
+            }
+
+            foreach (ToolStripItem item in grade.ContextMenuStrip.Items)
+            {
+                if (item.Text == texto)
+                {
+                    return item as ToolStripMenuItem;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// A evidência dos ensaios **sem** `POSITRON_LOG`: uma linha por passo no arquivo de
+        /// `POSITRON_PROVA_SAIDA` (variável só do harness; sem ela, a linha vai para a linha de
+        /// comando). É o que permite medir o `MsgBox` — que só abre quando não há log.
+        /// </summary>
+        private static void Registrar(string linha)
+        {
+            string caminho = Environment.GetEnvironmentVariable("POSITRON_PROVA_SAIDA");
+            if (string.IsNullOrEmpty(caminho))
+            {
+                Plugin.Escrever(linha);
+                return;
+            }
+
+            try
+            {
+                System.IO.File.AppendAllText(caminho, linha + Environment.NewLine);
+            }
+            catch (System.IO.IOException)
+            {
+            }
         }
 
         private static void ConferirAtivo(FolhasControle paleta, string esperada, int indiceDoRotulo)

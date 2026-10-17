@@ -1,0 +1,4 @@
+AVISO223: paleta — interface: 5 colunas [Página | Unidade | Alternativo]; tbPagina=23; multiseleção=False; controles=11; páginas [1 | 2 | 6 | 7 | 8 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 1000]; modo=capa
+AVISO223: página "1" selecionada; ativa="1"
+AVISO223: clicando "Apagar Páginas" — o diálogo abre no clique.
+AVISO223: PASSOU — depois do aviso: Apagar Páginas: nada apagado (a capa não se apaga).; páginas [1 | 2 | 6 | 7 | 8 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 1000]

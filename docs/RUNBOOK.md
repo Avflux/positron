@@ -950,7 +950,28 @@ interface cheia, cópia do desenho, plugin pelo autoload do bundle reinstalado):
 - **O Xrecord `CENG_ELET`/`Atalhos` da prova** (`Dicionario.gravaAtalhos`): seis valores DXF 1; a fixture
   os monta por `dictadd`/`entmakex` de um `XRECORD` e o despejo os lê por `(entget xrec)` (grupo 1).
 - **A sessão roda com `POSITRON_LOG`:** nesse modo o `Aviso` **não** abre o `MsgBox` (grava no log) — é o
-  que impede um diálogo de travar o Timer, ao custo de a aparência dos avisos não ser auditada.
+  que impede um diálogo de travar o Timer. Para medir a **aparência** do aviso, tire a variável: a
+  receita está em *Medir o `MsgBox` na tela* (rodada 223).
+
+### Medir o `MsgBox` na tela (sem `POSITRON_LOG`) — medido na rodada 223
+
+O diálogo só existe **sem** a variável de log; com ela o `Aviso` grava no arquivo e não abre nada. A
+receita (AutoCAD 2020, interface cheia, cópia do desenho, bundle reinstalado):
+
+- **O aviso é disparado pelo caminho do usuário**, no Timer do WinForms: `POSITRON_FOLHA_ACAO=aviso` e
+  `POSITRON_AVISO_MODO=capa` (menu "Apagar Páginas" com a capa), `mover` (menu "Renumerar Páginas" com
+  o destino `1`, a capa) ou `mais20` (clique e digitação físicos na célula Alternativo).
+- **Sem log não há evidência do plugin:** o harness grava cada passo em `POSITRON_PROVA_SAIDA` (arquivo,
+  só do harness) e o roteiro externo lê o `MsgBox` pela janela — `EnumWindows` filtrando o **pid do
+  `acad.exe`** e a classe `#32770`, `EnumChildWindows` para os textos, captura do desktop, e o OK pelo
+  **mouse físico** (`SetCursorPos` + `mouse_event` no centro do botão, com clique de aquecimento).
+- **O `MessageBox` abre um laço aninhado que despacha `WM_TIMER`:** sem guarda, o passo do Timer do
+  harness roda de novo com o diálogo na tela (medido: o clique no menu se repetia a cada 1,5 s e o
+  `acad.exe` ficava travado no fim). Use uma flag `ocupado` em volta do tick.
+- **O OK do `MessageBox` do WinForms tem id de controle 2**, não o `IDOK` (1) do Win32: ache o botão
+  pelo texto (`Button` com `texto=[OK]`) e use `BM_CLICK` só como reserva do clique físico.
+- **O ícone é um controle `Static` id 20**: presente (vazio) quando há ícone, **ausente** no aviso sem
+  estilo — é como se prova, no dump, a diferença entre `Information`/`Critical` e o `MsgBox(texto)` puro.
 
 ### A saída não-zero do `acad.exe` é do host, não do plugin (medido na rodada 222)
 

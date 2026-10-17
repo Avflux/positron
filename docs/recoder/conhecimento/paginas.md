@@ -422,3 +422,25 @@ quando há handle), `PaletaDeFolhas.Progresso*` é o `_uscPagina` das rotinas e
   recusa que sai é a **25** — e o `(pz27:dump)` despeja os layers de página com o XData `Eletron` em
   `POSITRON_PAGINAS_SAIDA` (e, no load, em `POSITRON_PAGINAS_SAIDA_ANTES`). O dump conta só número
   **maior que zero**, como o `LayerValido` (o layer `0` fica de fora).
+
+## Os `MsgBox` da paleta: estilo e título por chamada (rodada 223)
+
+- **A tabela** (arquivo:linha do reverso → estilo → título), porque o `Interaction.MsgBox` do VB muda de
+  forma por chamada:
+  - `uscPaginas.cs:1948-1963` (as recusas da Nova Página, mMensagem 33/32/31/30) e `:2191` (a capa no
+    apagar, 17): `Information`/`Critical` com `"Elétron"`;
+  - `uscPaginas.cs:2312,2326,2353,2375` (as quatro recusas da renumeração com destino, 26/25/27/57),
+    `Pagina.cs:1855` (o destino que já é página, 28) e `uscPaginas.cs:2198,2220,1852,1883` (o
+    `ex.Message` dos `catch`): `Information`/`Critical` **sem título**;
+  - `uscPaginas.cs:1773` (o Alternativo acima de 20 na célula, 1927): `MsgBox(texto)` **sem estilo** —
+    OK, **sem ícone** e sem título.
+- **Sem `Title` o VB mostra o nome da aplicação** (documentação do `MsgBox`), e o recoder usa
+  `string.Empty` — a convenção da auditoria do `frmEditaTitulos` (rodada 197). O que a rodada 223 mediu
+  na tela: a janela abre com a barra **vazia** (dump `titulo=[]`).
+- **O ícone é o do estilo e se lê no dump:** o `Static` de id **20** existe quando há ícone e **não
+  existe** no `MsgBox(texto)` sem estilo. O botão do OK sai com id de controle **2** (WinForms), não
+  com o `IDOK` 1.
+- **O diálogo é modal e roda um laço aninhado:** o `WM_TIMER` do harness é despachado com o aviso na
+  tela (o mesmo passo do Timer reentra — guarda `ocupado` necessária), e a rotina continua **depois**
+  do OK: no apagar, as outras páginas seguem e o `Carregar` roda; no renumerar, o `while (true)` do
+  prompt repete a pergunta (fila vazia → cancela, nenhuma página movida).

@@ -1,0 +1,5 @@
+classe=#32770
+titulo=[]
+filho classe=Button id=2 texto=[OK]
+filho classe=Static id=20 texto=[]
+filho classe=Static id=65535 texto=[Não é possível mover sobre a Capa!]

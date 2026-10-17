@@ -505,8 +505,10 @@ namespace Positron.Plugin.Interface.Folhas
                     resposta, config.LarguraFixaPaginas, config.PassoPagina, escolhidas, outras);
                 if (!plano.Aplicar)
                 {
-                    // O `Interaction.MsgBox` do original está **dentro** do laço: avisa e pergunta de novo.
-                    Aviso.MsgBox(plano.Aviso, "Elétron");
+                    // O `Interaction.MsgBox` do original está **dentro** do laço: avisa e pergunta de
+                    // novo. As quatro recusas (57/26/25/27) saem com `MsgBoxStyle.Information` e
+                    // **sem título** (`uscPaginas.cs:2312,2326,2353,2375`).
+                    Aviso.MsgBox(plano.Aviso, string.Empty);
                     continue;
                 }
 
@@ -622,7 +624,9 @@ namespace Positron.Plugin.Interface.Folhas
             UltimaMensagem = resultado.Resumo;
             foreach (string falha in resultado.Falhas)
             {
-                Aviso.MsgBoxCritico(falha, "Elétron");
+                // O `catch` por página do original: `MsgBox(ex.Message, Critical)` **sem título**
+                // (`uscPaginas.cs:2198`).
+                Aviso.MsgBoxCritico(falha, string.Empty);
             }
 
             if (resultado.Sincronizacoes.Length > 0)
@@ -989,7 +993,9 @@ namespace Positron.Plugin.Interface.Folhas
             if (alternativo.Length > 20)
             {
                 alternativo = alternativo.Substring(0, 20);
-                Aviso.MsgBox("Máximo de 20 caracteres", "Elétron");
+                // O `Interaction.MsgBox(mMensagem[1, 1927])` do `j9Sp1mKZkcD`: **sem estilo** (um
+                // OK sem ícone) e sem título (`uscPaginas.cs:1773`).
+                Aviso.MsgBoxSemIcone(MensagensDoReverso.MaximoDe20Caracteres);
             }
 
             linhaDaGrade.Cells[1].Value = unidade;
@@ -1027,8 +1033,9 @@ namespace Positron.Plugin.Interface.Folhas
             linhaDaGrade.Cells[0].Value = plano.Nome;
             if (plano.Aviso != null)
             {
-                // O `Interaction.MsgBox(..., Information)` do `renumerarPagina` (mMensagem 28).
-                Aviso.MsgBox(plano.Aviso, "Elétron");
+                // O `Interaction.MsgBox(..., Information)` do `renumerarPagina` (mMensagem 28):
+                // informação e **sem título** (`Pagina.cs:1855`).
+                Aviso.MsgBox(plano.Aviso, string.Empty);
             }
 
             string nomeNovo = plano.Nome;
@@ -1201,7 +1208,7 @@ namespace Positron.Plugin.Interface.Folhas
         private static void ExecutarNaTela(Action acao)
         {
             try { acao(); }
-            catch (Exception erro) { Aviso.MsgBoxCritico(erro.Message, "Elétron"); }
+            catch (Exception erro) { Aviso.MsgBoxCritico(erro.Message, string.Empty); }
         }
 
         /// <summary>A página selecionada na grade (todas as colunas têm o mesmo nome).</summary>

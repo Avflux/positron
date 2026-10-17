@@ -1,0 +1,6 @@
+AVISO223: paleta — interface: 5 colunas [Página | Unidade | Alternativo]; tbPagina=23; multiseleção=False; controles=11; páginas [1 | 2 | 6 | 7 | 8 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 1000]; modo=mais20
+AVISO223: página "2" selecionada; ativa="2"
+AVISO223: clique físico em (437,337), célula Alternativo {X=186,Y=46,Width=92,Height=22}, foco antes="Autodesk AutoCAD 2020 - [pz223-mais20.dwg]"
+AVISO223: digitando 27 caracteres no teclado físico (o aviso sai ao confirmar).
+AVISO223: Enter físico — aguardando o aviso.
+AVISO223: PASSOU — célula="NOME ALTERNATIVO 223" (20 caracteres) e XData "NOME ALTERNATIVO 223" na página "2"; 
