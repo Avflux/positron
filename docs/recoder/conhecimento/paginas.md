@@ -302,3 +302,46 @@ O `PictureBox2` do rodapé da paleta (31 × 17 em (16, 7), nascendo `DB_DISCONNE
 No recoder: `Positron.Data/MonitorDeConexao` (o contador, com o monitor da sessão em `Atual`),
 `ProjectStore.Abrir()` incrementando e o `Disposed` da conexão decrementando,
 `FolhasControle` trocando a imagem no aviso e `InicioDoDesenho.Iniciar()` reiniciando por ativação.
+
+## O progresso compartilhado: `Quantidade` + `pbIniciar`/`pbPasso`/`pbFim` (rodada 220)
+
+A barra do rodapé da paleta (`ProgressBar1`, 152 × 7 em (9, 426), `uscPaginas.cs:1203-1208` com
+`ForeColor = Color.Transparent` e **mais nada** — os padrões do WinForms valem: 0..100, `Step` 10,
+valor 0) é a barra de **todas** as rotinas longas: 92 arquivos chamam o par por
+`DeclaracoesGeral._uscPagina` (`DeclaracoesGeral.cs:556`), que nasce no arranque
+(`Comandos.GerenciadorPagina`, `Comandos.cs:1448-1470`, com o `new uscPaginas()` em `:1467`, chamado
+por `Iniciar.cs:114,123` a cada ativação de documento).
+
+- **O estado é o do controle, não uma cor.** `pbIniciar` (`uscPaginas.cs:1247-1257`) manda
+  `SendMessage(Handle, 1040, (int)ProgressBarColor.Red, 0)` (`:1238-1245`): a mensagem **1040** é o
+  `PBM_SETSTATE` (`WM_USER + 16`) e 1/2/3 são `PBST_NORMAL`/`PBST_ERROR`/`PBST_PAUSED` — o enum
+  `ProgressBarColor { Green = 1, Red, Yellow }` (`:21-26`) com nome de cor, valores de **estado**.
+  Depois de um `pbIniciar` a barra está no estado de **erro** (vermelha).
+- **O que cada chamada faz:**
+  - `pbIniciar()`: `Minimum = 0`; `Quantidade < 0` vira 0; `Maximum = Quantidade`; `Step = 1`; estado
+    Red. **Não zera o `Value`** — o valor anterior fica (o controle só o corta se o novo `Maximum` for
+    menor). Com a barra virgem (0..100), um `pbPasso` anterior já a terá movido.
+  - `pbPasso(int iPasso = 1)`: `Increment(iPasso)` — o valor anda e **satura no `Maximum`** (a
+    contagem de passos pode passar do `Maximum`: é o caso do `ExportaPaginas`, `RowCount` passos para
+    `RowCount - 1`).
+  - `pbFim()`: `Value`/`Minimum`/`Maximum` = 0; `Step` e estado **não** mudam.
+- **Quem a dirige** (os das rotinas que o recoder tem): `SYNCD` (`Comandos.cs:288-303`; `Quantidade =
+  6`, um passo **depois de cada** rotina), `SYNCV` (`:865-911`; `Quantidade = 9`, o primeiro passo
+  **antes** da primeira rotina), `RESTPROJ` (`:1258-1327`; **`pbIniciar()` antes do `Quantidade = 16`**
+  — a barra herda o `Maximum` da rotina anterior e o 16 nunca chega a ela) e o
+  `clsTextos.ExportaPaginas` (`:1059-1213`; `pbPasso` antes do `pbIniciar` em `:1064`, `Quantidade =
+  dg.RowCount - 1` + `pbIniciar` em `:1149-1150`, um passo por linha em `:1201-1202`, `pbFim` em
+  `:1210`). Também `AcessoExcel.cs:239-261` (`Quantidade = UBound(Porta)`, `pbPasso(100)` a cada cem
+  linhas) e o `ExportaTextos` (`:1312-1389`).
+- **Quem NÃO a dirige:** o `clsTextos.ImportaTitulos` (`:1214-1306`) — nenhum `pb*` (quem move a barra
+  na importação é o `ImportaTextos`, `:1393-1441`, do `frmExportarImportarTextos`); e a **carga da
+  paleta** (`uscPaginas.CarregaPG`, `:1327-1400`, e `Pagina.CarregaPaginas`) — o recoder movia a barra
+  no `Carregar()` desde a rodada 183, e isso era invenção.
+- **A barra não repinta durante a rotina:** nenhuma das cadeias que a dirigem chama
+  `Application.DoEvents` (as 37 ocorrências do decompilado estão em telas/relatórios), e o `pbFim` zera
+  a faixa no fim do comando — numa rotina **digitada** a barra não chega a aparecer na tela.
+
+No recoder: `Positron.Data/ProgressoCompartilhado` é a regra (estado + aviso `Mudou`, com os padrões do
+WinForms como estado inicial), `FolhasControle` a espelha no `ProgressBar1` (e manda o `SendMessage`
+quando há handle), `PaletaDeFolhas.Progresso*` é o `_uscPagina` das rotinas e
+`ExcelAtivoDosTitulos.Exportar`/as três pipelines são os pontos ligados.

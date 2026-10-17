@@ -16,7 +16,8 @@ namespace Positron.Plugin.Interface.Folhas
     ///
     /// A entrada é toda do harness, e **só** daqui: <c>POSITRON_FOLHA_ACAO</c> (<c>nova</c>,
     /// <c>inserir:N</c>, <c>apagar</c>, <c>multiselecao</c>, <c>renumerar</c>, <c>formato:LITERAL</c>,
-    /// <c>inline</c>, <c>inline-evento</c>, <c>banco</c>; sem ela o comando só despeja o estado), <c>POSITRON_FOLHA_SELECAO</c> (a linha
+    /// <c>inline</c>, <c>inline-evento</c>, <c>banco</c>, <c>progresso</c>; sem ela o comando só
+    /// despeja o estado), <c>POSITRON_FOLHA_SELECAO</c> (a linha
     /// selecionada; o padrão é <c>POSITRON_PAGINA</c>), <c>POSITRON_FOLHA_SELECIONADAS</c> (as linhas
     /// selecionadas, separadas por vírgula) e <c>POSITRON_FOLHA_INLINE</c> (o texto que a edição
     /// inline da célula Página digita; ausente é a célula vazia).
@@ -228,6 +229,57 @@ namespace Positron.Plugin.Interface.Folhas
                         + "; conexão aberta fora do par → ícone=" + Estado(solta)
                         + "; depois do IniciarDWG: contador=" + depoisDoIniciar
                         + ", ícone=" + Estado(iconeDepoisDoIniciar);
+                }
+                else if (acao == "progresso")
+                {
+                    // A **barra compartilhada** no caminho real: os comandos que o usuário digita
+                    // (`SYNCD`, `SYNCV`, `RESTPROJ`) movem o `ProgressBar1` **da paleta do
+                    // arranque** — o mesmo objeto que as rotinas alcançam (`PaletaDeFolhas`, o
+                    // `DeclaracoesGeral._uscPagina` do original). Um controle montado aqui seria
+                    // outra instância e não veria nada: a leitura é no singleton.
+                    PaletaDeFolhas.Mostrar();
+                    FolhasControle paleta = PaletaDeFolhas.Controle;
+                    if (paleta == null)
+                    {
+                        throw new InvalidOperationException("A paleta não existe nesta sessão.");
+                    }
+
+                    ProgressBar barra = (ProgressBar)paleta.Controls["ProgressBar1"];
+                    // A **exportação dos títulos** pelo menu (o `clsTextos.ExportaPaginas`): é a
+                    // rotina longa cujo `Quantidade` é o do original (`dg.RowCount - 1`). Vem
+                    // **primeiro** porque é onde se vê o `pbPasso` antes do `pbIniciar` numa barra
+                    // que ainda não foi usada (0..100, os padrões do `ProgressBar`).
+                    string exportacao = "(sem exportação: `POSITRON_TITULOS_EXCEL` ausente)";
+                    if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("POSITRON_TITULOS_EXCEL")))
+                    {
+                        exportacao = MedirABarra(paleta, barra, () =>
+                        {
+                            using (Form editor = RenderizadorDeTelas.Montar(
+                                FormulariosDoReverso.Buscar("frmEditaTitulos")))
+                            {
+                                // O `GanchoDoHarness` do `LigacaoDoFrmEditaTitulos` roda a
+                                // exportação na abertura da janela.
+                            }
+                        });
+                    }
+
+                    string sincd = MedirABarra(paleta, barra, () => new Comandos().SincD());
+                    string sincv = MedirABarra(paleta, barra, () => new Comandos().SincV());
+                    string restproj = MedirABarra(paleta, barra, () => new Comandos().RestaurarProjeto());
+
+                    // O esperado do `SYNCD` (o `Quantidade = 6` do original, aqui os quatro passos
+                    // do pipeline): faixa 0..4 e estado 2 (`PBST_ERROR`, a barra vermelha do
+                    // `pbIniciar`), um passo por passo, e o `pbFim` devolvendo a faixa a 0..0.
+                    const string esperadoDoSincD =
+                        "0..4=0, estado 2 | 0..4=1, estado 2 | 0..4=2, estado 2 | 0..4=3, estado 2 | 0..4=4, estado 2 | 0..0=0, estado 2";
+                    if (sincd != esperadoDoSincD)
+                    {
+                        throw new InvalidOperationException("A barra do SYNCD saiu diferente do esperado: " + sincd);
+                    }
+
+                    resultado = "barra da paleta (ProgressBar1) — exportação dos títulos → " + exportacao
+                        + "; SYNCD → " + sincd + "; SYNCV → " + sincv + "; RESTPROJ → " + restproj
+                        + "; compartilhada com o controle: " + ReferenceEquals(PaletaDeFolhas.Progresso, paleta.Progresso);
                 }
                 else if (acao == "ler-titulos")
                 {
@@ -700,6 +752,29 @@ namespace Positron.Plugin.Interface.Folhas
                 controle.DrawToBitmap(imagem, new System.Drawing.Rectangle(0, 0, controle.Width, controle.Height));
                 imagem.Save(System.IO.Path.Combine(pasta, nome + ".png"), System.Drawing.Imaging.ImageFormat.Png);
             }
+        }
+
+        /// <summary>
+        /// Roda um comando com o observador na barra e devolve o que o **controle** registrou a cada
+        /// aviso (`uscPaginas.cs:1242-1269`: o `pbIniciar`, os `pbPasso` e o `pbFim`).
+        /// </summary>
+        private static string MedirABarra(FolhasControle paleta, ProgressBar barra, Action comando)
+        {
+            List<string> registro = new List<string>();
+            EventHandler observador = (origem, evento) => registro.Add(
+                barra.Minimum + ".." + barra.Maximum + "=" + barra.Value
+                + ", estado " + (int)paleta.Progresso.Cor);
+            paleta.Progresso.Mudou += observador;
+            try
+            {
+                comando();
+            }
+            finally
+            {
+                paleta.Progresso.Mudou -= observador;
+            }
+
+            return string.Join(" | ", registro.ToArray());
         }
 
         private static string Estado(bool conectado)

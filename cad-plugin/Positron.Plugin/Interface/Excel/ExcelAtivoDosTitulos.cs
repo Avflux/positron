@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Office.Interop.Excel;
 using Positron.Data.Paginas;
+using Positron.Plugin.Interface.Folhas;
 
 namespace Positron.Plugin.Interface.Excel
 {
@@ -23,8 +24,9 @@ namespace Positron.Plugin.Interface.Excel
     {
         /// <summary>
         /// O **Exportar** do menu (`frmEditaTitulos.cs:875-888`): pega (ou cria) o Excel, desliga o
-        /// cálculo, limpa a aba e escreve o plano. Devolve o plano — o `TotalDePassos` é o da barra
-        /// de progresso da paleta (recorte pendente do "progresso compartilhado").
+        /// cálculo, limpa a aba e escreve o plano. Devolve o plano — e a barra **compartilhada** da
+        /// paleta anda com ele: `Quantidade = TotalDePassos` (o `dg.RowCount - 1` do original) e um
+        /// passo por linha, como o `clsTextos.ExportaPaginas`.
         /// </summary>
         internal static PlanoDaPlanilha Exportar(IReadOnlyList<LinhaDeTitulosDaGrade> linhas, bool[] titulos, bool alternativo)
         {
@@ -35,8 +37,18 @@ namespace Positron.Plugin.Interface.Excel
             {
                 ExcelDoReverso.DesativarCalculo(aplicacao);
                 LimparAba(aba);
+                // O `pbPasso()` do original logo depois do `LimpaSheet` (`clsTextos.cs:1064`) — e
+                // **antes** do `pbIniciar` daqui de baixo: ele anda o que sobrou na barra (numa barra
+                // recém-nascida, 0..100, anda de verdade; depois de um `pbFim`, a faixa é 0 e não
+                // mexe em nada).
+                PaletaDeFolhas.ProgressoPasso();
                 PlanoDaPlanilha plano = ExcelDosTitulos.Exportar(linhas, titulos, alternativo);
+                // O `Quantidade = dg.RowCount - 1` seguido do `pbIniciar` (`clsTextos.cs:1149-1150`).
+                PaletaDeFolhas.ProgressoQuantidade(plano.TotalDePassos);
+                PaletaDeFolhas.ProgressoIniciar();
                 Escrever(aba, plano);
+                // O `pbFim` no fim da exportação (`clsTextos.cs:1210`).
+                PaletaDeFolhas.ProgressoFim();
                 return plano;
             }
             finally
@@ -50,6 +62,11 @@ namespace Positron.Plugin.Interface.Excel
         /// O **Importar** do menu (`frmEditaTitulos.cs:890-917`): lê a aba ativa (o
         /// `ImportaTitulos`), pinta as células com aviso e devolve o que foi lido. Quem aplica na
         /// grade é o <see cref="ExcelDosTitulos.AplicarNaGrade"/>.
+        ///
+        /// A barra da paleta **não** anda aqui: o `ImportaTitulos` do original
+        /// (`clsTextos.cs:1214-1306`) não chama `pbIniciar`/`pbPasso`/`pbFim` — quem o faz na
+        /// importação é o `ImportaTextos` (`:1393-1441`, do `frmExportarImportarTextos`, que o
+        /// recoder ainda não porta). Não "consertar" isso sem prova no reverso.
         /// </summary>
         internal static LeituraDaPlanilha Ler(bool[] titulos, bool alternativo)
         {
@@ -136,6 +153,10 @@ namespace Positron.Plugin.Interface.Excel
                 }
 
                 Faixa(aba, linha.Faixa);
+                // O `pbPasso()` no fim de cada linha escrita (`clsTextos.cs:1201-1202`). O original
+                // conta uma linha a mais que o `Maximum` (`RowCount` linhas para `RowCount - 1`): o
+                // último passo satura na barra.
+                PaletaDeFolhas.ProgressoPasso();
             }
         }
 

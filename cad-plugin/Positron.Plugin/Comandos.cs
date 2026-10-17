@@ -3007,10 +3007,22 @@ namespace Positron.Plugin
         [CommandMethod("SYNCD")]
         public void SincD()
         {
+            // A **barra compartilhada** do original (`Comandos.cs:288-303`): `Quantidade = 6`, o
+            // `pbIniciar`, um `pbPasso` **depois de cada** rotina e o `pbFim` no fim. Aqui a
+            // quantidade é a dos passos que o recoder roda (os seus quatro `[n/4]`) — o desvio do
+            // pipeline, que funde as três `Sincroniza*` na projeção `FIA`/`INT`, é o mesmo já
+            // documentado desde a rodada 107.
+            Interface.Folhas.PaletaDeFolhas.ProgressoQuantidade(4);
+            Interface.Folhas.PaletaDeFolhas.ProgressoIniciar();
             Plugin.Escrever("[1/4] " + ExecutarCorrigirModelosDeContatos());
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
             Plugin.Escrever("[2/4] " + ExecutarFiacao());
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
             Plugin.Escrever("[3/4] " + ExecutarInterligacao());
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
             Plugin.Escrever("[4/4] " + ExecutarCorrigirCoresDosBlocos());
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
+            Interface.Folhas.PaletaDeFolhas.ProgressoFim();
         }
 
         /// <summary>
@@ -3808,6 +3820,11 @@ namespace Positron.Plugin
         [CommandMethod("SYNCV")]
         public void SincV()
         {
+            // A barra do original (`Comandos.cs:865-911`): `Quantidade = 9` e **nove** `pbPasso` —
+            // o primeiro antes da primeira rotina e um depois de cada uma. Aqui, os três passos do
+            // recoder (`[n/3]`), um `pbPasso` por passo.
+            Interface.Folhas.PaletaDeFolhas.ProgressoQuantidade(3);
+            Interface.Folhas.PaletaDeFolhas.ProgressoIniciar();
             ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
 
             if (config.InterligacaoLayout == 1)
@@ -3819,8 +3836,12 @@ namespace Positron.Plugin
                 Plugin.Escrever("[1/3] " + ExecutarRecriarTextosDeCabo());
             }
 
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
             Plugin.Escrever("[2/3] " + ExecutarInterligacao());
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
             Plugin.Escrever("[3/3] " + ExecutarAtualizarOpcionaisDoCabo());
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
+            Interface.Folhas.PaletaDeFolhas.ProgressoFim();
         }
 
         /// <summary>
@@ -3905,6 +3926,12 @@ namespace Positron.Plugin
         [CommandMethod("RESTPROJ")]
         public void RestaurarProjeto()
         {
+            // A barra do original (`Comandos.cs:1258-1259`) sai **invertida**: o `pbIniciar()` vem
+            // antes do `Quantidade = 16`, então a barra herda o `Maximum` da rotina anterior e o 16
+            // nunca chega a ela. O quirk é mantido — e, como no `SYNCD`/`SYNCV`, a quantidade é a
+            // dos passos que o recoder roda (os seus cinco `[n/5]`).
+            Interface.Folhas.PaletaDeFolhas.ProgressoIniciar();
+            Interface.Folhas.PaletaDeFolhas.ProgressoQuantidade(5);
             ConfiguracaoPositron config = ConfiguracaoEfetiva.Carregar();
 
             if (config.InterligacaoLayout == 1)
@@ -3916,10 +3943,15 @@ namespace Positron.Plugin
                 Plugin.Escrever("[1/5] " + ExecutarRecriarTextosDeCabo());
             }
 
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
             Plugin.Escrever("[2/5] " + ExecutarApagarEntidadesDeErro());
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
             Plugin.Escrever("[3/5] " + ExecutarCorrigirModelosDeContatos());
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
             Plugin.Escrever("[4/5] " + ExecutarFiacao());
             Plugin.Escrever("[4/5] " + ExecutarInterligacao());
+            // A projeção (`FIA` + `INT`) é **um** passo do recoder, como no `SYNCD`.
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
 
             if (config.InterligacaoLayout == 3)
             {
@@ -3929,6 +3961,9 @@ namespace Positron.Plugin
             {
                 Plugin.Escrever("[5/5] os opcionais do cabo ficam de fora: o original só os atualiza com InterligacaoLayout = 3 (aqui = " + config.InterligacaoLayout + ").");
             }
+
+            Interface.Folhas.PaletaDeFolhas.ProgressoPasso();
+            Interface.Folhas.PaletaDeFolhas.ProgressoFim();
         }
 
         /// <summary>

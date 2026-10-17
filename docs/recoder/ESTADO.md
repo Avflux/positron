@@ -4,15 +4,15 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-17, depois da rodada 219)
+## Estado (2026-10-17, depois da rodada 220)
 
 | | valor |
 |---|---|
-| última rodada | **219** |
+| última rodada | **220** |
 | comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todas regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **23** com a ligação à regra; 19 que nenhum comando abre |
-| testes (console xUnit; adaptador de `plugin:test` indisponível) | **1072** |
+| testes (console xUnit; adaptador de `plugin:test` indisponível) | **1082** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
 | host CAD medido | **AutoCAD 2020** — instalado e **verificado** em 2026-10-16 (registro + pastas + `where`; a nota do `RUNBOOK` que dizia o contrário foi corrigida); **ZWCAD ausente** nesta data, também verificado (medido na 211 quando estava) |
@@ -79,8 +79,10 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
      repetir no ZWCAD quando ele voltar (o evento real e o CONT/FL/TOT foram medidos na 213);
    - ✅ *(rodada 215, prova viva em 2026-10-16)* Excel ativo do `frmEditaTitulos`: exportação (15 páginas, 6 colunas com título) e importação medidas no AutoCAD 2020 com o Excel aberto (1 célula na 1ª importação e **0** na 2ª — a grade convergiu; a aba devolve o valor importado). O que faltou virou item próprio na fila;
    - ✅ *(rodada 219, medido no AutoCAD 2020)* status do banco ligado ao contador de conexões (o
-     `monitorConexao`/`statusBanco`); falta o **progresso compartilhado pelas rotinas longas** e a
-     conferência visual do ícone na janela;
+     `monitorConexao`/`statusBanco`); falta a conferência visual do ícone na janela;
+   - ✅ *(rodada 220, medido no AutoCAD 2020)* **progresso compartilhado** (`Quantidade`+`pbIniciar`/
+     `pbPasso`/`pbFim` em `Positron.Data/ProgressoCompartilhado`, ligado ao Excel dos títulos e às três
+     pipelines); falta a conferência visual da barra em host com GUI e o `ZWCAD`;
    - título 4/D/A/V e os seis atalhos em GUI; repetir edição após o retorno MDI e no ZWCAD;
    - ✅ *(rodada 214)* a unidade/alternativo **conserva** o buffer `Eletron` do layer (o `Altera` troca só as posições 2/3; o adapter recriava os quatro valores);
    - `medir a mMensagem 27` no CAD precisa de um desenho com 27 páginas (o `Funcional.dwg` tem 16);
@@ -122,7 +124,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 219 | 2026-10-17 | *(este)* | status do banco na paleta pelo contador de conexões: `MonitorDeConexao` (o `monitorConexao`/`statusBanco` do reverso, monitor da sessão em `Atual`) + `ProjectStore.Abrir()` incrementando e o `Disposed` decrementando + a paleta trocando o `PictureBox2` no aviso + o `IniciarDWG` reiniciando por ativação; +4 testes (1072), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (a carga da paleta pelo caminho real sem `POSITRON_DWG` abre e fecha conexão, leitura direta de 3 DWG/2 painéis, e o `IniciarDWG` zera o contador) | `rodadas/219-status-banco-contador-conexoes.md` |
+| 220 | 2026-10-17 | *(este)* | progresso compartilhado da paleta: `ProgressoCompartilhado` (o `Quantidade` + `pbIniciar`/`pbPasso`/`pbFim` do `uscPaginas`, com os padrões do WinForms e o estado `PBST_ERROR` da mensagem 1040) + a paleta espelhando no `ProgressBar1` e o `PaletaDeFolhas.Progresso*` como o `_uscPagina` + as três pipelines (SYNCD/SYNCV/RESTPROJ, com o quirk do `RESTPROJ`) e o Excel ativo dos títulos ligados; **sai** o progresso que o `Carregar()` movia sem prova no reverso; +10 testes (1082), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (a barra do comando lida no `ProgressBar1` da paleta: `0..4` no `SYNCD`, `0..3` no `SYNCV`, o `Maximum` herdado no `RESTPROJ` e a exportação de 15 páginas no Excel movendo `0..100 → 0..14 → 0..0`) | `rodadas/220-progresso-compartilhado.md` |
+| 219 | 2026-10-17 | `67a92ada` | status do banco na paleta pelo contador de conexões: `MonitorDeConexao` (o `monitorConexao`/`statusBanco` do reverso, monitor da sessão em `Atual`) + `ProjectStore.Abrir()` incrementando e o `Disposed` decrementando + a paleta trocando o `PictureBox2` no aviso + o `IniciarDWG` reiniciando por ativação; +4 testes (1072), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (a carga da paleta pelo caminho real sem `POSITRON_DWG` abre e fecha conexão, leitura direta de 3 DWG/2 painéis, e o `IniciarDWG` zera o contador) | `rodadas/219-status-banco-contador-conexoes.md` |
 | 218 | 2026-10-16 | `de1acafd` | `btExportaEXCEL` do `frmEstatisticaDeCabos` ligado à regra: `ExcelDaEstatisticaDeCabos` (a aba `DIF_FORMACAO`/`DIF_FUNCAO`/`DIF_TRAJETO` pelo `TrocaBarra`, o cabeçalho `'#Cabos`/grupo/`'Comprimento` e a faixa `A2:C{n}`, com os literais/quirks do original) + as folhas COM comuns às duas pontes (`ExcelDoReverso`) + o adapter com `VerificaExcel`/`ApagaFigura`/`LimpaSheet`; +8 métodos (1068 testes), builds 0 avisos; **medido no AutoCAD 2020 com o Excel 16.0 visível** (aba suja limpa, imagem apagada, larguras 12/40/15, negrito, valores; aba nova depois da última; convergência; grade vazia; Excel fechado; ponte dos títulos remedida) | `rodadas/218-excel-da-estatistica-de-cabos.md` |
 | 217 | 2026-10-16 | `4050bf7a` | `frmEstatisticaDeCabos` (`ESTVCABOS`) ligada à regra: `EstatisticaDeCabos` (cabos com veia em uso, um por tag, agrupamento por formação/função/trajeto, soma do comprimento do cabo — o `LeTodosOsCabosEmUso` + `Hpgk6bJ1Ce`) e a ligação com os três radios (habilitados só com linha) e as larguras 90/70%/30%; +7 testes (1056), builds 0 avisos; medido no **AutoCAD 2020** nos três agrupamentos e no radio desabilitado; cobertura 23 de 127 telas com regra | `rodadas/217-estatistica-de-cabos.md` |
 | 216 | 2026-10-16 | `29ed6889` | ramos do dispositivo principal `P` do `ApagarDerivados` (`promoveComplementar` e `ApagaContatosModeloDispositivo`): regra pura `ApagarDispositivo` + casca; +7 testes (1049); builds 0 avisos; medido no **AutoCAD 2020** (promoção, contatos por tipo e painel, complementar de outro nome fica) | `rodadas/216-apagar-derivados-dispositivo-principal.md` |
@@ -131,4 +134,3 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 | 213 | 2026-10-16 | `402dcf97` | edição inline da célula Página: medido o **evento real** da grade (`inline-evento`: `BeginEdit`/`EndEdit` → `CellEndEdit`; o `Carregar()` dentro do evento não estoura) e o **CONT/FL/TOT** do rename com sentinelas (`6/5 → 7A`, `7/6 → 7A`, `7/7 → 1000`); 1020 testes, builds 0 avisos; sem regra nova | `rodadas/213-inline-evento-e-cont-fl-tot.md` |
 | 212 | 2026-10-16 | `402dcf97` | paleta `uscPaginas`, **edição inline da célula Página** (item 1 da fila): regra pura `RenomeacaoInlineDaPagina` (validação, `montaNumeroPagina`, `LayerValido`, mMensagem 28, capa e o quirk do vazio), rename pelo `PaginasDoDesenho.Renomear`, aviso em `MsgBox`; +12 testes (1020), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (rename 7→7A com dump independente do XData preservado, já-existe, capa e vazio) | `rodadas/212-edicao-inline-celula-pagina.md` |
 | 211 | 2026-10-16 | `f767cb6d` | medição no **ZWCAD 2026** dos três ramos do `ApagarDerivados` (interligação, contato auxiliar, máscara): fixture `cad-fixture-apagar-derivados.lsp`, todos conferem com o original; índices de leitura da máscara provados | `rodadas/211-medir-apagar-derivados-zwcad.md` |
-| 210 | 2026-10-16 | `bac5de5e` | `ApagarDerivados`, ramo da máscara (`ApagaAMascara`): sucessora promovida com o estado da apagada, demais apontam para ela, portas/definições saem ou reapontam; layouts de XData de 29/18/5 valores; +11 testes; 1008 testes, builds 0 avisos | `rodadas/210-apagar-derivados-mascara.md` |

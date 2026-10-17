@@ -27,6 +27,9 @@ namespace Positron.Plugin.Interface.Folhas
         private readonly Label[] _atalhos = new Label[4];
         private readonly ProgressBar _progresso;
         private readonly PictureBox _statusBanco;
+
+        /// <summary>A cor/estado já mandada ao controle (o `SendMessage` sai quando ela muda).</summary>
+        private CorDaBarra _corDaBarra = CorDaBarra.Verde;
         private bool _capturarAtalho;
         private bool _carregando;
         private ToolStripMenuItem _multiselecao;
@@ -129,8 +132,13 @@ namespace Positron.Plugin.Interface.Folhas
             _statusBanco = new PictureBox { Name = "PictureBox2", Left = 16, Top = 7,
                 Size = new Size(31, 17), Image = IconesEmbutidos.BitmapDe("DB_DISCONNECTED") };
             MonitorDeConexao.Atual.Mudou += AoMudarAsConexoes;
+            // O `ProgressBar1` do designer do original (`uscPaginas.cs:1203-1208`: âncora inferior,
+            // 7 de altura e `ForeColor` transparente) — e quem o move é o `pbIniciar`/`pbPasso`/
+            // `pbFim` (`:1247-1269`), aqui na regra `ProgressoCompartilhado`.
             _progresso = new ProgressBar { Name = "ProgressBar1", Left = 9, Top = Height - 46,
-                Size = new Size(Width - 18, 7), Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right };
+                Size = new Size(Width - 18, 7), Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
+                ForeColor = Color.Transparent };
+            Progresso.Mudou += AoMudarOProgresso;
             PictureBox logo = new PictureBox { Name = "PictureBox1", Left = 9, Top = Height - 33,
                 Size = new Size(162, 28), Anchor = AnchorStyles.Bottom | AnchorStyles.Left,
                 Image = IconesEmbutidos.BitmapDe("eletron_grande21") };
@@ -716,6 +724,7 @@ namespace Positron.Plugin.Interface.Folhas
             if (disposing)
             {
                 MonitorDeConexao.Atual.Mudou -= AoMudarAsConexoes;
+                Progresso.Mudou -= AoMudarOProgresso;
             }
 
             base.Dispose(disposing);
@@ -899,8 +908,6 @@ namespace Positron.Plugin.Interface.Folhas
                 int largura = ConfiguracaoEfetiva.Carregar().LarguraFixaPaginas;
                 _formatoDaNumeracao.Text = largura >= 3 && largura <= 7
                     ? "12".PadLeft(largura, '0') : "12";
-                _progresso.Maximum = Math.Max(1, paginas.Count);
-                _progresso.Value = 0;
                 _grade.Rows.Clear();
                 for (int i = 0; i < paginas.Count; i++)
                 {
@@ -909,7 +916,6 @@ namespace Positron.Plugin.Interface.Folhas
                     UnidadeDaPaginaDoDesenho.Ler(paginas[i], out unidade, out alternativo);
                     _grade.Rows.Add(paginas[i], unidade, alternativo, paginas[i],
                         PaginaNumerada.Decimal(paginas[i]).ToString("0.00"));
-                    _progresso.Increment(1);
                 }
 
                 SelecionarAtiva();
@@ -918,7 +924,6 @@ namespace Positron.Plugin.Interface.Folhas
             }
             finally
             {
-                _progresso.Value = 0;
                 _carregando = false;
             }
         }
@@ -1109,14 +1114,47 @@ namespace Positron.Plugin.Interface.Folhas
             }
         }
 
-        internal void ProgressoIniciar(int quantidade)
+        /// <summary>
+        /// A barra compartilhada — o `ProgressBar1` do original com o `pbIniciar`/`pbPasso`/`pbFim`
+        /// (`uscPaginas.cs:1242-1269`). A carga da paleta **não** a move: o `CarregaPG` do original
+        /// (`:1327-1400`) não chama nenhum dos três (só as rotinas longas o fazem, por
+        /// `DeclaracoesGeral._uscPagina.Quantidade`/`pbIniciar`).
+        /// </summary>
+        internal ProgressoCompartilhado Progresso { get; } = new ProgressoCompartilhado();
+
+        /// <summary>
+        /// O espelho da regra no controle: o original **é** o controle, aqui o estado é da regra e
+        /// quem o leva para o `ProgressBar` é este aviso. O `SendMessage` do `pbIniciar`
+        /// (`uscPaginas.cs:1242-1245`) sai quando a cor/estado muda — no `accoreconsole` o controle
+        /// não tem handle e nada é mandado (a imagem/estado que o harness lê é o da regra).
+        /// </summary>
+        private void AoMudarOProgresso(object origem, EventArgs evento)
         {
-            _progresso.Value = 0;
-            _progresso.Maximum = Math.Max(0, quantidade);
+            ProgressoCompartilhado barra = Progresso;
+            _progresso.Minimum = barra.Minimo;
+            _progresso.Maximum = barra.Maximo;
+            _progresso.Step = barra.Incremento;
+            _progresso.Value = barra.Valor;
+            if (barra.Cor == _corDaBarra)
+            {
+                return;
+            }
+
+            _corDaBarra = barra.Cor;
+            if (_progresso.IsHandleCreated)
+            {
+                SendMessage(_progresso.Handle, ProgressoCompartilhado.MensagemDeEstado, (int)barra.Cor, 0);
+            }
         }
 
-        internal void ProgressoPasso() { _progresso.Increment(1); }
-        internal void ProgressoFim() { _progresso.Value = 0; }
+        /// <summary>
+        /// O `SendMessage(IntPtr, int, int, int)` que o original declara no próprio controle
+        /// (`uscPaginas.cs:1238-1241`) e usa para o estado da barra (a mensagem 1040 é o
+        /// `PBM_SETSTATE`).
+        /// </summary>
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto,
+            SetLastError = true)]
+        private static extern int SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
 
         private static void AtualizarContagem()
         {

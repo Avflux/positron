@@ -886,6 +886,16 @@ Duas armadilhas da cópia: o runner precisa do `xunit.execution.desktop.dll` **n
 não o resolve pela pasta do teste) e as DLLs do xunit no `bin` do teste são de versões **diferentes**
 (as 2.9.0 do adaptador) — copie as do runner **depois** das do teste, ou só as do `Positron.*`.
 
+### O ensaio do Excel deixa um `EXCEL.EXE` "Pasta1" aberto (rodada 220)
+
+A ponte do Excel **pega a instância aberta ou cria uma** (`VerificaExcel`/`VerificaExcelAtivo`) e o
+`Liberar` solta as referências COM, mas **não** fecha uma instância que ela mesma criou. Medido no
+`accoreconsole` (rodada 220, exportação dos títulos): o processo do CAD termina e sobra um `EXCEL.EXE`
+com um livro em branco (`Pasta1 - Excel`, o carimbo de tempo da medição no `StartTime`). Confira antes
+de escrever que o ensaio "não deixou nada aberto" (`Get-Process EXCEL | Select Id,StartTime,MainWindowTitle`)
+e feche-o **só** quando o `StartTime` for o da medição — o `CloseMainWindow()` funciona, mas pode levar
+uns segundos para o processo sumir (não conclua na primeira checagem).
+
 ### Existe CAD nesta máquina? (nunca afirme ausência sem medir — medido em 2026-10-16)
 
 Uma ausência é uma **medição, com data** — e são precisos os três: o **registro**, as **pastas** e o
