@@ -826,6 +826,12 @@ TEMP='C:\Users\<voce>\AppData\Local\Temp' .tmp-smoke/xunit/tools/net472/xunit.co
 O `Path.GetTempPath()` do teste segue o `TEMP` do processo: num shell do Git Bash (onde `TEMP=/tmp`)
 as falhas são todas `unable to open database file`, não um defeito do código.
 
+**Fixture LISP no ZWCAD (medido na rodada 211, `scripts/cad-fixture-apagar-derivados.lsp`):**
+- `entmakex` não monta `INSERT` com atributos: use `entmake` no `INSERT` (com `66 . 1`), nos `ATTRIB` e no `SEQEND`; no ZWCAD o `(entlast)` depois do `SEQEND` já é o `INSERT`.
+- Depois de um comando do plugin que apaga (`APAGAPAGINA`) o ZWCAD não executa as linhas seguintes do `.scr`: faça dump, comando e dump num `defun c:...` único com `vl-cmdf`.
+- Erro de LISP dentro do `-Fixture` é silencioso: carregue por um driver `(vl-catch-all-apply 'load ...)` que grava a mensagem num arquivo.
+- Não indexe um cache de handles pelo `ename`: os handles do XData saíram em branco. Para listar entidades que foram apagadas guarde `(nome . ename)` e teste com `vlax-erased-p`.
+
 **Cópia no `%TEMP%` (medido na rodada 208):** no pacote 2.9.2 do runner não existe o
 `xunit.execution.desktop.dll` (ele já está no `bin` do teste): copie o `bin` inteiro para o `%TEMP%` e por
 cima só `xunit.console.exe`, `xunit.console.exe.config`, `xunit.abstractions.dll`,
