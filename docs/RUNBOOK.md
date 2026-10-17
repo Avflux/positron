@@ -1381,7 +1381,7 @@ pzBarra: 1 aba(s) POSITRON.ID_Positron ("Positron"), 9 painel(is) [Configuraçã
 Barra: o CAD não tem ribbon nesta sessão — nada a desmontar.
 ```
 
-**Duas coisas ficaram de fora, com o motivo:** a **paleta de folhas** (`PaletteSet`) não é fechada no desmonte — o pedido era a barra, e a decisão de fechar a paleta (que é do CAD e pode ser restaurada pela sessão) fica com o dono; e o **ZWCAD não foi medido** nesta rodada (não está instalado nesta máquina — o código é o mesmo, mas o `Terminate()`/autoload de lá não foi observado).
+**Duas coisas ficaram de fora, com o motivo:** a **paleta de folhas** (`PaletteSet`) não é fechada no desmonte — o pedido era a barra, e a decisão de fechar a paleta (que é do CAD e pode ser restaurada pela sessão) fica com o dono; e o **ZWCAD não foi medido** nesta rodada (o código é o mesmo, mas o `Terminate()`/autoload de lá não foi observado) — a ausência dele foi **medida** em 2026-10-16 (registro + pastas + `where`; → *Existe CAD nesta máquina?*), com a ressalva de que a rodada 211, do mesmo dia, mediu nele: medir de novo antes de afirmar.
 
 **Como refazer a medição:** `.tmp-smoke/gui-netload2.ps1` (interface cheia + `NETLOAD` por LISP + `pzBarra` + `QUIT`), com o pacote removido. As duas builds **0 avisos** e `plugin:test` **798** (inalterado — a mudança é do `Positron.Plugin`, que a suíte do `Positron.Data` não cobre).
 
@@ -6749,7 +6749,11 @@ Para não passar a impressão de que tudo foi testado do mesmo jeito:
   teste unitário, não dentro do CAD. **Obstáculo medido** (ver a armadilha do
   INSERT abaixo): carimbar XData num `INSERT` pelo LISP não funciona neste ZWCAD,
   então a fixture com blocos tem que vir de um DWG pronto.
-- **AutoCAD** — não está instalado nesta máquina; o alvo AutoCAD compila contra o
-  stub (`Positron.CadStub`) e não foi carregado por `NETLOAD` aqui. As execuções no
-  AutoCAD 2020 do `RUNBOOK` são **evidência histórica** da máquina que o tinha.
+- **AutoCAD** — esta linha **estava errada** (é da rodada 130, quando o código caiu
+  no stub `Positron.CadStub`). **Medido em 2026-10-16** (registro + pastas +
+  `where`): o **AutoCAD 2020 está instalado** em `C:\Program Files\Autodesk\AutoCAD
+  2020`, o alvo compila contra a **API real** (`cad-plugin/lib/AutoCAD/2020`) e o
+  plugin **é carregado** por `NETLOAD` no `accoreconsole` — é o host das medições das
+  rodadas 212–214 (`scripts/cad-autocad-smoke.ps1`). Antes de repetir a ausência,
+  meça (→ *Existe CAD nesta máquina?*).
 - `npm run sidecar:build` (PyInstaller) — não executado aqui.
