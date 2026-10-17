@@ -40,8 +40,8 @@ namespace Positron.Plugin.Paginas
     /// para ela (<see cref="ApagarMascara"/>); sem sucessora, as portas e as definições da máscara saem
     /// junto; com ela, passam a apontar para ela.
     ///
-    /// Os ramos do dispositivo (<c>promoveComplementar</c>/<c>ApagaContatosModeloDispositivo</c>) não
-    /// estão portados (fila do <c>ESTADO.md</c>).
+    /// O ramo do dispositivo principal (tipo <c>P</c>) chama o <c>promoveComplementar</c> (sem contatos no
+    /// modelo) ou o <c>ApagaContatosModeloDispositivo</c> (<see cref="ApagarDispositivo"/>; <c>clsDispositivo.cs:151,286</c>).
     /// </summary>
     internal static class DerivadosDaExclusaoDoDesenho
     {
@@ -78,12 +78,195 @@ namespace Positron.Plugin.Paginas
                     return ApagarAMascara(entidade as BlockReference, transacao, banco, espaco);
                 }
 
+                if (string.Equals(tipo, DispositivoFiacaoXData.TipoDispositivo, StringComparison.OrdinalIgnoreCase))
+                {
+                    return ApagarDoDispositivoPrincipal(entidade as BlockReference, transacao, banco, espaco);
+                }
+
                 return 0;
             }
             catch (Exception)
             {
                 return 0;
             }
+        }
+
+        /// <summary>
+        /// O ramo `P` do <c>ApagarDerivados</c> (<c>clsApagar.cs:40-50</c>): sem contatos no modelo
+        /// (<c>indexModelo &lt;= 0</c>) promove o complementar (<c>promoveComplementar</c>); com eles, apaga os
+        /// contatos do modelo (<c>ApagaContatosModeloDispositivo</c>). Devolve quantas entidades **extras** saíram.
+        /// </summary>
+        private static int ApagarDoDispositivoPrincipal(BlockReference principal, Transaction transacao, Database banco, BlockTableRecord espaco)
+        {
+            if (principal == null)
+            {
+                return 0;
+            }
+
+            ResultBuffer xdata = principal.GetXDataForApplication(DispositivoFiacaoXData.AppName);
+            DispositivoFiacao dados = null;
+            if (xdata == null || !DispositivoFiacaoXData.Ler(XDataNeutro.Para(xdata), out dados) || dados == null)
+            {
+                return 0;
+            }
+
+            ApagarDispositivo.Bloco apagado = LerBloco(principal);
+            Dictionary<string, ObjectId> ids = new Dictionary<string, ObjectId>(StringComparer.OrdinalIgnoreCase);
+            List<ApagarDispositivo.Bloco> blocos = new List<ApagarDispositivo.Bloco>();
+            foreach (ObjectId id in espaco)
+            {
+                if (id.IsErased)
+                {
+                    continue;
+                }
+
+                BlockReference bloco = transacao.GetObject(id, OpenMode.ForRead) as BlockReference;
+                if (bloco == null)
+                {
+                    continue;
+                }
+
+                ApagarDispositivo.Bloco lido = LerBloco(bloco);
+                blocos.Add(lido);
+                ids[lido.Handle] = id;
+            }
+
+            if (dados.IndexModelo <= 0)
+            {
+                return PromoverComplementar(apagado, blocos, ids, transacao);
+            }
+
+            return ApagarContatosDoModelo(apagado, blocos, ids, transacao);
+        }
+
+        /// <summary>O que a regra pura precisa de um bloco: o tipo, os nomes, o painel, o complementar e o bob.</summary>
+        private static ApagarDispositivo.Bloco LerBloco(BlockReference bloco)
+        {
+            ResultBuffer dispositivo = bloco.GetXDataForApplication(DispositivoFiacaoXData.AppName);
+            ResultBuffer importado = dispositivo == null
+                ? bloco.GetXDataForApplication(DispositivoFiacaoXData.AppNameImportado)
+                : null;
+            string tipo = DerivadosDaExclusao.TipoDoDispositivo(
+                dispositivo == null ? null : XDataNeutro.Para(dispositivo),
+                importado == null ? null : XDataNeutro.Para(importado));
+
+            ApagarDispositivo.Bloco lido = new ApagarDispositivo.Bloco
+            {
+                Handle = bloco.Handle.ToString(),
+                Tipo = tipo,
+            };
+
+            DispositivoFiacao dados = null;
+            if (dispositivo != null)
+            {
+                DispositivoFiacaoXData.Ler(XDataNeutro.Para(dispositivo), out dados);
+            }
+
+            if (dados != null)
+            {
+                lido.Nome1 = dados.Nome1;
+                lido.Nome2 = dados.Nome2;
+                lido.Alternativo = dados.Alternativo;
+                lido.Painel = dados.Painel;
+                lido.Complementar = dados.Complementar;
+            }
+
+            if (string.Equals(tipo, DispositivoFiacaoXData.TipoAuxiliar, StringComparison.OrdinalIgnoreCase))
+            {
+                // O contato auxiliar guarda o bob no campo do dispositivo (`StructureAuxiliar.HandleBob`).
+                lido.HandleBob = dados == null ? null : dados.HandleBob;
+                return lido;
+            }
+
+            // Os demais blocos apontam o bob pelo XData do modelo (`LerXDataModelo`, com o legado `MODELO`).
+            ResultBuffer modelo = bloco.GetXDataForApplication(ModeloXData.AppName)
+                ?? bloco.GetXDataForApplication(ModeloXData.AppNameLegado);
+            BlocoModelo bob;
+            if (modelo != null && ModeloXData.Ler(XDataNeutro.Para(modelo), out bob))
+            {
+                lido.HandleBob = bob.HandleBob;
+            }
+
+            return lido;
+        }
+
+        /// <summary>
+        /// O <c>promoveComplementar</c>: o primeiro complementar de mesmo nome vira principal (perde o
+        /// <c>Complementar</c>). Regrava só o campo do complementar, o usuário e a data no XData
+        /// <c>DISPOSITIVO</c>; o resto do XData fica como está (o original regrava o registro inteiro
+        /// a partir do que leu, e o leitor aqui não guarda tudo).
+        /// </summary>
+        private static int PromoverComplementar(ApagarDispositivo.Bloco apagado, List<ApagarDispositivo.Bloco> blocos, Dictionary<string, ObjectId> ids, Transaction transacao)
+        {
+            string handle = ApagarDispositivo.HandleAPromover(apagado, blocos);
+            ObjectId id;
+            if (handle == null || !ids.TryGetValue(handle, out id))
+            {
+                return 0;
+            }
+
+            BlockReference alvo = transacao.GetObject(id, OpenMode.ForWrite) as BlockReference;
+            if (alvo == null)
+            {
+                return 0;
+            }
+
+            ResultBuffer todos = alvo.XData;
+            List<TypedXData> valores = new List<TypedXData>(todos == null ? new TypedXData[0] : XDataNeutro.Para(todos));
+            int inicio = PosicaoDoAppName(valores, DispositivoFiacaoXData.AppName);
+            if (inicio < 0 || inicio + 25 >= valores.Count)
+            {
+                return 0;
+            }
+
+            // Campos do layout de 29 valores (`GravarXDataDispPrincipal`): Complementar=13, usuário=24, data=25.
+            valores[inicio + 13] = new TypedXData(1070, (short)0);
+            valores[inicio + 24] = new TypedXData(1000, Environment.UserName);
+            valores[inicio + 25] = new TypedXData(1000, DateTime.Now.ToString());
+            alvo.XData = XDataNeutro.ParaResultBuffer(valores);
+            return 0;
+        }
+
+        /// <summary>
+        /// O <c>ApagaContatosModeloDispositivo</c>: apaga os contatos do modelo (auxiliares que apontam para a
+        /// apagada, complementares do mesmo nome no painel e blocos de modelo com o bob dela).
+        /// </summary>
+        private static int ApagarContatosDoModelo(ApagarDispositivo.Bloco apagado, List<ApagarDispositivo.Bloco> blocos, Dictionary<string, ObjectId> ids, Transaction transacao)
+        {
+            int apagados = 0;
+            foreach (string handle in ApagarDispositivo.HandlesDosContatosDoModelo(apagado, blocos))
+            {
+                ObjectId id;
+                if (!ids.TryGetValue(handle, out id) || id.IsErased)
+                {
+                    continue;
+                }
+
+                Entity entidade = transacao.GetObject(id, OpenMode.ForWrite) as Entity;
+                if (entidade == null)
+                {
+                    continue;
+                }
+
+                entidade.Erase();
+                apagados++;
+            }
+
+            return apagados;
+        }
+
+        /// <summary>A posição do primeiro valor do app <paramref name="app"/> (o seu <c>1001</c>) na lista do XData do bloco, ou -1.</summary>
+        private static int PosicaoDoAppName(List<TypedXData> valores, string app)
+        {
+            for (int i = 0; i < valores.Count; i++)
+            {
+                if (valores[i].Codigo == 1001 && string.Equals(Convert.ToString(valores[i].Valor), app, StringComparison.OrdinalIgnoreCase))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         private static int ApagarDaInterligacao(Polyline polyline, Transaction transacao, Database banco, BlockTableRecord espaco)

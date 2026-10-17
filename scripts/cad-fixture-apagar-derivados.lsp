@@ -103,6 +103,15 @@
     (cons 1000 "ALT") (cons 1040 0.0) (cons 1040 0.0) (cons 1071 0) (cons 1071 0)
     (cons 1000 "u") (cons 1000 "d"))))
 
+; Dispositivo principal P (29 valores, o layout do GravarXDataDispPrincipal): nomes, painel, indexModelo e complementar (-1 = sim).
+(defun pz-apd:x-disp (n1 n2 alt painel idx compl)
+  (list -3 (list "Dispositivo"
+    (cons 1000 "P") (cons 1000 n1) (cons 1000 n2) (cons 1000 alt) (cons 1000 "") (cons 1000 "")
+    (cons 1040 0.0) (cons 1070 painel) (cons 1070 0) (cons 1070 0) (cons 1000 "")
+    (cons 1071 idx) (cons 1070 compl) (cons 1000 "") (cons 1000 "") (cons 1000 "") (cons 1000 "")
+    (cons 1000 "") (cons 1011 (list 0.0 0.0 0.0)) (cons 1040 0.0) (cons 1071 0) (cons 1070 0)
+    (cons 1071 0) (cons 1000 "u") (cons 1000 "d") (cons 1040 0.0) (cons 1040 0.0) (cons 1040 0.0))))
+
 (defun pz-apd:x-definicao (handleMascara)
   (list -3 (list "Definicao"
     (cons 1000 handleMascara) (cons 1071 3) (cons 1071 4) (cons 1000 "PORTA"))))
@@ -164,6 +173,27 @@
 (setq pz-apd:passo 20)
 (setq pz-apd:e3 (pz-apd:insert "PZAPD" "15" 90.0 nil (pz-apd:x-porta "ZZZ")))
 
+; --- dispositivo principal (rodada 216): ramo P
+; promoveComplementar: PP1 (indexModelo 0, layer 16) sai e PC1 (complementar de mesmo nome, layer 15) vira principal.
+(setq pz-apd:passo 21)
+(setq pz-apd:pp1 (pz-apd:insert "PZAPD" "16" 100.0 nil (pz-apd:x-disp "PN" "PM" "" 1 0 0)))
+(setq pz-apd:passo 22)
+(setq pz-apd:pc1 (pz-apd:insert "PZAPD" "15" 105.0 nil (pz-apd:x-disp "PN" "PM" "" 1 0 -1)))
+; ApagaContatosModeloDispositivo: PP2 (indexModelo 3, layer 16) leva PC2 (complementar, mesmo nome/painel) e
+; MD2 (bloco de modelo com o bob PP2); PX2 (complementar de outro nome) fica.
+(setq pz-apd:passo 23)
+(setq pz-apd:pp2 (pz-apd:insert "PZAPD" "16" 110.0 nil (pz-apd:x-disp "QN" "QM" "" 1 3 0)))
+(setq pz-apd:passo 24)
+(setq pz-apd:pc2 (pz-apd:insert "PZAPD" "15" 115.0 nil (pz-apd:x-disp "QN" "QM" "" 1 0 -1)))
+(setq pz-apd:passo 25)
+(setq pz-apd:px2 (pz-apd:insert "PZAPD" "15" 120.0 nil (pz-apd:x-disp "XN" "XM" "" 1 0 -1)))
+(setq pz-apd:passo 26)
+(setq pz-apd:h-pp2 (pz-apd:handle pz-apd:pp2))
+(setq pz-apd:passo 27)
+; Modelo com o bob em HandleBob (campo 1) e HandleContatoAux vazio: o x-modelo põe o handle no campo errado para isto.
+(setq pz-apd:md2 (pz-apd:insert "PZAPD" "15" 125.0 nil
+  (list -3 (list "Modelo" (cons 1000 pz-apd:h-pp2) (cons 1071 5) (cons 1071 2) (cons 1000 "")))))
+
 ; --- o dump: uma linha por entidade de teste, com atributos e XData
 (defun pz-apd:txt (v)
   (cond ((null v) "")
@@ -175,13 +205,16 @@
   (list (cons "P1" pz-apd:p1) (cons "P2" pz-apd:p2) (cons "R1" pz-apd:r1) (cons "R2" pz-apd:r2)
         (cons "A1" pz-apd:a1) (cons "MO" pz-apd:mo) (cons "M1" pz-apd:m1) (cons "M2" pz-apd:m2)
         (cons "M3" pz-apd:m3) (cons "E1" pz-apd:e1) (cons "D1" pz-apd:d1) (cons "M4" pz-apd:m4)
-        (cons "E2" pz-apd:e2) (cons "D2" pz-apd:d2) (cons "E3" pz-apd:e3)))
+        (cons "E2" pz-apd:e2) (cons "D2" pz-apd:d2) (cons "E3" pz-apd:e3)
+        (cons "PP1" pz-apd:pp1) (cons "PC1" pz-apd:pc1) (cons "PP2" pz-apd:pp2) (cons "PC2" pz-apd:pc2)
+        (cons "PX2" pz-apd:px2) (cons "MD2" pz-apd:md2)))
 
 (setq pz-apd:fase 0)
 
+; Apagada = o entget falha ou devolve nada (sem ActiveX: o vlax-ename->vla-object do AutoCAD 2020 quebrou aqui, rodada 216).
 (defun pz-apd:apagada-p (e / r)
-  (setq r (vl-catch-all-apply 'vlax-erased-p (list (vlax-ename->vla-object e))))
-  (or (vl-catch-all-error-p r) (and r (/= r :vlax-false))))
+  (setq r (vl-catch-all-apply 'entget (list e)))
+  (or (vl-catch-all-error-p r) (null r)))
 
 (defun c:PZ-APD-DUMP ( / caminho f par n e d app v at ad)
   (vl-load-com)
