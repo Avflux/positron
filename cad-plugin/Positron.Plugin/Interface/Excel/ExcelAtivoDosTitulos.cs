@@ -1,22 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using Microsoft.Office.Interop.Excel;
 using Positron.Data.Paginas;
-#if AUTOCAD
-using AplicacaoDoCad = Autodesk.AutoCAD.ApplicationServices.Application;
-#else
-using AplicacaoDoCad = ZwSoft.ZwCAD.ApplicationServices.Application;
-#endif
 
 namespace Positron.Plugin.Interface.Excel
 {
     /// <summary>
     /// A ponte com o **Excel ativo** do `frmEditaTitulos`: o `ExcFuncoesExcel.VerificaExcelAtivo`
     /// (`ExcFuncoesExcel.cs:122-162`), o `LimpaSheet` (`:530-536`), o `DesativaCalculoExcel`/`AtivaCalculOExcel`
-    /// (`:395-448`) e a escrita/leitura da aba do `clsTextos.ExportaPaginas` (`clsTextos.cs:1059-1213`)
-    /// e do `ImportaTitulos` (`:1214-1306`).
+    /// (`:395-448`, nas folhas compartilhadas do <see cref="ExcelDoReverso"/>) e a escrita/leitura da
+    /// aba do `clsTextos.ExportaPaginas` (`clsTextos.cs:1059-1213`) e do `ImportaTitulos` (`:1214-1306`).
+    ///
+    /// Aqui a aba é sempre a **ativa** (`VerificaExcelAtivo`), diferente do `VerificaExcel` da
+    /// estatística de cabos (`ExcelAtivoDaEstatisticaDeCabos`), que trabalha com a aba **nomeada**.
     ///
     /// O que o **plano** diz (colunas, células, faixas, cores) vem da regra pura
     /// <see cref="ExcelDosTitulos"/>; aqui é só o `Microsoft.Office.Interop.Excel`. É a **mesma PIA**
@@ -25,13 +21,6 @@ namespace Positron.Plugin.Interface.Excel
     /// </summary>
     internal static class ExcelAtivoDosTitulos
     {
-        private const string NomeDoProcesso = "EXCEL";
-
-        /// <summary>O CLSID do Excel (`00024500-0000-0000-C000-000000000046`, o `Activator` do original).</summary>
-        private const string ClsidDoExcel = "00024500-0000-0000-C000-000000000046";
-
-        private const string ProgIdDoExcel = "Excel.Application";
-
         /// <summary>
         /// O **Exportar** do menu (`frmEditaTitulos.cs:875-888`): pega (ou cria) o Excel, desliga o
         /// cálculo, limpa a aba e escreve o plano. Devolve o plano — o `TotalDePassos` é o da barra
@@ -44,7 +33,7 @@ namespace Positron.Plugin.Interface.Excel
             Abrir(out aplicacao, out aba);
             try
             {
-                DesativarCalculo(aplicacao);
+                ExcelDoReverso.DesativarCalculo(aplicacao);
                 LimparAba(aba);
                 PlanoDaPlanilha plano = ExcelDosTitulos.Exportar(linhas, titulos, alternativo);
                 Escrever(aba, plano);
@@ -52,8 +41,8 @@ namespace Positron.Plugin.Interface.Excel
             }
             finally
             {
-                AtivarCalculo(aplicacao);
-                Liberar(aplicacao, aba);
+                ExcelDoReverso.AtivarCalculo(aplicacao);
+                ExcelDoReverso.Liberar(aplicacao, aba);
             }
         }
 
@@ -69,107 +58,32 @@ namespace Positron.Plugin.Interface.Excel
             Abrir(out aplicacao, out aba);
             try
             {
-                DesativarCalculo(aplicacao);
+                ExcelDoReverso.DesativarCalculo(aplicacao);
                 LeituraDaPlanilha leitura = ExcelDosTitulos.Importar(LerLinhas(aba), titulos, alternativo);
                 Pintar(aba, leitura.Avisos);
                 return leitura;
             }
             finally
             {
-                AtivarCalculo(aplicacao);
-                Liberar(aplicacao, aba);
+                ExcelDoReverso.AtivarCalculo(aplicacao);
+                ExcelDoReverso.Liberar(aplicacao, aba);
             }
         }
 
         /// <summary>O `VerificaExcelAtivo`: a instância aberta (livro e aba ativos) ou uma nova.</summary>
         private static void Abrir(out Application aplicacao, out Worksheet aba)
         {
-            if (!ExcelAberto())
+            Workbook livro;
+            if (!ExcelDoReverso.ExcelAberto())
             {
-                aplicacao = (Application)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(ClsidDoExcel)));
-                Workbook livro = aplicacao.Workbooks.Add(Type.Missing);
+                aplicacao = ExcelDoReverso.NovaInstancia(out livro);
                 aba = (Worksheet)aplicacao.ActiveSheet;
                 aba.get_Range("A1", Type.Missing).Select();
                 return;
             }
 
-            aplicacao = (Application)Marshal.GetActiveObject(ProgIdDoExcel);
-            if (aplicacao.Workbooks.Count <= 0)
-            {
-                aplicacao.Workbooks.Add(Type.Missing);
-            }
-
+            aplicacao = ExcelDoReverso.InstanciaAtiva(out livro);
             aba = (Worksheet)aplicacao.ActiveSheet;
-            if (aplicacao.WindowState == XlWindowState.xlMinimized)
-            {
-                aplicacao.WindowState = XlWindowState.xlMaximized;
-            }
-        }
-
-        /// <summary>
-        /// O `ExcelAberto()` (`ExcFuncoesExcel.cs:374-394`): existe processo `EXCEL`? Um Excel
-        /// **invisível** (sobra de automação) conta como **não aberto** — e o original o **mata**
-        /// (`process.Kill()`), comportamento reproduzido aqui.
-        /// </summary>
-        private static bool ExcelAberto()
-        {
-            bool aberto = false;
-            foreach (Process processo in Process.GetProcesses())
-            {
-                if (!string.Equals(processo.ProcessName.ToUpperInvariant(), NomeDoProcesso, StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                aberto = true;
-                Application aplicacao = (Application)Marshal.GetActiveObject(ProgIdDoExcel);
-                if (!aplicacao.Visible)
-                {
-                    aberto = false;
-                    processo.Kill();
-                }
-            }
-
-            return aberto;
-        }
-
-        /// <summary>
-        /// O `DesativaCalculoExcel` (`ExcFuncoesExcel.cs:395-416`): `ScreenUpdating = false` e
-        /// `Calculation = Manual` — **exceto** com a versão do CAD em `A_2025`/`A_2026`/`A_2027`, que
-        /// no original chama o `AtivaCalculOExcel` (o cálculo fica **ligado**).
-        /// </summary>
-        private static void DesativarCalculo(Application aplicacao)
-        {
-            if (!ExcelDosTitulos.DesligaOCalculo(VersaoDoCad()))
-            {
-                AtivarCalculo(aplicacao);
-                return;
-            }
-
-            try
-            {
-                aplicacao.ScreenUpdating = false;
-                aplicacao.Calculation = XlCalculation.xlCalculationManual;
-            }
-            catch (Exception)
-            {
-                // O original engole a falha do Excel aqui (SetProjectError/ClearProjectError).
-            }
-        }
-
-        /// <summary>O `AtivaCalculOExcel` (`ExcFuncoesExcel.cs:417-448`): visível e calculando.</summary>
-        private static void AtivarCalculo(Application aplicacao)
-        {
-            try
-            {
-                aplicacao.Visible = true;
-                aplicacao.ScreenUpdating = true;
-                aplicacao.Calculation = XlCalculation.xlCalculationAutomatic;
-            }
-            catch (Exception)
-            {
-                // idem: o original não deixa a falha sair daqui
-            }
         }
 
         /// <summary>O `LimpaSheet` (`ExcFuncoesExcel.cs:530-536`).</summary>
@@ -299,52 +213,6 @@ namespace Positron.Plugin.Interface.Excel
         private static string Texto(object valor)
         {
             return valor == null ? null : Convert.ToString(valor);
-        }
-
-        /// <summary>
-        /// A versão do CAD na forma do `Geral.CADVersion()` (`Geral.cs:1525-1690`), que o quirk do
-        /// cálculo consulta. No AutoCAD o `ACADVER` dá o `major.minor` (medido no AutoCAD 2020:
-        /// `"23.1"`) e a tabela do original acha o ano; no ZWCAD o original usa o `VERNUM`.
-        /// </summary>
-        private static string VersaoDoCad()
-        {
-#if AUTOCAD
-            string versao = Convert.ToString(AplicacaoDoCad.GetSystemVariable("ACADVER"));
-            return ExcelDosTitulos.VersaoDoCad(true, ExcelDosTitulos.AnoDoAutoCad(versao));
-#else
-            string versao = Convert.ToString(AplicacaoDoCad.GetSystemVariable("VERNUM"));
-            int ano = 0;
-            if (!string.IsNullOrEmpty(versao) && versao.Length >= 4)
-            {
-                int.TryParse(versao.Substring(0, 4), out ano);
-            }
-
-            return ExcelDosTitulos.VersaoDoCad(false, ano);
-#endif
-        }
-
-        /// <summary>
-        /// Solta os objetos COM que este adapter criou. **Desvio declarado:** o original não solta
-        /// nenhum — o efeito para o usuário é o mesmo (o Excel que ele já tinha aberto continua
-        /// aberto) e evita deixar um `EXCEL.EXE` órfão a cada exportação.
-        /// </summary>
-        private static void Liberar(Application aplicacao, Worksheet aba)
-        {
-            try
-            {
-                if (aba != null)
-                {
-                    Marshal.ReleaseComObject(aba);
-                }
-
-                if (aplicacao != null)
-                {
-                    Marshal.ReleaseComObject(aplicacao);
-                }
-            }
-            catch (Exception)
-            {
-            }
         }
     }
 }

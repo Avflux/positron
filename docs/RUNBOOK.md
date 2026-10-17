@@ -2382,6 +2382,37 @@ POSITRON_ESTATISTICA=formacao powershell -ExecutionPolicy Bypass -File scripts/c
 O radio desabilitado sai na mesma linha (`habilitados:`), entao a regra do construtor
 (`lista.Count > 0`) e medida junto. Medido no **AutoCAD 2020** em 2026-10-16.
 
+**O Excel ativo da estatistica (`btExportaEXCEL` do `ESTVCABOS`, rodada 218 medida em 2026-10-16).**
+O gancho e `POSITRON_ESTATISTICA_EXCEL=exportar` (roda a **mesma acao** que o `Click` do botao; o
+clique fisico fica para o dono, porque a ligacao roda ainda montando a tela). Ele usa o Excel
+**aberto e visivel** (as mesmas tres regras da ponte dos titulos acima) e escreve na aba
+**nomeada** `DIF_FORMACAO`/`DIF_FUNCAO`/`DIF_TRAJETO` — nunca na ativa:
+
+```bash
+POSITRON_ESTATISTICA=formacao POSITRON_ESTATISTICA_EXCEL=exportar \
+  powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 -Comandos "ESTVCABOS" \
+  -Desenho cad-plugin/reverso/Teste_projeto_real/Funcional.dwg -Dwg 63 -Revisao R0 \
+  -Banco ".tmp-smoke/r217-estcabos.db"
+# -> EXCEL: 2 linha(s) da estatística de cabos na aba DIF_FORMACAO (Formação).
+```
+
+O que a medicao le de volta (por COM, com o Excel ainda aberto): o **nome da aba** e a posicao dela
+(a nova vai **depois da ultima**), o `A1`/`B1`/`C1` (`#Cabos | Formação | Comprimento` — sem o
+apostrofo, que o Excel consome como prefixo de texto), as larguras `12/40/15`, o **negrito**, o
+`ApagaFigura` (ponha uma imagem na aba antes: `$aba.Pictures().Insert(<png>)` e conte depois) e a
+limpeza (`A1:Z10000`). Dois achados de instrumento:
+
+- a faixa dos dados quando a grade esta **vazia** sai invertida (`A2:C1`) e o Excel a normaliza para
+  `A1:C2` — o `A2` fica vazio e a borda aparece no chao da linha 2 (quirk do original, mantido);
+- `Weight = 3` e `HorizontalAlignment = 3` **nao sao constantes validas** do Excel: o Office 16 desta
+  maquina devolveu `-4138` (medio) e `-4108` (centro), e o `4` do comprimento virou `-4152` (a
+  direita). Os dois lados passam os mesmos literais, entao a comparacao e valida — so nao espere ver
+  `3` de volta.
+
+O caminho do **Excel fechado** tambem e medivel: mate o `EXCEL`, rode a exportacao e confira que
+sobrou um `EXCEL` visivel com a aba nova depois de `Planilha1` (o recoder solta o COM; a instancia
+**nao** fecha — medido).
+
 **A ponte com o Excel ativo (`frmEditaTitulos`, rodada 215 medida em 2026-10-16).** Tres coisas para a
 medicao sair, todas aprendidas medindo:
 

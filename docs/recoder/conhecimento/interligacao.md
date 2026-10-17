@@ -83,3 +83,46 @@ Lê o **banco**, não o desenho. Recoder: `EstatisticaDeCabos` (`Positron.Data/I
 - Apelidos: `OlbkdikPqi` = troca de agrupamento (título + `ikdkQu3CIi`), `Hpgk6bJ1Ce` = grade + conta,
   `qnPkkbgPBU` = larguras, `BnnktwdI2n` = `Resize`, `poxkjhv2fW` = `btExportaEXCEL` →
   `Relatorios_EstatisticaCaboEXCEL.ExportaEstatisticaExcel(dg, ikdkQu3CIi)`.
+
+## O Excel ativo do `frmEstatisticaDeCabos` (rodada 218)
+
+O `btExportaEXCEL` (`frmEstatisticaDeCabos.cs:604-607`, apelido `poxkjhv2fW`) chama
+`Relatorios_EstatisticaCaboEXCEL.ExportaEstatisticaExcel(dg, itipo)` (`Relatorios_EstatisticaCaboEXCEL.cs:12-98`),
+com o `itipo` = `ikdkQu3CIi` (0 Formação, 1 Função, 2 Trajeto — `frmEstatisticaDeCabos.cs:355/459/465`).
+Recoder: `ExcelDaEstatisticaDeCabos` (`Positron.Data/Interligacao/`, regra pura) + `ExcelAtivoDaEstatisticaDeCabos`
+(adapter) + `ExcelDoReverso` (as folhas COM comuns às duas pontes).
+
+- **A aba é NOMEADA, não a ativa.** Este caminho usa o `ExcFuncoesExcel.VerificaExcel`
+  (`:36-165`) — o outro caminho do produto (`VerificaExcelAtivo`, `:122-162`) é o dos títulos, que
+  trabalha na aba ativa. Quem não separar os dois reproduz a ponte errada.
+- **Nome da aba:** `"DIF_"` + o grupo com `ç`→`c` e `ã`→`a` (`:31-32`), passado pelo `TrocaBarra`
+  (`:886-944`), que troca o que não é `0-9A-Za-z` por `_` (mantendo `/ ? ! * @ # $ % & - ( ) espaço Ã É Ç`;
+  `/` vira `|`), corta em **31** e **sobe para maiúsculas** (`:940-941`). Dá `DIF_FORMACAO`, `DIF_FUNCAO`,
+  `DIF_TRAJETO`. Nome vazio vira `Plan1` (`:39-42`).
+- **Achar ou criar:** procura a aba pelo nome **sem caixa** (`TextCompare: true`); se existe →
+  `Activate` → `ApagaFigura` (`:796-846`, apaga as **imagens** da aba ativa) → `LimpaSheet`
+  (`:530-536`, `A1:Z10000` apagadas, largura `A1:Z1` = 8,43, `ClearComments`) e devolve; se não existe →
+  ativa a **primeira** aba, acrescenta a nova **depois da última** (`Workbook.Worksheets.Add` com o
+  `After` = última) e a ativa. Quirk do caminho novo: com o cálculo em `Manual`, passa a `Automatic` e
+  volta a `Manual` (`:150-157`).
+- **Cálculo:** aqui é o `AtivaCalculOExcel` (`:417-448`, `Visible`/`ScreenUpdating`/`Calculation = Automatic`);
+  o `DesativaCalculoExcel` (`:395-416`) é da ponte dos títulos. O `DesativaCalculoExcel` tem o quirk da
+  versão `A_2025`/`A_2026`/`A_2027` (liga em vez de desligar).
+- **Como o `ExcelAberto()` trata o Excel invisível:** conta o processo `EXCEL`, mas um Excel **invisível**
+  conta como fechado e é **morto** (`process.Kill()`, `:374-394`); sem Excel, a instância vem do CLSID
+  `00024500-0000-0000-C000-000000000046` (`:45-51`).
+- **A planilha:** larguras `A1` 12, `B1` 40, `C1` 15; `A1` = `"'" + "#" + mMensagem[514]` = `'#Cabos`
+  (**sem** o espaço que a grade usa — a grade é `"# " + 514` = `# Cabos`), `B1` = `"'" +` o grupo
+  (1285 Formação, 1430 Função, 1248 Trajeto), `C1` = `"'" + 1246` = `'Comprimento`; negrito em `A1:C1` +
+  `CriaLinhasInterna` (`:1001-1014`, `WrapText` e `Borders.LineStyle = 1`) + `CriaLinhasExterna`
+  (`:946-963`, as quatro bordas com `Weight = 3`). Cada linha da planilha é **uma linha da grade** (nada
+  é recalculado) com `"'"` na frente de cada valor.
+- **Quirk da faixa vazia:** a faixa dos dados é `"A2:C" + num` com o `num` do laço, que **não** é
+  incrementado quando a grade está vazia — sai `A2:C1`, o Excel **normaliza** e a borda cai em `A1:C2`
+  (medido: `usadas=2x5`, `A2` vazio).
+- **Literais que não são constantes do Excel:** `Weight = 3` volta como `-4138` (**xlMedium** — os
+  válidos são 1 hairline, 2 thin, 4 thick) e `HorizontalAlignment = 3` volta como `-4108` (**centro**;
+  o `4` do comprimento volta `-4152`, à direita). O recoder passa os mesmos literais, então o resultado
+  é o mesmo do original neste Office.
+- **Engole tudo:** o `catch` vazio do `ExportaEstatisticaExcel` (`:93-98`) — a falha do Excel não chega ao
+  usuário (a casca do recoder reproduz).

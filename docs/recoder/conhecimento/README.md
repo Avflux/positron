@@ -24,6 +24,6 @@ fato que se mostrou errado é corrigido aqui, não empilhado.
 | tema | arquivo |
 |---|---|
 | `CONEXAO`/`AUXCONEXAO`, edição de seção e cor, `SetFocus` | `conexao.md` |
-| `INTERLIGACAO`: as duas cargas de veias indefinidas, as telas `PESQC` e `ESTVCABOS` | `interligacao.md` |
+| `INTERLIGACAO`: as duas cargas de veias indefinidas, as telas `PESQC` e `ESTVCABOS`, o Excel ativo da estatística e os apelidos de cabo/veia | `interligacao.md` |
 | Páginas: títulos (`TituloPagina`, `buscaTitulosExistentes`), o `LerXDataVazio`, a troca do `TROCTT`, a ponte com o Excel ativo dos títulos | `paginas.md` |
 | Projeto ativo: `EletronProj`/`Config` do desenho, `IniciarDWG` e a marca `CORRECAO`, `BancoValido`, índice do DWG, `frmConfiguracaoBDProjeto` | `projeto.md` |
