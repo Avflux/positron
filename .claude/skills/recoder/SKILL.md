@@ -39,6 +39,11 @@ de algo que o original não tem, fica **só no harness** (variáveis `POSITRON_*
 nem mostradas em tela). Em 2026-10-15 o dono achou configuração, paleta de folhas e projeto ativo
 inventados — ver *Correção do básico* no `ESTADO.md`.
 
+**O mesmo vale para o ambiente:** nunca escreva que um CAD (ou uma biblioteca, um host, um arquivo do
+projeto real) **não existe** sem medir antes — registro, pastas e `where` (a receita está no
+`RUNBOOK.md` → *Troubleshooting* → *Existe CAD nesta máquina?*). A ausência é uma medição, com data: o
+`RUNBOOK.md` afirmava que o AutoCAD 2020 "não está mais instalado" quando ele **está** (2026-10-16).
+
 ## 1. Escolher o alvo
 
 1. Leia `docs/recoder/ESTADO.md`. O alvo é o que o usuário nomeou ou, sem nome, o **item 1 da fila**.

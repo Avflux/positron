@@ -15,7 +15,7 @@
 | testes (console xUnit; adaptador de `plugin:test` indisponível) | **1020** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
-| host CAD medido | **AutoCAD 2020** (`accoreconsole` + interface cheia); na rodada 212 o `C:\Program Files\ZWSOFT` não existia mais nesta máquina (ZWCAD medido na 211) |
+| host CAD medido | **AutoCAD 2020** — instalado e **verificado** em 2026-10-16 (registro + pastas + `where`; a nota do `RUNBOOK` que dizia o contrário foi corrigida); **ZWCAD ausente** nesta data, também verificado (medido na 211 quando estava) |
 
 Números de cobertura: `powershell -ExecutionPolicy Bypass -File scripts/cobertura-do-reverso.ps1`.
 

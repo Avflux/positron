@@ -82,13 +82,15 @@ CAMPO;layer=1000;indice=6;texto=1000
   `FL` igual ao próprio layer: confere com a regra.
 - **Não medido:** o **clique físico** (mouse e teclado) com a **paleta visível** — a sessão foi o
   `accoreconsole` (headless; a grade entrou em edição num formulário fora da tela, não na janela da
-  paleta). **Não medido:** ZWCAD (não instalado nesta máquina nesta data).
+  paleta). **Não medido:** ZWCAD — **verificado** em 2026-10-16 (registro + pastas + `where`) que ele
+  não está nesta máquina nesta data; o AutoCAD 2020, que o `RUNBOOK` dizia ausente, **está** instalado.
 
 ## Falta
 
 - [ ] Clique físico com a **janela da paleta visível** (o `acad.exe` com interface cheia): o evento em
   si já está provado aqui; falta a conferência visual da célula e da grade na tela.
-- [ ] Repetir no **ZWCAD** quando ele voltar a esta máquina.
+- [ ] Repetir no **ZWCAD** quando ele voltar a esta máquina (verificar antes de afirmar ausência —
+  `RUNBOOK.md` → *Existe CAD nesta máquina?*).
 - [ ] Restantes do item 1 da fila (a rodada 183): Excel ativo (`clsTextos.ExportaPaginas/ImportaTitulos`),
   o status do banco ligado ao contador de conexões (`statusBanco`/`DeclaracoesGeral.monitorConexao`), o
   progresso compartilhado pelas rotinas longas (`pbIniciar`/`pbPasso`/`pbFim` chamados por ~30 classes),

@@ -382,7 +382,9 @@ powershell -ExecutionPolicy Bypass -File scripts/prepare-autocad-api.ps1 -AutoCa
 
 Vale o mesmo para o ZWCAD: sem o `C:\Program Files\ZWSOFT`, o `plugin:build` (ZWCAD)
 compila contra o `cad-plugin/lib/ZWCAD/2026` do repo — o **build** é reproduzível sem o CAD
-instalado, mas **rodar** dentro dele não (nesta máquina não há ZWCAD para rodar).
+instalado, mas **rodar** dentro dele não. **Verificado em 2026-10-16:** nesta data não há ZWCAD
+nesta máquina (registro + pastas + `where`; ver *Existe CAD nesta máquina?*) — medir de novo antes de
+concluir qualquer ausência.
 
 O `accoreconsole.exe` roda o plugin **headless** e o harness
 `scripts/cad-autocad-smoke.ps1` faz o ciclo inteiro (confere o AutoCAD, cria o `.db`
@@ -873,6 +875,27 @@ o seu próprio `accoreconsole.exe.config`).
 Duas armadilhas da cópia: o runner precisa do `xunit.execution.desktop.dll` **na própria pasta** (ele
 não o resolve pela pasta do teste) e as DLLs do xunit no `bin` do teste são de versões **diferentes**
 (as 2.9.0 do adaptador) — copie as do runner **depois** das do teste, ou só as do `Positron.*`.
+
+### Existe CAD nesta máquina? (nunca afirme ausência sem medir — medido em 2026-10-16)
+
+Uma ausência é uma **medição, com data** — e são precisos os três: o **registro**, as **pastas** e o
+`where`.
+
+```powershell
+Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+  'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
+  'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' |
+  Where-Object { $_.DisplayName -match 'AutoCAD|ZWCAD|ZWSOFT|GstarCAD|BricsCAD' } |
+  Select-Object DisplayName,InstallLocation
+Get-ChildItem 'C:\','D:\' -Filter 'ZWCAD*.exe' -Recurse -Depth 4 | Select-Object -ExpandProperty FullName
+where.exe acad.exe ; where.exe ZWCAD.exe
+```
+
+Medido em **2026-10-16**: `acad.exe` só em `C:\Program Files\Autodesk\AutoCAD 2020\`; nenhum
+`ZWCAD*.exe` em `C:\`/`D:\` (profundidade 4, e `/c`+`/d` são as únicas unidades montadas); nenhuma
+chave `ZWSOFT` em `HKLM`/`HKLM\WOW6432Node`/`HKCU`; o registro de desinstalação só traz as entradas do
+AutoCAD 2020 (**não** há 2010/2011/2013). Valia a pena medir: o texto antigo desta seção afirmava o
+contrário e teria feito a rodada 212 medir num host "inexistente".
 
 ### Levantar o `CellEndEdit` real da grade no `accoreconsole` (rodada 213)
 
@@ -1908,8 +1931,8 @@ regras que a tela pede e o recoder não tem: a **escrita do catálogo**
 (`AdicionaItemMaterial`/`EditaItemMaterial`/`RemoveMaterial`) e a **escrita da lista** (o item avulso:
 `AdicionaUmItemMaterialAvulso`/`EditaUmItemMaterialAvulso`/`RemoveMaterialAvulso`).
 
-**Medido no AutoCAD 2020** (o `C:\Program Files\ZWSOFT` não existe nesta máquina; o ciclo é o
-`cad:projeto:acad`). O banco do projeto saiu da projeção do desenho real e o catálogo/cadastro do
+**Medido no AutoCAD 2020** (`cad:projeto:acad`; verificado em 2026-10-16 que o ZWCAD **não** está
+nesta máquina nesta data). O banco do projeto saiu da projeção do desenho real e o catálogo/cadastro do
 Access:
 
 ```bash
@@ -1977,7 +2000,7 @@ O ribbon vivo bate com o `Ribbon.cs` em todos os tipos (os 120 botões dos pain�
 
 **O defeito da rodada 145.** O `AtivaPagina` do original mantém ligados a página, o `0` e o `right = checaCapa(pagina) ? pagina : "-1"` (`Pagina.cs:1279`) — ou seja, o **`-1`** (o formato do corpo; o `Pagina.cs:1051` o trata junto com a capa) quando a página não é a capa, e **desliga a capa**. A rodada 145 tinha portado o contrário (capa sempre ligada, `-1` desligado) e a medição dela registrou esse comportamento errado (`1 LIGADO`, `-1 DESLIGADO` ao ativar a `3`). O `PapelDoLayerNaAtivacao` passou a ser `Pagina`/`Mantido`/`Fora` e o `Papel(layer, pagina)` reproduz o `right` do original; o `PaginaAtivaTests` ganhou os dois casos (página do corpo e capa). A fixture `cad-fixture-pagina-ativa.lsp` dizia que o `-1` era "a camada de trabalho do produto" — corrigido para o formato do corpo.
 
-**Host desta máquina.** O **AutoCAD 2020 não está mais instalado** (há só o 2010/2011/2013) e o **ZWCAD 2026 voltou**: esta medição é no **alvo do produto**, pelo `scripts/cad-zwcad-smoke.ps1`. Para os argumentos com espaço, chame o script **na mesma sessão** (`& .\scripts\cad-zwcad-smoke.ps1 -Comandos $cmds`): repassados a um `powershell -File` filho, eles se quebram.
+**Host desta máquina (verificado em 2026-10-16, rodadas 212–213).** O **AutoCAD 2020 está instalado** (`C:\Program Files\Autodesk\AutoCAD 2020`, `acad.exe` + `accoreconsole.exe`; o registro traz "Autodesk AutoCAD 2020 - English") — a redação anterior desta linha dizia que ele "não está mais instalado" e **estava errada**. O **ZWCAD não está** nesta máquina nesta data (nem `C:\Program Files\ZWSOFT`, nem chave `ZWSOFT` no registro, nem `ZWCAD*.exe` em `C:\`/`D:\`); a rodada 211 mediu nele quando ele estava. **Nunca afirme que um CAD não existe sem medir** — a receita está em *Troubleshooting* → *Existe CAD nesta máquina?*. Para os argumentos com espaço, chame o script **na mesma sessão** (`& .\scripts\cad-zwcad-smoke.ps1 -Comandos $cmds`): repassados a um `powershell -File` filho, eles se quebram.
 
 ```powershell
 $env:POSITRON_DUMP = "<pasta>\ativa"; $env:POSITRON_PAGINA = "3"

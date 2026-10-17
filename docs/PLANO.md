@@ -129,8 +129,8 @@ Medido em 2026-10-09, árvore limpa, último commit `b37576e`.
 
 | Host | Estado | Consequência |
 |---|---|---|
-| **ZWCAD 2026** (26.31.0.20285) | instalado em `C:\Program Files\ZWSOFT\ZWCAD 2026`; `ZwManaged`/`ZwDatabaseMgd` 26.0.26.0, IL `v4.0.30319`; `.NET Framework 4.8.1`; símbolo `cmd_netload` presente | **alvo principal**: o build ZWCAD resolve `ZWCadDir` sozinho e a DLL é carregável por `NETLOAD` |
-| **AutoCAD 2020** | **não instalado nesta máquina** (há 2010/2011/2013) | as execuções de `FIA`/`INT` feitas pelo dono do projeto no AutoCAD 2020 **foram positivas** e ficam documentadas como evidência histórica; não são reproduzíveis aqui |
+| **ZWCAD 2026** (26.31.0.20285) | instalado em `C:\Program Files\ZWSOFT\ZWCAD 2026` — **correção de 2026-10-16:** ausente nesta data (nem a pasta, nem chave `ZWSOFT`, nem `ZWCAD*.exe` em `C:\`/`D:\`); medido na rodada 211 quando estava | **alvo principal** quando presente: o build ZWCAD resolve `ZWCadDir` sozinho e a DLL é carregável por `NETLOAD` |
+| **AutoCAD 2020** | **correção de 2026-10-16:** **instalado** em `C:\Program Files\Autodesk\AutoCAD 2020` (`acad.exe` + `accoreconsole.exe`; registro "Autodesk AutoCAD 2020 - English"). A linha original desta tabela dizia "não instalado nesta máquina (há 2010/2011/2013)" e **estava errada** — não há 2010/2011/2013. Medido no registro, nas pastas e no `where` | **reproduzível aqui** pelo `scripts/cad-autocad-smoke.ps1` (e `-Cad AutoCAD` no e2e) |
 | DWG TrueView 2027 | `accoreconsole.exe` + `acmgd/acdbmgd/accoremgd`, mas em **.NET 10** | **não serve** para o plugin net472 (falha `CS1705`); não substituir o AutoCAD |
 | AutoCAD 2025+ | API .NET 8+ | fora do alvo net472 por construção |
 

@@ -122,8 +122,10 @@ PAGINA;7A;xdata=((1000 . Unidade) (1000 . UNIFILAR) (1000 . ))
 
 - Não medido: a **interface cheia** (janela/paleta) e o `CellEndEdit` do WinForms de verdade — o
   `accoreconsole` é headless e não carrega a paleta; o que se provou é que o método por trás do
-  evento faz o serviço. ZWCAD **não** medido: `C:\Program Files\ZWSOFT` não existe nesta máquina
-  nesta data (o host medido é o AutoCAD 2020).
+  evento faz o serviço. ZWCAD **não** medido: **verificado em 2026-10-16** (registro de desinstalação +
+  pastas em `C:\`/`D:\` + `where`) que ele **não está** nesta máquina nesta data — a receita fica no
+  `RUNBOOK.md` → *Troubleshooting* → *Existe CAD nesta máquina?* (o host medido é o AutoCAD 2020,
+  que **está** instalado; a nota antiga do `RUNBOOK` dizia o contrário e foi corrigida).
 
 ## Falta
 
