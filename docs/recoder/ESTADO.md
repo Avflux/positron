@@ -4,15 +4,15 @@
 > reverso em `conhecimento/`. Fluxo completo: skill `recoder` (`.claude/skills/recoder/SKILL.md`).
 > Histórico até a rodada 175: `../PLANO.md` §5 e as seções "Rodada N" do `../RUNBOOK.md`.
 
-## Estado (2026-10-17, depois da rodada 220)
+## Estado (2026-10-17, depois da rodada 221)
 
 | | valor |
 |---|---|
-| última rodada | **220** |
+| última rodada | **221** |
 | comandos no plugin | **77** escritos à mão (53 do reverso + 24 nossos) + **115** gerados (só abrem a tela) |
 | comandos do reverso sem nada no plugin | **48** (todas regra pura; triagem em `../PLANO.md` §7.6) |
 | telas `frm*` do reverso | **127**; **23** com a ligação à regra; 19 que nenhum comando abre |
-| testes (console xUnit; adaptador de `plugin:test` indisponível) | **1082** |
+| testes (console xUnit; adaptador de `plugin:test` indisponível) | **1083** |
 | builds ZWCAD / AutoCAD | 0 avisos |
 | botões da barra cobertos | **126** de 161 acionáveis |
 | host CAD medido | **AutoCAD 2020** — instalado e **verificado** em 2026-10-16 (registro + pastas + `where`; a nota do `RUNBOOK` que dizia o contrário foi corrigida); **ZWCAD ausente** nesta data, também verificado (medido na 211 quando estava) |
@@ -85,7 +85,10 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
      pipelines); falta a conferência visual da barra em host com GUI e o `ZWCAD`;
    - título 4/D/A/V e os seis atalhos em GUI; repetir edição após o retorno MDI e no ZWCAD;
    - ✅ *(rodada 214)* a unidade/alternativo **conserva** o buffer `Eletron` do layer (o `Altera` troca só as posições 2/3; o adapter recriava os quatro valores);
-   - `medir a mMensagem 27` no CAD precisa de um desenho com 27 páginas (o `Funcional.dwg` tem 16);
+   - ✅ *(rodada 221, medido no AutoCAD 2020)* a **mMensagem 27** ("Não há espaço suficiente!"), nas duas
+     fronteiras: a letra vizinha (`5` com limite `5A`, 2 selecionadas, duas recusas seguidas pelo laço que
+     repete o prompt) e o 27/28 (destino `3` com limite `4` num caderno de 31: 27 aplica `3, 3A..3Z`, 28
+     recusa) — a premissa da 186 ("precisa de 27 páginas") estava errada;
    - **saída anômala do `acad.exe`** no fim do ensaio de GUI (183/184/186: 51100350, 48151230,
      -840123714, 27703998 — nunca zero): investigar a causa;
    - o `frmConfiguracaoBDProjeto` abre no arranque (tipo E sem banco válido) e **rouba o foco** do prompt
@@ -124,7 +127,8 @@ caminho do usuário real (desenho novo, paleta, clique, troca de documento), nã
 
 | rodada | data | commit | resumo | arquivo |
 |---|---|---|---|---|
-| 220 | 2026-10-17 | *(este)* | progresso compartilhado da paleta: `ProgressoCompartilhado` (o `Quantidade` + `pbIniciar`/`pbPasso`/`pbFim` do `uscPaginas`, com os padrões do WinForms e o estado `PBST_ERROR` da mensagem 1040) + a paleta espelhando no `ProgressBar1` e o `PaletaDeFolhas.Progresso*` como o `_uscPagina` + as três pipelines (SYNCD/SYNCV/RESTPROJ, com o quirk do `RESTPROJ`) e o Excel ativo dos títulos ligados; **sai** o progresso que o `Carregar()` movia sem prova no reverso; +10 testes (1082), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (a barra do comando lida no `ProgressBar1` da paleta: `0..4` no `SYNCD`, `0..3` no `SYNCV`, o `Maximum` herdado no `RESTPROJ` e a exportação de 15 páginas no Excel movendo `0..100 → 0..14 → 0..0`) | `rodadas/220-progresso-compartilhado.md` |
+| 221 | 2026-10-17 | *(este)* | **mMensagem 27** ("Não há espaço suficiente!") medida no CAD — a premissa da 186 corrigida (não precisa de 27 páginas: a fronteira de **letra**, `5` com limite `5A`, esgota os dois espaços com 2 selecionadas) e as duas fronteiras provadas no **AutoCAD 2020 accoreconsole** (a letra vizinha: 2 recusas seguidas — o laço **repete** o prompt — e o dump independente idêntico; o número vizinho num caderno de 31 páginas: 27 aplica `3, 3A..3Z` com o XData `Eletron` preservado, 28 recusa); fixture nova `cad-fixture-msg27.lsp` e +1 teste (1083), builds 0 avisos; nenhuma mudança de código de produto | `rodadas/221-mensagem-27-sem-espaco.md` |
+| 220 | 2026-10-17 | `8bde36d2` | progresso compartilhado da paleta: `ProgressoCompartilhado` (o `Quantidade` + `pbIniciar`/`pbPasso`/`pbFim` do `uscPaginas`, com os padrões do WinForms e o estado `PBST_ERROR` da mensagem 1040) + a paleta espelhando no `ProgressBar1` e o `PaletaDeFolhas.Progresso*` como o `_uscPagina` + as três pipelines (SYNCD/SYNCV/RESTPROJ, com o quirk do `RESTPROJ`) e o Excel ativo dos títulos ligados; **sai** o progresso que o `Carregar()` movia sem prova no reverso; +10 testes (1082), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (a barra do comando lida no `ProgressBar1` da paleta: `0..4` no `SYNCD`, `0..3` no `SYNCV`, o `Maximum` herdado no `RESTPROJ` e a exportação de 15 páginas no Excel movendo `0..100 → 0..14 → 0..0`) | `rodadas/220-progresso-compartilhado.md` |
 | 219 | 2026-10-17 | `67a92ada` | status do banco na paleta pelo contador de conexões: `MonitorDeConexao` (o `monitorConexao`/`statusBanco` do reverso, monitor da sessão em `Atual`) + `ProjectStore.Abrir()` incrementando e o `Disposed` decrementando + a paleta trocando o `PictureBox2` no aviso + o `IniciarDWG` reiniciando por ativação; +4 testes (1072), builds 0 avisos; medido no **AutoCAD 2020 accoreconsole** (a carga da paleta pelo caminho real sem `POSITRON_DWG` abre e fecha conexão, leitura direta de 3 DWG/2 painéis, e o `IniciarDWG` zera o contador) | `rodadas/219-status-banco-contador-conexoes.md` |
 | 218 | 2026-10-16 | `de1acafd` | `btExportaEXCEL` do `frmEstatisticaDeCabos` ligado à regra: `ExcelDaEstatisticaDeCabos` (a aba `DIF_FORMACAO`/`DIF_FUNCAO`/`DIF_TRAJETO` pelo `TrocaBarra`, o cabeçalho `'#Cabos`/grupo/`'Comprimento` e a faixa `A2:C{n}`, com os literais/quirks do original) + as folhas COM comuns às duas pontes (`ExcelDoReverso`) + o adapter com `VerificaExcel`/`ApagaFigura`/`LimpaSheet`; +8 métodos (1068 testes), builds 0 avisos; **medido no AutoCAD 2020 com o Excel 16.0 visível** (aba suja limpa, imagem apagada, larguras 12/40/15, negrito, valores; aba nova depois da última; convergência; grade vazia; Excel fechado; ponte dos títulos remedida) | `rodadas/218-excel-da-estatistica-de-cabos.md` |
 | 217 | 2026-10-16 | `4050bf7a` | `frmEstatisticaDeCabos` (`ESTVCABOS`) ligada à regra: `EstatisticaDeCabos` (cabos com veia em uso, um por tag, agrupamento por formação/função/trajeto, soma do comprimento do cabo — o `LeTodosOsCabosEmUso` + `Hpgk6bJ1Ce`) e a ligação com os três radios (habilitados só com linha) e as larguras 90/70%/30%; +7 testes (1056), builds 0 avisos; medido no **AutoCAD 2020** nos três agrupamentos e no radio desabilitado; cobertura 23 de 127 telas com regra | `rodadas/217-estatistica-de-cabos.md` |

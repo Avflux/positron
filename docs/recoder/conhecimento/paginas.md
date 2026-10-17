@@ -345,3 +345,35 @@ No recoder: `Positron.Data/ProgressoCompartilhado` é a regra (estado + aviso `M
 WinForms como estado inicial), `FolhasControle` a espelha no `ProgressBar1` (e manda o `SendMessage`
 quando há handle), `PaletaDeFolhas.Progresso*` é o `_uscPagina` das rotinas e
 `ExcelAtivoDosTitulos.Exportar`/as três pipelines são os pontos ligados.
+
+## O espaço da movimentação com destino: as quatro recusas e as duas fronteiras (rodada 221)
+
+- **A ordem das recusas** (`uscPaginas.cs:2286-2390`) é: capa (**57**) → destino entre as
+  **selecionadas** (**26**) → destino que já é outra página (**25**) → espaço insuficiente (**27**). Os
+  quatro são `Interaction.MsgBox(..., MsgBoxStyle.Information)` — **não** crítico — e cada um dá `break`,
+  o que devolve o fluxo ao `while (true)` do prompt: a pergunta é **repetida**, não abortada. É isso que
+  o `POSITRON_MOVER_PARA="5;5"` mede (duas recusas seguidas no mesmo comando) e o que separa essa recusa
+  da cancelada (fila vazia → `Status 5100` → sai).
+- **O limite** `p` (`:2328-2340`): a primeira linha **não selecionada**, na ordem da grade, cuja página
+  **decimal** (`Cells[4]`) é maior que o destino; sem nenhuma, o sentinela `"1000000"`. O espaço é
+  medido **até ali**, não até o fim do caderno — mover duas páginas para o buraco entre a `5` e a `6`
+  cabe (no ramo alfanumérico: `5`, `5A`).
+- **As duas contas** (`Pagina.cs:305-350`), na ordem em que o original as tenta:
+  - `calculaEspacoNumerico(p0, p1)` = `p1 - 1 - p0 + 1` com `p0` numérico (`Floor + 1` quando tem
+    letra) e `p1` numérico (`Floor` quando tem letra);
+  - `calculaEspacoAlfaNumerico(p0, p1)` = **27 nomes por número** — a página "seca" vale 64 (`'A' - 1`)
+    e as letras 65..90; entre números diferentes `91 - letraA` (+ `letraB - 64` se `p1` tem letra, +
+    `27` por número pulado); no **mesmo** número, `letraB - letraA`.
+- **Fronteira da letra (2 selecionadas).** Destino numérico cujo limite é a **letra vizinha**: `5` com
+  limite `5A` (5,65) → numérico `floor(5,65) - 5 + 1 = 1` e alfanumérico `65 - 64 = 1`. Duas já não
+  cabem → **27**. Foi a rota medida na cópia do `Funcional.dwg` (16 páginas + a `5A` criada pela
+  fixture); a premissa antiga ("precisa de 27 linhas selecionadas") só vale para a outra fronteira.
+- **Fronteira do número (27/28).** Destino `3` com a `4` de limite (`numeroB - numeroA == 1`): o
+  numérico dá 0 e o alfanumérico `91 - 64 = 27`. **27 cabe** (aplicam `3`, `3A`..`3Z`), **28 recusa** —
+  o nome novo de cada selecionada, na ordem da grade, e o `renumerarPaginasLote` só é alcançado depois
+  dos dois `if`, então a recusa **não renomeia nada**.
+- **Instrumento** (`scripts/cad-fixture-msg27.lsp`, rodada 221): `POSITRON_MSG27_MODO=letra` cria o
+  layer `5A`; `trinta` cria as páginas `1..31` **menos a `3`** — o destino tem de estar livre, senão a
+  recusa que sai é a **25** — e o `(pz27:dump)` despeja os layers de página com o XData `Eletron` em
+  `POSITRON_PAGINAS_SAIDA` (e, no load, em `POSITRON_PAGINAS_SAIDA_ANTES`). O dump conta só número
+  **maior que zero**, como o `LayerValido` (o layer `0` fica de fora).

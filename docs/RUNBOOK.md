@@ -896,6 +896,38 @@ de escrever que o ensaio "não deixou nada aberto" (`Get-Process EXCEL | Select 
 e feche-o **só** quando o `StartTime` for o da medição — o `CloseMainWindow()` funciona, mas pode levar
 uns segundos para o processo sumir (não conclua na primeira checagem).
 
+### As recusas do `Renumerar Páginas` se medem sem um caderno grande (rodada 221)
+
+A mMensagem **27** ("Não há espaço suficiente!") parecia exigir 27 linhas selecionadas — e a cópia do
+`Funcional.dwg` tem 16 páginas, então ela ficou "não medida" por cinco rodadas. **Não exige:** o
+`calculaEspacoAlfaNumerico` conta **27 nomes por número**, e o limite do espaço é só a próxima página
+**não selecionada**. Com uma letra vizinha (`5A` criada pela fixture) e o destino `5`, os dois espaços
+dão 1 e **duas** selecionadas já recusam. A forma literal (27 cabe, 28 não) é o destino `3` com a `4`
+de limite num caderno de 31 páginas.
+
+```bash
+P="C:/.../positron"   # caminho absoluto com barras normais: o LISP não come `\n`
+POSITRON_FOLHA_ACAO=renumerar POSITRON_FOLHA_SELECIONADAS="6,7" POSITRON_MOVER_PARA="5;5" \
+POSITRON_MSG27_MODO=letra \
+POSITRON_PAGINAS_SAIDA_ANTES="$P/.tmp-smoke/provas/221/paginas-antes.txt" \
+POSITRON_PAGINAS_SAIDA="$P/.tmp-smoke/provas/221/paginas-depois.txt" \
+  powershell -ExecutionPolicy Bypass -File scripts/cad-autocad-smoke.ps1 \
+    -Desenho "C:/.../Elet/RCD/Funcional.dwg" -Fixture "$P/scripts/cad-fixture-msg27.lsp" \
+    -Comandos "pzFolhas,(pz27:dump)" -Banco "$P/.tmp-smoke/provas/220/projeto.db" \
+    -PastaLocal "C:/positron-smoke/cad"
+```
+
+Três armadilhas medidas nessa receita:
+
+- **A fila `POSITRON_MOVER_PARA` com duas respostas iguais** (`"5;5"`) prova que a recusa **repete** o
+  prompt (o `MsgBox` dá `break` para o `while (true)` do original): saem **duas** mensagens no log, uma
+  por resposta. Com a fila esgotada o comando **cancela** (status 5100), que é outro caminho.
+- **O destino tem de estar livre.** No modo `trinta` a fixture cria `1..31` **menos a `3`**: criando a
+  `3`, a recusa que sai é a **25** ("Esta página já existe"), não a 27. E a linha `0` da grade é
+  desmarcada pelo próprio handler: para contar selecionadas, escolha os nomes de propósito.
+- **O dump em AutoLISP é ANSI:** os acentos saem quebrados no `.txt` (o layer está certo no desenho).
+  Compare **nomes** e a contagem `TOTAL;n`, e para provar o XData use a linha `PAGINA;<nome>;xdata=…`.
+
 ### Existe CAD nesta máquina? (nunca afirme ausência sem medir — medido em 2026-10-16)
 
 Uma ausência é uma **medição, com data** — e são precisos os três: o **registro**, as **pastas** e o

@@ -222,8 +222,11 @@ XData `Eletron` preservado. É a persistência do XData de configuração provad
 
 ## Falta
 
-- [ ] **Mensagem 27 (sem espaço) não medida no CAD**: precisa de 27 linhas selecionadas e o `Funcional.dwg`
-  tem 16 páginas — coberta por teste unitário (`Sem_espaco_alfanumerico_a_movimentacao_e_recusada`).
+- [x] **Mensagem 27 (sem espaço) medida no CAD** — rodada **221**. A premissa escrita aqui estava errada:
+  não são precisas 27 linhas selecionadas. Duas já bastam quando o limite é a **letra vizinha**
+  (destino `5` com limite `5A`: os dois espaços dão 1), e a forma literal de 27/28 (destino `3` com
+  limite `4` num caderno de 31 páginas) foi medida na mesma rodada; os três ensaios no AutoCAD 2020
+  estão em `rodadas/221-mensagem-27-sem-espaco.md`, com a fixture `scripts/cad-fixture-msg27.lsp`.
 - [ ] Combinação `finalize` (repetir a edição depois de um retorno MDI) e a troca de documento durante o
   prompt: o guarda existe (não aplica seleção de outro documento), mas não foi exercitado no CAD.
 - [ ] ZWCAD ausente nesta máquina (medido; a ausência é uma medição com data: `RUNBOOK.md` → *Existe CAD nesta máquina?*; leitura de 2026-10-15): repetir menu/combo nesse host.

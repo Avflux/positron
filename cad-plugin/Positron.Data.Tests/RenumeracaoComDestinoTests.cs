@@ -147,6 +147,27 @@ namespace Positron.Data.Tests
         }
 
         [Fact]
+        public void A_letra_vizinha_esgota_os_dois_espacos_com_duas_selecionadas()
+        {
+            // A outra forma da mMensagem 27, a que **não** precisa de 27 páginas no desenho (e a
+            // que foi medida no CAD na rodada 221): o destino é numérico e a próxima página não
+            // selecionada é a letra seguinte, a `5A`. O espaço numérico é 1 (o próprio `5`:
+            // floor(5,65) - 5 + 1) e o alfanumérico também 1 (de 64 = 'A' - 1 a 65 = 'A').
+            RenumeracaoComDestino.Plano plano = RenumeracaoComDestino.Planejar(
+                "5", 0, 1, new List<string> { "6", "7" }, new List<string> { "1", "5A" });
+
+            Assert.False(plano.Aplicar);
+            Assert.Equal(MensagensDoReverso.NaoHaEspacoSuficiente, plano.Aviso);
+            Assert.Empty(plano.Novas);
+
+            // Uma selecionada cabe — no número seco (`5`), o ramo numérico.
+            RenumeracaoComDestino.Plano cabe = RenumeracaoComDestino.Planejar(
+                "5", 0, 1, new List<string> { "6" }, new List<string> { "1", "5A" });
+            Assert.True(cabe.Aplicar);
+            Assert.Equal(new[] { "5" }, cabe.Novas);
+        }
+
+        [Fact]
         public void A_resposta_do_prompt_e_normalizada_como_no_original()
         {
             // `ToUpper()` + `montaNumeroPagina`: espaços fora, letra em caixa alta e os zeros da
