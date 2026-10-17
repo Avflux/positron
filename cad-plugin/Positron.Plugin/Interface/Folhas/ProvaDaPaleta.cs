@@ -55,6 +55,16 @@ namespace Positron.Plugin.Interface.Folhas
                     AgendarRenumeracaoPelaInterface();
                     return "pzFolhas: prova da renumeração agendada fora de comando (Timer da interface).";
                 }
+                if (Environment.GetEnvironmentVariable("POSITRON_FOLHA_ACAO") == "clique-inline")
+                {
+                    AgendarCliqueNaCelula();
+                    return "pzFolhas: clique físico na célula Página agendado fora de comando.";
+                }
+                if (Environment.GetEnvironmentVariable("POSITRON_FOLHA_ACAO") == "clique-atalhos")
+                {
+                    AgendarCliqueNosAtalhos();
+                    return "pzFolhas: cliques físicos nos atalhos agendados fora de comando.";
+                }
                 FolhasControle controle = new FolhasControle();
                 int paginas = controle.Carregar();
 
@@ -125,6 +135,14 @@ namespace Positron.Plugin.Interface.Folhas
                 }
                 else if (acao == "titulos")
                 {
+                    // A prova do título 4: o atributo TITULO4PAG no formato (o `Funcional.dwg`
+                    // só tem 1..3), pela API do CAD — o ActiveX do AutoLISP não tem
+                    // `AddAttribute` nesta versão (medido).
+                    if (Environment.GetEnvironmentVariable("POSITRON_FOLHA_TITULO4") == "1")
+                    {
+                        Plugin.Escrever("CLIQUE222: formato — " + Titulo4DaProva.Acrescentar());
+                    }
+
                     using (Form janela = RenderizadorDeTelas.Montar(FormulariosDoReverso.Buscar("frmEditaTitulos")))
                     {
                         if (janela.IsDisposed) resultado = "sem títulos no formato; janela não aberta";
@@ -136,6 +154,14 @@ namespace Positron.Plugin.Interface.Folhas
                                 if (coluna.Visible) visiveis.Add(coluna.HeaderText);
                             resultado = grade.Rows.Count + " linha(s); colunas [" + string.Join(" | ", visiveis.ToArray()) + "]";
                             string alvo = Environment.GetEnvironmentVariable("POSITRON_PAGINA");
+                            foreach (DataGridViewRow linha in grade.Rows)
+                            {
+                                if (!string.Equals(Convert.ToString(linha.Cells[0].Value), alvo, StringComparison.OrdinalIgnoreCase)) continue;
+                                resultado += "; linha " + alvo + " = [T1 \"" + Convert.ToString(linha.Cells[1].Value)
+                                    + "\" | T2 \"" + Convert.ToString(linha.Cells[2].Value)
+                                    + "\" | T3 \"" + Convert.ToString(linha.Cells[3].Value)
+                                    + "\" | T4 \"" + Convert.ToString(linha.Cells[4].Value) + "\"]";
+                            }
                             foreach (DataGridViewRow linha in grade.Rows)
                             {
                                 if (Convert.ToString(linha.Cells[0].Value) != alvo) continue;
@@ -153,6 +179,7 @@ namespace Positron.Plugin.Interface.Folhas
                             foreach (ToolStripItem item in grade.ContextMenuStrip.Items)
                                 if (item.Text == "Editar DWG") item.PerformClick();
                             resultado += "; Editar DWG pelo menu; fechou=" + janela.IsDisposed;
+                            Plugin.Escrever("CLIQUE222: títulos — " + resultado);
                             string esperado = Environment.GetEnvironmentVariable("POSITRON_TITULO1");
                             if (esperado != null && TitulosDaPaginaDoDesenho.LerGrade()[alvo].Titulo1 != esperado)
                                 throw new InvalidOperationException("Título gravado difere do pedido");
@@ -345,6 +372,49 @@ namespace Positron.Plugin.Interface.Folhas
                     item.PerformClick();
                     resultado = "clique no menu → " + controle.UltimaMensagem;
                 }
+                else if (acao == "sonda-renomear")
+                {
+                    // Isola o `Pagina.alteraNomeLayer` (o `LayerTableRecord.Name = novo` da
+                    // `PaginasDoDesenho.Renomear`) da camada corrente: o que a edição inline da
+                    // célula Página faz no meio. Serve para saber de quem é o efeito no `CLAYER`.
+                    string camadaAntes = PaginaAtivaDoDesenho.LerCamadaCorrente();
+                    string camadaNova = camadaAntes + "Z";
+                    int ida = PaginasDoDesenho.Renomear(new[] { camadaAntes }, new[] { camadaNova });
+                    string camadaDepois = PaginaAtivaDoDesenho.LerCamadaCorrente();
+                    int volta = PaginasDoDesenho.Renomear(new[] { camadaNova }, new[] { camadaAntes });
+                    resultado = "rename \"" + camadaAntes + "\" → \"" + camadaNova + "\" = " + ida
+                        + "; camada corrente \"" + camadaAntes + "\" → \"" + camadaDepois + "\""
+                        + "; volta = " + volta + ", camada corrente \"" + PaginaAtivaDoDesenho.LerCamadaCorrente() + "\"";
+                }
+                else if (acao == "tipo-d")
+                {
+                    // O documento tipo D (o `verificaTipoXData` pelo ModelSpace): o paleta esconde o
+                    // Alternativo e a grade fica sem menu e somente leitura (`uscPaginas.cs:1434,1483`).
+                    // O tipo vem do **desenho aberto** — a fixture põe o DiagLog no ModelSpace de um
+                    // desenho novo (`vla-SetXData`), porque trocar o Eletron de um existente não pega.
+                    string antes = TipoDoDesenhoDaProva.Agora();
+                    string depois = antes;
+                    // A paleta de verdade (o `PaletteSet`), carregada com o tipo já no lugar.
+                    PaletaDeFolhas.Mostrar();
+                    controle = PaletaDeFolhas.Controle;
+                    int paginasDoTipoD = controle.Carregar();
+                    DataGridView grade = (DataGridView)controle.Controls["dg"];
+                    List<string> visiveis = new List<string>();
+                    foreach (DataGridViewColumn coluna in grade.Columns)
+                        if (coluna.Visible) visiveis.Add(coluna.HeaderText);
+                    if (!TipoDoDesenhoDaProva.ForaDoEletron(depois))
+                        throw new InvalidOperationException("O desenho não é D/A/V: tipo \"" + depois + "\".");
+                    if (grade.ContextMenuStrip != null)
+                        throw new InvalidOperationException("Documento D ainda com menu na grade.");
+                    if (!grade.ReadOnly)
+                        throw new InvalidOperationException("Documento D com a grade editável.");
+                    if (grade.Columns[2].Visible)
+                        throw new InvalidOperationException("Documento D mostrando a coluna Alternativo.");
+                    resultado = "tipo " + antes + " → " + depois + "; " + paginasDoTipoD + " página(s); menu=ausente"
+                        + "; grade=somente leitura; colunas [" + string.Join(" | ", visiveis.ToArray()) + "]";
+                    Capturar(controle, "tipo-d");
+                    Plugin.Escrever("CLIQUE222: " + resultado);
+                }
                 else if (acao == "inline")
                 {
                     // A edição inline da célula Página (o ramo `ColumnIndex == 0` do `j9Sp1mKZkcD`,
@@ -373,12 +443,15 @@ namespace Positron.Plugin.Interface.Folhas
                     }
 
                     grade.Rows[indice].Cells[0].Value = valor;
+                    string camadaAntesInline = PaginaAtivaDoDesenho.LerCamadaCorrente();
                     string resumo = controle.RenomearPaginaInline(indice);
+                    string camadaDepoisInline = PaginaAtivaDoDesenho.LerCamadaCorrente();
                     string celula = indice < grade.Rows.Count
                         ? Convert.ToString(grade.Rows[indice].Cells[0].Value)
                         : string.Empty;
                     resultado = "edição inline \"" + valor + "\" na linha " + indice + " (página " + alvoInline
-                        + ") → " + resumo + "; célula=\"" + celula + "\"";
+                        + ") → " + resumo + "; célula=\"" + celula + "\""
+                        + "; camada corrente \"" + camadaAntesInline + "\" → \"" + camadaDepoisInline + "\"";
                 }
                 else if (acao == "inline-evento")
                 {
@@ -740,6 +813,265 @@ namespace Positron.Plugin.Interface.Folhas
                 }
             };
             timer.Start();
+        }
+
+        /// <summary>
+        /// O **clique físico** na célula Página, com a paleta visível e fora de comando: um clique
+        /// do mouse de verdade seleciona a linha (e o original ativa a página aí), a digitação de
+        /// verdade abre a edição (o `EditMode` padrão, `EditOnKeystrokeOrF2`, é o do designer do
+        /// reverso — não há `EditMode` gravado lá) e o Enter fecha, disparando o `CellEndEdit` que
+        /// renomeia (`uscPaginas.cs:1733-1846`). O desenho é lido depois pelo adapter, não pela
+        /// célula — a célula pode ter sido reconstruída pelo `Carregar`.
+        /// </summary>
+        private static void AgendarCliqueNaCelula()
+        {
+            Timer timer = new Timer { Interval = 1500 };
+            int passo = 0;
+            int linha = -1;
+            string alvo = Environment.GetEnvironmentVariable("POSITRON_FOLHA_INLINE_ALVO") ?? "7";
+            string valor = Environment.GetEnvironmentVariable("POSITRON_FOLHA_INLINE");
+            if (string.IsNullOrEmpty(valor))
+            {
+                valor = "7A";
+            }
+
+            timer.Tick += (origem, evento) =>
+            {
+                try
+                {
+                    if (passo == 0)
+                    {
+                        PaletaDeFolhas.Mostrar();
+                        FolhasControle paleta = PaletaDeFolhas.Controle;
+                        DataGridView grade = (DataGridView)paleta.Controls["dg"];
+                        Plugin.Escrever("CLIQUE222: paleta — " + paleta.DescreverInterface()
+                            + "; páginas " + Lista(paleta.Paginas()) + "; rótulos " + Rotulos(paleta));
+                        for (int i = 0; i < grade.Rows.Count; i++)
+                        {
+                            if (string.Equals(Convert.ToString(grade.Rows[i].Cells[0].Value), alvo, StringComparison.OrdinalIgnoreCase))
+                            {
+                                linha = i;
+                            }
+                        }
+
+                        if (linha < 0)
+                        {
+                            throw new InvalidOperationException("Linha \"" + alvo + "\" ausente para o clique.");
+                        }
+
+                        grade.FirstDisplayedScrollingRowIndex = linha;
+                        Capturar(paleta, "inline-antes-do-clique");
+                    }
+                    else if (passo == 1)
+                    {
+                        FolhasControle paleta = PaletaDeFolhas.Controle;
+                        DataGridView grade = (DataGridView)paleta.Controls["dg"];
+                        System.Drawing.Rectangle celula = grade.GetCellDisplayRectangle(0, linha, false);
+                        System.Drawing.Point ponto = grade.PointToScreen(new System.Drawing.Point(
+                            celula.Left + celula.Width / 2, celula.Top + celula.Height / 2));
+                        Plugin.Escrever("CLIQUE222: clique físico em (" + ponto.X + "," + ponto.Y + "), célula "
+                            + celula + ", foco antes=\"" + EntradaFisicaDaProva.Foco() + "\"");
+                        EntradaFisicaDaProva.ClicarEm(ponto, 1, grade);
+                    }
+                    else if (passo == 2)
+                    {
+                        FolhasControle paleta = PaletaDeFolhas.Controle;
+                        DataGridView grade = (DataGridView)paleta.Controls["dg"];
+                        bool atual = grade.CurrentCell != null && grade.CurrentCell.RowIndex == linha
+                            && grade.CurrentCell.ColumnIndex == 0;
+                        Plugin.Escrever("CLIQUE222: depois do clique — célula atual="
+                            + (grade.CurrentCell == null ? "(nenhuma)" : grade.CurrentCell.RowIndex + "," + grade.CurrentCell.ColumnIndex)
+                            + "; foco na grade=" + grade.Focused + "; em edição=" + grade.IsCurrentCellInEditMode
+                            + "; camada corrente=\"" + PaginaAtivaDoDesenho.LerCamadaCorrente()
+                            + "\"; ativa=\"" + PaginaAtivaDoDesenho.Ler()
+                            + "\"; foco=\"" + EntradaFisicaDaProva.Foco() + "\"");
+                        if (!atual)
+                        {
+                            throw new InvalidOperationException("O clique não pôs a célula Página da linha "
+                                + linha + " como atual — nada foi digitado (teclas não vão para o CAD).");
+                        }
+
+                        string erro = EntradaFisicaDaProva.Digitar(valor, false);
+                        if (erro != null)
+                        {
+                            throw new InvalidOperationException(erro);
+                        }
+
+                        Plugin.Escrever("CLIQUE222: digitando \"" + valor + "\" no teclado físico.");
+                    }
+                    else if (passo == 3)
+                    {
+                        FolhasControle paleta = PaletaDeFolhas.Controle;
+                        DataGridView grade = (DataGridView)paleta.Controls["dg"];
+                        string noEditor = grade.EditingControl == null ? "(sem editor)" : grade.EditingControl.Text;
+                        Plugin.Escrever("CLIQUE222: em edição=" + grade.IsCurrentCellInEditMode
+                            + "; editor=\"" + noEditor + "\"");
+                        if (!grade.IsCurrentCellInEditMode)
+                        {
+                            throw new InvalidOperationException("A digitação física não abriu a edição da célula.");
+                        }
+
+                        EntradaFisicaDaProva.Digitar(string.Empty, true);
+                        Plugin.Escrever("CLIQUE222: Enter físico — aguardando o CellEndEdit.");
+                    }
+                    else if (passo == 4)
+                    {
+                        FolhasControle paleta = PaletaDeFolhas.Controle;
+                        List<string> paginas = new List<string>(PaginasDoDesenho.Ler());
+                        DataGridView gradeFinal = (DataGridView)paleta.Controls["dg"];
+                        Plugin.Escrever("CLIQUE222: PASSOU — página ativa=" + PaginaAtivaDoDesenho.Ler()
+                            + "; camada corrente=\"" + PaginaAtivaDoDesenho.LerCamadaCorrente() + "\""
+                            + "; grade: linha atual=" + (gradeFinal.CurrentCell == null ? "(nenhuma)" : gradeFinal.CurrentCell.RowIndex.ToString())
+                            + ", selecionadas=" + gradeFinal.SelectedRows.Count
+                            + (gradeFinal.SelectedRows.Count > 0 ? " (" + Convert.ToString(gradeFinal.SelectedRows[0].Cells[0].Value) + ")" : string.Empty)
+                            + "; páginas do desenho " + Lista(paginas) + "; " + paleta.UltimaMensagem
+                            + "; rótulos " + Rotulos(paleta));
+                        Capturar(paleta, "inline-depois-do-enter");
+                        timer.Stop();
+                        timer.Dispose();
+                    }
+
+                    passo++;
+                }
+                catch (Exception erro)
+                {
+                    timer.Stop();
+                    timer.Dispose();
+                    Plugin.Escrever("CLIQUE222: FALHOU — " + erro);
+                }
+            };
+            timer.Start();
+        }
+
+        /// <summary>
+        /// Os quatro rótulos de atalho pelo **clique físico** — o ramo do `RXnp13sEwHd`
+        /// (`uscPaginas.cs:1514-1601`): sem captura, o clique usa o atalho (normaliza, ativa, copia
+        /// Unidade/Alternativo e rola) e o atalho inexistente se limpa; com a captura armada pelo
+        /// `btSalva` (`EDJp12YldpK`, `:1509`), o clique grava a página ativa no slot. O Xrecord
+        /// `CENG_ELET`/`Atalhos` tem **seis** strings (`Dicionario.cs:99-207`) e os dois últimos não
+        /// têm rótulo: o clique não pode perdê-los.
+        /// </summary>
+        private static void AgendarCliqueNosAtalhos()
+        {
+            Timer timer = new Timer { Interval = 1500 };
+            int passo = 0;
+            FolhasControle paleta = null;
+            timer.Tick += (origem, evento) =>
+            {
+                try
+                {
+                    if (passo == 0)
+                    {
+                        PaletaDeFolhas.Mostrar();
+                        paleta = PaletaDeFolhas.Controle;
+                        Plugin.Escrever("CLIQUE222: paleta — " + paleta.DescreverInterface()
+                            + "; rótulos " + Rotulos(paleta)
+                            + "; Xrecord " + Lista(AtalhosDePaginasDoDesenho.Ler()));
+                        Capturar(paleta, "atalhos-antes");
+                    }
+                    else if (passo == 1)
+                    {
+                        Plugin.Escrever("CLIQUE222: clicando o lb1 (rótulo \"" + TextoDoRotulo(paleta, 1) + "\")");
+                        EntradaFisicaDaProva.Clicar(paleta.Controls["lb1"], 1);
+                    }
+                    else if (passo == 2)
+                    {
+                        ConferirAtivo(paleta, "2", 1);
+                        Plugin.Escrever("CLIQUE222: lb1 usou o atalho — ativa=" + PaginaAtivaDoDesenho.Ler());
+                    }
+                    else if (passo == 3)
+                    {
+                        Plugin.Escrever("CLIQUE222: clicando o lb2 (rótulo \"" + TextoDoRotulo(paleta, 2) + "\")");
+                        EntradaFisicaDaProva.Clicar(paleta.Controls["lb2"], 1);
+                    }
+                    else if (passo == 4)
+                    {
+                        ConferirAtivo(paleta, "6", 2);
+                        Plugin.Escrever("CLIQUE222: lb2 usou o atalho — ativa=" + PaginaAtivaDoDesenho.Ler());
+                    }
+                    else if (passo == 5)
+                    {
+                        Plugin.Escrever("CLIQUE222: clicando o lb3 (rotulo inexistente \"" + TextoDoRotulo(paleta, 3) + "\")");
+                        EntradaFisicaDaProva.Clicar(paleta.Controls["lb3"], 1);
+                    }
+                    else if (passo == 6)
+                    {
+                        string[] atalhos = AtalhosDePaginasDoDesenho.Ler();
+                        if (TextoDoRotulo(paleta, 3).Length != 0)
+                            throw new InvalidOperationException("O rótulo lb3 não foi limpo pelo clique: \"" + TextoDoRotulo(paleta, 3) + "\"");
+                        if (atalhos[2].Length != 0)
+                            throw new InvalidOperationException("O slot 3 do Xrecord continuou \"" + atalhos[2] + "\".");
+                        if (atalhos[4] != "QUINTO" || atalhos[5] != "SEXTO")
+                            throw new InvalidOperationException("Os slots 5/6 do Xrecord se perderam: \"" + atalhos[4] + "\"/\"" + atalhos[5] + "\".");
+                        Plugin.Escrever("CLIQUE222: lb3 inexistente limpou o slot 3; slots 5/6 preservados (\""
+                            + atalhos[4] + "\"/\"" + atalhos[5] + "\")");
+                    }
+                    else if (passo == 7)
+                    {
+                        Plugin.Escrever("CLIQUE222: clicando o btSalva (arma a captura).");
+                        EntradaFisicaDaProva.Clicar(paleta.Controls["btSalva"], 1);
+                    }
+                    else if (passo == 8)
+                    {
+                        Plugin.Escrever("CLIQUE222: clicando o lb4 (captura da página ativa \""
+                            + PaginaAtivaDoDesenho.Ler() + "\")");
+                        EntradaFisicaDaProva.Clicar(paleta.Controls["lb4"], 1);
+                    }
+                    else if (passo == 9)
+                    {
+                        string[] atalhos = AtalhosDePaginasDoDesenho.Ler();
+                        if (atalhos[3] != "6")
+                            throw new InvalidOperationException("O lb4 não capturou a página ativa: slot 4 = \"" + atalhos[3] + "\".");
+                        if (TextoDoRotulo(paleta, 4) != "6")
+                            throw new InvalidOperationException("O rótulo lb4 não recebeu a página: \"" + TextoDoRotulo(paleta, 4) + "\".");
+                        if (atalhos[4] != "QUINTO" || atalhos[5] != "SEXTO")
+                            throw new InvalidOperationException("Os slots 5/6 se perderam na captura: \"" + atalhos[4] + "\"/\"" + atalhos[5] + "\".");
+                        Plugin.Escrever("CLIQUE222: PASSOU — ativa=" + PaginaAtivaDoDesenho.Ler()
+                            + "; rótulos " + Rotulos(paleta)
+                            + "; Xrecord " + Lista(atalhos));
+                        Capturar(paleta, "atalhos-depois");
+                        timer.Stop();
+                        timer.Dispose();
+                    }
+
+                    passo++;
+                }
+                catch (Exception erro)
+                {
+                    timer.Stop();
+                    timer.Dispose();
+                    Plugin.Escrever("CLIQUE222: FALHOU — " + erro);
+                }
+            };
+            timer.Start();
+        }
+
+        private static void ConferirAtivo(FolhasControle paleta, string esperada, int indiceDoRotulo)
+        {
+            string ativa = PaginaAtivaDoDesenho.Ler();
+            if (!string.Equals(ativa, esperada, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("O clique no lb" + indiceDoRotulo + " (rótulo \""
+                    + TextoDoRotulo(paleta, indiceDoRotulo) + "\") não ativou a página \""
+                    + esperada + "\": ativa=\"" + ativa + "\".");
+            }
+        }
+
+        private static string TextoDoRotulo(FolhasControle paleta, int indice)
+        {
+            Control rotulo = paleta.Controls["lb" + indice];
+            return rotulo == null ? "(ausente)" : rotulo.Text;
+        }
+
+        private static string Rotulos(FolhasControle paleta)
+        {
+            List<string> partes = new List<string>();
+            for (int i = 1; i <= 4; i++)
+            {
+                partes.Add("lb" + i + "=\"" + TextoDoRotulo(paleta, i) + "\"");
+            }
+
+            return "[" + string.Join(" | ", partes.ToArray()) + "]";
         }
 
         private static void Capturar(Control controle, string nome)

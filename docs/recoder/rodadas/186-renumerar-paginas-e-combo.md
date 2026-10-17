@@ -108,6 +108,11 @@ Caminhos relativos a `cad-plugin/reverso/Eletron4_ZWcad/decompiled-cleaned/Eletr
   a grade reconstruída pode ficar sem seleção quando a página ativa foi uma das renomeadas. O recoder lê a
   página ativa **do desenho** a cada `Carregar()` (a decisão da rodada 180), então a linha da página ativa
   continua marcada, com o nome novo. O combo faz o que o original faz (`LocalizaPaginaAtiva`).
+  **Correção da rodada 222** (clique físico na célula Página, o mesmo `Carregar` dentro do
+  `CellEndEdit`): a seleção que a reconstrução deixava pendente era entregue **depois** do
+  `_carregando`, e o `SelectionChanged` atrasado ativava a **linha seguinte** — renomear a página ativa
+  `7` → `7A` terminava com o desenho na `8`. Hoje o `SelectionChanged` fica segurado até o primeiro
+  `Application.Idle` e a seleção volta para a ativa (o fim do `VSWp1ebyWra`).
 - **Combo com texto fora dos seis literais:** o original deixa o texto digitado no campo e renumera com a
   largura anterior; aqui o `Carregar()` do fim devolve o literal da configuração (a mesma convenção do
   `CarregaPG` do original, que é quem escreve o combo).
@@ -232,7 +237,11 @@ XData `Eletron` preservado. É a persistência do XData de configuração provad
 - [ ] ZWCAD ausente nesta máquina (medido; a ausência é uma medição com data: `RUNBOOK.md` → *Existe CAD nesta máquina?*; leitura de 2026-10-15): repetir menu/combo nesse host.
 - [ ] Excel ativo (`clsTextos.ExportaPaginas/ImportaTitulos`) e a **renumeração inline** da célula Página
   continuam fora (fila 1 da `183`).
-- [ ] Saída anômala do `acad.exe` no fim do ensaio (183/184/186) — investigar.
+- [x] Saída anômala do `acad.exe` no fim do ensaio (183/184/186) — **medida na rodada 222**: é do
+  **host**, não do plugin. Desenho novo + `Quit` pela COM dá `EXIT=0`; o `Funcional.dwg` salvo e
+  fechado pela COM dá não-zero **com o bundle do plugin renomeado** (`24361662`, sem `POSITRON_LOG`)
+  e com ele ligado (`24623806`). A receita e a tabela estão no `RUNBOOK.md` (*A saída não-zero do
+  `acad.exe` é do host*).
 - [ ] `frmConfiguracaoBDProjeto` abre no arranque com o banco Access não configurado e **rouba o foco** do
   prompt nativo: o harness fecha a janela pelo título; no uso real é uma tela a mais antes de tudo.
 

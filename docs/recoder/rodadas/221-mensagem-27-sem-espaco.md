@@ -1,6 +1,6 @@
 # Rodada 221 — A mMensagem 27 ("Não há espaço suficiente!") medida no CAD
 
-**Data:** 2026-10-17 · **Commit:** *(este)* · **Frente:** correção do básico, item 3 (paleta `uscPaginas`) · **Situação:** ✅ completa
+**Data:** 2026-10-17 · **Commit:** `a9f62003` · **Frente:** correção do básico, item 3 (paleta `uscPaginas`) · **Situação:** ✅ completa
 
 ## Alvo
 
@@ -148,9 +148,10 @@ TOTAL;31
 - [ ] **ZWCAD**: repetir quando ele voltar. **Ausência remedida nesta data** (2026-10-17: registro sem
   entrada ZWSOFT, sem `C:\Program Files\ZWSOFT`, `where.exe ZWCAD.exe` vazio); o **AutoCAD 2020** está
   lá e rodou as três passagens.
-- [ ] O resto do item 1 da fila continua como estava, e é todo ele de **GUI**: o clique físico na paleta
-  visível, o título 4/D/A/V e os seis atalhos em GUI, a saída anômala do `acad.exe` e o foco do
-  `frmConfiguracaoBDProjeto` no arranque.
+- [x] O resto do item 1 da fila era todo ele de **GUI** — e foi medido na **rodada 222**: o clique físico
+  na paleta visível, os quatro atalhos, o título 4/D/A/V e a saída do `acad.exe` (do **host**, com o plugin
+  desligado também é não-zero). Continua no item 1 da fila só o foco do `frmConfiguracaoBDProjeto` no
+  arranque (fiel ao original, conferência do dono) e a conferência visual dos avisos.
 
 ## Conhecimento registrado
 

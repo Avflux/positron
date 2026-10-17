@@ -184,7 +184,8 @@ edição local sem gravação antecipada; Editar DWG fora de comando; texto e XD
   captura do lb1, editor via menu, digitação, descarte pelo X, aplicação por clique, Alternativo
   ligado/desligado e novo documento/retorno. Evidências e limites na subseção abaixo.
 - [x] Prova Timer fora de comando: **PASSOU**, 15 linhas; título/unidade/alternativo relidos.
-  Os quatro slots e os atalhos 5/6 ainda não foram exercitados individualmente.
+  Os quatro slots e os atalhos 5/6 foram exercitados um a um na **rodada 222** (clique físico em
+  `lb1..lb4`, com os slots 5/6 preservados no Xrecord de seis strings).
 - [ ] Repetir no ZWCAD — ausente nesta máquina (medido; a ausência é uma medição com data: `RUNBOOK.md` → *Existe CAD nesta máquina?*).
 - [ ] `Pagina.restauraCampos` específico do editor (sem efeitos da troca de formato).
 - [ ] Excel ativo: Exportar/Importar por página/índice (`clsTextos.ExportaPaginas/ImportaTitulos`).
@@ -194,8 +195,10 @@ edição local sem gravação antecipada; Editar DWG fora de comando; texto e XD
 - [ ] Editar Unidade/Alternativo do menu ainda usa diálogo existente, não o PromptStringOptions do
   reverso; a edição inline já grava, mas faltam a equivalência do prompt e aplicação em todas as
   linhas selecionadas (a rodada não deve ser considerada auditoria completa desses comandos).
-- [ ] Validar título 4 presente, documentos D/A/V e os seis atalhos em GUI (Alternativo ligado e
-  título 4 ausente já conferidos no projeto real).
+- [x] Título 4 presente, documentos D/A/V e os seis atalhos em GUI — medidos na **rodada 222** no
+  AutoCAD 2020 visível: os quatro rótulos `lb1..lb4` pelo clique físico (com os slots 5/6 do Xrecord
+  preservados), a coluna "Título 4" no editor com o atributo `TITULO4PAG` no formato e o documento tipo
+  D (menu ausente, grade somente leitura). Alternativo ligado e título 4 ausente já estavam conferidos.
 
 ## Conhecimento registrado
 

@@ -207,6 +207,51 @@ mMensagem 1927, `CarregaPaginas`, `OrdenaMatrizPaginas` e `AtualizaContTotFl`). 
 - A existência é conferida contra o **`mPaginas`**, não contra a grade: a célula em edição já carrega o
   nome digitado e não pode contar como página existente.
 
+## O clique de verdade na célula Página, nos atalhos e no documento D/A/V (rodada 222)
+
+Medido no AutoCAD 2020 **com a interface cheia**, com a paleta visível e o mouse/teclado do Windows
+(`EntradaFisicaDaProva`, os modos `POSITRON_FOLHA_ACAO=clique-inline`/`clique-atalhos`).
+
+- **Quem abre a edição inline é a TECLA, não o duplo clique.** O designer do reverso **não** grava
+  `dg.EditMode` (`uscPaginas.cs:1056` só tem `SelectionMode = FullRowSelect`), então vale o padrão do
+  WinForms (`EditOnKeystrokeOrF2`): o usuário **clica** na célula (a linha passa a atual e o
+  `SelectionChanged` ativa a página) e **digita**; o primeiro caractere abre o editor com o texto novo e
+  o `Enter` fecha, disparando o `CellEndEdit`. Medido: clique na linha da página `7` →
+  `camada corrente="7"`; digitar `7A` → `em edição=True; editor="7A"`; o Enter renomeia.
+- **O `alteraNomeLayer` não mexe no `Clayer`.** `layer.Name = novo` dentro da transação (o mesmo caminho
+  do `Pagina.cs:1903-1949`) **mantém** a camada corrente na renomeada — sonda `sonda-renomear` no
+  `accoreconsole`: `rename "23" → "23Z" = 1; camada corrente "23" → "23Z"`. O original, no fim do
+  `case 0`, só escreve `tbPagina.Text = text2` e **não** recalcula `ativo.Pagina`: a página continuada é a
+  renomeada.
+- **A seleção atrasada do DataGridView (o quirk que a medição achou).** A grade é reconstruída **dentro**
+  do `CellEndEdit` (o `Y9op1KgeRgW`/`VSWp1ebyWra` do original). No winforms a seleção que sobra dessa
+  reconstrução chega **depois** de o `finally` do `Carregar` baixar o `_carregando` — e o
+  `SelectionChanged` atrasado ativava a **linha seguinte** (medido: renomear a ativa `7` → `7A`
+  terminava com o desenho na página **8** e a grade marcando a linha 4). O original tem a guarda
+  equivalente (`zmrpl5cr22t`, baixada no `finally` do próprio evento). No recoder a guarda dura até o
+  primeiro `Application.Idle` e, ao soltar, devolve a seleção para a página ativa (o fim do
+  `VSWp1ebyWra`) — sem ela o desenho **troca de página ativa** ao renomear a ativa pela paleta.
+- **Os quatro rótulos e o Xrecord de seis strings.** O clique em `lb1..lb4` é o `RXnp13sEwHd` etc.
+  (`:1514-1601`): sem captura ele usa o atalho (`montaNumeroPagina` + varredura da coluna 0 + ativa +
+  Unidade/Alternativo + scroll + `tbPagina`), e o rótulo de página **inexistente** é **limpo** com o
+  `gravaAtalhos()` de volta; com a captura armada pelo `btSalva` (`:1509`), o clique **grava** a página
+  ativa no slot. O Xrecord `CENG_ELET`/`Atalhos` tem **seis** valores DXF 1 e só quatro têm rótulo:
+  medido com `2 | 6 | 999 | (vazio) | QUINTO | SEXTO`, o uso do `lb3` inexistente zerou o slot 3 e os
+  slots **5/6 sobreviveram** (também à captura pelo `lb4`).
+- **Título 4 no editor.** A coluna existe pelo **atributo da referência do formato** no layer `-1` com a
+  tag `TITULO4PAG` **ou** `PAINEL` (`Pagina.buscaTitulosExistentes`, `Pagina.cs:2502-2562`) — o
+  `Funcional.dwg` só tem `TITULO1PAG..TITULO3PAG`. O **valor** da linha vem do `DBText` do layer da
+  página com o XData `DiagLog`/`TituloPagina` de índice 4. Com o atributo no formato e o `DBText` no
+  layer `7`: colunas `[Página | Título 1 | Título 2 | Título 3 | Título 4 | Unidade | Alternativo]` e
+  `linha 7 = [T1 "PNL-GGE" | T2 "DIAGRAMA FUNCIONAL" | T3 "DIAGRAMA UNIFILAR" | T4 "TITULO 4 DA PROVA 222"]`.
+  O `vla-AddAttribute` do AutoLISP **não existe** no AutoCAD 2020 ("unknown name: AddAttribute") e o
+  `BlockTableRecord.XData` **não** troca o `Eletron` de um desenho existente; o `TITULO4PAG` é montado
+  pela API .NET (harness) e o documento D/A/V é um **desenho novo** com `DiagLog` no ModelSpace
+  (`vla-SetXData`).
+- **D/A/V no paleta (medido no tipo D).** `Y9op1KgeRgW`/`VSWp1ebyWra` (`:1396-1506`): `D`/`A`/`V`
+  escondem o **Alternativo** e a grade fica **sem menu** e somente leitura. No recoder, o tipo D com
+  4 páginas deu: `menu=ausente; grade=somente leitura; colunas [Página | Unidade]`.
+
 ## `AtualizaContTotFl`: o que ele reescreve (medido na rodada 213)
 
 O passo fecha o `Pagina.renumerarPagina` (e o `Apagar`/`Renumerar Páginas`): varre os `DBText` do

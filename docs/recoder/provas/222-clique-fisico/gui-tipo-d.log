@@ -1,0 +1,14 @@
+Positron carregado.
+Positron: DLL de 2026-10-17 11:22 — C:\Users\RNO\AppData\Roaming\Autodesk\ApplicationPlugins\Positron.bundle\Positron.Plugin.AutoCAD.dll
+Recursos: 4 template(s) DWG garantido(s) (MascaraM, ErroFiacao, V_B_BORNECPFL, Revisao).
+Barra: o ribbon ainda não existe nesta fase do arranque — a aba entra na primeira ociosidade do CAD (no accoreconsole, que não tem interface, não há ribbon).
+IniciarDWG: camadas destravadas (0 travada(s) liberada(s)) — página ativa "0": 0 layer(s) desligado(s), 1 ligado(s), 0 alterado(s)
+IniciarDWG: estilo de texto Romans — criado
+CorrecaoDisp: CorrigeDisp: o desenho não tem o app name legado DISPOSITIVO. (marca 1 gravada).
+CorrecaoBornesVisiveis: CorrigeBornes: 0 de 0 borne(s) com a visibilidade corrigida. (marca 2 gravada).
+correcaoTextosCircuitos: 0 de 0 texto(s) auxiliar(es) de circuito alinhados (o VerticalMode 1 vira Baseline na mesma posição) (marca 3 gravada).
+correcaoLines: 0 de 0 Line(s) com o XData limpo (0 CONEXAO, 0 INTERLIGACAO) (marca 4 gravada).
+corrigeOrdemBornes: corrigeOrdemBornes: 0 de 0 borne(s) renumerado(s). (marca 5 gravada).
+Barra: aba "Positron" com 9 painel(is) — 121 botão(ões), 5 menu(s) com 39 item(ns), 1 liga/desliga, 1 lista e 1 campo; 34 linha(s), 86 quebra(s), 7 área(s) recolhível(is), 9 separador(es). Acionáveis: 126 ligado(s) (2 no comando do recoder), 35 desativado(s); tema escuro. Barra: desenho tipo "V" — 2 painel(is) ligado(s) [Configuração | Caderno], 6 desligado(s) [Dispositivos | Bornes | Fiação | Construtivo | Cabos e Veias | Utilitários], 1 intocado(s) [Help (ligado)].
+CLIQUE222: tipo D → D; 4 página(s); menu=ausente; grade=somente leitura; colunas [Página | Unidade]
+pzFolhas: 4 página(s) na grade [1 | 2 | 3 | 10]; combo="12" (antes: 4); seleção pedida [] (0 achada(s)); selecionada depois [1]; ação "tipo-d" → tipo D → D; 4 página(s); menu=ausente; grade=somente leitura; colunas [Página | Unidade]; colunas do formato nenhuma [ELET1_ausente | ELET2_ausente | ELET3_ausente | ELET4_ausente | ELET5_ausente]; interface: 5 colunas [Página | Unidade]; tbPagina=; multiseleção=False; controles=11

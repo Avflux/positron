@@ -32,6 +32,16 @@ namespace Positron.Plugin.Interface.Folhas
         private CorDaBarra _corDaBarra = CorDaBarra.Verde;
         private bool _capturarAtalho;
         private bool _carregando;
+
+        /// <summary>
+        /// A grade sendo reconstruída **dentro** de um evento dela (a edição inline da célula
+        /// Página chama o `Carregar` no `CellEndEdit`, como o `Y9op1KgeRgW`/`VSWp1ebyWra` do
+        /// original): o DataGridView entrega a seleção que sobrou da reconstrução **depois** de o
+        /// `finally` do `Carregar` já ter baixado o <see cref="_carregando"/> — sem esta guarda o
+        /// `SelectionChanged` atrasado ativa a linha seguinte (medido na rodada 222: renomear a
+        /// página ativa 7 → 7A terminava com o desenho na 8). Sai no primeiro `Application.Idle`.
+        /// </summary>
+        private bool _reconstruindoSelecao;
         private ToolStripMenuItem _multiselecao;
         private ToolStripMenuItem _alternativo;
         private ToolStripMenuItem _editarAlternativo;
@@ -95,7 +105,8 @@ namespace Positron.Plugin.Interface.Folhas
             _grade.ContextMenuStrip = _menu;
             _grade.SelectionChanged += (origem, evento) =>
             {
-                if (!_carregando && !_grade.MultiSelect && _grade.SelectedRows.Count == 1)
+                if (_carregando || _reconstruindoSelecao) return;
+                if (!_grade.MultiSelect && _grade.SelectedRows.Count == 1)
                     ExecutarNaTela(() => AtivarPagina(PaginaSelecionada()));
             };
             _grade.CellEndEdit += (origem, evento) =>
@@ -1035,6 +1046,7 @@ namespace Positron.Plugin.Interface.Folhas
                 {
                     // O `AtualizaContTotFl` do `renumerarPagina` e o `tbPagina.Text = text2` do handler.
                     AtualizarContagem();
+                    SegurarSelecaoDuranteReconstrucao();
                     Carregar();
                     _pagina.Text = nomeNovo;
                     UltimaMensagem = MensagensDoReverso.Pagina + ": \"" + original + "\" → \"" + nomeNovo + "\"; "
@@ -1071,6 +1083,29 @@ namespace Positron.Plugin.Interface.Folhas
             }
 
             return UltimaMensagem;
+        }
+
+        /// <summary>
+        /// Segura o `SelectionChanged` até o primeiro `Application.Idle` — a reconstrução dentro do
+        /// `CellEndEdit` deixa uma seleção pendente que, sem a guarda, ativa a linha seguinte.
+        /// </summary>
+        private void SegurarSelecaoDuranteReconstrucao()
+        {
+            // Sem janela não há `Application.Idle` para soltar a guarda: no harness headless o
+            // `Carregar` é síncrono e a seleção atrasada não existe.
+            if (!_grade.IsHandleCreated) return;
+
+            _reconstruindoSelecao = true;
+            EventHandler soltar = null;
+            soltar = (origem, evento) =>
+            {
+                System.Windows.Forms.Application.Idle -= soltar;
+                _reconstruindoSelecao = false;
+                // A seleção que o DataGridView restaurou sozinho não é a da página ativa: volta
+                // para ela, como o `VSWp1ebyWra` do original (sem ativar outra página).
+                SelecionarAtiva();
+            };
+            System.Windows.Forms.Application.Idle += soltar;
         }
 
         internal void IrParaPagina(string pagina)

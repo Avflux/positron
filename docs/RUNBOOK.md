@@ -928,6 +928,45 @@ Três armadilhas medidas nessa receita:
 - **O dump em AutoLISP é ANSI:** os acentos saem quebrados no `.txt` (o layer está certo no desenho).
   Compare **nomes** e a contagem `TOTAL;n`, e para provar o XData use a linha `PAGINA;<nome>;xdata=…`.
 
+### Clique físico na paleta (mouse e teclado de verdade) — medido na rodada 222
+
+O que o `pzFolhas` não alcançava: o **clique do usuário**. A receita que funcionou (AutoCAD 2020 com a
+interface cheia, cópia do desenho, plugin pelo autoload do bundle reinstalado):
+
+- **O clique sai do próprio plugin, no Timer do WinForms** (`EntradaFisicaDaProva`,
+  `POSITRON_FOLHA_ACAO=clique-inline`/`clique-atalhos`): `SetCursorPos` no ponto de tela do controle
+  (`grade.GetCellDisplayRectangle(linha, coluna, false)` + `PointToScreen`) e `mouse_event`; a digitação
+  é `keybd_event` (com Shift quando o caractere pede). Um script externo **não** consegue acertar a
+  célula: as coordenadas são do controle dentro do `PaletteSet`.
+- **Cada passo é um tick do Timer.** `mouse_event` só entrega a mensagem quando o thread volta ao laço:
+  clique e digitação no mesmo tick não funcionam (o clique não entrou em vigor antes das teclas).
+- **O primeiro clique some na ativação da janela.** Se `GetForegroundWindow()` não é a raiz da paleta
+  (`GetAncestor(handle, GA_ROOT)`), o Windows come o primeiro clique: faça um **clique de aquecimento**
+  antes do que vale (medido: sem ele o clique no `lb1` às vezes não navegava).
+- **Quem abre a edição inline é a TECLA**, não o duplo clique: o designer do original não grava
+  `EditMode` e vale o padrão do WinForms (`EditOnKeystrokeOrF2`). Clique → digitar → `Enter`.
+- **Nunca digite antes de conferir o alvo:** se o clique não deixou a célula certa atual, o tick seguinte
+  aborta (`FALHOU`) em vez de mandar teclas — que iriam para a linha de comando do CAD.
+- **O Xrecord `CENG_ELET`/`Atalhos` da prova** (`Dicionario.gravaAtalhos`): seis valores DXF 1; a fixture
+  os monta por `dictadd`/`entmakex` de um `XRECORD` e o despejo os lê por `(entget xrec)` (grupo 1).
+- **A sessão roda com `POSITRON_LOG`:** nesse modo o `Aviso` **não** abre o `MsgBox` (grava no log) — é o
+  que impede um diálogo de travar o Timer, ao custo de a aparência dos avisos não ser auditada.
+
+### A saída não-zero do `acad.exe` é do host, não do plugin (medido na rodada 222)
+
+Os ensaios de GUI de 183/184/186 terminavam com `EXIT` estranho (`51100350`, `48151230`, `-840123714`,
+`27703998`, nunca zero) e o item ficou aberto como "investigar". A medição isolou o **host**:
+
+| cenário (fechamento por COM: `Close` + `Quit`) | `POSITRON_LOG` | `EXIT` |
+|---|---|---|
+| desenho **novo** (sem arquivo), só `Quit` | — | **0** |
+| `Funcional.dwg` salvo e fechado, bundle do plugin **renomeado** (`Positron.bundle.off`) | **ausente** | 24361662 |
+| o mesmo, com o plugin ligado | presente | 24623806 |
+
+O código muda a cada ensaio e continua não-zero **sem o plugin carregado**: abrir ESTE desenho por arquivo
+(instalação de 4 workflows, 16 páginas, o `frmConfiguracaoBDProjeto` do arranque) e fechá-lo pela COM já
+devolve não-zero. Não é gate de saída: o que vale é o desenho salvo e o log.
+
 ### Existe CAD nesta máquina? (nunca afirme ausência sem medir — medido em 2026-10-16)
 
 Uma ausência é uma **medição, com data** — e são precisos os três: o **registro**, as **pastas** e o

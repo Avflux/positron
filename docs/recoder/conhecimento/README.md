@@ -25,5 +25,5 @@ fato que se mostrou errado é corrigido aqui, não empilhado.
 |---|---|
 | `CONEXAO`/`AUXCONEXAO`, edição de seção e cor, `SetFocus` | `conexao.md` |
 | `INTERLIGACAO`: as duas cargas de veias indefinidas, as telas `PESQC` e `ESTVCABOS`, o Excel ativo da estatística e os apelidos de cabo/veia | `interligacao.md` |
-| Páginas: títulos (`TituloPagina`, `buscaTitulosExistentes`), o `LerXDataVazio`, a troca do `TROCTT`, a ponte com o Excel ativo dos títulos, o status do banco (`monitorConexao`/`statusBanco`), o progresso compartilhado (`Quantidade`+`pbIniciar`/`pbPasso`/`pbFim`) e o espaço da renumeração com destino (as quatro recusas e as fronteiras 27/28) | `paginas.md` |
+| Páginas: títulos (`TituloPagina`, `buscaTitulosExistentes`), o `LerXDataVazio`, a troca do `TROCTT`, a ponte com o Excel ativo dos títulos, o status do banco (`monitorConexao`/`statusBanco`), o progresso compartilhado (`Quantidade`+`pbIniciar`/`pbPasso`/`pbFim`), o espaço da renumeração com destino (as quatro recusas e as fronteiras 27/28) e o **clique físico** (célula Página, os quatro atalhos de seis strings, título 4 e o documento D/A/V) | `paginas.md` |
 | Projeto ativo: `EletronProj`/`Config` do desenho, `IniciarDWG` e a marca `CORRECAO`, `BancoValido`, índice do DWG, `frmConfiguracaoBDProjeto` | `projeto.md` |
